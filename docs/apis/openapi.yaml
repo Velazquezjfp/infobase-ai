@@ -1,0 +1,966 @@
+openapi: 3.0.3
+info:
+  title: BAMF ACTE Companion API
+  description: |
+    API specification for the BAMF ACTE (Automated Case and Task Environment) Companion application.
+
+    **Current Status:** This is a PLANNED API specification. The application currently operates as a
+    frontend-only prototype with simulated operations. This specification documents the target
+    architecture for future backend implementation.
+
+    The API will provide document management, AI-powered case processing, and integration course
+    application handling for BAMF (Bundesamt für Migration und Flüchtlinge).
+  version: 1.0.0
+  contact:
+    name: BAMF Development Team
+    email: api@bamf.example.de
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.bamf-acte.example.de/v1
+    description: Production server (planned)
+  - url: https://staging-api.bamf-acte.example.de/v1
+    description: Staging server (planned)
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Cases
+    description: Case management operations
+  - name: Documents
+    description: Document upload, conversion, and retrieval
+  - name: AI Operations
+    description: AI-powered document processing and analysis
+  - name: Forms
+    description: Application form management
+  - name: Search
+    description: Cross-case and document search capabilities
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and receive access token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: bamf.officer@example.de
+                password:
+                  type: string
+                  format: password
+                  example: SecurePassword123!
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-source-file: Planned - not yet implemented
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate current access token
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Successfully logged out
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cases:
+    get:
+      tags:
+        - Cases
+      summary: List all cases
+      description: Retrieve list of cases accessible to the authenticated user
+      operationId: listCases
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by case status
+          schema:
+            type: string
+            enum: [open, pending, completed]
+        - name: search
+          in: query
+          description: Search cases by name or ID
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of cases to return
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cases:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Case'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-source-file: src/contexts/AppContext.tsx (simulated)
+
+    post:
+      tags:
+        - Cases
+      summary: Create new case
+      description: Create a new case with specified template
+      operationId: createCase
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - template
+              properties:
+                name:
+                  type: string
+                  example: German Integration Course Application - Ahmed Ali
+                template:
+                  type: string
+                  enum: [standard, asylum, familyReunification, integration, citizenship]
+                  example: integration
+      responses:
+        '201':
+          description: Case created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-source-file: src/components/workspace/NewCaseDialog.tsx (simulated)
+
+  /cases/{caseId}:
+    get:
+      tags:
+        - Cases
+      summary: Get case by ID
+      description: Retrieve detailed information about a specific case
+      operationId: getCaseById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          description: Case identifier
+          schema:
+            type: string
+            example: ACTE-2024-001
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+        '404':
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-source-file: src/contexts/AppContext.tsx (simulated)
+
+    patch:
+      tags:
+        - Cases
+      summary: Update case
+      description: Update case metadata (name, status, etc.)
+      operationId: updateCase
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          description: Case identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                status:
+                  type: string
+                  enum: [open, pending, completed]
+      responses:
+        '200':
+          description: Case updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cases/{caseId}/documents:
+    get:
+      tags:
+        - Documents
+      summary: List case documents
+      description: Retrieve all documents in a case
+      operationId: listCaseDocuments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: folderId
+          in: query
+          description: Filter by folder ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Document'
+      x-source-file: src/types/case.ts (simulated)
+
+    post:
+      tags:
+        - Documents
+      summary: Upload document
+      description: Upload a new document to the case
+      operationId: uploadDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - folderId
+              properties:
+                file:
+                  type: string
+                  format: binary
+                folderId:
+                  type: string
+                  description: Target folder ID
+                metadata:
+                  type: object
+                  description: Optional document metadata
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-source-file: src/components/workspace/CaseTreeExplorer.tsx (simulated)
+
+  /cases/{caseId}/documents/{documentId}:
+    get:
+      tags:
+        - Documents
+      summary: Get document
+      description: Retrieve document metadata and content
+      operationId: getDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Documents
+      summary: Delete document
+      description: Remove document from case
+      operationId: deleteDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Document deleted successfully
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ai/convert:
+    post:
+      tags:
+        - AI Operations
+      summary: Convert document format
+      description: Convert document to PDF, JSON, or XML format using AI
+      operationId: convertDocument
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - documentId
+                - targetFormat
+              properties:
+                documentId:
+                  type: string
+                  example: doc-1
+                targetFormat:
+                  type: string
+                  enum: [pdf, json, xml, docx]
+                  example: pdf
+      responses:
+        '202':
+          description: Conversion job accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                    example: job-12345
+                  status:
+                    type: string
+                    example: processing
+                  estimatedCompletion:
+                    type: string
+                    format: date-time
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-source-file: src/components/workspace/AIChatInterface.tsx (simulated)
+
+  /ai/translate:
+    post:
+      tags:
+        - AI Operations
+      summary: Translate document
+      description: Translate document content to German
+      operationId: translateDocument
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - documentId
+                - targetLanguage
+              properties:
+                documentId:
+                  type: string
+                targetLanguage:
+                  type: string
+                  default: de
+                  example: de
+      responses:
+        '202':
+          description: Translation job accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                  status:
+                    type: string
+                    example: processing
+      x-source-file: src/components/workspace/AIChatInterface.tsx (simulated)
+
+  /ai/anonymize:
+    post:
+      tags:
+        - AI Operations
+      summary: Anonymize document
+      description: Remove or redact personal data from document
+      operationId: anonymizeDocument
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - documentId
+              properties:
+                documentId:
+                  type: string
+                redactionLevel:
+                  type: string
+                  enum: [minimal, standard, maximum]
+                  default: standard
+      responses:
+        '202':
+          description: Anonymization job accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                  status:
+                    type: string
+                  detectedPII:
+                    type: array
+                    items:
+                      type: string
+                    example: [names, addresses, dates_of_birth]
+      x-source-file: src/components/workspace/AIChatInterface.tsx (simulated)
+
+  /ai/extract-metadata:
+    post:
+      tags:
+        - AI Operations
+      summary: Extract document metadata
+      description: Use AI to extract structured metadata from document
+      operationId: extractMetadata
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - documentId
+              properties:
+                documentId:
+                  type: string
+      responses:
+        '200':
+          description: Metadata extracted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: object
+                    additionalProperties: true
+                  confidence:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+      x-source-file: src/components/workspace/AIChatInterface.tsx (simulated)
+
+  /ai/validate-case:
+    post:
+      tags:
+        - AI Operations
+      summary: Validate case completeness
+      description: Check if case has all required documents
+      operationId: validateCase
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - caseId
+              properties:
+                caseId:
+                  type: string
+      responses:
+        '200':
+          description: Validation complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  missingDocuments:
+                    type: array
+                    items:
+                      type: string
+                  completeness:
+                    type: number
+                    description: Percentage of required documents present
+                    example: 85.5
+                  recommendations:
+                    type: array
+                    items:
+                      type: string
+      x-source-file: src/components/workspace/AIChatInterface.tsx (simulated)
+
+  /search:
+    get:
+      tags:
+        - Search
+      summary: Search documents
+      description: Full-text search across all documents in accessible cases
+      operationId: searchDocuments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query
+          schema:
+            type: string
+        - name: caseId
+          in: query
+          description: Limit search to specific case
+          schema:
+            type: string
+        - name: documentType
+          in: query
+          description: Filter by document type
+          schema:
+            type: string
+            enum: [pdf, xml, json, docx]
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        documentId:
+                          type: string
+                        caseId:
+                          type: string
+                        matches:
+                          type: integer
+                        snippets:
+                          type: array
+                          items:
+                            type: string
+                  total:
+                    type: integer
+      x-source-file: src/components/workspace/AIChatInterface.tsx (simulated)
+
+  /cases/{caseId}/forms:
+    get:
+      tags:
+        - Forms
+      summary: Get case form
+      description: Retrieve application form data for case
+      operationId: getCaseForm
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Form data retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fields:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FormField'
+      x-source-file: src/contexts/AppContext.tsx (simulated)
+
+    put:
+      tags:
+        - Forms
+      summary: Update case form
+      description: Update application form data
+      operationId: updateCaseForm
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fields:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/FormField'
+      responses:
+        '200':
+          description: Form updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fields:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FormField'
+      x-source-file: src/components/workspace/FormViewer.tsx (simulated)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login endpoint
+
+  schemas:
+    AuthResponse:
+      type: object
+      required:
+        - accessToken
+        - tokenType
+        - expiresIn
+        - user
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+          example: 3600
+        refreshToken:
+          type: string
+          description: Refresh token for obtaining new access token
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      required:
+        - id
+        - username
+        - role
+      properties:
+        id:
+          type: string
+          example: user-123
+        username:
+          type: string
+          example: bamf.officer@example.de
+        name:
+          type: string
+          example: Maria Schmidt
+        role:
+          type: string
+          enum: [admin, officer, viewer]
+          example: officer
+
+    Case:
+      type: object
+      required:
+        - id
+        - name
+        - createdAt
+        - status
+        - folders
+      properties:
+        id:
+          type: string
+          description: Unique case identifier
+          example: ACTE-2024-001
+        name:
+          type: string
+          description: Case name/title
+          example: German Integration Course Application - Ahmed Ali
+        createdAt:
+          type: string
+          format: date
+          description: Case creation date
+          example: '2024-01-15'
+        status:
+          type: string
+          enum: [open, pending, completed]
+          description: Current case status
+          example: open
+        folders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Folder'
+
+    Folder:
+      type: object
+      required:
+        - id
+        - name
+        - documents
+        - subfolders
+      properties:
+        id:
+          type: string
+          example: personal-data
+        name:
+          type: string
+          example: Personal Data
+        isExpanded:
+          type: boolean
+          default: false
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        subfolders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Folder'
+
+    Document:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - size
+        - uploadedAt
+      properties:
+        id:
+          type: string
+          example: doc-1
+        name:
+          type: string
+          example: Birth_Certificate.pdf
+        type:
+          type: string
+          enum: [pdf, xml, json, docx]
+          example: pdf
+        size:
+          type: string
+          description: Human-readable file size
+          example: 245 KB
+        uploadedAt:
+          type: string
+          format: date
+          example: '2024-01-15'
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Document-specific metadata
+        content:
+          type: string
+          description: Document content (for text documents)
+
+    FormField:
+      type: object
+      required:
+        - id
+        - label
+        - type
+        - value
+      properties:
+        id:
+          type: string
+          example: name
+        label:
+          type: string
+          example: Full Name
+        type:
+          type: string
+          enum: [text, date, select, textarea]
+          example: text
+        value:
+          type: string
+          example: Ahmed Ali
+        options:
+          type: array
+          items:
+            type: string
+          description: Available options for select fields
+        required:
+          type: boolean
+          default: false
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          example: UNAUTHORIZED
+        message:
+          type: string
+          example: Invalid credentials provided
+        details:
+          type: object
+          additionalProperties: true

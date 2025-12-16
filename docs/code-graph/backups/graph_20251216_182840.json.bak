@@ -1,0 +1,425 @@
+{
+  "entities": [
+    {
+      "name": "src/main.tsx",
+      "entityType": "EntryPoint",
+      "observations": [
+        "Application entry point",
+        "Creates React root element",
+        "Renders App component",
+        "Imports global CSS from index.css"
+      ]
+    },
+    {
+      "name": "src/App.tsx",
+      "entityType": "RootComponent",
+      "observations": [
+        "Root application component",
+        "Configures QueryClientProvider from @tanstack/react-query",
+        "Wraps application with AppProvider context",
+        "Configures TooltipProvider from shadcn/ui",
+        "Sets up BrowserRouter with React Router",
+        "Defines 3 routes: / (Index), /workspace (Workspace), * (NotFound)",
+        "Includes Toaster and Sonner for notifications"
+      ]
+    },
+    {
+      "name": "src/contexts/AppContext.tsx",
+      "entityType": "Context",
+      "observations": [
+        "Main application state context",
+        "Provides AppContext using React createContext",
+        "Exports AppProvider component",
+        "Exports useApp custom hook for consuming context",
+        "Manages user authentication state",
+        "Manages multi-case support with cases array and currentCase",
+        "Manages document selection and view modes",
+        "Manages form fields state with updateFormField function",
+        "Manages chat messages with addChatMessage function",
+        "Manages UI state: highlightedFolder, isAdminMode, isSidebarCollapsed",
+        "Provides switchCase, addNewCase, searchCases functions",
+        "Defines AppContextType interface with 20+ properties"
+      ]
+    },
+    {
+      "name": "src/pages/Index.tsx",
+      "entityType": "Page",
+      "observations": [
+        "Index page component",
+        "Renders Login component",
+        "Serves as the landing page at route /"
+      ]
+    },
+    {
+      "name": "src/pages/Login.tsx",
+      "entityType": "Page",
+      "observations": [
+        "Login page component",
+        "Uses useState for name input",
+        "Uses useNavigate from react-router-dom",
+        "Uses useApp context for setUser",
+        "Contains login form with Input and Button from shadcn/ui",
+        "Navigates to /workspace on successful login",
+        "Features branding section with BAMF logo and feature highlights",
+        "Uses lucide-react icons: FolderOpen, Shield, FileText, Bot"
+      ]
+    },
+    {
+      "name": "src/pages/Workspace.tsx",
+      "entityType": "Page",
+      "observations": [
+        "Main workspace page component",
+        "Uses useApp context for user, isAdminMode, selectedDocument",
+        "Uses useEffect for authentication redirect",
+        "Uses useEffect to auto-collapse sidebar when document selected",
+        "Composes WorkspaceHeader, CaseTreeExplorer, AIChatInterface, DocumentViewer, FormViewer, AdminConfigPanel",
+        "Uses ResizablePanelGroup for flexible layout",
+        "Conditionally renders AdminConfigPanel based on isAdminMode",
+        "Protected route - redirects to / if no user"
+      ]
+    },
+    {
+      "name": "src/pages/NotFound.tsx",
+      "entityType": "Page",
+      "observations": [
+        "404 Not Found page",
+        "Uses useLocation from react-router-dom",
+        "Logs 404 errors to console",
+        "Provides link to return home"
+      ]
+    },
+    {
+      "name": "src/components/workspace/WorkspaceHeader.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Workspace header component",
+        "Uses useApp context for user, isAdminMode, currentCase",
+        "Uses useNavigate for logout navigation",
+        "Renders BAMF branding with Shield icon",
+        "Displays current case ID and name",
+        "Contains CaseSearchDialog and NewCaseDialog components",
+        "Includes admin mode toggle button",
+        "Contains user dropdown menu with profile, settings, logout options",
+        "Uses shadcn/ui DropdownMenu component"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Case tree explorer sidebar component",
+        "Uses useApp context for currentCase, selectedDocument, viewMode state",
+        "Contains FolderItem internal component for recursive folder rendering",
+        "Supports drag and drop file upload with handleDragOver, handleDragLeave, handleDrop",
+        "Uses ContextMenu from shadcn/ui for folder and document actions",
+        "Displays case status with color-coded badges",
+        "Collapsible sidebar with toggle functionality",
+        "Uses getFileIcon helper function for document type icons",
+        "Uses toast hook for upload notifications"
+      ]
+    },
+    {
+      "name": "src/components/workspace/AIChatInterface.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "AI chat interface component",
+        "Uses useApp context for chatMessages, addChatMessage, updateFormField",
+        "Uses useState for input, showCommands, filteredCommands, isTyping",
+        "Uses useRef for messagesEndRef and inputRef",
+        "Auto-scrolls to new messages with useEffect",
+        "Implements slash command autocomplete system",
+        "Defines quickActions array with 6 quick action buttons",
+        "Simulates AI responses for various commands",
+        "Supports document drop and analysis",
+        "Uses formatMessage function to render markdown-like content",
+        "Handles commands: /convert, /search, /translate, /anonymize, /validateCase, /generateEmail"
+      ]
+    },
+    {
+      "name": "src/components/workspace/DocumentViewer.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Document viewer component",
+        "Uses useApp context for selectedDocument, setSelectedDocument, setViewMode",
+        "Uses useState for activeTab (pdf, xml, json, docx)",
+        "Displays document with format tabs",
+        "Includes document actions: Convert PDF, Translate, Anonymize, Download, Metadata",
+        "Uses toast hook for action notifications",
+        "Uses Button component from shadcn/ui",
+        "Uses lucide-react icons for document types"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FormViewer.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Form viewer component with metadata view",
+        "Uses useApp context for selectedDocument, formFields, updateFormField, currentCase, viewMode",
+        "Accepts showMetadata prop via FormViewerProps interface",
+        "Renders metadata view when viewMode is 'metadata'",
+        "Renders form view with progress indicator",
+        "Supports field types: text, date, select, textarea",
+        "Uses Input, Textarea, Select components from shadcn/ui",
+        "Includes Save Draft and Submit buttons",
+        "Shows AI auto-fill hint message"
+      ]
+    },
+    {
+      "name": "src/components/workspace/AdminConfigPanel.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Admin configuration panel modal component",
+        "Uses useApp context for setIsAdminMode, formFields, setFormFields",
+        "Manages local state for folderTemplates, documentTypes, macros, metadataFields",
+        "Defines TypeScript interfaces: FolderTemplate, DocumentType, MacroConfig, MetadataField",
+        "Contains 5 tabs: Folders, Doc Types, Macros, Forms, Metadata",
+        "Uses shadcn/ui Tabs, Card, Switch, Badge, Select components",
+        "Provides CRUD operations for each configuration type",
+        "Includes YAML preview for folder templates",
+        "Full-screen modal overlay design"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseSearchDialog.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Case search dialog component",
+        "Uses useApp context for cases, searchCases, switchCase, currentCase, allCaseFormData",
+        "Uses useMemo for filtered cases optimization",
+        "Accepts trigger and onCaseSelect props via CaseSearchDialogProps interface",
+        "Uses Dialog from shadcn/ui",
+        "Displays search input with clear button",
+        "Shows case cards with status badges and applicant info",
+        "Uses getStatusColor helper for status styling",
+        "Uses getCaseApplicantName helper to extract name from form data"
+      ]
+    },
+    {
+      "name": "src/components/workspace/NewCaseDialog.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "New case creation dialog component",
+        "Uses useApp context for addNewCase, switchCase",
+        "Uses useState for open, caseName, template",
+        "Accepts trigger prop via NewCaseDialogProps interface",
+        "Defines caseTemplates array with 5 templates",
+        "Uses Dialog, Select, Input from shadcn/ui",
+        "Shows folder preview for new cases",
+        "Uses sonner toast for notifications",
+        "Auto-fills case name based on selected template"
+      ]
+    },
+    {
+      "name": "src/types/case.ts",
+      "entityType": "Types",
+      "observations": [
+        "TypeScript type definitions file",
+        "Exports Document interface with properties: id, name, type, size, uploadedAt, metadata, content",
+        "Exports Folder interface with properties: id, name, documents, subfolders, isExpanded",
+        "Exports Case interface with properties: id, name, createdAt, status, folders",
+        "Exports FormField interface with properties: id, label, type, value, options, required",
+        "Exports ChatMessage interface with properties: id, role, content, timestamp, command",
+        "Exports SlashCommand interface with properties: command, label, description, icon",
+        "Document type union: 'pdf' | 'xml' | 'json' | 'docx'",
+        "Case status union: 'open' | 'pending' | 'completed'",
+        "FormField type union: 'text' | 'date' | 'select' | 'textarea'",
+        "ChatMessage role union: 'user' | 'assistant'"
+      ]
+    },
+    {
+      "name": "src/data/mockData.ts",
+      "entityType": "Data",
+      "observations": [
+        "Mock data file for development",
+        "Exports slashCommands array with 11 slash commands",
+        "Exports initialFormFields array with 7 form fields",
+        "Exports defaultFolderTemplate array with 6 folder templates",
+        "Exports createNewCase factory function",
+        "Exports mockCase object with sample case data",
+        "Exports sampleCases array with 3 sample cases",
+        "Exports sampleCaseFormData record mapping case IDs to form data",
+        "Exports initialChatMessages array with welcome message",
+        "Imports types from @/types/case"
+      ]
+    },
+    {
+      "name": "src/hooks/use-toast.ts",
+      "entityType": "Hook",
+      "observations": [
+        "Toast notification hook",
+        "Exports useToast custom hook",
+        "Exports toast function for triggering toasts",
+        "Exports reducer function for toast state management",
+        "Uses React useState and useEffect",
+        "Defines ToasterToast type extending ToastProps",
+        "Defines actionTypes: ADD_TOAST, UPDATE_TOAST, DISMISS_TOAST, REMOVE_TOAST",
+        "Implements toast queue with TOAST_LIMIT of 1",
+        "Uses memory state pattern for cross-component toast management",
+        "Returns toasts array, toast function, dismiss function"
+      ]
+    },
+    {
+      "name": "src/hooks/use-mobile.tsx",
+      "entityType": "Hook",
+      "observations": [
+        "Mobile detection hook",
+        "Exports useIsMobile custom hook",
+        "Uses React useState and useEffect",
+        "Defines MOBILE_BREAKPOINT constant at 768px",
+        "Uses window.matchMedia for responsive detection",
+        "Adds and removes event listener for resize changes",
+        "Returns boolean indicating mobile viewport"
+      ]
+    },
+    {
+      "name": "src/lib/utils.ts",
+      "entityType": "Utility",
+      "observations": [
+        "Utility functions file",
+        "Exports cn function for className merging",
+        "Uses clsx for conditional class names",
+        "Uses tailwind-merge for Tailwind CSS class deduplication",
+        "Imports ClassValue type from clsx"
+      ]
+    },
+    {
+      "name": "src/components/NavLink.tsx",
+      "entityType": "Component",
+      "observations": [
+        "NavLink wrapper component",
+        "Uses React forwardRef for ref forwarding",
+        "Wraps react-router-dom NavLink",
+        "Defines NavLinkCompatProps interface extending NavLinkProps",
+        "Adds activeClassName and pendingClassName props",
+        "Uses cn utility for className merging",
+        "Sets displayName to 'NavLink'"
+      ]
+    },
+    {
+      "name": "Route::/",
+      "entityType": "Route",
+      "observations": [
+        "Root route path /",
+        "Renders Index page component",
+        "Landing page / login page"
+      ]
+    },
+    {
+      "name": "Route::/workspace",
+      "entityType": "Route",
+      "observations": [
+        "Workspace route path /workspace",
+        "Renders Workspace page component",
+        "Protected route requiring authentication",
+        "Main application workspace"
+      ]
+    },
+    {
+      "name": "Route::*",
+      "entityType": "Route",
+      "observations": [
+        "Catch-all route for 404",
+        "Renders NotFound page component",
+        "Handles all unmatched routes"
+      ]
+    },
+    {
+      "name": "AppContext",
+      "entityType": "ReactContext",
+      "observations": [
+        "React Context for global application state",
+        "Created with createContext in AppContext.tsx",
+        "Provides state for: user, cases, currentCase, selectedDocument, viewMode, formFields, chatMessages",
+        "Provides UI state for: highlightedFolder, isAdminMode, isSidebarCollapsed",
+        "Consumed via useApp custom hook"
+      ]
+    },
+    {
+      "name": "useApp",
+      "entityType": "CustomHook",
+      "observations": [
+        "Custom hook to consume AppContext",
+        "Defined in src/contexts/AppContext.tsx",
+        "Throws error if used outside AppProvider",
+        "Returns full AppContextType object"
+      ]
+    },
+    {
+      "name": "useToast",
+      "entityType": "CustomHook",
+      "observations": [
+        "Custom hook for toast notifications",
+        "Defined in src/hooks/use-toast.ts",
+        "Returns toasts state, toast function, dismiss function",
+        "Uses reducer pattern for state management"
+      ]
+    },
+    {
+      "name": "useIsMobile",
+      "entityType": "CustomHook",
+      "observations": [
+        "Custom hook for mobile viewport detection",
+        "Defined in src/hooks/use-mobile.tsx",
+        "Returns boolean based on 768px breakpoint",
+        "Uses matchMedia API"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from_": "src/main.tsx",
+      "to": "src/App.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/App.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/App.tsx",
+      "to": "src/pages/Index.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/App.tsx",
+      "to": "src/pages/Workspace.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/App.tsx",
+      "to": "src/pages/NotFound.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/App.tsx",
+      "to": "Route::/",
+      "relationType": "defines_route"
+    },
+    {
+      "from_": "src/App.tsx",
+      "to": "Route::/workspace",
+      "relationType": "defines_route"
+    },
+    {
+      "from_": "src/App.tsx",
+      "to": "Route::*",
+      "relationType": "defines_route"
+    },
+    {
+      "from_": "Route::/",
+      "to": "src/pages/Index.tsx",
+      "relationType": "renders"
+    },
+    {
+      "from_": "Route::/workspace",
+      "to": "src/pages/Workspace.tsx",
+      "relationType": "renders"
+    },
+    {
+      "from_": "Route::*",
+      "to": "src/pages/NotFound.tsx",
+      "relationType": "renders"
+    }
+  ]
+}

@@ -1,0 +1,739 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "BAMF ACTE Companion API",
+    "description": "API specification for the BAMF ACTE (Automated Case and Task Environment) Companion application.\n\n**Current Status:** This is a PLANNED API specification. The application currently operates as a frontend-only prototype with simulated operations. This specification documents the target architecture for future backend implementation.\n\nThe API will provide document management, AI-powered case processing, and integration course application handling for BAMF (Bundesamt für Migration und Flüchtlinge).",
+    "version": "1.0.0",
+    "contact": {
+      "name": "BAMF Development Team",
+      "email": "api@bamf.example.de"
+    },
+    "license": {
+      "name": "Proprietary"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.bamf-acte.example.de/v1",
+      "description": "Production server (planned)"
+    },
+    {
+      "url": "https://staging-api.bamf-acte.example.de/v1",
+      "description": "Staging server (planned)"
+    },
+    {
+      "url": "http://localhost:3000/api/v1",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization"
+    },
+    {
+      "name": "Cases",
+      "description": "Case management operations"
+    },
+    {
+      "name": "Documents",
+      "description": "Document upload, conversion, and retrieval"
+    },
+    {
+      "name": "AI Operations",
+      "description": "AI-powered document processing and analysis"
+    },
+    {
+      "name": "Forms",
+      "description": "Application form management"
+    },
+    {
+      "name": "Search",
+      "description": "Cross-case and document search capabilities"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "User login",
+        "description": "Authenticate user and receive access token",
+        "operationId": "login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "bamf.officer@example.de"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "SecurePassword123!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "User logout",
+        "description": "Invalidate current access token",
+        "operationId": "logout",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "204": {
+            "description": "Successfully logged out"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases": {
+      "get": {
+        "tags": ["Cases"],
+        "summary": "List all cases",
+        "description": "Retrieve list of cases accessible to the authenticated user",
+        "operationId": "listCases",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by case status",
+            "schema": {
+              "type": "string",
+              "enum": ["open", "pending", "completed"]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search cases by name or ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of cases to return",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Pagination offset",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cases": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Case"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Cases"],
+        "summary": "Create new case",
+        "description": "Create a new case with specified template",
+        "operationId": "createCase",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "template"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "German Integration Course Application - Ahmed Ali"
+                  },
+                  "template": {
+                    "type": "string",
+                    "enum": ["standard", "asylum", "familyReunification", "integration", "citizenship"],
+                    "example": "integration"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Case created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Case"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{caseId}": {
+      "get": {
+        "tags": ["Cases"],
+        "summary": "Get case by ID",
+        "operationId": "getCaseById",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Case"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cases/{caseId}/documents": {
+      "post": {
+        "tags": ["Documents"],
+        "summary": "Upload document",
+        "operationId": "uploadDocument",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file", "folderId"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "folderId": {
+                    "type": "string"
+                  },
+                  "metadata": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Document uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/convert": {
+      "post": {
+        "tags": ["AI Operations"],
+        "summary": "Convert document format",
+        "operationId": "convertDocument",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["documentId", "targetFormat"],
+                "properties": {
+                  "documentId": {
+                    "type": "string",
+                    "example": "doc-1"
+                  },
+                  "targetFormat": {
+                    "type": "string",
+                    "enum": ["pdf", "json", "xml", "docx"],
+                    "example": "pdf"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Conversion job accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/translate": {
+      "post": {
+        "tags": ["AI Operations"],
+        "summary": "Translate document",
+        "operationId": "translateDocument",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["documentId", "targetLanguage"],
+                "properties": {
+                  "documentId": {
+                    "type": "string"
+                  },
+                  "targetLanguage": {
+                    "type": "string",
+                    "default": "de"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Translation job accepted"
+          }
+        }
+      }
+    },
+    "/ai/anonymize": {
+      "post": {
+        "tags": ["AI Operations"],
+        "summary": "Anonymize document",
+        "operationId": "anonymizeDocument",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["documentId"],
+                "properties": {
+                  "documentId": {
+                    "type": "string"
+                  },
+                  "redactionLevel": {
+                    "type": "string",
+                    "enum": ["minimal", "standard", "maximum"],
+                    "default": "standard"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Anonymization job accepted"
+          }
+        }
+      }
+    },
+    "/ai/validate-case": {
+      "post": {
+        "tags": ["AI Operations"],
+        "summary": "Validate case completeness",
+        "operationId": "validateCase",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["caseId"],
+                "properties": {
+                  "caseId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation complete",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valid": {
+                      "type": "boolean"
+                    },
+                    "missingDocuments": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "completeness": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": ["Search"],
+        "summary": "Search documents",
+        "operationId": "searchDocuments",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results"
+          }
+        }
+      }
+    },
+    "/cases/{caseId}/forms": {
+      "get": {
+        "tags": ["Forms"],
+        "summary": "Get case form",
+        "operationId": "getCaseForm",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Form data retrieved"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Forms"],
+        "summary": "Update case form",
+        "operationId": "updateCaseForm",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Form updated successfully"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from /auth/login endpoint"
+      }
+    },
+    "schemas": {
+      "AuthResponse": {
+        "type": "object",
+        "required": ["accessToken", "tokenType", "expiresIn", "user"],
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "example": 3600
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": ["id", "username", "role"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "officer", "viewer"]
+          }
+        }
+      },
+      "Case": {
+        "type": "object",
+        "required": ["id", "name", "createdAt", "status", "folders"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ACTE-2024-001"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["open", "pending", "completed"]
+          },
+          "folders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Folder"
+            }
+          }
+        }
+      },
+      "Folder": {
+        "type": "object",
+        "required": ["id", "name", "documents", "subfolders"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isExpanded": {
+            "type": "boolean"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Document"
+            }
+          },
+          "subfolders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Folder"
+            }
+          }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "required": ["id", "name", "type", "size", "uploadedAt"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["pdf", "xml", "json", "docx"]
+          },
+          "size": {
+            "type": "string"
+          },
+          "uploadedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "FormField": {
+        "type": "object",
+        "required": ["id", "label", "type", "value"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["text", "date", "select", "textarea"]
+          },
+          "value": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "required": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error", "message"],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

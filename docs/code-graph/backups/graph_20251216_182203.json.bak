@@ -1,0 +1,93 @@
+{
+  "entities": [
+    {
+      "name": "src/main.tsx",
+      "entityType": "EntryPoint",
+      "observations": [
+        "Application entry point",
+        "Creates React root element",
+        "Renders App component",
+        "Imports global CSS from index.css"
+      ]
+    },
+    {
+      "name": "src/App.tsx",
+      "entityType": "RootComponent",
+      "observations": [
+        "Root application component",
+        "Configures QueryClientProvider from @tanstack/react-query",
+        "Wraps application with AppProvider context",
+        "Configures TooltipProvider from shadcn/ui",
+        "Sets up BrowserRouter with React Router",
+        "Defines 3 routes: / (Index), /workspace (Workspace), * (NotFound)",
+        "Includes Toaster and Sonner for notifications"
+      ]
+    },
+    {
+      "name": "src/contexts/AppContext.tsx",
+      "entityType": "Context",
+      "observations": [
+        "Main application state context",
+        "Provides AppContext using React createContext",
+        "Exports AppProvider component",
+        "Exports useApp custom hook for consuming context",
+        "Manages user authentication state",
+        "Manages multi-case support with cases array and currentCase",
+        "Manages document selection and view modes",
+        "Manages form fields state with updateFormField function",
+        "Manages chat messages with addChatMessage function",
+        "Manages UI state: highlightedFolder, isAdminMode, isSidebarCollapsed",
+        "Provides switchCase, addNewCase, searchCases functions",
+        "Defines AppContextType interface with 20+ properties"
+      ]
+    },
+    {
+      "name": "src/pages/Index.tsx",
+      "entityType": "Page",
+      "observations": [
+        "Index page component",
+        "Renders Login component",
+        "Serves as the landing page at route /"
+      ]
+    },
+    {
+      "name": "src/pages/Login.tsx",
+      "entityType": "Page",
+      "observations": [
+        "Login page component",
+        "Uses useState for name input",
+        "Uses useNavigate from react-router-dom",
+        "Uses useApp context for setUser",
+        "Contains login form with Input and Button from shadcn/ui",
+        "Navigates to /workspace on successful login",
+        "Features branding section with BAMF logo and feature highlights",
+        "Uses lucide-react icons: FolderOpen, Shield, FileText, Bot"
+      ]
+    },
+    {
+      "name": "src/pages/Workspace.tsx",
+      "entityType": "Page",
+      "observations": [
+        "Main workspace page component",
+        "Uses useApp context for user, isAdminMode, selectedDocument",
+        "Uses useEffect for authentication redirect",
+        "Uses useEffect to auto-collapse sidebar when document selected",
+        "Composes WorkspaceHeader, CaseTreeExplorer, AIChatInterface, DocumentViewer, FormViewer, AdminConfigPanel",
+        "Uses ResizablePanelGroup for flexible layout",
+        "Conditionally renders AdminConfigPanel based on isAdminMode",
+        "Protected route - redirects to / if no user"
+      ]
+    },
+    {
+      "name": "src/pages/NotFound.tsx",
+      "entityType": "Page",
+      "observations": [
+        "404 Not Found page",
+        "Uses useLocation from react-router-dom",
+        "Logs 404 errors to console",
+        "Provides link to return home"
+      ]
+    }
+  ],
+  "relations": []
+}

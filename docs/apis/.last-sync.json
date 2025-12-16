@@ -1,0 +1,64 @@
+{
+  "last_commit": "959f159b34a311b8a04937c015abb0fdd2f1afa2",
+  "last_sync": "2025-12-16T19:30:00.000Z",
+  "documentation_version": "1.0.0",
+  "api_status": "planned",
+  "tracked_paths": [
+    "src/pages/Login.tsx",
+    "src/pages/Workspace.tsx",
+    "src/contexts/AppContext.tsx",
+    "src/components/workspace/AIChatInterface.tsx",
+    "src/components/workspace/CaseTreeExplorer.tsx",
+    "src/components/workspace/CaseSearchDialog.tsx",
+    "src/components/workspace/NewCaseDialog.tsx",
+    "src/components/workspace/DocumentViewer.tsx",
+    "src/components/workspace/FormViewer.tsx",
+    "src/components/workspace/AdminConfigPanel.tsx",
+    "src/components/workspace/WorkspaceHeader.tsx",
+    "src/data/mockData.ts",
+    "src/types/case.ts",
+    "src/App.tsx"
+  ],
+  "notes": [
+    "This is a frontend-only application with simulated API operations",
+    "All tracked files contain API-related patterns that will need backend implementation",
+    "Authentication is currently simulated in Login.tsx and AppContext.tsx",
+    "AI operations are simulated in AIChatInterface.tsx using slash commands",
+    "Document operations are simulated in CaseTreeExplorer.tsx and DocumentViewer.tsx",
+    "Form management is simulated in FormViewer.tsx",
+    "Case management is simulated in AppContext.tsx with mock data from mockData.ts",
+    "React Query is configured in App.tsx but not yet used for actual API calls"
+  ],
+  "simulated_endpoints": [
+    "/auth/login - Login.tsx",
+    "/auth/logout - WorkspaceHeader.tsx",
+    "/cases - AppContext.tsx",
+    "/cases (POST) - NewCaseDialog.tsx",
+    "/cases/{id} - AppContext.tsx",
+    "/cases/{id}/documents - CaseTreeExplorer.tsx",
+    "/cases/{id}/documents (POST) - CaseTreeExplorer.tsx",
+    "/cases/{id}/forms - FormViewer.tsx",
+    "/cases/{id}/forms (PUT) - FormViewer.tsx",
+    "/ai/convert - AIChatInterface.tsx",
+    "/ai/translate - AIChatInterface.tsx",
+    "/ai/anonymize - AIChatInterface.tsx",
+    "/ai/validate-case - AIChatInterface.tsx",
+    "/ai/extract-metadata - AIChatInterface.tsx",
+    "/search - AIChatInterface.tsx"
+  ],
+  "future_implementation_notes": {
+    "ready_for_api": [
+      "React Query client configured in App.tsx",
+      "Type definitions complete in types/case.ts",
+      "UI components ready for async data loading",
+      "Error handling hooks available (use-toast.ts)"
+    ],
+    "migration_required": [
+      "Replace mock data with API service layer",
+      "Implement authentication context with token management",
+      "Update all components to use React Query hooks",
+      "Add loading and error states to all data fetching",
+      "Implement file upload with actual multipart/form-data"
+    ]
+  }
+}

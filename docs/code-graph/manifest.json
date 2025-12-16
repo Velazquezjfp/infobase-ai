@@ -1,0 +1,96 @@
+{
+  "project": "bamf-acte-companion",
+  "description": "BAMF AI Case Management System - Vite + React + TypeScript + shadcn/ui application",
+  "version": "1.0.0",
+  "created_at": "2025-12-16T00:00:00.000Z",
+  "last_updated": "2025-12-16T00:00:00.000Z",
+  "statistics": {
+    "total_entities": 28,
+    "total_relations": 65,
+    "total_observations": 196,
+    "avg_observations_per_entity": 7,
+    "entity_types": {
+      "EntryPoint": 1,
+      "RootComponent": 1,
+      "Context": 1,
+      "Page": 4,
+      "WorkspaceComponent": 8,
+      "Types": 1,
+      "Data": 1,
+      "Hook": 2,
+      "Utility": 1,
+      "Component": 1,
+      "Route": 3,
+      "ReactContext": 1,
+      "CustomHook": 3
+    },
+    "relation_types": {
+      "imports": 41,
+      "defines_route": 3,
+      "renders": 3,
+      "uses_hook": 14,
+      "defines": 1,
+      "exports": 3
+    }
+  },
+  "languages": {
+    "TypeScript": 69,
+    "TSX": 61
+  },
+  "framework": {
+    "name": "React",
+    "version": "18.x",
+    "bundler": "Vite",
+    "ui_library": "shadcn/ui",
+    "state_management": "React Context",
+    "routing": "React Router v6"
+  },
+  "architecture": {
+    "entry_point": "src/main.tsx",
+    "root_component": "src/App.tsx",
+    "pages": [
+      "src/pages/Index.tsx",
+      "src/pages/Login.tsx",
+      "src/pages/Workspace.tsx",
+      "src/pages/NotFound.tsx"
+    ],
+    "workspace_components": [
+      "src/components/workspace/WorkspaceHeader.tsx",
+      "src/components/workspace/CaseTreeExplorer.tsx",
+      "src/components/workspace/AIChatInterface.tsx",
+      "src/components/workspace/DocumentViewer.tsx",
+      "src/components/workspace/FormViewer.tsx",
+      "src/components/workspace/AdminConfigPanel.tsx",
+      "src/components/workspace/CaseSearchDialog.tsx",
+      "src/components/workspace/NewCaseDialog.tsx"
+    ],
+    "contexts": [
+      "src/contexts/AppContext.tsx"
+    ],
+    "hooks": [
+      "src/hooks/use-toast.ts",
+      "src/hooks/use-mobile.tsx"
+    ],
+    "types": [
+      "src/types/case.ts"
+    ],
+    "data": [
+      "src/data/mockData.ts"
+    ],
+    "utilities": [
+      "src/lib/utils.ts"
+    ]
+  },
+  "routes": [
+    { "path": "/", "component": "Index", "description": "Landing/Login page" },
+    { "path": "/workspace", "component": "Workspace", "description": "Main workspace (protected)" },
+    { "path": "*", "component": "NotFound", "description": "404 page" }
+  ],
+  "most_connected_entities": [
+    { "name": "src/contexts/AppContext.tsx", "connections": 15 },
+    { "name": "useApp", "connections": 11 },
+    { "name": "src/pages/Workspace.tsx", "connections": 10 },
+    { "name": "src/App.tsx", "connections": 8 },
+    { "name": "src/lib/utils.ts", "connections": 8 }
+  ]
+}
