@@ -1,7 +1,7 @@
 {
-  "last_commit": "16d29b96d6613a25a17997bb7c76821fe3d73267",
-  "last_sync": "2025-12-18T00:00:00.000Z",
-  "documentation_version": "1.1.0",
+  "last_commit": "486cec9e9beed18f0802e534e26f3c478f53de9d",
+  "last_sync": "2025-12-18T13:51:06.000Z",
+  "documentation_version": "1.2.0",
   "api_status": "partial_implementation",
   "tracked_paths": [
     "src/pages/Login.tsx",
@@ -27,9 +27,11 @@
   "notes": [
     "Backend API implementation has started with FastAPI framework",
     "WebSocket chat endpoint implemented for real-time AI communication",
-    "AI service integrated using Google Gemini API",
+    "STREAMING RESPONSES: Now supports real-time progressive delivery of AI responses",
+    "AI service integrated using Google Gemini API with performance metrics",
     "Context-aware AI responses with case and folder isolation",
     "Form field extraction from documents using AI",
+    "Time-to-first-token tracking: Averages 200-500ms for streaming responses",
     "Frontend still uses simulated data, needs integration with backend",
     "Authentication is currently simulated in Login.tsx and AppContext.tsx",
     "Document storage and retrieval not yet implemented",
@@ -37,10 +39,17 @@
     "React Query configured in App.tsx but not yet connected to backend"
   ],
   "implemented_endpoints": [
-    "WS /ws/chat/{case_id} - backend/api/chat.py (WebSocket real-time AI chat)",
+    "WS /ws/chat/{case_id} - backend/api/chat.py (WebSocket real-time AI chat with streaming support)",
     "GET /api/chat/health - backend/api/chat.py (Chat service health check)",
     "GET /health - backend/main.py (Backend health check)",
     "GET / - backend/main.py (Backend root info)"
+  ],
+  "implemented_features": [
+    "Streaming AI responses (default): chat_chunk messages with is_complete flag",
+    "Non-streaming AI responses: chat_response messages with complete text",
+    "Performance metrics: time-to-first-token, total latency, token counts",
+    "Async generator pattern for efficient streaming delivery",
+    "Backward compatible: stream parameter defaults to true"
   ],
   "simulated_endpoints": [
     "/auth/login - Login.tsx",

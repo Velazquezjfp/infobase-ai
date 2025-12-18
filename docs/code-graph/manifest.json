@@ -1,21 +1,22 @@
 {
   "project": "bamf-acte-companion",
   "description": "BAMF AI Case Management System - Vite + React + TypeScript + shadcn/ui frontend with FastAPI + Python backend",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "created_at": "2025-12-16T00:00:00.000Z",
-  "last_updated": "2025-12-18T00:00:00.000Z",
+  "last_updated": "2025-12-18T13:51:06.000Z",
+  "last_commit": "486cec9e9beed18f0802e534e26f3c478f53de9d",
   "statistics": {
-    "total_entities": 38,
-    "total_relations": 82,
-    "total_observations": 255,
-    "avg_observations_per_entity": 6.71,
+    "total_entities": 41,
+    "total_relations": 91,
+    "total_observations": 310,
+    "avg_observations_per_entity": 7.56,
     "entity_types": {
       "EntryPoint": 1,
       "RootComponent": 1,
       "Context": 1,
       "Page": 4,
       "WorkspaceComponent": 8,
-      "Types": 1,
+      "Types": 2,
       "Data": 1,
       "Hook": 2,
       "Utility": 1,
@@ -29,19 +30,24 @@
       "WebSocketEndpoint": 1,
       "HTTPEndpoint": 1,
       "Service": 2,
-      "Tool": 1
+      "Tool": 1,
+      "Method": 1,
+      "Function": 1
     },
     "relation_types": {
-      "imports": 45,
+      "imports": 47,
       "defines_route": 3,
       "renders": 3,
       "uses_hook": 14,
-      "defines": 6,
+      "defines": 8,
       "exports": 3,
       "registers_route": 2,
-      "uses": 4,
+      "uses": 5,
       "used_by": 1,
-      "connects_to": 1
+      "connects_to": 2,
+      "defines_method": 1,
+      "calls": 1,
+      "uses_indirectly": 1
     }
   },
   "languages": {
@@ -93,7 +99,8 @@
         "src/hooks/use-mobile.tsx"
       ],
       "types": [
-        "src/types/case.ts"
+        "src/types/case.ts",
+        "src/types/websocket.ts"
       ],
       "data": [
         "src/data/mockData.ts"
@@ -130,10 +137,34 @@
     ]
   },
   "most_connected_entities": [
-    { "name": "src/contexts/AppContext.tsx", "connections": 15 },
+    { "name": "src/contexts/AppContext.tsx", "connections": 17, "observations": 25 },
     { "name": "useApp", "connections": 11 },
     { "name": "src/pages/Workspace.tsx", "connections": 10 },
     { "name": "src/App.tsx", "connections": 8 },
     { "name": "src/components/workspace/AIChatInterface.tsx", "connections": 8 }
-  ]
+  ],
+  "recent_changes": {
+    "commit": "486cec9e9beed18f0802e534e26f3c478f53de9d",
+    "date": "2025-12-18T13:51:06+01:00",
+    "description": "phase 2 changes to chat with agent and parse form information",
+    "entities_added": [
+      "src/types/websocket.ts",
+      "backend/services/gemini_service.py::_generate_streaming_response",
+      "backend/api/chat.py::handle_chat_message"
+    ],
+    "entities_updated": [
+      "backend/services/gemini_service.py::GeminiService",
+      "backend/services/gemini_service.py",
+      "backend/api/chat.py",
+      "backend/main.py",
+      "src/contexts/AppContext.tsx"
+    ],
+    "new_features": [
+      "Streaming response support for AI chat",
+      "Performance metrics logging (latency, tokens, time-to-first-token)",
+      "WebSocket message types for frontend-backend communication",
+      "WebSocket connection management in AppContext",
+      "Environment variable loading via dotenv"
+    ]
+  }
 }

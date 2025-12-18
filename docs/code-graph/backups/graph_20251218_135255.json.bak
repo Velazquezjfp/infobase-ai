@@ -38,20 +38,7 @@
         "Manages chat messages with addChatMessage function",
         "Manages UI state: highlightedFolder, isAdminMode, isSidebarCollapsed",
         "Provides switchCase, addNewCase, searchCases functions",
-        "Defines AppContextType interface with 20+ properties",
-        "Imports WebSocketState, ConnectionStatus, WebSocketMessage from @/types/websocket",
-        "Manages WebSocket state: wsConnection, wsStatus, streamingMessageId, isTyping",
-        "Provides connectWebSocket function for establishing WebSocket connections",
-        "Provides disconnectWebSocket function for closing connections",
-        "Provides sendChatMessage function for sending chat messages via WebSocket",
-        "WebSocket connects to ws://localhost:8000/ws/chat/{caseId}",
-        "Handles chat_response message type for non-streaming responses",
-        "Handles chat_chunk message type for streaming responses with chunk accumulation",
-        "Handles form_update message type for form field extraction updates",
-        "Handles system and error message types",
-        "Auto-connects WebSocket when user logs in or case changes via useEffect",
-        "Cleans up WebSocket connections on component unmount",
-        "Streaming message accumulation logic appends chunks to last assistant message"
+        "Defines AppContextType interface with 20+ properties"
       ]
     },
     {
@@ -965,51 +952,6 @@
     },
     {
       "from_": "src/components/workspace/AIChatInterface.tsx",
-      "to": "backend/api/chat.py::websocket_chat_endpoint",
-      "relationType": "connects_to"
-    },
-    {
-      "from_": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_generate_streaming_response",
-      "relationType": "defines_method"
-    },
-    {
-      "from_": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_generate_streaming_response",
-      "relationType": "defines"
-    },
-    {
-      "from_": "backend/api/chat.py",
-      "to": "backend/api/chat.py::handle_chat_message",
-      "relationType": "defines"
-    },
-    {
-      "from_": "backend/api/chat.py::websocket_chat_endpoint",
-      "to": "backend/api/chat.py::handle_chat_message",
-      "relationType": "calls"
-    },
-    {
-      "from_": "backend/api/chat.py::handle_chat_message",
-      "to": "backend/services/gemini_service.py::GeminiService",
-      "relationType": "uses"
-    },
-    {
-      "from_": "backend/api/chat.py::handle_chat_message",
-      "to": "backend/services/gemini_service.py::_generate_streaming_response",
-      "relationType": "uses_indirectly"
-    },
-    {
-      "from_": "src/contexts/AppContext.tsx",
-      "to": "src/types/websocket.ts",
-      "relationType": "imports"
-    },
-    {
-      "from_": "src/types/websocket.ts",
-      "to": "src/types/case.ts",
-      "relationType": "imports"
-    },
-    {
-      "from_": "src/contexts/AppContext.tsx",
       "to": "backend/api/chat.py::websocket_chat_endpoint",
       "relationType": "connects_to"
     }

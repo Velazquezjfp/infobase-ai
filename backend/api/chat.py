@@ -331,10 +331,12 @@ async def handle_form_extraction(
         extraction_prompt = build_extraction_prompt(document_text, form_schema)
 
         # Get AI response with extracted data
+        # Pass case_id to load case-specific context for validation rules
         ai_response = await gemini_service.generate_response(
             prompt=extraction_prompt,
+            case_id=case_id,
             document_content=None,  # Already included in prompt
-            context=None
+            stream=False  # Form extraction should not stream
         )
 
         # Parse the extraction result

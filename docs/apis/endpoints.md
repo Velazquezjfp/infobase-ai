@@ -169,6 +169,7 @@ WebSocket endpoint for real-time, case-scoped AI chat communication.
 - `folderId` (optional): Folder ID for folder-specific context
 - `documentContent` (optional): Document text to include in context
 - `formSchema` (optional): Form field definitions for extraction requests
+- `stream` (optional): Enable streaming responses (default: true)
 
 **Form Extraction Trigger:**
 The AI automatically detects form filling requests when:
@@ -186,11 +187,31 @@ The AI automatically detects form filling requests when:
 }
 ```
 
-**Chat Response (AI Answer):**
+**Chat Response (AI Answer - Non-Streaming Mode):**
 ```json
 {
   "type": "chat_response",
   "content": "AI-generated response text",
+  "timestamp": null
+}
+```
+
+**Chat Chunk (AI Answer - Streaming Mode):**
+```json
+{
+  "type": "chat_chunk",
+  "content": "Partial response text...",
+  "is_complete": false,
+  "timestamp": null
+}
+```
+
+**Chat Chunk Completion (Streaming Mode Final Message):**
+```json
+{
+  "type": "chat_chunk",
+  "content": "",
+  "is_complete": true,
   "timestamp": null
 }
 ```
@@ -224,7 +245,8 @@ The AI automatically detects form filling requests when:
 
 **Message Types Summary:**
 - `system` - System notifications (connection status, etc.)
-- `chat_response` - AI text responses to user queries
+- `chat_response` - AI text responses to user queries (non-streaming mode)
+- `chat_chunk` - Streaming AI response chunks with completion flag
 - `form_update` - Extracted form field values with confidence scores
 - `error` - Error notifications
 
@@ -321,6 +343,9 @@ ws.onopen = () => {
   console.log("Connected to AI chat");
 };
 
+// Handle messages with streaming support
+let currentStreamingMessage = "";
+
 ws.onmessage = (event) => {
   const message = JSON.parse(event.data);
 
@@ -328,13 +353,30 @@ ws.onmessage = (event) => {
     case "system":
       console.log("System:", message.content);
       break;
+
     case "chat_response":
+      // Non-streaming mode: complete response
       console.log("AI:", message.content);
       break;
+
+    case "chat_chunk":
+      // Streaming mode: append chunks
+      if (message.is_complete) {
+        // Final chunk - streaming complete
+        console.log("\n[Streaming complete]");
+        currentStreamingMessage = "";
+      } else {
+        // Add chunk to current message
+        currentStreamingMessage += message.content;
+        process.stdout.write(message.content); // Print chunk without newline
+      }
+      break;
+
     case "form_update":
       console.log("Form updates:", message.updates);
       console.log("Confidence:", message.confidence);
       break;
+
     case "error":
       console.error("Error:", message.message);
       break;
@@ -349,13 +391,25 @@ ws.onclose = () => {
   console.log("Disconnected from AI chat");
 };
 
-// Send a chat message
+// Send a chat message with streaming (default)
 function sendMessage(content) {
   ws.send(JSON.stringify({
     type: "chat",
     content: content,
     caseId: caseId,
-    folderId: "personal-data"
+    folderId: "personal-data",
+    stream: true  // Enable streaming (default behavior)
+  }));
+}
+
+// Send a chat message without streaming
+function sendMessageNoStreaming(content) {
+  ws.send(JSON.stringify({
+    type: "chat",
+    content: content,
+    caseId: caseId,
+    folderId: "personal-data",
+    stream: false  // Disable streaming
   }));
 }
 
@@ -443,7 +497,34 @@ ws.send(JSON.stringify({
 - Single connection per case maintained by ConnectionManager
 - AI responses use Google Gemini 2.5 Flash (optimized for speed)
 - Context loaded once per message from filesystem
-- Streaming responses not yet implemented (planned)
+- **Streaming responses enabled by default (stream: true)**
+  - Time-to-first-token: Typically 200-500ms
+  - Total latency: 1-3 seconds for typical responses
+  - Chunks delivered as generated for progressive UI updates
+  - Better perceived performance compared to non-streaming mode
+- Non-streaming mode available (stream: false) for simpler integration
+
+**Streaming vs Non-Streaming Mode:**
+
+**When to Use Streaming (stream: true, default):**
+- Interactive chat interfaces where users benefit from progressive content
+- Long responses where time-to-first-token matters
+- Better perceived performance and user experience
+- Real-time typing effect for AI responses
+- Typical use case: conversational AI chat
+
+**When to Use Non-Streaming (stream: false):**
+- Simpler client-side implementation (single response handler)
+- Processing responses as complete units (e.g., logging, caching)
+- Form extraction (automatically non-streaming)
+- Batch processing or automated workflows
+- When progressive display is not needed
+
+**Performance Comparison:**
+- Streaming: First token in ~200-500ms, full response in 1-3s
+- Non-streaming: Complete response in 1-3s (no progressive updates)
+- Both modes have similar total latency
+- Streaming provides better user experience through progressive rendering
 
 **Known Limitations:**
 
@@ -453,6 +534,7 @@ ws.send(JSON.stringify({
 - No read receipts
 - One connection per case (reconnection required for case switch)
 - No support for file uploads via WebSocket (use REST endpoints)
+- Form extraction always uses non-streaming mode internally
 
 ---
 
@@ -1649,5 +1731,5 @@ Breaking changes will result in a new version. Non-breaking changes (additions) 
 ---
 
 **Last Updated:** 2025-12-18
-**API Version:** 1.1.0 (Partial Implementation)
-**Current Implementation:** Backend with WebSocket + AI, Frontend simulations for other operations
+**API Version:** 1.2.0 (Partial Implementation)
+**Current Implementation:** Backend with WebSocket + AI + Streaming, Frontend simulations for other operations

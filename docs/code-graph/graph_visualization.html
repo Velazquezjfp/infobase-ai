@@ -225,15 +225,15 @@
             <div class="graph-path">/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/code-graph/code-graph.json</div>
             <div class="stats">
                 <div class="stat">
-                    <div class="stat-number">38</div>
+                    <div class="stat-number">41</div>
                     <div class="stat-label">Entities</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">82</div>
+                    <div class="stat-number">91</div>
                     <div class="stat-label">Relations</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">20</div>
+                    <div class="stat-number">22</div>
                     <div class="stat-label">Types</div>
                 </div>
             </div>
@@ -314,7 +314,20 @@
                         "Manages chat messages with addChatMessage function",
                         "Manages UI state: highlightedFolder, isAdminMode, isSidebarCollapsed",
                         "Provides switchCase, addNewCase, searchCases functions",
-                        "Defines AppContextType interface with 20+ properties"
+                        "Defines AppContextType interface with 20+ properties",
+                        "Imports WebSocketState, ConnectionStatus, WebSocketMessage from @/types/websocket",
+                        "Manages WebSocket state: wsConnection, wsStatus, streamingMessageId, isTyping",
+                        "Provides connectWebSocket function for establishing WebSocket connections",
+                        "Provides disconnectWebSocket function for closing connections",
+                        "Provides sendChatMessage function for sending chat messages via WebSocket",
+                        "WebSocket connects to ws://localhost:8000/ws/chat/{caseId}",
+                        "Handles chat_response message type for non-streaming responses",
+                        "Handles chat_chunk message type for streaming responses with chunk accumulation",
+                        "Handles form_update message type for form field extraction updates",
+                        "Handles system and error message types",
+                        "Auto-connects WebSocket when user logs in or case changes via useEffect",
+                        "Cleans up WebSocket connections on component unmount",
+                        "Streaming message accumulation logic appends chunks to last assistant message"
                 ],
                 "index": 2
         },
@@ -676,7 +689,9 @@
                         "Defines lifespan context manager for startup/shutdown events",
                         "Exposes /health and / (root) endpoints",
                         "Allows origins: localhost:5173, localhost:3000",
-                        "Uses uvicorn for development server on port 8000"
+                        "Uses uvicorn for development server on port 8000",
+                        "Imports load_dotenv from dotenv module",
+                        "Calls load_dotenv() at startup to load environment variables from .env file"
                 ],
                 "index": 28
         },
@@ -691,7 +706,10 @@
                         "Handles message types: chat, system, chat_response, form_update, error",
                         "Integrates with GeminiService for AI responses",
                         "Supports form field extraction from documents",
-                        "Each WebSocket connection is scoped to a specific case ID"
+                        "Each WebSocket connection is scoped to a specific case ID",
+                        "Handles chat_chunk message type for streaming responses",
+                        "Streaming responses send is_complete: false for chunks, is_complete: true for completion marker",
+                        "Default streaming mode enabled for performance (stream parameter defaults to True)"
                 ],
                 "index": 29
         },
@@ -765,7 +783,9 @@
                         "Uses gemini-2.5-flash model for text generation",
                         "Integrates with ContextManager for case-specific context loading",
                         "Handles natural language chat, document analysis, translation",
-                        "Supports structured data extraction for form filling"
+                        "Supports structured data extraction for form filling",
+                        "Imports time module for performance metrics",
+                        "Imports AsyncGenerator and Union from typing for streaming return type"
                 ],
                 "index": 35
         },
@@ -778,7 +798,13 @@
                         "Methods: generate_response(), _load_context(), _build_prompt(), is_initialized()",
                         "Loads API key from GEMINI_API_KEY environment variable",
                         "Uses GenerationConfig with temperature=0.7, top_p=0.8, top_k=40, max_output_tokens=2048",
-                        "Automatically loads case-level and folder-level context based on case_id"
+                        "Automatically loads case-level and folder-level context based on case_id",
+                        "generate_response method now supports streaming via stream parameter",
+                        "generate_response returns Union[str, AsyncGenerator[str, None]] based on stream flag",
+                        "Logs performance metrics: latency, token count, response length",
+                        "Streaming mode logs time-to-first-token metric",
+                        "Uses time.perf_counter() for precise timing measurements",
+                        "Calls _generate_streaming_response internal method for streaming mode"
                 ],
                 "index": 36
         },
@@ -794,6 +820,56 @@
                         "Converts dates to ISO format, matches select options"
                 ],
                 "index": 37
+        },
+        {
+                "id": "src/types/websocket.ts",
+                "type": "Types",
+                "observations": [
+                        "TypeScript type definitions file for WebSocket communication",
+                        "Imports FormField from @/types/case",
+                        "Exports BaseMessage interface with type and optional timestamp fields",
+                        "Exports ChatRequest interface extending BaseMessage for client-to-server chat messages",
+                        "Exports ChatResponse interface for non-streaming AI responses",
+                        "Exports ChatChunkMessage interface for streaming response chunks with is_complete flag",
+                        "Exports FormUpdateMessage interface with updates and confidence records for form extraction results",
+                        "Exports SystemMessage interface for connection status notifications",
+                        "Exports ErrorMessage interface for error messages from server",
+                        "Exports WebSocketMessage union type combining all server message types",
+                        "Exports ConnectionStatus union type: disconnected | connecting | connected | error",
+                        "Exports WebSocketState interface with connection, status, and error fields"
+                ],
+                "index": 38
+        },
+        {
+                "id": "backend/services/gemini_service.py::_generate_streaming_response",
+                "type": "Method",
+                "observations": [
+                        "Private async method for streaming response generation with performance metrics",
+                        "Takes parameters: full_prompt, generation_config, start_time, case_id",
+                        "Returns AsyncGenerator[str, None] yielding text chunks",
+                        "Records and logs time-to-first-token latency metric",
+                        "Accumulates full response for final metrics logging",
+                        "Logs total latency, first token latency, token count on completion",
+                        "Uses stream=True parameter with model.generate_content()",
+                        "Handles exceptions during streaming with error logging"
+                ],
+                "index": 39
+        },
+        {
+                "id": "backend/api/chat.py::handle_chat_message",
+                "type": "Function",
+                "observations": [
+                        "Async function handling chat message processing",
+                        "Supports both streaming and non-streaming responses via stream parameter",
+                        "Takes parameters: websocket, case_id, content, message dict",
+                        "Extracts documentContent, formSchema, folderId, enable_streaming from message",
+                        "Detects form fill requests by checking for fill/extract/populate keywords",
+                        "Calls gemini_service.generate_response with stream parameter",
+                        "For streaming: sends chat_chunk messages with is_complete=False, then completion marker with is_complete=True",
+                        "For non-streaming: sends single chat_response message",
+                        "Handles form extraction separately via handle_form_extraction function"
+                ],
+                "index": 40
         }
 ];
         const links = [
@@ -1204,6 +1280,51 @@
         },
         {
                 "source": "src/components/workspace/AIChatInterface.tsx",
+                "target": "backend/api/chat.py::websocket_chat_endpoint",
+                "type": "connects_to"
+        },
+        {
+                "source": "backend/services/gemini_service.py::GeminiService",
+                "target": "backend/services/gemini_service.py::_generate_streaming_response",
+                "type": "defines_method"
+        },
+        {
+                "source": "backend/services/gemini_service.py",
+                "target": "backend/services/gemini_service.py::_generate_streaming_response",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/chat.py",
+                "target": "backend/api/chat.py::handle_chat_message",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/chat.py::websocket_chat_endpoint",
+                "target": "backend/api/chat.py::handle_chat_message",
+                "type": "calls"
+        },
+        {
+                "source": "backend/api/chat.py::handle_chat_message",
+                "target": "backend/services/gemini_service.py::GeminiService",
+                "type": "uses"
+        },
+        {
+                "source": "backend/api/chat.py::handle_chat_message",
+                "target": "backend/services/gemini_service.py::_generate_streaming_response",
+                "type": "uses_indirectly"
+        },
+        {
+                "source": "src/contexts/AppContext.tsx",
+                "target": "src/types/websocket.ts",
+                "type": "imports"
+        },
+        {
+                "source": "src/types/websocket.ts",
+                "target": "src/types/case.ts",
+                "type": "imports"
+        },
+        {
+                "source": "src/contexts/AppContext.tsx",
                 "target": "backend/api/chat.py::websocket_chat_endpoint",
                 "type": "connects_to"
         }
