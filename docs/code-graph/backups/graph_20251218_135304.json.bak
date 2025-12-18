@@ -967,51 +967,6 @@
       "from_": "src/components/workspace/AIChatInterface.tsx",
       "to": "backend/api/chat.py::websocket_chat_endpoint",
       "relationType": "connects_to"
-    },
-    {
-      "from_": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_generate_streaming_response",
-      "relationType": "defines_method"
-    },
-    {
-      "from_": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_generate_streaming_response",
-      "relationType": "defines"
-    },
-    {
-      "from_": "backend/api/chat.py",
-      "to": "backend/api/chat.py::handle_chat_message",
-      "relationType": "defines"
-    },
-    {
-      "from_": "backend/api/chat.py::websocket_chat_endpoint",
-      "to": "backend/api/chat.py::handle_chat_message",
-      "relationType": "calls"
-    },
-    {
-      "from_": "backend/api/chat.py::handle_chat_message",
-      "to": "backend/services/gemini_service.py::GeminiService",
-      "relationType": "uses"
-    },
-    {
-      "from_": "backend/api/chat.py::handle_chat_message",
-      "to": "backend/services/gemini_service.py::_generate_streaming_response",
-      "relationType": "uses_indirectly"
-    },
-    {
-      "from_": "src/contexts/AppContext.tsx",
-      "to": "src/types/websocket.ts",
-      "relationType": "imports"
-    },
-    {
-      "from_": "src/types/websocket.ts",
-      "to": "src/types/case.ts",
-      "relationType": "imports"
-    },
-    {
-      "from_": "src/contexts/AppContext.tsx",
-      "to": "backend/api/chat.py::websocket_chat_endpoint",
-      "relationType": "connects_to"
     }
   ]
 }
