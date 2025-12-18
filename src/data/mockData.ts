@@ -12,6 +12,7 @@ export const slashCommands: SlashCommand[] = [
   { command: '/transcribe', label: 'Transcribe', description: 'Extract text from document', icon: 'FileText' },
   { command: '/generateEmail', label: 'Generate Email', description: 'Create notification email', icon: 'Mail' },
   { command: '/extractMetadata', label: 'Extract Metadata', description: 'Extract document metadata', icon: 'Database' },
+  { command: '/fillForm', label: 'Fill Form', description: 'Extract data from document to form fields', icon: 'FileInput' },
 ];
 
 // Case-type form templates - each case type has its own form schema

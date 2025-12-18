@@ -14,9 +14,13 @@ The backend follows clean architecture with separation of concerns:
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+from dotenv import load_dotenv
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+# Load environment variables from .env file
+load_dotenv()
 
 from backend.api.chat import router as chat_router
 

@@ -35,6 +35,7 @@ interface AppContextType {
   wsStatus: ConnectionStatus;
   connectWebSocket: () => void;
   disconnectWebSocket: () => void;
+  isTyping: boolean;
   // UI state
   highlightedFolder: string | null;
   setHighlightedFolder: (folderId: string | null) => void;
@@ -85,6 +86,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // WebSocket state
   const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
   const [wsStatus, setWsStatus] = useState<ConnectionStatus>('disconnected');
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   const updateFormField = (id: string, value: string) => {
     setFormFields(fields =>
@@ -197,10 +200,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
           switch (message.type) {
             case 'chat_response':
+              // Non-streaming complete response
+              setIsTyping(false);
               addChatMessage({
                 role: 'assistant',
                 content: message.content,
               });
+              break;
+
+            case 'chat_chunk':
+              // Streaming response chunk
+              if (!message.is_complete) {
+                // Stop typing indicator on first chunk
+                if (isTyping) {
+                  setIsTyping(false);
+                }
+
+                // Accumulate streaming chunks
+                if (!streamingMessageId) {
+                  // Create new streaming message
+                  const newMessageId = `msg-${Date.now()}`;
+                  setStreamingMessageId(newMessageId);
+                  addChatMessage({
+                    role: 'assistant',
+                    content: message.content,
+                  });
+                } else {
+                  // Append to existing streaming message
+                  setChatMessages(prev => {
+                    const lastMsg = prev[prev.length - 1];
+                    if (lastMsg && lastMsg.role === 'assistant') {
+                      return [
+                        ...prev.slice(0, -1),
+                        { ...lastMsg, content: lastMsg.content + message.content }
+                      ];
+                    }
+                    return prev;
+                  });
+                }
+              } else {
+                // Streaming complete
+                setStreamingMessageId(null);
+                setIsTyping(false);
+              }
               break;
 
             case 'form_update':
@@ -218,6 +260,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
               break;
 
             case 'error':
+              setIsTyping(false);
+              setStreamingMessageId(null);
               addChatMessage({
                 role: 'assistant',
                 content: `Error: ${message.message}`,
@@ -267,6 +311,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Set typing indicator immediately (before async operations)
+    setIsTyping(true);
+
     // Add user message to chat
     addChatMessage({
       role: 'user',
@@ -281,6 +328,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       folderId: selectedDocument?.id || null,
       documentContent,
       formSchema: formFields,
+      stream: true,  // Enable streaming by default for performance
     };
 
     wsConnection.send(JSON.stringify(message));
@@ -387,6 +435,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         wsStatus,
         connectWebSocket,
         disconnectWebSocket,
+        isTyping,
         highlightedFolder,
         setHighlightedFolder,
         isAdminMode,

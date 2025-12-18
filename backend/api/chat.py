@@ -209,6 +209,9 @@ async def handle_chat_message(
     """
     Handle a chat message and generate AI response.
 
+    Supports both streaming and non-streaming responses based on the
+    'stream' parameter in the message.
+
     Args:
         websocket: The WebSocket connection.
         case_id: The case ID.
@@ -228,10 +231,12 @@ async def handle_chat_message(
     document_content = message.get("documentContent")
     form_schema = message.get("formSchema")
     folder_id = message.get("folderId")
+    enable_streaming = message.get("stream", True)  # Default to streaming for performance
 
     logger.info(
         f"Processing chat message for case {case_id}"
         f"{f', folder: {folder_id}' if folder_id else ''}"
+        f", streaming: {enable_streaming}"
     )
 
     # Check if this is a form filling request
@@ -246,7 +251,7 @@ async def handle_chat_message(
 
     try:
         if is_form_fill_request and validate_form_schema(form_schema):
-            # Handle form field extraction
+            # Handle form field extraction (no streaming for form extraction)
             await handle_form_extraction(
                 websocket,
                 case_id,
@@ -254,7 +259,7 @@ async def handle_chat_message(
                 form_schema
             )
         else:
-            # Handle regular chat message
+            # Handle regular chat message with optional streaming
             # Context is now automatically loaded by gemini_service using case_id
 
             # Generate AI response
@@ -262,15 +267,35 @@ async def handle_chat_message(
                 prompt=content,
                 case_id=case_id,
                 folder_id=folder_id,
-                document_content=document_content
+                document_content=document_content,
+                stream=enable_streaming
             )
 
-            # Send response
-            await websocket.send_json({
-                "type": "chat_response",
-                "content": response,
-                "timestamp": None  # Frontend will add timestamp
-            })
+            # Check if response is a streaming generator
+            if hasattr(response, '__aiter__'):
+                # Streaming mode - send chunks as they arrive
+                async for chunk in response:
+                    await websocket.send_json({
+                        "type": "chat_chunk",
+                        "content": chunk,
+                        "is_complete": False,
+                        "timestamp": None
+                    })
+
+                # Send completion marker
+                await websocket.send_json({
+                    "type": "chat_chunk",
+                    "content": "",
+                    "is_complete": True,
+                    "timestamp": None
+                })
+            else:
+                # Non-streaming mode - send complete response
+                await websocket.send_json({
+                    "type": "chat_response",
+                    "content": response,
+                    "timestamp": None  # Frontend will add timestamp
+                })
 
     except Exception as e:
         logger.error(f"Error generating response: {str(e)}")

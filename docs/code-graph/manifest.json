@@ -1,14 +1,14 @@
 {
   "project": "bamf-acte-companion",
-  "description": "BAMF AI Case Management System - Vite + React + TypeScript + shadcn/ui application",
-  "version": "1.0.0",
+  "description": "BAMF AI Case Management System - Vite + React + TypeScript + shadcn/ui frontend with FastAPI + Python backend",
+  "version": "1.1.0",
   "created_at": "2025-12-16T00:00:00.000Z",
-  "last_updated": "2025-12-16T00:00:00.000Z",
+  "last_updated": "2025-12-18T00:00:00.000Z",
   "statistics": {
-    "total_entities": 28,
-    "total_relations": 65,
-    "total_observations": 196,
-    "avg_observations_per_entity": 7,
+    "total_entities": 38,
+    "total_relations": 82,
+    "total_observations": 255,
+    "avg_observations_per_entity": 6.71,
     "entity_types": {
       "EntryPoint": 1,
       "RootComponent": 1,
@@ -22,75 +22,118 @@
       "Component": 1,
       "Route": 3,
       "ReactContext": 1,
-      "CustomHook": 3
+      "CustomHook": 3,
+      "BackendEntryPoint": 1,
+      "APIRouter": 1,
+      "Class": 3,
+      "WebSocketEndpoint": 1,
+      "HTTPEndpoint": 1,
+      "Service": 2,
+      "Tool": 1
     },
     "relation_types": {
-      "imports": 41,
+      "imports": 45,
       "defines_route": 3,
       "renders": 3,
       "uses_hook": 14,
-      "defines": 1,
-      "exports": 3
+      "defines": 6,
+      "exports": 3,
+      "registers_route": 2,
+      "uses": 4,
+      "used_by": 1,
+      "connects_to": 1
     }
   },
   "languages": {
     "TypeScript": 69,
-    "TSX": 61
+    "TSX": 61,
+    "Python": 5
   },
   "framework": {
-    "name": "React",
-    "version": "18.x",
-    "bundler": "Vite",
-    "ui_library": "shadcn/ui",
-    "state_management": "React Context",
-    "routing": "React Router v6"
+    "frontend": {
+      "name": "React",
+      "version": "18.x",
+      "bundler": "Vite",
+      "ui_library": "shadcn/ui",
+      "state_management": "React Context",
+      "routing": "React Router v6"
+    },
+    "backend": {
+      "name": "FastAPI",
+      "language": "Python",
+      "ai_service": "Google Gemini (gemini-2.5-flash)",
+      "websocket": "FastAPI WebSocket"
+    }
   },
   "architecture": {
-    "entry_point": "src/main.tsx",
-    "root_component": "src/App.tsx",
-    "pages": [
-      "src/pages/Index.tsx",
-      "src/pages/Login.tsx",
-      "src/pages/Workspace.tsx",
-      "src/pages/NotFound.tsx"
+    "frontend": {
+      "entry_point": "src/main.tsx",
+      "root_component": "src/App.tsx",
+      "pages": [
+        "src/pages/Index.tsx",
+        "src/pages/Login.tsx",
+        "src/pages/Workspace.tsx",
+        "src/pages/NotFound.tsx"
+      ],
+      "workspace_components": [
+        "src/components/workspace/WorkspaceHeader.tsx",
+        "src/components/workspace/CaseTreeExplorer.tsx",
+        "src/components/workspace/AIChatInterface.tsx",
+        "src/components/workspace/DocumentViewer.tsx",
+        "src/components/workspace/FormViewer.tsx",
+        "src/components/workspace/AdminConfigPanel.tsx",
+        "src/components/workspace/CaseSearchDialog.tsx",
+        "src/components/workspace/NewCaseDialog.tsx"
+      ],
+      "contexts": [
+        "src/contexts/AppContext.tsx"
+      ],
+      "hooks": [
+        "src/hooks/use-toast.ts",
+        "src/hooks/use-mobile.tsx"
+      ],
+      "types": [
+        "src/types/case.ts"
+      ],
+      "data": [
+        "src/data/mockData.ts"
+      ],
+      "utilities": [
+        "src/lib/utils.ts"
+      ]
+    },
+    "backend": {
+      "entry_point": "backend/main.py",
+      "api": [
+        "backend/api/chat.py"
+      ],
+      "services": [
+        "backend/services/gemini_service.py",
+        "backend/services/context_manager.py"
+      ],
+      "tools": [
+        "backend/tools/form_parser.py"
+      ]
+    }
+  },
+  "routes": {
+    "frontend": [
+      { "path": "/", "component": "Index", "description": "Landing/Login page" },
+      { "path": "/workspace", "component": "Workspace", "description": "Main workspace (protected)" },
+      { "path": "*", "component": "NotFound", "description": "404 page" }
     ],
-    "workspace_components": [
-      "src/components/workspace/WorkspaceHeader.tsx",
-      "src/components/workspace/CaseTreeExplorer.tsx",
-      "src/components/workspace/AIChatInterface.tsx",
-      "src/components/workspace/DocumentViewer.tsx",
-      "src/components/workspace/FormViewer.tsx",
-      "src/components/workspace/AdminConfigPanel.tsx",
-      "src/components/workspace/CaseSearchDialog.tsx",
-      "src/components/workspace/NewCaseDialog.tsx"
-    ],
-    "contexts": [
-      "src/contexts/AppContext.tsx"
-    ],
-    "hooks": [
-      "src/hooks/use-toast.ts",
-      "src/hooks/use-mobile.tsx"
-    ],
-    "types": [
-      "src/types/case.ts"
-    ],
-    "data": [
-      "src/data/mockData.ts"
-    ],
-    "utilities": [
-      "src/lib/utils.ts"
+    "backend": [
+      { "path": "/health", "method": "GET", "description": "Backend health check" },
+      { "path": "/", "method": "GET", "description": "API info" },
+      { "path": "/ws/chat/{case_id}", "method": "WebSocket", "description": "Real-time AI chat per case" },
+      { "path": "/api/chat/health", "method": "GET", "description": "Chat service health check" }
     ]
   },
-  "routes": [
-    { "path": "/", "component": "Index", "description": "Landing/Login page" },
-    { "path": "/workspace", "component": "Workspace", "description": "Main workspace (protected)" },
-    { "path": "*", "component": "NotFound", "description": "404 page" }
-  ],
   "most_connected_entities": [
     { "name": "src/contexts/AppContext.tsx", "connections": 15 },
     { "name": "useApp", "connections": 11 },
     { "name": "src/pages/Workspace.tsx", "connections": 10 },
     { "name": "src/App.tsx", "connections": 8 },
-    { "name": "src/lib/utils.ts", "connections": 8 }
+    { "name": "src/components/workspace/AIChatInterface.tsx", "connections": 8 }
   ]
 }

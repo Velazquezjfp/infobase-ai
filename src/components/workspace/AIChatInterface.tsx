@@ -33,7 +33,8 @@ export default function AIChatInterface() {
     selectedDocument,
     wsStatus,
     setHighlightedFolder,
-    setViewMode
+    setViewMode,
+    isTyping
   } = useApp();
   const [input, setInput] = useState('');
   const [showCommands, setShowCommands] = useState(false);
@@ -94,16 +95,10 @@ export default function AIChatInterface() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.currentTarget.classList.remove('bg-accent/50');
-    addChatMessage({
-      role: 'user',
-      content: 'I\'ve uploaded a document. Please analyze it.',
+    toast({
+      title: "File Drop",
+      description: "Document drag-and-drop is not yet implemented.",
     });
-    setTimeout(() => {
-      addChatMessage({
-        role: 'assistant',
-        content: 'I\'ve received the document. Analyzing content...\n\n**Detected document type:** Certificate\n**Suggested folder:** Certificates\n**Extracted information:**\n• Name: Ahmed Ali\n• Issue Date: 2023-06-15\n\nWould you like me to:\n1. Move this to the Certificates folder?\n2. Auto-fill the form with extracted data?',
-      });
-    }, 1500);
   };
 
   const formatMessage = (content: string) => {

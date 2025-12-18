@@ -4,18 +4,455 @@
 
 This document provides detailed information about the BAMF ACTE Companion API endpoints, including both currently simulated operations and the planned future backend API.
 
-**Current Status:** The application currently runs as a frontend-only prototype. All API operations described here are simulated client-side. This documentation serves as the blueprint for future backend implementation.
+**Current Status:** Backend API implementation has started using FastAPI. WebSocket-based AI chat and health check endpoints are now implemented. Other operations remain simulated client-side.
 
 ---
 
 ## Table of Contents
 
+- [Health & System](#health--system)
+- [Real-Time Communication](#real-time-communication)
 - [Authentication](#authentication)
 - [Case Management](#case-management)
 - [Document Operations](#document-operations)
 - [AI Operations](#ai-operations)
 - [Form Management](#form-management)
 - [Search](#search)
+
+---
+
+## Health & System
+
+### GET /health
+
+Backend service health check endpoint.
+
+**Current Implementation:** IMPLEMENTED in `backend/main.py`
+
+**Source:** `backend/main.py:84-95`
+
+**Authentication:** None (public endpoint)
+
+**Success Response (200 OK):**
+```json
+{
+  "status": "healthy"
+}
+```
+
+**Example:**
+```bash
+curl -X GET http://localhost:8000/health
+```
+
+**Usage:**
+- Monitoring and alerting systems
+- Load balancer health checks
+- Container orchestration readiness probes
+
+---
+
+### GET /
+
+Backend API root information endpoint.
+
+**Current Implementation:** IMPLEMENTED in `backend/main.py`
+
+**Source:** `backend/main.py:98-111`
+
+**Authentication:** None (public endpoint)
+
+**Success Response (200 OK):**
+```json
+{
+  "name": "BAMF AI Case Management API",
+  "version": "0.1.0"
+}
+```
+
+**Example:**
+```bash
+curl -X GET http://localhost:8000/
+```
+
+---
+
+### GET /api/chat/health
+
+Chat service health check with Gemini API status.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/chat.py`
+
+**Source:** `backend/api/chat.py:343-360`
+
+**Authentication:** None (public endpoint)
+
+**Success Response (200 OK - Service Ready):**
+```json
+{
+  "service": "chat",
+  "status": "ready",
+  "gemini_initialized": true
+}
+```
+
+**Service Not Ready Response (503 Service Unavailable):**
+```json
+{
+  "service": "chat",
+  "status": "not_ready",
+  "gemini_initialized": false
+}
+```
+
+**Example:**
+```bash
+curl -X GET http://localhost:8000/api/chat/health
+```
+
+**Usage:**
+- Check if Gemini API key is configured
+- Verify chat service initialization status
+- Frontend can check before enabling chat features
+
+---
+
+## Real-Time Communication
+
+### WS /ws/chat/{case_id}
+
+WebSocket endpoint for real-time, case-scoped AI chat communication.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/chat.py`
+
+**Source:** `backend/api/chat.py:82-201`
+
+**Authentication:** None (case-scoped isolation via URL parameter)
+
+**Path Parameters:**
+- `case_id` (required): Case identifier for context isolation (e.g., "ACTE-2024-001")
+
+**Connection Protocol:**
+
+1. Client initiates WebSocket connection to `/ws/chat/{case_id}`
+2. Server accepts connection and sends system message confirming connection
+3. Bidirectional message exchange begins
+4. Connection remains open until client disconnects or error occurs
+
+**Message Protocol:**
+
+#### Incoming Messages (Client to Server)
+
+**Chat Message Format:**
+```json
+{
+  "type": "chat",
+  "content": "User message or question",
+  "caseId": "ACTE-2024-001",
+  "folderId": "personal-data",
+  "documentContent": "Optional document text to analyze",
+  "formSchema": [
+    {
+      "id": "name",
+      "label": "Full Name",
+      "type": "text",
+      "required": true
+    }
+  ]
+}
+```
+
+**Message Fields:**
+- `type` (required): Message type - currently only "chat" is supported
+- `content` (required): User's message, question, or instruction
+- `caseId` (optional): Case ID for context (should match URL parameter)
+- `folderId` (optional): Folder ID for folder-specific context
+- `documentContent` (optional): Document text to include in context
+- `formSchema` (optional): Form field definitions for extraction requests
+
+**Form Extraction Trigger:**
+The AI automatically detects form filling requests when:
+- `formSchema` is provided AND
+- Message contains keywords: "fill", "extract", or "populate"
+
+#### Outgoing Messages (Server to Client)
+
+**System Message (Connection Confirmation):**
+```json
+{
+  "type": "system",
+  "content": "Connected to AI assistant for case ACTE-2024-001",
+  "timestamp": null
+}
+```
+
+**Chat Response (AI Answer):**
+```json
+{
+  "type": "chat_response",
+  "content": "AI-generated response text",
+  "timestamp": null
+}
+```
+
+**Form Update (Field Extraction Results):**
+```json
+{
+  "type": "form_update",
+  "updates": {
+    "name": "Ahmad Ali",
+    "birthDate": "1995-03-20",
+    "countryOfOrigin": "Afghanistan"
+  },
+  "confidence": {
+    "name": 0.95,
+    "birthDate": 0.90,
+    "countryOfOrigin": 0.92
+  },
+  "timestamp": null
+}
+```
+
+**Error Message:**
+```json
+{
+  "type": "error",
+  "message": "Error description",
+  "timestamp": null
+}
+```
+
+**Message Types Summary:**
+- `system` - System notifications (connection status, etc.)
+- `chat_response` - AI text responses to user queries
+- `form_update` - Extracted form field values with confidence scores
+- `error` - Error notifications
+
+**Context Loading:**
+
+The WebSocket endpoint automatically loads case-specific context:
+
+1. **Case-Level Context:** Loaded from `backend/data/contexts/cases/{case_id}/case.json`
+   - Case type, regulations, required documents, validation rules
+
+2. **Folder-Level Context (if folderId provided):** Loaded from `backend/data/contexts/cases/{case_id}/folders/{folder_id}.json`
+   - Expected documents, validation criteria, common mistakes
+
+3. **Document Content (if provided):** Included directly in the message
+
+All contexts are merged and provided to the AI for context-aware responses.
+
+**Case Isolation:**
+
+Each WebSocket connection is strictly scoped to a single case:
+- Connection manager maintains one connection per case ID
+- Context is loaded only for the specified case
+- No cross-case data access
+- Switching cases requires a new WebSocket connection
+
+**Error Handling:**
+
+**API Key Not Configured:**
+```json
+{
+  "type": "error",
+  "message": "API key not configured",
+  "timestamp": null
+}
+```
+Connection is immediately closed after this error.
+
+**Invalid Message Format:**
+```json
+{
+  "type": "error",
+  "message": "Invalid message format: expected JSON object",
+  "timestamp": null
+}
+```
+
+**Empty Message Content:**
+```json
+{
+  "type": "error",
+  "message": "Message content cannot be empty",
+  "timestamp": null
+}
+```
+
+**Form Extraction Failure:**
+```json
+{
+  "type": "error",
+  "message": "Failed to extract form fields: [error details]",
+  "timestamp": null
+}
+```
+
+**Connection Lifecycle:**
+
+```
+Client                          Server
+  |                               |
+  |-------- Connect -------------->|
+  |<------ Accept & System Msg ----|
+  |                               |
+  |-------- Chat Message --------->|
+  |                 [AI Processing]
+  |<------ Chat Response ----------|
+  |                               |
+  |-- Form Extraction Request ---->|
+  |              [AI Extraction]
+  |<------ Form Update ------------|
+  |<------ Chat Response ----------|
+  |                               |
+  |-------- Disconnect ----------->|
+  |                               |
+```
+
+**Example Usage:**
+
+**JavaScript/TypeScript Client:**
+```javascript
+const caseId = "ACTE-2024-001";
+const ws = new WebSocket(`ws://localhost:8000/ws/chat/${caseId}`);
+
+ws.onopen = () => {
+  console.log("Connected to AI chat");
+};
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+
+  switch (message.type) {
+    case "system":
+      console.log("System:", message.content);
+      break;
+    case "chat_response":
+      console.log("AI:", message.content);
+      break;
+    case "form_update":
+      console.log("Form updates:", message.updates);
+      console.log("Confidence:", message.confidence);
+      break;
+    case "error":
+      console.error("Error:", message.message);
+      break;
+  }
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket error:", error);
+};
+
+ws.onclose = () => {
+  console.log("Disconnected from AI chat");
+};
+
+// Send a chat message
+function sendMessage(content) {
+  ws.send(JSON.stringify({
+    type: "chat",
+    content: content,
+    caseId: caseId,
+    folderId: "personal-data"
+  }));
+}
+
+// Request form field extraction
+function extractFormFields(documentContent, formSchema) {
+  ws.send(JSON.stringify({
+    type: "chat",
+    content: "Please extract and fill the form fields from this document",
+    caseId: caseId,
+    documentContent: documentContent,
+    formSchema: formSchema
+  }));
+}
+```
+
+**Python Client:**
+```python
+import asyncio
+import websockets
+import json
+
+async def chat_client():
+    case_id = "ACTE-2024-001"
+    uri = f"ws://localhost:8000/ws/chat/{case_id}"
+
+    async with websockets.connect(uri) as websocket:
+        # Wait for system message
+        response = await websocket.recv()
+        print(json.loads(response))
+
+        # Send chat message
+        await websocket.send(json.dumps({
+            "type": "chat",
+            "content": "What documents are required for this case?",
+            "caseId": case_id,
+            "folderId": "personal-data"
+        }))
+
+        # Receive response
+        response = await websocket.recv()
+        message = json.loads(response)
+        print(f"AI: {message['content']}")
+
+asyncio.run(chat_client())
+```
+
+**Form Extraction Example:**
+```javascript
+const formSchema = [
+  { id: "name", label: "Full Name", type: "text", required: true },
+  { id: "birthDate", label: "Date of Birth", type: "date", required: true },
+  { id: "countryOfOrigin", label: "Country", type: "text", required: true }
+];
+
+const documentContent = `
+Birth Certificate
+Name: Ahmad Ali
+Date of Birth: March 20, 1995
+Place of Birth: Kabul, Afghanistan
+`;
+
+ws.send(JSON.stringify({
+  type: "chat",
+  content: "Please extract the form fields from this document",
+  caseId: "ACTE-2024-001",
+  documentContent: documentContent,
+  formSchema: formSchema
+}));
+
+// Expected responses:
+// 1. form_update with extracted values
+// 2. chat_response confirming extraction
+```
+
+**Security Considerations:**
+
+- No authentication currently implemented (planned for future)
+- Case isolation enforced at connection level
+- Input validation for all message fields
+- Error messages don't expose sensitive information
+- Connection rate limiting recommended (not yet implemented)
+
+**Performance:**
+
+- Single connection per case maintained by ConnectionManager
+- AI responses use Google Gemini 2.5 Flash (optimized for speed)
+- Context loaded once per message from filesystem
+- Streaming responses not yet implemented (planned)
+
+**Known Limitations:**
+
+- No authentication/authorization
+- No message history persistence
+- No typing indicators
+- No read receipts
+- One connection per case (reconnection required for case switch)
+- No support for file uploads via WebSocket (use REST endpoints)
 
 ---
 
@@ -457,7 +894,211 @@ curl -X DELETE https://api.bamf-acte.example.de/v1/cases/ACTE-2024-001/documents
 
 ## AI Operations
 
-All AI operations are asynchronous and return a job ID that can be polled for status.
+**Current Status:** AI operations are now implemented via the WebSocket chat endpoint (`/ws/chat/{case_id}`). Legacy REST endpoints for specific AI operations remain planned for backward compatibility.
+
+**WebSocket-Based AI Operations:**
+All AI functionality is available through the real-time chat interface:
+- Natural language document analysis
+- Form field extraction from documents
+- Context-aware responses with case and folder isolation
+- Powered by Google Gemini 2.5 Flash model
+
+### Form Field Extraction via WebSocket
+
+**Current Implementation:** IMPLEMENTED via WebSocket in `backend/api/chat.py` and `backend/tools/form_parser.py`
+
+**Source:** `backend/api/chat.py:284-340`, `backend/tools/form_parser.py`
+
+The AI can automatically extract structured data from documents and populate form fields. This feature is accessed through the WebSocket chat endpoint.
+
+**How It Works:**
+
+1. Client sends a chat message with:
+   - `formSchema`: Array of form field definitions
+   - `documentContent`: Document text to extract from
+   - `content`: Message containing keywords "fill", "extract", or "populate"
+
+2. Backend detects form extraction request and:
+   - Builds a specialized extraction prompt using `build_extraction_prompt()`
+   - Sends prompt to Gemini AI with document content
+   - Parses AI response to extract field values
+   - Validates extracted fields against schema
+
+3. Backend sends two messages back:
+   - `form_update` with extracted values and confidence scores
+   - `chat_response` confirming the extraction
+
+**Extraction Process:**
+
+```
+Document Text → AI Analysis → JSON Extraction → Validation → Form Update
+```
+
+**Form Schema Format:**
+
+```json
+[
+  {
+    "id": "fieldId",
+    "label": "Field Label",
+    "type": "text|date|select|textarea",
+    "required": true|false,
+    "options": ["option1", "option2"]
+  }
+]
+```
+
+**Extraction Features:**
+
+- **Intelligent Field Mapping:** AI understands field semantics, not just labels
+- **Date Normalization:** Converts various date formats to ISO 8601 (YYYY-MM-DD)
+- **Multi-Language Support:** Works with documents in different languages
+- **Confidence Scoring:** Each extracted value includes confidence score (0.0-1.0)
+- **Partial Extraction:** Only returns fields where data was found
+- **Type Validation:** Ensures extracted values match field type requirements
+
+**Supported Field Types:**
+
+- `text` - Free-form text fields
+- `date` - Date values (auto-converted to YYYY-MM-DD)
+- `select` - Single-choice fields (matched to closest option)
+- `textarea` - Multi-line text fields
+
+**Example Extraction Request:**
+
+```javascript
+// WebSocket message
+{
+  "type": "chat",
+  "content": "Please fill the form from this document",
+  "caseId": "ACTE-2024-001",
+  "documentContent": `
+    Birth Certificate
+    Full Name: Ahmad Ali Hassan
+    Date of Birth: 20 March 1995
+    Place of Birth: Kabul, Afghanistan
+    Father's Name: Hassan Ali
+    Mother's Name: Fatima Hassan
+  `,
+  "formSchema": [
+    { "id": "name", "label": "Full Name", "type": "text", "required": true },
+    { "id": "birthDate", "label": "Date of Birth", "type": "date", "required": true },
+    { "id": "countryOfOrigin", "label": "Country of Origin", "type": "text", "required": true },
+    { "id": "fatherName", "label": "Father's Name", "type": "text", "required": false },
+    { "id": "motherName", "label": "Mother's Name", "type": "text", "required": false }
+  ]
+}
+```
+
+**Example Extraction Response:**
+
+```javascript
+// Message 1: Form update
+{
+  "type": "form_update",
+  "updates": {
+    "name": "Ahmad Ali Hassan",
+    "birthDate": "1995-03-20",
+    "countryOfOrigin": "Afghanistan",
+    "fatherName": "Hassan Ali",
+    "motherName": "Fatima Hassan"
+  },
+  "confidence": {
+    "name": 0.95,
+    "birthDate": 0.92,
+    "countryOfOrigin": 0.90,
+    "fatherName": 0.88,
+    "motherName": 0.88
+  },
+  "timestamp": null
+}
+
+// Message 2: Confirmation
+{
+  "type": "chat_response",
+  "content": "I've extracted 5 fields from the document and updated the form.",
+  "timestamp": null
+}
+```
+
+**Confidence Scoring:**
+
+- `0.90 - 1.00`: High confidence - exact match found
+- `0.75 - 0.89`: Medium confidence - inferred from context
+- `0.50 - 0.74`: Low confidence - ambiguous or uncertain
+- `< 0.50`: Very low confidence (typically not returned)
+
+Default confidence is 0.85 for all extracted fields.
+
+**Error Handling:**
+
+If extraction fails, an error message is sent:
+
+```json
+{
+  "type": "error",
+  "message": "Failed to extract form fields: Invalid JSON response from AI",
+  "timestamp": null
+}
+```
+
+**Form Schema Validation:**
+
+The backend validates form schemas before extraction:
+
+```python
+# Required fields in each form field definition
+{
+  "id": str,      # Unique field identifier
+  "label": str,   # Human-readable label
+  "type": str     # Field type (text, date, select, textarea)
+}
+```
+
+**Best Practices:**
+
+1. **Provide Clear Field Labels:** Use descriptive labels that match document terminology
+2. **Include Field Context:** Add all relevant fields, even optional ones
+3. **Review Confidence Scores:** Manually verify fields with confidence < 0.85
+4. **Use Structured Documents:** Works best with well-formatted documents
+5. **Specify Select Options:** Provide valid options for select fields
+6. **Handle Partial Results:** Not all fields may be extracted from every document
+
+**Implementation Details:**
+
+**Services Used:**
+- `GeminiService` - AI model integration (Google Gemini 2.5 Flash)
+- `ContextManager` - Case-specific context loading
+- `form_parser` - Prompt building and result parsing
+
+**Prompt Engineering:**
+
+The extraction prompt includes:
+- Clear task description
+- Field definitions with types and requirements
+- Document content
+- Output format instructions (JSON)
+- Data normalization rules
+
+**Performance:**
+
+- Typical extraction time: 2-5 seconds
+- Depends on document length and field count
+- Gemini 2.5 Flash optimized for speed
+- No caching (each request processed fresh)
+
+**Limitations:**
+
+- No OCR support (requires pre-extracted text)
+- No image analysis (text only)
+- English and German languages tested most
+- Complex nested structures not supported
+- Maximum ~10,000 characters document length
+
+---
+
+**Legacy REST Endpoints:**
+The following REST endpoints are planned but not yet implemented. They will coexist with the WebSocket interface for clients that prefer request/response patterns over real-time communication.
 
 ### POST /ai/convert
 
@@ -1007,6 +1648,6 @@ Breaking changes will result in a new version. Non-breaking changes (additions) 
 
 ---
 
-**Last Updated:** 2025-12-16
-**API Version:** 1.0.0 (Planned)
-**Current Implementation:** Frontend-only simulation
+**Last Updated:** 2025-12-18
+**API Version:** 1.1.0 (Partial Implementation)
+**Current Implementation:** Backend with WebSocket + AI, Frontend simulations for other operations

@@ -20,14 +20,220 @@ We follow [Semantic Versioning](https://semver.org/):
 ## [Unreleased]
 
 ### Planned Features
-- WebSocket support for real-time AI operation status updates
+- Authentication and authorization system
 - Batch document upload endpoint
 - Document comparison endpoint
 - Case export/import endpoints
-- Multi-language support for AI operations
 - Advanced search with filters and facets
 - Document versioning and history
 - Audit log API endpoints
+- REST endpoints for legacy AI operations (convert, translate, anonymize)
+- WebSocket streaming responses
+- Message history persistence
+- File upload via WebSocket
+
+---
+
+## [1.1.0] - 2025-12-18
+
+### Added - Backend Implementation with WebSocket and AI Integration
+
+This release marks the beginning of backend API implementation using FastAPI. Core AI functionality is now available through WebSocket communication with Google Gemini integration.
+
+#### Backend Infrastructure
+
+**Framework & Architecture:**
+- FastAPI backend initialized (`backend/main.py`)
+- Clean architecture with separation of concerns:
+  - `backend/api/` - HTTP/WebSocket protocol handling
+  - `backend/services/` - Business logic and AI integration
+  - `backend/tools/` - Reusable stateless utility functions
+  - `backend/data/` - Configuration files and context data
+- CORS middleware configured for local development
+- Lifecycle management (startup/shutdown events)
+- Logging infrastructure
+
+**Health Check Endpoints:**
+- `GET /health` - Backend service health check
+- `GET /` - API root information endpoint
+- `GET /api/chat/health` - Chat service health with Gemini status
+
+#### Real-Time Communication
+
+**WebSocket Chat Endpoint:**
+- `WS /ws/chat/{case_id}` - Real-time, case-scoped AI chat
+  - Bidirectional message exchange
+  - Connection manager for case isolation
+  - Support for multiple message types
+  - Automatic context loading per case
+
+**Message Protocol:**
+
+Incoming message types:
+- `chat` - User messages and AI interaction requests
+
+Outgoing message types:
+- `system` - System notifications and connection status
+- `chat_response` - AI-generated text responses
+- `form_update` - Extracted form field values with confidence scores
+- `error` - Error notifications and validation failures
+
+**Case-Scoped Context:**
+- Each WebSocket connection isolated to single case
+- Automatic loading of case-level context from JSON files
+- Optional folder-level context for specific document groups
+- Complete case isolation (no cross-case data access)
+
+#### AI Integration
+
+**Google Gemini Service:**
+- `GeminiService` class with singleton pattern (`backend/services/gemini_service.py`)
+- Integration with Google Gemini 2.5 Flash model
+- Environment-based API key configuration
+- Configurable generation parameters (temperature, top_p, max_tokens)
+- User-friendly error messages for quota/timeout issues
+
+**Context Management:**
+- `ContextManager` service for hierarchical context loading (`backend/services/context_manager.py`)
+- Case-level context: regulations, required documents, validation rules
+- Folder-level context: expected documents, validation criteria
+- Context merging with precedence: Document > Folder > Case
+- Template-based case creation support
+
+**Context File Structure:**
+```
+backend/data/contexts/
+├── cases/
+│   └── {case_id}/
+│       ├── case.json
+│       └── folders/
+│           └── {folder_id}.json
+└── templates/
+    └── {case_type}/
+```
+
+#### Form Field Extraction
+
+**AI-Powered Data Extraction:**
+- `form_parser` tool for document field extraction (`backend/tools/form_parser.py`)
+- Intelligent field mapping with semantic understanding
+- Date normalization to ISO 8601 format
+- Multi-language document support
+- Confidence scoring (0.0-1.0) for each extracted field
+
+**Extraction Features:**
+- Automatic detection via keywords: "fill", "extract", "populate"
+- Validation against form schema before extraction
+- Partial extraction (only found fields returned)
+- Type-aware extraction (text, date, select, textarea)
+- Structured prompt engineering for consistent results
+
+**Form Schema Support:**
+```json
+{
+  "id": "field_identifier",
+  "label": "Field Label",
+  "type": "text|date|select|textarea",
+  "required": boolean,
+  "options": ["array", "for", "select"]
+}
+```
+
+**Extraction Workflow:**
+1. Client sends chat message with `formSchema` and `documentContent`
+2. Backend builds extraction prompt with field definitions
+3. Gemini AI analyzes document and extracts values
+4. Results parsed and validated against schema
+5. Two responses sent: `form_update` + `chat_response`
+
+#### Technical Details
+
+**Dependencies Added:**
+- FastAPI 0.104.1 - Web framework
+- Uvicorn 0.24.0 - ASGI server
+- google-generativeai 0.3.1 - Gemini API client
+- Pydantic 2.5.2 - Data validation
+- python-dotenv 1.0.0 - Environment configuration
+
+**AI Model Configuration:**
+- Model: gemini-2.5-flash (fast, cost-effective, latest)
+- Temperature: 0.7
+- Top P: 0.8
+- Top K: 40
+- Max Output Tokens: 2048
+
+**Performance Characteristics:**
+- WebSocket connection per case maintained by ConnectionManager
+- Context loaded per message from filesystem (no caching)
+- Typical AI response time: 1-3 seconds
+- Form extraction: 2-5 seconds depending on complexity
+
+#### Known Limitations
+
+**Not Yet Implemented:**
+- Authentication/authorization system
+- Case management REST endpoints
+- Document storage and retrieval
+- Persistent message history
+- WebSocket message streaming
+- Connection rate limiting
+- OCR support for images
+- File uploads via WebSocket
+
+**Current Constraints:**
+- No authentication (case isolation only)
+- Single connection per case (no concurrent)
+- Text-only document processing
+- Maximum ~10,000 character document length
+- Frontend still using mock data (integration pending)
+
+#### Migration Impact
+
+**Non-Breaking Changes:**
+- All new functionality (no existing APIs affected)
+- Frontend integration not yet required
+- Backward compatible with existing simulated operations
+
+**Frontend Integration Required:**
+- Update `AIChatInterface.tsx` to use WebSocket
+- Replace simulated AI operations with real backend calls
+- Add WebSocket connection management
+- Handle new message types (form_update, system, error)
+- Implement confidence score display for form extraction
+
+#### Documentation Updates
+
+**New Documentation:**
+- WebSocket endpoint comprehensive documentation
+- Message protocol specification
+- Form extraction guide with examples
+- Context management architecture
+- Health check endpoint documentation
+
+**Updated Files:**
+- `docs/apis/.last-sync.json` - Added backend file tracking
+- `docs/apis/endpoints.md` - Added WebSocket and health endpoints
+- `docs/apis/api-changelog.md` - Version 1.1.0 changelog
+- API status changed: "planned" → "partial_implementation"
+
+#### Configuration Required
+
+**Environment Variables:**
+```bash
+GEMINI_API_KEY=your_google_gemini_api_key_here
+```
+
+**Running the Backend:**
+```bash
+cd backend
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**WebSocket Test:**
+```bash
+# Using wscat
+wscat -c ws://localhost:8000/ws/chat/ACTE-2024-001
+```
 
 ---
 
