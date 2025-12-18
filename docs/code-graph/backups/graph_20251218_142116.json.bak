@@ -1070,46 +1070,6 @@
       "from_": "src/contexts/AppContext.tsx",
       "to": "backend/api/chat.py::websocket_chat_endpoint",
       "relationType": "connects_to"
-    },
-    {
-      "from_": "backend/tools/form_parser.py",
-      "to": "backend/tools/form_parser.py::_is_valid_iso_date",
-      "relationType": "defines"
-    },
-    {
-      "from_": "backend/tools/form_parser.py",
-      "to": "backend/tools/form_parser.py::_convert_to_iso_date",
-      "relationType": "defines"
-    },
-    {
-      "from_": "backend/tools/form_parser.py",
-      "to": "backend/tools/form_parser.py::_match_select_option",
-      "relationType": "defines"
-    },
-    {
-      "from_": "backend/tools/form_parser.py",
-      "to": "backend/tools/form_parser.py::parse_extraction_result",
-      "relationType": "defines"
-    },
-    {
-      "from_": "backend/tools/form_parser.py::_convert_to_iso_date",
-      "to": "backend/tools/form_parser.py::_is_valid_iso_date",
-      "relationType": "calls"
-    },
-    {
-      "from_": "backend/tools/form_parser.py::parse_extraction_result",
-      "to": "backend/tools/form_parser.py::_is_valid_iso_date",
-      "relationType": "calls"
-    },
-    {
-      "from_": "backend/tools/form_parser.py::parse_extraction_result",
-      "to": "backend/tools/form_parser.py::_convert_to_iso_date",
-      "relationType": "calls"
-    },
-    {
-      "from_": "backend/tools/form_parser.py::parse_extraction_result",
-      "to": "backend/tools/form_parser.py::_match_select_option",
-      "relationType": "calls"
     }
   ]
 }

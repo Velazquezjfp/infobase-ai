@@ -1,7 +1,7 @@
 {
-  "last_commit": "486cec9e9beed18f0802e534e26f3c478f53de9d",
-  "last_sync": "2025-12-18T13:51:06.000Z",
-  "documentation_version": "1.2.0",
+  "last_commit": "9be633c8ac4d170e2600c299f29655513af3bce2",
+  "last_sync": "2025-12-18T16:30:00.000Z",
+  "documentation_version": "1.3.0",
   "api_status": "partial_implementation",
   "tracked_paths": [
     "src/pages/Login.tsx",
@@ -30,7 +30,10 @@
     "STREAMING RESPONSES: Now supports real-time progressive delivery of AI responses",
     "AI service integrated using Google Gemini API with performance metrics",
     "Context-aware AI responses with case and folder isolation",
-    "Form field extraction from documents using AI",
+    "ENHANCED FORM EXTRACTION: Multilingual support (German/English) with field mapping",
+    "ADVANCED DATE CONVERSION: DD.MM.YYYY German format auto-converted to ISO",
+    "FUZZY SELECT MATCHING: Case-insensitive and partial word matching for options",
+    "FIELD-SPECIFIC CONFIDENCE: Date (0.95/0.80/0.50), Select (0.95/0.80/0.40), Text (0.90/0.60/0.70)",
     "Time-to-first-token tracking: Averages 200-500ms for streaming responses",
     "Frontend still uses simulated data, needs integration with backend",
     "Authentication is currently simulated in Login.tsx and AppContext.tsx",
@@ -49,7 +52,14 @@
     "Non-streaming AI responses: chat_response messages with complete text",
     "Performance metrics: time-to-first-token, total latency, token counts",
     "Async generator pattern for efficient streaming delivery",
-    "Backward compatible: stream parameter defaults to true"
+    "Backward compatible: stream parameter defaults to true",
+    "Enhanced multilingual form extraction: German-English field mappings with 8 common fields",
+    "Advanced date format conversion: _convert_to_iso_date() handles DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY formats",
+    "Fuzzy select field matching: _match_select_option() with three-tier matching (exact, partial, word-based)",
+    "Field-specific confidence scoring: Date (0.95/0.80/0.50), Select (0.95/0.80/0.40), Text (0.90/0.60/0.70), Textarea (0.85)",
+    "Improved extraction prompt: 6 comprehensive sections with multilingual, date, and select field instructions",
+    "Better error handling: Markdown code block cleaning, field validation, confidence-based omission",
+    "ISO date validation: _is_valid_iso_date() with datetime parsing and format checking"
   ],
   "simulated_endpoints": [
     "/auth/login - Login.tsx",

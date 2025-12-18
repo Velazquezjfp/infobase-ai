@@ -38,7 +38,20 @@
         "Manages chat messages with addChatMessage function",
         "Manages UI state: highlightedFolder, isAdminMode, isSidebarCollapsed",
         "Provides switchCase, addNewCase, searchCases functions",
-        "Defines AppContextType interface with 20+ properties"
+        "Defines AppContextType interface with 20+ properties",
+        "Imports WebSocketState, ConnectionStatus, WebSocketMessage from @/types/websocket",
+        "Manages WebSocket state: wsConnection, wsStatus, streamingMessageId, isTyping",
+        "Provides connectWebSocket function for establishing WebSocket connections",
+        "Provides disconnectWebSocket function for closing connections",
+        "Provides sendChatMessage function for sending chat messages via WebSocket",
+        "WebSocket connects to ws://localhost:8000/ws/chat/{caseId}",
+        "Handles chat_response message type for non-streaming responses",
+        "Handles chat_chunk message type for streaming responses with chunk accumulation",
+        "Handles form_update message type for form field extraction updates",
+        "Handles system and error message types",
+        "Auto-connects WebSocket when user logs in or case changes via useEffect",
+        "Cleans up WebSocket connections on component unmount",
+        "Streaming message accumulation logic appends chunks to last assistant message"
       ]
     },
     {
@@ -363,6 +376,195 @@
         "Returns boolean based on 768px breakpoint",
         "Uses matchMedia API"
       ]
+    },
+    {
+      "name": "backend/main.py",
+      "entityType": "BackendEntryPoint",
+      "observations": [
+        "FastAPI application entry point",
+        "Configures CORS middleware for frontend communication",
+        "Registers chat_router from backend/api/chat.py",
+        "Defines lifespan context manager for startup/shutdown events",
+        "Exposes /health and / (root) endpoints",
+        "Allows origins: localhost:5173, localhost:3000",
+        "Uses uvicorn for development server on port 8000",
+        "Imports load_dotenv from dotenv module",
+        "Calls load_dotenv() at startup to load environment variables from .env file"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py",
+      "entityType": "APIRouter",
+      "observations": [
+        "WebSocket chat API for real-time AI communication",
+        "Defines ConnectionManager class for WebSocket connection lifecycle",
+        "Exports FastAPI router with /ws/chat/{case_id} WebSocket endpoint",
+        "Exports /api/chat/health GET endpoint for service health check",
+        "Handles message types: chat, system, chat_response, form_update, error",
+        "Integrates with GeminiService for AI responses",
+        "Supports form field extraction from documents",
+        "Each WebSocket connection is scoped to a specific case ID",
+        "Handles chat_chunk message type for streaming responses",
+        "Streaming responses send is_complete: false for chunks, is_complete: true for completion marker",
+        "Default streaming mode enabled for performance (stream parameter defaults to True)"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::ConnectionManager",
+      "entityType": "Class",
+      "observations": [
+        "Manages WebSocket connections for chat sessions",
+        "Maintains active_connections dict mapping case_id to WebSocket",
+        "Methods: connect(), disconnect(), send_message()",
+        "Singleton instance exported as 'manager'",
+        "Provides connection lifecycle management"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::websocket_chat_endpoint",
+      "entityType": "WebSocketEndpoint",
+      "observations": [
+        "WebSocket endpoint at /ws/chat/{case_id}",
+        "Handles real-time bidirectional AI chat",
+        "Validates incoming message format (requires 'type' field)",
+        "Routes 'chat' messages to handle_chat_message function",
+        "Sends connection confirmation on connect",
+        "Handles WebSocketDisconnect for cleanup"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::chat_health_check",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "GET endpoint at /api/chat/health",
+        "Returns service status and gemini_initialized state",
+        "Returns 200 if ready, 503 if not ready"
+      ]
+    },
+    {
+      "name": "backend/services/context_manager.py",
+      "entityType": "Service",
+      "observations": [
+        "Context Manager Service for case-instance document context",
+        "Defines ContextManager class for hierarchical context inheritance",
+        "Manages case-level context at cases/{caseId}/case.json",
+        "Manages folder-level context at cases/{caseId}/folders/{folderId}.json",
+        "Supports template-based case creation from templates/{caseType}/",
+        "Ensures complete isolation between cases"
+      ]
+    },
+    {
+      "name": "backend/services/context_manager.py::ContextManager",
+      "entityType": "Class",
+      "observations": [
+        "Manages case-instance scoped context for AI document processing",
+        "Initializes with base_path for context files (default: backend/data/contexts)",
+        "Methods: load_case_context(), load_folder_context(), create_case_from_template(), merge_contexts()",
+        "Loads regulations, required documents, validation rules from case.json",
+        "Merges case, folder, and document contexts into AI prompt string",
+        "Precedence: Document > Folder > Case"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py",
+      "entityType": "Service",
+      "observations": [
+        "Gemini AI Service for Google Gemini API integration",
+        "Defines GeminiService class with singleton pattern",
+        "Uses gemini-2.5-flash model for text generation",
+        "Integrates with ContextManager for case-specific context loading",
+        "Handles natural language chat, document analysis, translation",
+        "Supports structured data extraction for form filling",
+        "Imports time module for performance metrics",
+        "Imports AsyncGenerator and Union from typing for streaming return type"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::GeminiService",
+      "entityType": "Class",
+      "observations": [
+        "Singleton service class for Gemini API interaction",
+        "Class variables: _instance, _model, _context_manager",
+        "Methods: generate_response(), _load_context(), _build_prompt(), is_initialized()",
+        "Loads API key from GEMINI_API_KEY environment variable",
+        "Uses GenerationConfig with temperature=0.7, top_p=0.8, top_k=40, max_output_tokens=2048",
+        "Automatically loads case-level and folder-level context based on case_id",
+        "generate_response method now supports streaming via stream parameter",
+        "generate_response returns Union[str, AsyncGenerator[str, None]] based on stream flag",
+        "Logs performance metrics: latency, token count, response length",
+        "Streaming mode logs time-to-first-token metric",
+        "Uses time.perf_counter() for precise timing measurements",
+        "Calls _generate_streaming_response internal method for streaming mode"
+      ]
+    },
+    {
+      "name": "backend/tools/form_parser.py",
+      "entityType": "Tool",
+      "observations": [
+        "Form Parser Tool for document data extraction",
+        "Provides stateless utility functions for form field extraction",
+        "Functions: parse_document_to_form(), build_extraction_prompt(), validate_form_schema(), parse_extraction_result()",
+        "Builds structured prompts for AI-powered extraction",
+        "Parses AI JSON responses into field updates with confidence scores",
+        "Converts dates to ISO format, matches select options",
+        "build_extraction_prompt() enhanced with comprehensive multilingual instructions (German/English)",
+        "build_extraction_prompt() includes 6 detailed sections: metadata, conversion rules, instructions, examples, validation rules, error handling",
+        "build_extraction_prompt() provides date format conversion guidance (European to ISO format)",
+        "build_extraction_prompt() includes fuzzy matching instructions for select field options",
+        "parse_extraction_result() handles markdown code block cleanup from AI responses",
+        "parse_extraction_result() validates date formats using _is_valid_iso_date() helper",
+        "parse_extraction_result() converts non-ISO dates to ISO format using _convert_to_iso_date()",
+        "parse_extraction_result() implements confidence scoring based on field type and validation (range: 0.40-0.95)",
+        "parse_extraction_result() validates select field options using _match_select_option() helper",
+        "Helper functions: _is_valid_iso_date(), _convert_to_iso_date(), _match_select_option()"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts",
+      "entityType": "Types",
+      "observations": [
+        "TypeScript type definitions file for WebSocket communication",
+        "Imports FormField from @/types/case",
+        "Exports BaseMessage interface with type and optional timestamp fields",
+        "Exports ChatRequest interface extending BaseMessage for client-to-server chat messages",
+        "Exports ChatResponse interface for non-streaming AI responses",
+        "Exports ChatChunkMessage interface for streaming response chunks with is_complete flag",
+        "Exports FormUpdateMessage interface with updates and confidence records for form extraction results",
+        "Exports SystemMessage interface for connection status notifications",
+        "Exports ErrorMessage interface for error messages from server",
+        "Exports WebSocketMessage union type combining all server message types",
+        "Exports ConnectionStatus union type: disconnected | connecting | connected | error",
+        "Exports WebSocketState interface with connection, status, and error fields"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_generate_streaming_response",
+      "entityType": "Method",
+      "observations": [
+        "Private async method for streaming response generation with performance metrics",
+        "Takes parameters: full_prompt, generation_config, start_time, case_id",
+        "Returns AsyncGenerator[str, None] yielding text chunks",
+        "Records and logs time-to-first-token latency metric",
+        "Accumulates full response for final metrics logging",
+        "Logs total latency, first token latency, token count on completion",
+        "Uses stream=True parameter with model.generate_content()",
+        "Handles exceptions during streaming with error logging"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::handle_chat_message",
+      "entityType": "Function",
+      "observations": [
+        "Async function handling chat message processing",
+        "Supports both streaming and non-streaming responses via stream parameter",
+        "Takes parameters: websocket, case_id, content, message dict",
+        "Extracts documentContent, formSchema, folderId, enable_streaming from message",
+        "Detects form fill requests by checking for fill/extract/populate keywords",
+        "Calls gemini_service.generate_response with stream parameter",
+        "For streaming: sends chat_chunk messages with is_complete=False, then completion marker with is_complete=True",
+        "For non-streaming: sends single chat_response message",
+        "Handles form extraction separately via handle_form_extraction function"
+      ]
     }
   ],
   "relations": [
@@ -565,6 +767,261 @@
       "from_": "src/components/workspace/CaseTreeExplorer.tsx",
       "to": "useToast",
       "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "useApp",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/data/mockData.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "useToast",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "useApp",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "useToast",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/workspace/FormViewer.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/FormViewer.tsx",
+      "to": "useApp",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/workspace/FormViewer.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/FormViewer.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/FormViewer.tsx",
+      "to": "useToast",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "useApp",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "useApp",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "useApp",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "src/components/NavLink.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/chat.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/chat.py::websocket_chat_endpoint",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/chat.py::chat_health_check",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/tools/form_parser.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/api/chat.py::ConnectionManager",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/api/chat.py::websocket_chat_endpoint",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/api/chat.py::chat_health_check",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/chat.py::websocket_chat_endpoint",
+      "to": "backend/api/chat.py::ConnectionManager",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/api/chat.py::websocket_chat_endpoint",
+      "to": "backend/services/gemini_service.py::GeminiService",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/api/chat.py::chat_health_check",
+      "to": "backend/services/gemini_service.py::GeminiService",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/services/gemini_service.py",
+      "to": "backend/services/context_manager.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::GeminiService",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/context_manager.py::ContextManager",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/services/context_manager.py",
+      "to": "backend/services/context_manager.py::ContextManager",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/form_parser.py",
+      "to": "backend/services/gemini_service.py::GeminiService",
+      "relationType": "used_by"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/chat.py::websocket_chat_endpoint",
+      "relationType": "connects_to"
+    },
+    {
+      "from_": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_generate_streaming_response",
+      "relationType": "defines_method"
+    },
+    {
+      "from_": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_generate_streaming_response",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_chat_message",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/chat.py::websocket_chat_endpoint",
+      "to": "backend/api/chat.py::handle_chat_message",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/chat.py::handle_chat_message",
+      "to": "backend/services/gemini_service.py::GeminiService",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/api/chat.py::handle_chat_message",
+      "to": "backend/services/gemini_service.py::_generate_streaming_response",
+      "relationType": "uses_indirectly"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "src/types/websocket.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/types/websocket.ts",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "backend/api/chat.py::websocket_chat_endpoint",
+      "relationType": "connects_to"
     }
   ]
 }

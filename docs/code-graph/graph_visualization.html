@@ -225,15 +225,15 @@
             <div class="graph-path">/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/code-graph/code-graph.json</div>
             <div class="stats">
                 <div class="stat">
-                    <div class="stat-number">41</div>
+                    <div class="stat-number">45</div>
                     <div class="stat-label">Entities</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">91</div>
+                    <div class="stat-number">99</div>
                     <div class="stat-label">Relations</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">22</div>
+                    <div class="stat-number">23</div>
                     <div class="stat-label">Types</div>
                 </div>
             </div>
@@ -709,7 +709,9 @@
                         "Each WebSocket connection is scoped to a specific case ID",
                         "Handles chat_chunk message type for streaming responses",
                         "Streaming responses send is_complete: false for chunks, is_complete: true for completion marker",
-                        "Default streaming mode enabled for performance (stream parameter defaults to True)"
+                        "Default streaming mode enabled for performance (stream parameter defaults to True)",
+                        "handle_form_extraction() passes case_id parameter to gemini_service.generate_response()",
+                        "handle_form_extraction() explicitly sets stream=False for form extraction (non-streaming mode)"
                 ],
                 "index": 29
         },
@@ -817,7 +819,17 @@
                         "Functions: parse_document_to_form(), build_extraction_prompt(), validate_form_schema(), parse_extraction_result()",
                         "Builds structured prompts for AI-powered extraction",
                         "Parses AI JSON responses into field updates with confidence scores",
-                        "Converts dates to ISO format, matches select options"
+                        "Converts dates to ISO format, matches select options",
+                        "build_extraction_prompt() enhanced with comprehensive multilingual instructions (German/English)",
+                        "build_extraction_prompt() includes 6 detailed sections: metadata, conversion rules, instructions, examples, validation rules, error handling",
+                        "build_extraction_prompt() provides date format conversion guidance (European to ISO format)",
+                        "build_extraction_prompt() includes fuzzy matching instructions for select field options",
+                        "parse_extraction_result() handles markdown code block cleanup from AI responses",
+                        "parse_extraction_result() validates date formats using _is_valid_iso_date() helper",
+                        "parse_extraction_result() converts non-ISO dates to ISO format using _convert_to_iso_date()",
+                        "parse_extraction_result() implements confidence scoring based on field type and validation (range: 0.40-0.95)",
+                        "parse_extraction_result() validates select field options using _match_select_option() helper",
+                        "Helper functions: _is_valid_iso_date(), _convert_to_iso_date(), _match_select_option()"
                 ],
                 "index": 37
         },
@@ -870,6 +882,56 @@
                         "Handles form extraction separately via handle_form_extraction function"
                 ],
                 "index": 40
+        },
+        {
+                "id": "backend/tools/form_parser.py::_is_valid_iso_date",
+                "type": "HelperFunction",
+                "observations": [
+                        "Validates ISO date format (YYYY-MM-DD)",
+                        "Uses regex pattern matching for format validation",
+                        "Uses datetime.strptime() for date validity check",
+                        "Returns boolean indicating valid ISO date",
+                        "Called by parse_extraction_result() for date validation"
+                ],
+                "index": 41
+        },
+        {
+                "id": "backend/tools/form_parser.py::_convert_to_iso_date",
+                "type": "HelperFunction",
+                "observations": [
+                        "Converts various European date formats to ISO format (YYYY-MM-DD)",
+                        "Supports formats: DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY, DD.MM.YY, DD/MM/YY",
+                        "Returns Optional[str] with ISO date or None on failure",
+                        "Called by parse_extraction_result() for date normalization",
+                        "Handles two-digit year conversion (assumes 20xx century)"
+                ],
+                "index": 42
+        },
+        {
+                "id": "backend/tools/form_parser.py::_match_select_option",
+                "type": "HelperFunction",
+                "observations": [
+                        "Fuzzy matching for select field options against available choices",
+                        "Implements three-level matching strategy: exact, partial, word-based",
+                        "Case-insensitive matching for better user experience",
+                        "Returns Optional[str] with matched option from available options or None",
+                        "Called by parse_extraction_result() to validate and correct select field values"
+                ],
+                "index": 43
+        },
+        {
+                "id": "backend/tools/form_parser.py::parse_extraction_result",
+                "type": "Function",
+                "observations": [
+                        "Parses AI JSON response into form field updates with confidence scores",
+                        "Handles markdown code block cleanup from AI responses",
+                        "Validates date formats using _is_valid_iso_date() helper",
+                        "Converts non-ISO dates to ISO format using _convert_to_iso_date()",
+                        "Implements confidence scoring based on field type and validation (range: 0.40-0.95)",
+                        "Validates select field options using _match_select_option() helper",
+                        "Returns dictionary mapping field IDs to extracted values with confidence scores"
+                ],
+                "index": 44
         }
 ];
         const links = [
@@ -1327,6 +1389,46 @@
                 "source": "src/contexts/AppContext.tsx",
                 "target": "backend/api/chat.py::websocket_chat_endpoint",
                 "type": "connects_to"
+        },
+        {
+                "source": "backend/tools/form_parser.py",
+                "target": "backend/tools/form_parser.py::_is_valid_iso_date",
+                "type": "defines"
+        },
+        {
+                "source": "backend/tools/form_parser.py",
+                "target": "backend/tools/form_parser.py::_convert_to_iso_date",
+                "type": "defines"
+        },
+        {
+                "source": "backend/tools/form_parser.py",
+                "target": "backend/tools/form_parser.py::_match_select_option",
+                "type": "defines"
+        },
+        {
+                "source": "backend/tools/form_parser.py",
+                "target": "backend/tools/form_parser.py::parse_extraction_result",
+                "type": "defines"
+        },
+        {
+                "source": "backend/tools/form_parser.py::_convert_to_iso_date",
+                "target": "backend/tools/form_parser.py::_is_valid_iso_date",
+                "type": "calls"
+        },
+        {
+                "source": "backend/tools/form_parser.py::parse_extraction_result",
+                "target": "backend/tools/form_parser.py::_is_valid_iso_date",
+                "type": "calls"
+        },
+        {
+                "source": "backend/tools/form_parser.py::parse_extraction_result",
+                "target": "backend/tools/form_parser.py::_convert_to_iso_date",
+                "type": "calls"
+        },
+        {
+                "source": "backend/tools/form_parser.py::parse_extraction_result",
+                "target": "backend/tools/form_parser.py::_match_select_option",
+                "type": "calls"
         }
 ];
 
