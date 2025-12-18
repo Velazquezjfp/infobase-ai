@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "personal-data",
+  "folderName": "Personal Data",
+  "purpose": "Identity verification and personal information documents for Ahmad Ali's integration course application.",
+  "expectedDocuments": [
+    "birth_certificate",
+    "passport",
+    "national_id",
+    "residence_permit",
+    "registration_certificate",
+    "passport_photo"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "name_consistency",
+      "description": "Full name must be consistent across all identity documents",
+      "checkPoints": ["First name spelling (Ahmad)", "Last name spelling (Ali)", "Name order consistency"],
+      "applicantReference": "Expected name: Ahmad Ali"
+    },
+    {
+      "criterionId": "valid_dates",
+      "description": "All date fields must be valid and logically consistent",
+      "checkPoints": ["Birth date: 15.05.1990", "Document issue dates", "Document expiry dates"],
+      "applicantReference": "Expected DOB: 15.05.1990"
+    },
+    {
+      "criterionId": "certified_translations",
+      "description": "Afghan documents require certified German translations",
+      "checkPoints": ["Translator certification present", "Translation completeness", "Dari/Pashto documents translated"],
+      "requirements": "Translation must be by a sworn translator (beeidigter Übersetzer)"
+    },
+    {
+      "criterionId": "nationality_verification",
+      "description": "Verify Afghan nationality and refugee status documentation",
+      "checkPoints": ["Nationality stated as Afghanistan", "Refugee status confirmed", "Residence permit type appropriate"],
+      "applicantReference": "Expected nationality: Afghanistan"
+    }
+  ],
+  "processingGuidelines": [
+    "Verify Ahmad Ali's name consistency across all documents",
+    "Check birth date matches 15.05.1990 on all documents",
+    "Ensure Afghan documents have certified German translations",
+    "Verify residence permit is valid for integration course eligibility"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Missing certified translation for Afghan birth certificate",
+      "frequency": "very_common",
+      "resolution": "Request certified German translation from sworn translator"
+    },
+    {
+      "mistake": "Name transliteration differences (Ahmad/Ahmed)",
+      "frequency": "common",
+      "resolution": "Document variations, use residence permit spelling as primary"
+    }
+  ]
+}

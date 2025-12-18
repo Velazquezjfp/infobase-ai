@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "certificates",
+  "folderName": "Certificates",
+  "purpose": "Educational and language certification documents for Ahmad Ali's integration course placement.",
+  "expectedDocuments": [
+    "language_certificate",
+    "educational_diploma",
+    "vocational_certificate",
+    "course_completion_certificate"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "recognized_institution",
+      "description": "Language certificates must be from BAMF-recognized institutions",
+      "checkPoints": ["Institution name verified", "BAMF accreditation confirmed"],
+      "recognizedInstitutions": ["Goethe-Institut", "telc", "TestDaF", "ÖSD", "ECL"]
+    },
+    {
+      "criterionId": "cefr_level_valid",
+      "description": "Language certificates must clearly state CEFR level achieved",
+      "checkPoints": ["CEFR level explicitly stated", "Current level: A1 (based on existing certificate)", "Test date documented"],
+      "currentStatus": "Ahmad Ali has A1 certificate from Goethe-Institut dated 15.06.2023"
+    },
+    {
+      "criterionId": "within_validity_period",
+      "description": "Certificates should be current and valid",
+      "checkPoints": ["Issue date visible", "Within 2-5 year validity"],
+      "note": "A1 certificate from June 2023 is still valid for course placement"
+    }
+  ],
+  "processingGuidelines": [
+    "Verify Goethe-Institut A1 certificate authenticity",
+    "Confirm certificate belongs to Ahmad Ali",
+    "Note A1 level for integration course placement",
+    "Check for any additional educational certificates from Afghanistan"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Unrecognized language school certificate",
+      "frequency": "common",
+      "resolution": "Only BAMF-recognized institutions accepted for placement"
+    },
+    {
+      "mistake": "Afghan educational certificates without translation",
+      "frequency": "common",
+      "resolution": "Request certified German translation"
+    }
+  ]
+}

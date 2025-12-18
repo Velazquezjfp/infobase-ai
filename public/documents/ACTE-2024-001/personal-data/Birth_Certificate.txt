@@ -1,0 +1,51 @@
+===============================================================================
+                        GEBURTSURKUNDE / BIRTH CERTIFICATE
+                     Standesamt Kabul / Civil Registry Kabul
+===============================================================================
+
+Urkundennummer / Certificate No.: GU-1990-KBL-045892
+
+ANGABEN ZUR PERSON / PERSONAL DETAILS
+--------------------------------------
+
+Vorname / First Name:           Ahmad
+Nachname / Surname:             Ali
+Geburtsdatum / Date of Birth:   15.05.1990
+Geburtsort / Place of Birth:    Kabul, Afghanistan
+Geschlecht / Gender:            männlich / male
+Staatsangehörigkeit / Nationality: Afghanistan
+
+ANGABEN ZU DEN ELTERN / PARENTAL INFORMATION
+---------------------------------------------
+
+Vater / Father:
+  Name:                         Mohammad Ali
+  Geburtsdatum / DOB:           12.03.1965
+  Geburtsort / Place of Birth:  Kabul, Afghanistan
+
+Mutter / Mother:
+  Name:                         Fatima Ali (geb. Ahmadi)
+  Geburtsdatum / DOB:           08.09.1968
+  Geburtsort / Place of Birth:  Kabul, Afghanistan
+
+BEGLAUBIGUNGSVERMERK / CERTIFICATION
+-------------------------------------
+
+Diese Urkunde ist eine beglaubigte Abschrift aus dem Geburtenregister.
+This certificate is a certified copy from the birth register.
+
+Ausstellungsdatum / Date of Issue: 10.01.2024
+Ausstellungsort / Place of Issue:  Kabul, Afghanistan
+
+                    [AMTLICHES SIEGEL / OFFICIAL SEAL]
+                         Standesamt Kabul
+                        Civil Registry Office
+
+Beglaubigt durch / Certified by:
+Abdul Rahman, Standesbeamter / Registrar
+
+Übersetzung beglaubigt / Translation certified:
+Dr. Hassan Karimi, Vereidigter Übersetzer / Sworn Translator
+Berlin, 12.01.2024
+
+===============================================================================

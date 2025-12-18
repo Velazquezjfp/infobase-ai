@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "integration-docs",
+  "folderName": "Integration Course Documents",
+  "purpose": "Documents related to Ahmad Ali's integration course participation, attendance, and progress.",
+  "expectedDocuments": [
+    "course_confirmation",
+    "attendance_records",
+    "course_completion_certificate",
+    "test_results",
+    "placement_test_results"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "accredited_provider",
+      "description": "Course documents must be from BAMF-accredited providers",
+      "checkPoints": ["Provider name and accreditation number", "BAMF certification reference"],
+      "requirements": "Only BAMF-certified providers qualify"
+    },
+    {
+      "criterionId": "minimum_hours",
+      "description": "Attendance records must show sufficient course hours",
+      "checkPoints": ["Total hours attended", "Minimum 50% attendance required"],
+      "targetHours": "700 hours for general integration course"
+    },
+    {
+      "criterionId": "completion_status",
+      "description": "Track course progress toward completion",
+      "checkPoints": ["Module completion", "DTZ test preparation", "LiD test preparation"],
+      "successCriteria": "DTZ B1 level and LiD test passed for full completion"
+    }
+  ],
+  "processingGuidelines": [
+    "This is a new application - no existing course documents expected yet",
+    "Once enrolled, track course provider confirmation",
+    "Monitor attendance records as course progresses",
+    "Verify test results upon course completion"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Course from non-accredited provider",
+      "frequency": "occasional",
+      "resolution": "Ensure enrollment only with BAMF-accredited providers"
+    }
+  ],
+  "currentStatus": "Pending - awaiting course enrollment"
+}

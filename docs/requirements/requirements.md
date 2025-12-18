@@ -7,7 +7,7 @@
 **Status:** proposed
 
 **Description:**
-Implement a Python FastAPI backend service with WebSocket support for real-time AI conversation with document context. The service connects to Google Gemini API using GEMINI_API_KEY from .env file ("AIzaSyA25jr2EC9eaQtUs50OHleoz69B7ULh1ZU"). The agent accepts document content (initially text files, PDF support later) and provides natural language responses including translation, summarization, and Q&A. The WebSocket endpoint at ws://localhost:8000/ws/chat/{case_id} maintains stateless sessions (no persistence required for POC). The agent has access to a form parsing tool that can read current folder's FormField[] structure from AppContext and update field values by sending JSON updates back to the frontend.
+Implement a Python FastAPI backend service with WebSocket support for real-time AI conversation with document context. The service connects to Google Gemini API using GEMINI_API_KEY from .env file ("AIzaSyA25j****"). The agent accepts document content (initially text files, PDF support later) and provides natural language responses including translation, summarization, and Q&A. The WebSocket endpoint at ws://localhost:8000/ws/chat/{case_id} maintains stateless sessions (no persistence required for POC). The agent has access to a form parsing tool that can read current folder's FormField[] structure from AppContext and update field values by sending JSON updates back to the frontend.
 
 **Changes Required:**
 - Backend: FastAPI application with WebSocket route at /ws/chat/{case_id}
@@ -42,37 +42,51 @@ Implement a Python FastAPI backend service with WebSocket support for real-time 
 
 ---
 
-## F-002: Document Context Management System
+## F-002: Document Context Management System (Case-Instance Scoped)
 
 **Status:** proposed
 
 **Description:**
-Implement a hierarchical context inheritance system providing AI agents with domain-specific knowledge at three levels: (1) Case-level context defining the "German Integration Course Application" process including BAMF regulations, required documents (birth certificate, passport, language certificates), validation rules, and common errors; (2) Folder-level context specifying what each folder should contain and validation criteria - Personal Data folder expects identity documents with specific fields (full name, date of birth, nationality), Certificates folder expects language proficiency evidence (A1-C2 levels, Goethe Institut or equivalent), etc.; (3) Document-level context including selected document content. Context is stored as JSON files in data/contexts/ directory and loaded by the backend agent when processing requests. Frontend passes currentCase.id and selectedFolder.id in WebSocket messages so backend can retrieve appropriate context hierarchy.
+Implement a hierarchical context inheritance system providing AI agents with case-instance-specific knowledge. Each case (ACTE) has its own context directory ensuring complete isolation. Context is loaded from `backend/data/contexts/cases/{caseId}/` and includes:
+
+1. **Case-level context**: `cases/{caseId}/case.json` - defines case type, regulations, required documents, validation rules
+2. **Folder-level context**: `cases/{caseId}/folders/{folderId}.json` - specifies folder's expected documents and validation criteria
+3. **Document-level context**: Selected document content passed from frontend
+
+When switching cases:
+- Context manager loads new case's context files
+- AI agent receives case-specific knowledge (different for Integration Course vs Asylum Application)
+- All responses are scoped to the active case
+
+For new cases:
+- Context created from templates in `backend/data/contexts/templates/{caseType}/`
+- New case gets its own context directory that can be customized
 
 **Changes Required:**
-- Data: Case-level context JSON defining Integration Course process
-  - Source: backend/data/contexts/case_types/integration_course.json (new file)
-  - Schema: { "name": "German Integration Course Application", "description": "...", "regulations": [], "required_documents": [], "validation_rules": [], "common_issues": [] }
-- Data: Folder-level context JSON for each folder type
-  - Source: backend/data/contexts/folders/personal_data.json, certificates.json, integration_docs.json, applications.json, emails.json, evidence.json (new files)
-  - Schema: { "folder_name": "Personal Data", "purpose": "...", "required_documents": [], "validation_criteria": [], "common_mistakes": [] }
-- Backend: Context manager service loading and merging context hierarchy
+- Backend: Context manager with case-instance path resolution
   - Source: backend/services/context_manager.py (new file)
-  - Methods: load_case_context(case_id), load_folder_context(folder_id), merge_contexts(case_ctx, folder_ctx, doc_ctx) -> str
-- Backend: Update Gemini service to accept and use hierarchical context
+  - Methods:
+    - load_case_context(case_id) → loads from `cases/{case_id}/case.json`
+    - load_folder_context(case_id, folder_id) → loads from `cases/{case_id}/folders/{folder_id}.json`
+    - create_case_from_template(case_id, case_type) → copies template to new case directory
+    - merge_contexts(case_ctx, folder_ctx, doc_ctx) → combines for AI prompt
+- Backend: Update Gemini service to use case-scoped context
   - Source: backend/services/gemini_service.py
-  - Update: generate_response() to accept context parameter and include in system prompt
+  - Update: generate_response(case_id, folder_id, ...) resolves context from case directory
 - Frontend: Update WebSocket messages to include case_id and folder_id
   - Source: src/types/websocket.ts
   - Update: ChatRequest interface to include caseId: string, folderId: string | null
+- Frontend: Clear and reload context when switching cases
+  - Source: src/contexts/AppContext.tsx
+  - Update: Trigger context reload when currentCase changes
 
 **Test Cases:**
-- TC-F-002-01: Request context for case "ACTE-2024-001", verify integration_course.json loaded correctly
-- TC-F-002-02: Request context for folder "personal-data", verify personal_data.json loaded with 3+ validation rules
-- TC-F-002-03: Send chat message with birth certificate in Personal Data folder, verify agent mentions "date of birth" and "nationality" validation
-- TC-F-002-04: Send chat message with A1 certificate in Certificates folder, verify agent recognizes Goethe Institut as valid issuer
-- TC-F-002-05: Upload document to wrong folder, verify agent suggests correct folder based on context
-- TC-F-002-06: Request context for non-existent folder_id, verify graceful fallback to case-level context only
+- TC-F-002-01: Load ACTE-2024-001 context, verify case.json loaded from cases/ACTE-2024-001/
+- TC-F-002-02: Load folder context for ACTE-2024-001/personal-data, verify folder-specific rules
+- TC-F-002-03: Switch to ACTE-2024-002, verify different case context loaded (Asylum Application)
+- TC-F-002-04: Send chat in ACTE-2024-001, verify Integration Course context in AI response
+- TC-F-002-05: Create new case ACTE-2024-004 from template, verify context directory created
+- TC-F-002-06: Request context for non-existent case, verify graceful error handling
 
 **Created:** 2025-12-16T19:45:00Z
 
@@ -156,86 +170,98 @@ Add new "AI Fields" tab to AdminConfigPanel.tsx (6th tab after Folders, Doc Type
 
 ---
 
-## F-005: Folder-Specific Form Management
+## F-005: Case-Level Form Management
 
 **Status:** proposed
 
 **Description:**
-Implement dynamic form selection based on currentFolder context. Currently, mockData.ts defines single initialFormFields array used globally. Extend Case interface to include folderForms mapping folder IDs to FormField arrays. Create folder-specific forms: Personal Data folder shows identity fields (name, birthDate, nationality, passportNumber), Certificates folder shows certification fields (certificateType, issuingInstitution, level, issueDate, expiryDate), Integration Course Documents folder shows enrollment fields (courseProvider, startDate, courseType, hoursPerWeek), Applications folder shows application fields (applicationDate, status, reviewedBy). When user selects a document or navigates to a folder, FormViewer.tsx displays the appropriate form. Forms can be edited in AdminConfigPanel Forms tab with folder selector dropdown. AI document assistant uses the active folder's form schema for auto-fill operations.
+Implement case-level form management where each case has a single form template. Currently, mockData.ts defines single initialFormFields array used globally. The form is displayed at the case level (not folder level) - when a case is loaded, its associated form appears in the FormViewer panel. The form remains constant as users navigate between folders within the same case. Different cases can have different form templates based on case type (e.g., "German Integration Course Application", "Asylum Application", "Family Reunification"). When switching cases via search or selection, the FormViewer loads the new case's form template and data. Form data is stored per-case in AppContext's allCaseFormData mapping. The AI document assistant can fill form fields from any document in any folder since the form applies to the entire case.
 
 **Changes Required:**
-- Types: Extend Case interface with folderForms mapping
+- Types: Ensure Case interface supports case-level form data
   - Source: src/types/case.ts (line 19-25)
-  - Add: folderForms?: Record<string, FormField[]> to Case interface
-- Data: Create folder-specific form templates
+  - Verify: Case interface has formFields or reference to form template
+- Data: Define case-specific form templates by case type
   - Source: src/data/mockData.ts
-  - Add: personalDataForm, certificatesForm, integrationCourseForm, applicationsForm arrays
-- Data: Update mockCase with folderForms mapping
-  - Source: src/data/mockData.ts (line 51-111)
-  - Add: folderForms: { "personal-data": personalDataForm, "certificates": certificatesForm, ... }
-- Frontend: Update FormViewer to select form based on current folder
+  - Add: caseFormTemplates mapping case type to FormField[] arrays
+- Data: Update mockCases with form data per case
+  - Source: src/data/mockData.ts
+  - Add: sampleCaseFormData mapping case IDs to form field values
+- Frontend: Ensure FormViewer displays form for current case (not folder)
   - Source: src/components/workspace/FormViewer.tsx
-  - Add: Compute activeForm = currentCase.folderForms?.[currentFolderId] || formFields
-- Frontend: Update AppContext to manage folder-specific forms
+  - Verify: Form title shows case name, form persists across folder navigation
+- Frontend: Update AppContext to manage case-level form state
   - Source: src/contexts/AppContext.tsx
-  - Add: currentFolderId state, updateFormFieldForFolder(folderId, fieldId, value)
-- Frontend: Update AdminConfigPanel Forms tab with folder selector
-  - Source: src/components/workspace/AdminConfigPanel.tsx (line 472-538)
-  - Add: Select dropdown to choose folder, edit that folder's form fields
-- Backend: Update form parser to receive folder-specific schema
+  - Verify: formFields state tied to currentCase, allCaseFormData stores per-case data
+- Frontend: AdminConfigPanel Forms tab edits the current case's form
+  - Source: src/components/workspace/AdminConfigPanel.tsx
+  - Verify: Form editor applies to selected case, not folders
+- Backend: Form parser receives case context (not folder-specific)
   - Source: backend/tools/form_parser.py
-  - Update: extract_form_data to accept folder_id parameter for correct schema selection
+  - Update: extract_form_data uses case_id parameter to retrieve correct form schema
 
 **Test Cases:**
-- TC-F-005-01: Click "Personal Data" folder, verify FormViewer displays name, birthDate, nationality fields
-- TC-F-005-02: Click "Certificates" folder, verify FormViewer displays certificateType, issuingInstitution, level fields
-- TC-F-005-03: Click document in "Integration Course Documents", verify courseProvider, startDate fields displayed
-- TC-F-005-04: Fill form in "Personal Data" folder, switch to "Certificates" folder, verify Personal Data values persist
-- TC-F-005-05: Open AdminConfigPanel Forms tab, select "Certificates" folder, add new field, verify appears in Certificates form only
-- TC-F-005-06: Send "/fillForm" command in Personal Data folder with birth certificate, verify only Personal Data fields filled
-- TC-F-005-07: Create new case, verify all folders have default empty forms, no cross-contamination
+- TC-F-005-01: Load case ACTE-2024-001, verify FormViewer shows "German Integration Course Application" form with 7 fields
+- TC-F-005-02: Navigate to different folders within same case, verify form remains unchanged
+- TC-F-005-03: Fill form fields, navigate to different folder, verify field values persist
+- TC-F-005-04: Switch to case ACTE-2024-002 via search, verify form loads with different data
+- TC-F-005-05: Edit form in AdminConfigPanel, verify changes apply to current case only
+- TC-F-005-06: Send "/fillForm" command from any folder, verify form fields populated correctly
+- TC-F-005-07: Create new case, verify empty form with appropriate template for case type
 
 **Created:** 2025-12-16T19:45:00Z
 
 ---
 
-## F-006: Replace Mock Documents with Text Files
+## F-006: Replace Mock Documents with Text Files (Case-Instance Scoped)
 
 **Status:** proposed
 
 **Description:**
-Convert current mock document system to use actual text files stored locally. Replace src/data/mockData.ts PDF references with .txt files in public/documents/ directory maintaining same filenames (Birth_Certificate.txt, Passport_Scan.txt, Language_Certificate_A1.txt, etc.). Update Document interface content property to store full text content loaded from files. Modify CaseTreeExplorer.tsx and DocumentViewer.tsx to load file content from public directory using fetch(). When document is selected, load text content and pass to AI chat interface. Maintain original metadata structure for document type, size, uploadedAt. Prepare architecture for future PDF support by keeping file type as 'pdf' in metadata but serving .txt during POC phase.
+Convert current mock document system to use actual text files stored in case-specific directories. Documents are stored at `public/documents/{caseId}/{folderId}/{filename}` ensuring complete isolation between cases. When a case is loaded, the document tree shows only that case's documents. The document loader constructs paths dynamically based on current case ID and folder ID.
+
+When switching cases:
+1. CaseTreeExplorer updates to show new case's folder/document structure
+2. Document paths are resolved using `currentCase.id`
+3. Previously loaded document content is cleared
+4. New case's documents become accessible
+
+For new cases:
+1. Document directory created at `public/documents/{newCaseId}/`
+2. Folder subdirectories created matching case's folder structure
+3. Documents can be uploaded/created in the new case's directory
 
 **Changes Required:**
-- Data: Create text file versions of mock documents
-  - Source: public/documents/Birth_Certificate.txt, Passport_Scan.txt, Language_Certificate_A1.txt, Integration_Application.txt, School_Transcripts.txt, Confirmation_Email.txt (new files)
-  - Content: Realistic sample text for each document type (German/English mixed as appropriate)
-- Frontend: Update Document interface to support content loading
-  - Source: src/types/case.ts (line 1-9)
-  - Current content?: string is sufficient, ensure it's populated from file
-- Frontend: Add document loader utility function
+- Frontend: Document loader utility with case-aware paths
   - Source: src/lib/documentLoader.ts (new file)
-  - Function: loadDocumentContent(documentPath: string) -> Promise<string>
-- Frontend: Update CaseTreeExplorer document click to load content
+  - Function: loadDocumentContent(caseId: string, folderId: string, filename: string) -> Promise<string>
+  - Path construction: `/documents/${caseId}/${folderId}/${filename}`
+- Frontend: Update Document interface to support case-scoped paths
+  - Source: src/types/case.ts (line 1-9)
+  - Add: caseId and folderId to Document interface for path resolution
+- Frontend: Update CaseTreeExplorer to use case-scoped document loading
   - Source: src/components/workspace/CaseTreeExplorer.tsx
-  - Update: Document click handler to call loadDocumentContent and set selectedDocument.content
+  - Update: Document click constructs path from currentCase.id + folder.id + document.name
 - Frontend: Update DocumentViewer to display text content
   - Source: src/components/workspace/DocumentViewer.tsx (line 139-151)
-  - Update: activeTab='pdf' view to display document.content in pre-formatted text box instead of placeholder
-- Frontend: Update AIChatInterface to access document content
+  - Update: Display document.content in pre-formatted text box
+- Frontend: Clear document state when switching cases
+  - Source: src/contexts/AppContext.tsx
+  - Update: Reset selectedDocument when currentCase changes
+- Frontend: Update AIChatInterface with case context in requests
   - Source: src/components/workspace/AIChatInterface.tsx
-  - Update: Send selectedDocument.content in WebSocket messages when document context needed
-- Data: Update mockData.ts documents with file paths
-  - Source: src/data/mockData.ts (line 61-107)
-  - Update: Document objects to include filePath: '/documents/Birth_Certificate.txt' property
+  - Update: Include caseId in document content requests
+- Data: Update mockData.ts to generate case-scoped paths
+  - Source: src/data/mockData.ts
+  - Update: Document filePath uses template: `/documents/${caseId}/${folderId}/${filename}`
 
 **Test Cases:**
-- TC-F-006-01: Click Birth_Certificate.txt in tree, verify content loads and displays in DocumentViewer
-- TC-F-006-02: Select document, send chat message "Summarize this", verify AI receives full text content
-- TC-F-006-03: Document with 5000+ characters, verify full content loads without truncation
-- TC-F-006-04: Load document with German umlauts (ä, ö, ü, ß), verify UTF-8 encoding preserved
-- TC-F-006-05: Click document while previous document loading, verify no race condition or stale content
-- TC-F-006-06: Refresh page with document selected, verify content reloads correctly
+- TC-F-006-01: Load ACTE-2024-001, click Birth_Certificate.txt, verify loads from /documents/ACTE-2024-001/personal-data/
+- TC-F-006-02: Switch to ACTE-2024-002, verify ACTE-2024-001 documents NOT displayed in tree
+- TC-F-006-03: Select document in ACTE-2024-001, switch cases, verify document viewer clears
+- TC-F-006-04: Create new case ACTE-2024-004, verify empty document tree ready for uploads
+- TC-F-006-05: Load document with German umlauts, verify UTF-8 encoding preserved
+- TC-F-006-06: Request document from different case's path, verify access prevented or 404
 - TC-F-006-07: Document file missing (404), verify graceful error message "Failed to load document content"
 
 **Created:** 2025-12-16T19:45:00Z
@@ -360,124 +386,182 @@ POC phase requires zero database dependencies. All persistent data stored using 
 
 ## Data Requirements
 
-## D-001: Hierarchical Context Data Schema
+## D-001: Hierarchical Context Data Schema (Case-Instance Scoped)
 
 **Status:** proposed
 
 **Description:**
-Define JSON schema for case-level and folder-level context files stored in backend/data/contexts/. Case context schema includes: { "caseType": "integration_course", "name": "German Integration Course Application", "description": "Process for managing integration course applications submitted to BAMF", "regulations": [{ "id": "§43_AufenthG", "title": "Integration course entitlement", "summary": "..." }], "requiredDocuments": [{ "documentType": "birth_certificate", "mandatory": true, "validationRules": ["must_be_certified", "max_age_6_months"] }], "validationRules": [{ "rule_id": "age_verification", "condition": "...", "action": "..." }], "commonIssues": [{ "issue": "Missing translation", "severity": "warning", "suggestion": "..." }] }. Folder context schema includes: { "folderId": "personal-data", "folderName": "Personal Data", "purpose": "Identity verification documents", "expectedDocuments": [], "validationCriteria": [], "processingGuidelines": [], "commonMistakes": [] }. All context files versioned with "schemaVersion": "1.0".
+Define JSON schema for case-instance and folder-level context files stored in backend/data/contexts/. Each case (ACTE) has its own context directory containing case-specific and folder-specific context files. This ensures complete modularity - when switching cases, all context switches with it. New cases can be created dynamically with their own context directories.
+
+**Directory Structure:**
+```
+backend/data/contexts/
+├── cases/
+│   ├── ACTE-2024-001/           # German Integration Course case
+│   │   ├── case.json            # Case-level context
+│   │   └── folders/
+│   │       ├── personal-data.json
+│   │       ├── certificates.json
+│   │       ├── integration-docs.json
+│   │       ├── applications.json
+│   │       ├── emails.json
+│   │       └── evidence.json
+│   ├── ACTE-2024-002/           # Asylum Application case
+│   │   ├── case.json
+│   │   └── folders/
+│   │       └── ...
+│   └── ACTE-2024-003/           # Family Reunification case
+│       ├── case.json
+│       └── folders/
+│           └── ...
+└── templates/                    # Templates for new cases
+    ├── integration_course/
+    ├── asylum_application/
+    └── family_reunification/
+```
+
+Case context schema: { "caseId": "ACTE-2024-001", "caseType": "integration_course", "name": "German Integration Course Application", "description": "...", "regulations": [], "requiredDocuments": [], "validationRules": [], "commonIssues": [] }. Folder context schema: { "folderId": "personal-data", "folderName": "Personal Data", "purpose": "...", "expectedDocuments": [], "validationCriteria": [], "commonMistakes": [] }. All context files versioned with "schemaVersion": "1.0".
 
 **Changes Required:**
-- Data: Case context JSON for Integration Course type
-  - Source: backend/data/contexts/case_types/integration_course.json
-  - Schema: As described above with 5+ regulations, 10+ required documents, 8+ validation rules
-- Data: Personal Data folder context
-  - Source: backend/data/contexts/folders/personal_data.json
-  - Content: expectedDocuments: ["birth_certificate", "passport", "national_id"], validationCriteria: ["name_consistency", "valid_dates", "certified_translations"]
-- Data: Certificates folder context
-  - Source: backend/data/contexts/folders/certificates.json
-  - Content: expectedDocuments: ["language_certificate"], validationCriteria: ["recognized_institution", "cefr_level_valid", "within_validity_period"]
-- Data: Integration Course Documents folder context
-  - Source: backend/data/contexts/folders/integration_docs.json
-  - Content: expectedDocuments: ["course_confirmation", "attendance_records"], validationCriteria: ["minimum_hours", "provider_accredited"]
-- Data: Applications & Forms folder context
-  - Source: backend/data/contexts/folders/applications.json
-  - Content: expectedDocuments: ["application_form", "signed_declarations"], validationCriteria: ["all_required_fields", "valid_signature"]
-- Data: Emails folder context
-  - Source: backend/data/contexts/folders/emails.json
-  - Content: expectedDocuments: ["correspondence"], validationCriteria: ["official_sender", "relevant_to_case"]
-- Data: Additional Evidence folder context
-  - Source: backend/data/contexts/folders/evidence.json
-  - Content: expectedDocuments: ["supporting_documents"], validationCriteria: ["relevant_to_application"]
+- Data: Case context JSON for ACTE-2024-001 (Integration Course)
+  - Source: backend/data/contexts/cases/ACTE-2024-001/case.json
+  - Schema: caseId, caseType, name, regulations (5+), requiredDocuments (10+), validationRules (8+)
+- Data: Folder contexts for ACTE-2024-001
+  - Source: backend/data/contexts/cases/ACTE-2024-001/folders/*.json
+  - Files: personal-data.json, certificates.json, integration-docs.json, applications.json, emails.json, evidence.json
+- Data: Template contexts for new case creation
+  - Source: backend/data/contexts/templates/integration_course/
+  - Purpose: Copy template folder when creating new Integration Course case
+- Backend: Context manager supports case-instance paths
+  - Source: backend/services/context_manager.py
+  - Methods: load_case_context(case_id) loads from cases/{case_id}/case.json
+  - Methods: load_folder_context(case_id, folder_id) loads from cases/{case_id}/folders/{folder_id}.json
+  - Methods: create_case_context(case_id, case_type) copies from templates/{case_type}/ to cases/{case_id}/
 
 **Test Cases:**
-- TC-D-001-01: Load integration_course.json, verify schemaVersion="1.0" and all required top-level keys present
-- TC-D-001-02: Validate regulations array, verify each regulation has id, title, summary fields
-- TC-D-001-03: Load personal_data.json, verify expectedDocuments includes "birth_certificate" and "passport"
-- TC-D-001-04: Load certificates.json, verify validationCriteria includes "cefr_level_valid" rule
-- TC-D-001-05: Parse all context files with JSON validator, verify no syntax errors
-- TC-D-001-06: Verify total context size for integration_course.json <100KB for performance
-- TC-D-001-07: Load all 6 folder contexts, verify no duplicate folderId values
+- TC-D-001-01: Load ACTE-2024-001/case.json, verify caseId="ACTE-2024-001" and schemaVersion="1.0"
+- TC-D-001-02: Load ACTE-2024-001/folders/personal-data.json, verify expectedDocuments includes "birth_certificate"
+- TC-D-001-03: Switch to ACTE-2024-002, verify different case.json loaded with different caseType
+- TC-D-001-04: Create new case ACTE-2024-004 from integration_course template, verify context files created
+- TC-D-001-05: Load non-existent case context, verify graceful fallback or error message
+- TC-D-001-06: Verify each case directory is isolated - changes to ACTE-2024-001 don't affect ACTE-2024-002
+- TC-D-001-07: Parse all context files with JSON validator, verify no syntax errors
 
 **Created:** 2025-12-16T19:45:00Z
 
 ---
 
-## D-002: Folder-Specific Form Schemas
+## D-002: Case-Type Form Schemas
 
 **Status:** proposed
 
 **Description:**
-Define TypeScript FormField arrays for each folder type with appropriate fields, types, and validation. Personal Data form includes: name (text, required), birthDate (date, required), nationality (text, required), passportNumber (text, required), passportExpiry (date, required), placeOfBirth (text, required), currentAddress (textarea, required). Certificates form includes: certificateType (select with options: ["Language", "Education", "Professional"], required), issuingInstitution (text, required), level (select with CEFR levels A1-C2, required), issueDate (date, required), expiryDate (date, optional), certificateNumber (text, optional). Integration Course form includes: courseProvider (text, required), courseType (select: ["Intensive", "Evening", "Weekend", "Online"], required), startDate (date, required), expectedEndDate (date, required), hoursPerWeek (text, required), courseLocation (text, required). Applications form includes: applicationDate (date, required), status (select: ["Draft", "Submitted", "Under Review", "Approved", "Rejected"], required), reviewedBy (text, optional), notes (textarea, optional).
+Define TypeScript FormField arrays for each case type with appropriate fields, types, and validation. Each case has a single form template based on its case type. Integration Course Application form includes: fullName (text, required), birthDate (date, required), countryOfOrigin (text, required), existingLanguageCertificates (text, optional), coursePreference (select with options: ["Intensive Course", "Evening Course", "Weekend Course"], optional), currentAddress (textarea, required), reasonForApplication (textarea, required). This matches the existing 7-field form structure. Additional case types can have different form templates: Asylum Application form, Family Reunification form, etc. Form templates are defined in mockData.ts and mapped to cases via sampleCaseFormData. The AI document assistant uses the case's form schema for auto-fill operations regardless of which folder the user is viewing.
 
 **Changes Required:**
-- Data: Personal Data form field definition
+- Data: Integration Course Application form field definition
   - Source: src/data/mockData.ts
-  - Add: export const personalDataForm: FormField[] with 7 fields as specified
-- Data: Certificates form field definition
+  - Verify: initialFormFields array has 7 fields matching current implementation
+- Data: Define case-type form templates mapping
   - Source: src/data/mockData.ts
-  - Add: export const certificatesForm: FormField[] with 6 fields including CEFR level select
-- Data: Integration Course Documents form field definition
+  - Add: caseFormTemplates object mapping case types to FormField[] arrays
+- Data: Update sampleCaseFormData with form values per case
   - Source: src/data/mockData.ts
-  - Add: export const integrationCourseForm: FormField[] with 6 fields
-- Data: Applications & Forms form field definition
-  - Source: src/data/mockData.ts
-  - Add: export const applicationsForm: FormField[] with 4 fields including status select
-- Data: Update mockCase folderForms mapping
-  - Source: src/data/mockData.ts (line 51)
-  - Add: folderForms property mapping folder IDs to respective form arrays
+  - Verify: sampleCaseFormData maps case IDs to Record<string, string> form data
 - Types: Validate FormField interface supports all field types
   - Source: src/types/case.ts (line 27-34)
   - Verify: type union includes 'text' | 'date' | 'select' | 'textarea', options? property exists
+- Frontend: FormViewer renders form for current case type
+  - Source: src/components/workspace/FormViewer.tsx
+  - Verify: Uses formFields from AppContext tied to currentCase
 
 **Test Cases:**
-- TC-D-002-01: Import personalDataForm, verify array length = 7, all required fields have required=true
-- TC-D-002-02: Check certificatesForm level field options, verify includes all CEFR levels A1, A2, B1, B2, C1, C2
-- TC-D-002-03: Verify integrationCourseForm courseType options match expected values
-- TC-D-002-04: Check applicationsForm status field, verify "Draft" is first option
-- TC-D-002-05: Validate all form arrays, verify each FormField has id, label, type, value properties
-- TC-D-002-06: Check mockCase.folderForms, verify keys match folder IDs: "personal-data", "certificates", "integration-docs", "applications"
-- TC-D-002-07: Render FormViewer with each form, verify select dropdowns populate correctly
+- TC-D-002-01: Import initialFormFields, verify array length = 7, required fields have required=true
+- TC-D-002-02: Check coursePreference field options, verify includes "Intensive Course", "Evening Course", "Weekend Course"
+- TC-D-002-03: Verify sampleCaseFormData has entries for ACTE-2024-001, ACTE-2024-002, ACTE-2024-003
+- TC-D-002-04: Load case ACTE-2024-001, verify form fields match initialFormFields schema
+- TC-D-002-05: Validate FormField interface, verify each field has id, label, type, value properties
+- TC-D-002-06: Switch between cases, verify form structure consistent but data differs
+- TC-D-002-07: Render FormViewer with form, verify select dropdowns populate correctly
 
 **Created:** 2025-12-16T19:45:00Z
 
 ---
 
-## D-003: Sample Document Text Content
+## D-003: Sample Document Text Content (Case-Instance Scoped)
 
 **Status:** proposed
 
 **Description:**
-Create realistic sample text files for POC testing with appropriate content for German integration course case. Files must include mix of German and English text reflecting real-world scenarios. Birth_Certificate.txt: German birth certificate with fields Vorname, Nachname, Geburtsdatum (15.05.1990), Geburtsort (Kabul), Staatsangehörigkeit (Afghanistan), certification stamps. Passport_Scan.txt: Passport number, issue/expiry dates, personal data matching birth certificate. Language_Certificate_A1.txt: Goethe Institut certificate showing A1 level completion, student name, issue date (2023-06-15). Integration_Application.txt: Partially filled application form with name, address, course preference (Intensive Course). School_Transcripts.txt: Education history from Kabul University. Confirmation_Email.txt: Email from bamf@example.de confirming application receipt. Each file 300-2000 characters, UTF-8 encoding, realistic formatting.
+Create realistic sample text files stored in case-specific directories. Each case (ACTE) has its own documents folder ensuring complete isolation - documents for ACTE-2024-001 are only accessible when that case is active. When switching cases, the document tree shows only that case's documents. New cases can have their own document directories created dynamically.
+
+**Directory Structure:**
+```
+public/documents/
+├── ACTE-2024-001/                    # German Integration Course case
+│   ├── personal-data/
+│   │   ├── Birth_Certificate.txt
+│   │   └── Passport_Scan.txt
+│   ├── certificates/
+│   │   └── Language_Certificate_A1.txt
+│   ├── integration-docs/
+│   │   └── (empty initially)
+│   ├── applications/
+│   │   └── Integration_Application.txt
+│   ├── emails/
+│   │   └── Confirmation_Email.txt
+│   └── evidence/
+│       └── School_Transcripts.txt
+├── ACTE-2024-002/                    # Asylum Application case
+│   └── ...                           # Different documents for this case
+├── ACTE-2024-003/                    # Family Reunification case
+│   └── ...                           # Different documents for this case
+└── templates/                        # Document templates for new cases
+    └── integration_course/
+        └── (sample structure)
+```
+
+For ACTE-2024-001 (Ahmad Ali's German Integration Course case):
+- Birth_Certificate.txt: German certificate with Vorname: Ahmad, Nachname: Ali, Geburtsdatum: 15.05.1990, Geburtsort: Kabul
+- Passport_Scan.txt: P123456789, AHMAD ALI, Issue: 20.05.2020, Expiry: 20.05.2028
+- Language_Certificate_A1.txt: Goethe-Institut, Niveau A1, Kursteilnehmer: Ahmad Ali, 15.06.2023
+- Integration_Application.txt: Partially filled form with course preference
+- Confirmation_Email.txt: From bamf@example.de confirming receipt
+- School_Transcripts.txt: Kabul University records
+
+Each file 300-5000 characters, UTF-8 encoding, realistic formatting.
 
 **Changes Required:**
-- Data: Birth Certificate text file
-  - Source: public/documents/Birth_Certificate.txt (new file)
-  - Content: German certificate with personal details (Name: Ahmad Ali, Geboren: 15.05.1990, Geburtsort: Kabul, Afghanistan)
-- Data: Passport Scan text file
-  - Source: public/documents/Passport_Scan.txt (new file)
-  - Content: Passport P123456789, Issue: 20.05.2020, Expiry: 20.05.2028, Name: AHMAD ALI
-- Data: Language Certificate text file
-  - Source: public/documents/Language_Certificate_A1.txt (new file)
-  - Content: Goethe-Institut certificate, Niveau A1, Kursteilnehmer: Ahmad Ali, Ausstellungsdatum: 15.06.2023
-- Data: Integration Application text file
-  - Source: public/documents/Integration_Application.txt (new file)
-  - Content: Application form fields with some filled values, course preference indicated
-- Data: School Transcripts text file
-  - Source: public/documents/School_Transcripts.txt (new file)
-  - Content: Academic records from Kabul University, grades, completion date
-- Data: Confirmation Email text file
-  - Source: public/documents/Confirmation_Email.txt (new file)
-  - Content: From: bamf@example.de, Subject: Application Received, Date: 18.01.2024, body confirming receipt
+- Data: Create ACTE-2024-001 document directory structure
+  - Source: public/documents/ACTE-2024-001/
+  - Subdirs: personal-data/, certificates/, integration-docs/, applications/, emails/, evidence/
+- Data: Birth Certificate for ACTE-2024-001
+  - Source: public/documents/ACTE-2024-001/personal-data/Birth_Certificate.txt
+  - Content: German certificate for Ahmad Ali, born 15.05.1990 in Kabul
+- Data: Passport for ACTE-2024-001
+  - Source: public/documents/ACTE-2024-001/personal-data/Passport_Scan.txt
+  - Content: Passport P123456789 for AHMAD ALI
+- Data: Language Certificate for ACTE-2024-001
+  - Source: public/documents/ACTE-2024-001/certificates/Language_Certificate_A1.txt
+  - Content: Goethe-Institut A1 certificate
+- Data: Integration Application for ACTE-2024-001
+  - Source: public/documents/ACTE-2024-001/applications/Integration_Application.txt
+- Data: Confirmation Email for ACTE-2024-001
+  - Source: public/documents/ACTE-2024-001/emails/Confirmation_Email.txt
+- Data: School Transcripts for ACTE-2024-001
+  - Source: public/documents/ACTE-2024-001/evidence/School_Transcripts.txt
+- Frontend: Update mockData.ts document paths to use case-specific paths
+  - Source: src/data/mockData.ts
+  - Update: filePath to use `/documents/${caseId}/${folderId}/${filename}`
 
 **Test Cases:**
-- TC-D-003-01: Load Birth_Certificate.txt, verify contains "Ahmad Ali" and "15.05.1990"
-- TC-D-003-02: Load Passport_Scan.txt, verify passport number P123456789 present
-- TC-D-003-03: Send Language_Certificate_A1.txt to AI, ask "What level?", verify response mentions "A1"
-- TC-D-003-04: Send Birth_Certificate.txt, command "/fillForm", verify name and birthDate extracted correctly
-- TC-D-003-05: Verify all text files are valid UTF-8, no encoding errors when loading
-- TC-D-003-06: Check file sizes, verify all files between 300-2000 characters
-- TC-D-003-07: Load documents in DocumentViewer, verify German umlauts (ä, ö, ü) display correctly
+- TC-D-003-01: Load ACTE-2024-001/personal-data/Birth_Certificate.txt, verify contains "Ahmad Ali"
+- TC-D-003-02: Switch to ACTE-2024-002, verify ACTE-2024-001 documents NOT accessible
+- TC-D-003-03: Load document from wrong case path, verify 404 or access denied
+- TC-D-003-04: Create new case ACTE-2024-004, verify empty document directory created
+- TC-D-003-05: Send Birth_Certificate.txt to AI with case context, verify case-aware response
+- TC-D-003-06: Verify all text files are valid UTF-8, German umlauts display correctly
+- TC-D-003-07: Navigate folders in ACTE-2024-001, verify documents match folder structure
 
 **Created:** 2025-12-16T19:45:00Z
 

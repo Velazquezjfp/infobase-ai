@@ -1,0 +1,16 @@
+# BAMF AI Case Management System - Backend Dependencies
+# All dependencies pinned to specific versions for reproducibility
+
+# Web Framework
+fastapi==0.104.1
+uvicorn==0.24.0
+websockets==12.0
+
+# AI Integration
+google-generativeai==0.3.1
+
+# Environment Configuration
+python-dotenv==1.0.0
+
+# Type Checking and Linting (dev dependencies)
+pydantic==2.5.2

@@ -13,10 +13,13 @@ The functionality for this second service is adding new fields (with semantic me
 
 For building requirements I need you to be extra analytical and use playwright to navigate to the UI (first use npm run dev to be able to navigate to the localhost and see the app running) also use the code graph over "docs/code-graph/code-graph.json" or/and use the mcp for code-graph to query and see relationships that may affect how this requirements are implemented. 
 
-The document describes a complex process, as an MVP is enough to simplify it as much as possible to add some basic fields to any form. As you can see there could be only one form and teh form isn't really changing as the user navigates to other folders, so please create forms, be creative yet formal and realistic in a government case management context to come up with new forms. 
+The document describes a complex process, as an MVP is enough to simplify it as much as possible to add some basic fields to any form. As you can see there is only one form per case and the form isn't changing as the user navigates to other folders. The form is at the CASE level, not the folder level. Each case has ONE form template (e.g., "German Integration Course Application" with 7 fields).
 
-
-Keep in mind that the app will be extended and depending on the folder that the user is, the form will change, this form will be filled up with the documents inside the folder. And the forms can also be modified 
+Key points about forms:
+- Forms are per CASE, not per folder
+- The same form persists when navigating between folders within a case
+- Different cases can have different form data but use the same form template
+- The AI can fill the form from documents in any folder 
 
 Add this as a new tab in the admin view besides "Forms" tab. There is already an easy add fields in admin view, but an AI one is also needed. 
 
