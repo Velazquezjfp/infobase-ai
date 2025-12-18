@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "1.0",
+  "caseId": "ACTE-2024-002",
+  "caseType": "asylum_application",
+  "name": "Asylum Application",
+  "description": "Asylum application for refugee status determination. Process includes initial registration, personal interview, evidence assessment, and decision making per AsylG requirements.",
+  "applicant": {
+    "name": "Fatima Hassan",
+    "dateOfBirth": "1985-03-20",
+    "nationality": "Syria",
+    "currentStatus": "Asylum seeker pending decision"
+  },
+  "regulations": [
+    {
+      "id": "§3_AsylG",
+      "title": "Anerkennung als Asylberechtigter",
+      "summary": "Defines entitlement to asylum under Article 16a of the German Constitution. Persons persecuted for political reasons are entitled to asylum."
+    },
+    {
+      "id": "§4_AsylG",
+      "title": "Flüchtlingsschutz",
+      "summary": "Establishes refugee protection based on Geneva Convention criteria. Persons with well-founded fear of persecution qualify for refugee status."
+    },
+    {
+      "id": "§25_AsylG",
+      "title": "Subsidiärer Schutz",
+      "summary": "Covers subsidiary protection for those facing serious harm in their country of origin including death penalty, torture, or serious threats to life."
+    },
+    {
+      "id": "§60_AufenthG",
+      "title": "Verbot der Abschiebung",
+      "summary": "Prohibition of deportation when there is danger to life or freedom in destination country."
+    },
+    {
+      "id": "§67_AsylG",
+      "title": "Ausschluss vom Flüchtlingsschutz",
+      "summary": "Exclusion from refugee protection for serious crimes or acts contrary to UN purposes."
+    }
+  ],
+  "requiredDocuments": [
+    {
+      "documentType": "arrival_registration",
+      "mandatory": true,
+      "validationRules": ["official_registration", "date_of_entry", "initial_registration_location"]
+    },
+    {
+      "documentType": "identity_documents",
+      "mandatory": true,
+      "validationRules": ["passport_or_national_id", "verified_authenticity", "photo_identification"]
+    },
+    {
+      "documentType": "travel_documents",
+      "mandatory": false,
+      "validationRules": ["boarding_passes", "visa_stamps", "route_documentation"]
+    },
+    {
+      "documentType": "persecution_evidence",
+      "mandatory": true,
+      "validationRules": ["specific_incidents", "dates_and_locations", "supporting_documentation"]
+    },
+    {
+      "documentType": "family_documents",
+      "mandatory": false,
+      "validationRules": ["marriage_certificates", "birth_certificates", "family_member_locations"]
+    },
+    {
+      "documentType": "medical_reports",
+      "mandatory": false,
+      "validationRules": ["trauma_documentation", "medical_examination", "psychological_assessment"]
+    },
+    {
+      "documentType": "country_information",
+      "mandatory": false,
+      "validationRules": ["news_articles", "reports", "witness_statements"]
+    },
+    {
+      "documentType": "language_proficiency",
+      "mandatory": false,
+      "validationRules": ["official_tests", "certificates", "educational_background"]
+    }
+  ],
+  "validationRules": [
+    {
+      "rule_id": "persecution_evidence_assessment",
+      "condition": "Evidence of individual persecution must be credible and specific",
+      "action": "Review documented incidents, verify consistency in testimony, assess credibility of sources"
+    },
+    {
+      "rule_id": "identity_verification",
+      "condition": "Identity must be established through documents or credible testimony",
+      "action": "Verify authenticity of identity documents, cross-check with database, assess credibility"
+    },
+    {
+      "rule_id": "travel_route_verification",
+      "condition": "Travel route from origin country must be documented",
+      "action": "Verify entry date, document transit countries, check for safe third country exclusion"
+    },
+    {
+      "rule_id": "family_unity_assessment",
+      "condition": "Family members with pending or approved applications must be identified",
+      "action": "Search for related applications, verify family relationships, consider family unity principles"
+    },
+    {
+      "rule_id": "vulnerability_assessment",
+      "condition": "Special needs and vulnerabilities must be identified",
+      "action": "Assess for trauma, health conditions, family situation requiring special procedures"
+    }
+  ],
+  "commonIssues": [
+    {
+      "issue": "Lack of identity documents",
+      "severity": "warning",
+      "suggestion": "Identity can be established through alternative means including detailed testimony, language analysis, and country expertise."
+    },
+    {
+      "issue": "Inconsistent testimony",
+      "severity": "error",
+      "suggestion": "Significant inconsistencies in persecution account require clarification. Consider trauma effects on memory."
+    },
+    {
+      "issue": "Safe third country passage",
+      "severity": "error",
+      "suggestion": "If applicant traveled through safe third country, application may be inadmissible per Dublin Regulation."
+    }
+  ]
+}

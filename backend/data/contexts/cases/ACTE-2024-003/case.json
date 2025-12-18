@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "1.0",
+  "caseId": "ACTE-2024-003",
+  "caseType": "family_reunification",
+  "name": "Family Reunification Application",
+  "description": "Family reunification application for family members of persons with recognized protection status. Process includes relationship verification, travel arrangements, and integration preparation.",
+  "applicant": {
+    "name": "Mohammed Ali",
+    "dateOfBirth": "1988-09-10",
+    "nationality": "Afghanistan",
+    "currentStatus": "Recognized refugee with residence permit"
+  },
+  "regulations": [
+    {
+      "id": "§29_AufenthG",
+      "title": "Familiennachzug zu Deutschen",
+      "summary": "Family reunification for family members of German citizens. Spouses and minor children have privileged status."
+    },
+    {
+      "id": "§30_AufenthG",
+      "title": "Ehegattennachzug",
+      "summary": "Spousal reunification requirements including minimum age, language proficiency, and sufficient living space."
+    },
+    {
+      "id": "§32_AufenthG",
+      "title": "Kindernachzug",
+      "summary": "Child reunification provisions for minor children. Different rules apply for biological children, adopted children, and stepchildren."
+    },
+    {
+      "id": "§36_AufenthG",
+      "title": "Nachzug der Eltern",
+      "summary": "Parent reunification to minor children with refugee status. Strict requirements including dependency and humanitarian reasons."
+    },
+    {
+      "id": "§36a_AufenthG",
+      "title": "Familiennachzug zu subsidiär Schutzberechtigten",
+      "summary": "Family reunification for persons with subsidiary protection status. Limited number of visas per month."
+    }
+  ],
+  "requiredDocuments": [
+    {
+      "documentType": "residence_permit_sponsor",
+      "mandatory": true,
+      "validationRules": ["valid_permit", "refugee_status_verified", "sufficient_validity_period"]
+    },
+    {
+      "documentType": "family_relationship_proof",
+      "mandatory": true,
+      "validationRules": ["marriage_certificate", "birth_certificates", "certified_translations"]
+    },
+    {
+      "documentType": "identity_documents_applicants",
+      "mandatory": true,
+      "validationRules": ["passports", "national_ids", "photo_verification"]
+    },
+    {
+      "documentType": "housing_confirmation",
+      "mandatory": true,
+      "validationRules": ["sufficient_living_space", "rental_contract", "landlord_consent"]
+    },
+    {
+      "documentType": "income_proof",
+      "mandatory": true,
+      "validationRules": ["sufficient_income", "employment_contract", "bank_statements"]
+    },
+    {
+      "documentType": "language_certificates",
+      "mandatory": false,
+      "validationRules": ["A1_level_minimum", "recognized_institution", "exam_results"]
+    },
+    {
+      "documentType": "travel_arrangements",
+      "mandatory": false,
+      "validationRules": ["flight_bookings", "visa_appointment", "embassy_confirmation"]
+    },
+    {
+      "documentType": "integration_commitment",
+      "mandatory": true,
+      "validationRules": ["signed_declaration", "integration_course_registration", "orientation_materials"]
+    }
+  ],
+  "validationRules": [
+    {
+      "rule_id": "relationship_verification",
+      "condition": "Family relationship must be proven through official documents",
+      "action": "Verify marriage certificates, birth certificates against database, check for authenticity"
+    },
+    {
+      "rule_id": "sponsor_eligibility",
+      "condition": "Sponsor must have valid residence permit with reunification rights",
+      "action": "Check residence permit type, verify refugee status, confirm permit validity"
+    },
+    {
+      "rule_id": "housing_adequacy",
+      "condition": "Living space must meet minimum requirements per person",
+      "action": "Calculate square meters per person, verify rental agreement, check local housing standards"
+    },
+    {
+      "rule_id": "financial_security",
+      "condition": "Sponsor must prove sufficient income to support family without public benefits",
+      "action": "Calculate income against benefit threshold, verify employment stability"
+    },
+    {
+      "rule_id": "language_requirement_spouses",
+      "condition": "Spouses usually need A1 German language certificate",
+      "action": "Verify language certificate, check for exemptions (hardship cases)"
+    }
+  ],
+  "commonIssues": [
+    {
+      "issue": "Insufficient living space",
+      "severity": "error",
+      "suggestion": "Minimum 12 square meters per person required. Sponsor needs larger apartment or commitment to move."
+    },
+    {
+      "issue": "Missing language certificate",
+      "severity": "warning",
+      "suggestion": "A1 German language certificate required for spouse reunification. Apply for hardship exemption if impossible to obtain."
+    },
+    {
+      "issue": "Uncertified foreign documents",
+      "severity": "error",
+      "suggestion": "All foreign civil status documents need apostille or legalization and certified German translation."
+    }
+  ]
+}

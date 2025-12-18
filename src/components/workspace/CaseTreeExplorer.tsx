@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Folder, Document } from '@/types/case';
-import { ChevronRight, ChevronDown, Folder as FolderIcon, FolderOpen, FileText, FileJson, FileCode, File, Upload, Plus, MoreVertical } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder as FolderIcon, FolderOpen, FileText, FileJson, FileCode, File, Upload, Plus, MoreVertical, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   ContextMenu,
@@ -11,6 +11,7 @@ import {
   ContextMenuSeparator,
 } from '@/components/ui/context-menu';
 import { toast } from '@/hooks/use-toast';
+import { loadDocumentContent } from '@/lib/documentLoader';
 
 const getFileIcon = (type: Document['type']) => {
   switch (type) {
@@ -22,6 +23,8 @@ const getFileIcon = (type: Document['type']) => {
       return <FileCode className="w-4 h-4 text-success" />;
     case 'docx':
       return <File className="w-4 h-4 text-command-highlight" />;
+    case 'txt':
+      return <FileText className="w-4 h-4 text-primary" />;
     default:
       return <File className="w-4 h-4 text-muted-foreground" />;
   }
@@ -33,7 +36,8 @@ interface FolderItemProps {
 }
 
 function FolderItem({ folder, level }: FolderItemProps) {
-  const { toggleFolder, selectedDocument, setSelectedDocument, setViewMode, highlightedFolder } = useApp();
+  const { toggleFolder, selectedDocument, setSelectedDocument, setViewMode, highlightedFolder, currentCase } = useApp();
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
   const isHighlighted = highlightedFolder === folder.id;
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -112,15 +116,49 @@ function FolderItem({ folder, level }: FolderItemProps) {
                 <div
                   className={cn(
                     'tree-item',
-                    selectedDocument?.id === doc.id && 'selected'
+                    selectedDocument?.id === doc.id && 'selected',
+                    loadingDocId === doc.id && 'opacity-50'
                   )}
                   style={{ paddingLeft: `${28 + level * 16}px` }}
-                  onClick={() => {
-                    setSelectedDocument(doc);
-                    setViewMode('document');
+                  onClick={async () => {
+                    // For text files, load content from case-scoped path
+                    if (doc.type === 'txt' && doc.caseId && doc.folderId) {
+                      setLoadingDocId(doc.id);
+                      try {
+                        const content = await loadDocumentContent(
+                          doc.caseId,
+                          doc.folderId,
+                          doc.name
+                        );
+                        // Set document with loaded content
+                        setSelectedDocument({ ...doc, content });
+                        setViewMode('document');
+                        toast({
+                          title: 'Document loaded',
+                          description: `${doc.name} loaded successfully`,
+                        });
+                      } catch (error) {
+                        console.error('Failed to load document:', error);
+                        toast({
+                          title: 'Error loading document',
+                          description: error instanceof Error ? error.message : 'Failed to load document content',
+                          variant: 'destructive',
+                        });
+                      } finally {
+                        setLoadingDocId(null);
+                      }
+                    } else {
+                      // For other document types, just select them
+                      setSelectedDocument(doc);
+                      setViewMode('document');
+                    }
                   }}
                 >
-                  {getFileIcon(doc.type)}
+                  {loadingDocId === doc.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  ) : (
+                    getFileIcon(doc.type)
+                  )}
                   <span className="flex-1 truncate">{doc.name}</span>
                   <span className="text-xs text-muted-foreground">{doc.size}</span>
                 </div>

@@ -93,8 +93,8 @@ export const mockCase: Case = {
       name: 'Personal Data',
       isExpanded: true,
       documents: [
-        { id: 'doc-1', name: 'Birth_Certificate.pdf', type: 'pdf', size: '245 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'Birth Certificate', issuer: 'Kabul Civil Registry', language: 'Dari' } },
-        { id: 'doc-2', name: 'Passport_Scan.pdf', type: 'pdf', size: '1.2 MB', uploadedAt: '2024-01-15', metadata: { documentType: 'Passport', expiryDate: '2028-05-20' } },
+        { id: 'doc-1', name: 'Birth_Certificate.txt', type: 'txt', size: '1.8 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'Birth Certificate', issuer: 'Kabul Civil Registry', language: 'German' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
+        { id: 'doc-2', name: 'Passport_Scan.txt', type: 'txt', size: '1.9 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'Passport', expiryDate: '2028-05-20' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
       ],
       subfolders: [],
     },
@@ -103,7 +103,7 @@ export const mockCase: Case = {
       name: 'Certificates',
       isExpanded: false,
       documents: [
-        { id: 'doc-3', name: 'Language_Certificate_A1.pdf', type: 'pdf', size: '156 KB', uploadedAt: '2024-01-16', metadata: { level: 'A1', institution: 'Goethe Institut' } },
+        { id: 'doc-3', name: 'Language_Certificate_A1.txt', type: 'txt', size: '2.6 KB', uploadedAt: '2024-01-16', metadata: { level: 'A1', institution: 'Goethe Institut' }, caseId: 'ACTE-2024-001', folderId: 'certificates' },
       ],
       subfolders: [],
     },
@@ -119,7 +119,7 @@ export const mockCase: Case = {
       name: 'Applications & Forms',
       isExpanded: false,
       documents: [
-        { id: 'doc-4', name: 'Integration_Application.json', type: 'json', size: '12 KB', uploadedAt: '2024-01-17', metadata: { status: 'draft', version: '1.0' } },
+        { id: 'doc-4', name: 'Integration_Application.txt', type: 'txt', size: '3.6 KB', uploadedAt: '2024-01-17', metadata: { status: 'draft', documentType: 'Application Form' }, caseId: 'ACTE-2024-001', folderId: 'applications' },
       ],
       subfolders: [],
     },
@@ -128,7 +128,7 @@ export const mockCase: Case = {
       name: 'Emails',
       isExpanded: false,
       documents: [
-        { id: 'doc-6', name: 'Confirmation_Email.pdf', type: 'pdf', size: '45 KB', uploadedAt: '2024-01-18', metadata: { from: 'bamf@example.de', subject: 'Application Received' } },
+        { id: 'doc-6', name: 'Confirmation_Email.txt', type: 'txt', size: '2.9 KB', uploadedAt: '2024-01-18', metadata: { from: 'bamf@example.de', subject: 'Application Received' }, caseId: 'ACTE-2024-001', folderId: 'emails' },
       ],
       subfolders: [],
     },
@@ -137,7 +137,7 @@ export const mockCase: Case = {
       name: 'Additional Evidence',
       isExpanded: false,
       documents: [
-        { id: 'doc-5', name: 'School_Transcripts.pdf', type: 'pdf', size: '890 KB', uploadedAt: '2024-01-16', metadata: { documentType: 'Transcript', institution: 'Kabul University' } },
+        { id: 'doc-5', name: 'School_Transcripts.txt', type: 'txt', size: '4.7 KB', uploadedAt: '2024-01-16', metadata: { documentType: 'Transcript', institution: 'Kabul University' }, caseId: 'ACTE-2024-001', folderId: 'evidence' },
       ],
       subfolders: [],
     },

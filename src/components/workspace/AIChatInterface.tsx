@@ -14,23 +14,30 @@ const quickActionIcons: Record<string, React.ReactNode> = {
   '/extractMetadata': <Database className="w-3.5 h-3.5" />,
   '/validateCase': <CheckCircle className="w-3.5 h-3.5" />,
   '/generateEmail': <Mail className="w-3.5 h-3.5" />,
+  '/fillForm': <FileOutput className="w-3.5 h-3.5" />,
 };
 
 const quickActions = [
-  { command: '/convert', label: 'Convert' },
+  { command: '/fillForm', label: 'Fill Form' },
   { command: '/search', label: 'Search' },
   { command: '/translate', label: 'Translate' },
   { command: '/anonymize', label: 'Anonymize' },
-  { command: '/addDocument', label: 'Add Doc' },
+  { command: '/validateCase', label: 'Validate' },
   { command: '/extractMetadata', label: 'Metadata' },
 ];
 
 export default function AIChatInterface() {
-  const { chatMessages, addChatMessage, updateFormField, setHighlightedFolder, setViewMode } = useApp();
+  const {
+    chatMessages,
+    sendChatMessage,
+    selectedDocument,
+    wsStatus,
+    setHighlightedFolder,
+    setViewMode
+  } = useApp();
   const [input, setInput] = useState('');
   const [showCommands, setShowCommands] = useState(false);
   const [filteredCommands, setFilteredCommands] = useState(slashCommands);
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -58,60 +65,15 @@ export default function AIChatInterface() {
     if (!input.trim()) return;
 
     const userMessage = input.trim();
-    addChatMessage({ role: 'user', content: userMessage });
+
+    // Get document content if a document is selected
+    const documentContent = selectedDocument?.content;
+
+    // Send message via WebSocket
+    sendChatMessage(userMessage, documentContent);
+
     setInput('');
     setShowCommands(false);
-    setIsTyping(true);
-
-    // Simulate AI response
-    setTimeout(() => {
-      let response = '';
-
-      if (userMessage.startsWith('/convert')) {
-        response = 'Converting document to the requested format. The converted file will be available in the same folder.';
-        toast({ title: 'Conversion started', description: 'Document conversion in progress...' });
-      } else if (userMessage.startsWith('/search')) {
-        const searchTerm = userMessage.replace('/search', '').trim().replace(/"/g, '');
-        response = `Searching for "${searchTerm}" across all documents...\n\nFound 3 matches:\n• Birth_Certificate.pdf (2 occurrences)\n• Passport_Scan.pdf (1 occurrence)\n• School_Transcripts.pdf (highlighted)`;
-        setHighlightedFolder('personal-data');
-      } else if (userMessage.startsWith('/translate')) {
-        response = 'Translation to German initiated. The translated document will be added as a new rendition.';
-      } else if (userMessage.startsWith('/anonymize')) {
-        response = 'Anonymization process started. Personal data will be redacted and a new anonymized version will be created.';
-      } else if (userMessage.startsWith('/validateCase')) {
-        response = '**Case Validation Report**\n\n✅ Personal Data: Complete\n✅ Certificates: 1 document found\n⚠️ Integration Course Documents: Empty folder\n✅ Applications & Forms: 1 draft form\n✅ Additional Evidence: 1 document\n\n**Recommendation:** Please upload integration course enrollment confirmation.';
-        setViewMode('form');
-      } else if (userMessage.startsWith('/generateEmail')) {
-        response = 'Generating notification email for the applicant...\n\n**Subject:** Your Integration Course Application - Status Update\n\n**Body:** Dear Applicant,\n\nWe have received your application for the German Integration Course. Your case reference is ACTE-2024-001.\n\nBest regards,\nBAMF Integration Services';
-      } else if (userMessage.toLowerCase().includes('name is')) {
-        const nameMatch = userMessage.match(/name is ([^,]+)/i);
-        if (nameMatch) {
-          const name = nameMatch[1].trim();
-          updateFormField('name', name);
-          response = `I've updated the form with the name "${name}". The form has been automatically filled.`;
-          setViewMode('form');
-        }
-      } else if (userMessage.toLowerCase().includes('born') || userMessage.toLowerCase().includes('birth')) {
-        const yearMatch = userMessage.match(/(\d{4})/);
-        if (yearMatch) {
-          updateFormField('birthDate', `${yearMatch[1]}-01-01`);
-          response = `I've noted the birth year ${yearMatch[1]}. Please verify the exact date in the form.`;
-          setViewMode('form');
-        }
-      } else if (userMessage.toLowerCase().includes('kabul') || userMessage.toLowerCase().includes('afghanistan')) {
-        updateFormField('countryOfOrigin', 'Afghanistan');
-        response = 'I\'ve set the country of origin to Afghanistan in the application form.';
-        setViewMode('form');
-      } else if (userMessage.toLowerCase().includes('show') && userMessage.toLowerCase().includes('certificate')) {
-        setHighlightedFolder('certificates');
-        response = 'I\'ve highlighted the Certificates folder in the case tree. Click on it to view the available certificates.';
-      } else {
-        response = 'I understand your request. This case-related query has been processed. Is there anything specific about the documents or form you\'d like me to help with?';
-      }
-
-      addChatMessage({ role: 'assistant', content: response });
-      setIsTyping(false);
-    }, 1000 + Math.random() * 500);
   };
 
   const insertCommand = (command: string) => {
@@ -169,7 +131,21 @@ export default function AIChatInterface() {
           <Bot className="w-4 h-4 text-primary" />
           <span>AI Assistant</span>
         </div>
-        <span className="text-xs text-muted-foreground">Case Context Active</span>
+        <div className="flex items-center gap-2">
+          <div className={cn(
+            "w-2 h-2 rounded-full",
+            wsStatus === 'connected' && "bg-green-500",
+            wsStatus === 'connecting' && "bg-yellow-500 animate-pulse",
+            wsStatus === 'disconnected' && "bg-gray-400",
+            wsStatus === 'error' && "bg-red-500"
+          )} />
+          <span className="text-xs text-muted-foreground">
+            {wsStatus === 'connected' && 'Connected'}
+            {wsStatus === 'connecting' && 'Connecting...'}
+            {wsStatus === 'disconnected' && 'Disconnected'}
+            {wsStatus === 'error' && 'Connection Error'}
+          </span>
+        </div>
       </div>
 
       {/* Messages */}

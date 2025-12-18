@@ -1,0 +1,92 @@
+/**
+ * WebSocket Message Types for BAMF AI Case Management System
+ *
+ * Defines TypeScript interfaces for WebSocket communication between
+ * the frontend and backend AI services.
+ */
+
+import { FormField } from './case';
+
+/**
+ * Base message interface with common fields
+ */
+export interface BaseMessage {
+  type: string;
+  timestamp?: string;
+}
+
+/**
+ * Chat request message sent from client to server
+ */
+export interface ChatRequest extends BaseMessage {
+  type: 'chat';
+  content: string;
+  caseId: string;
+  folderId?: string | null;
+  documentContent?: string;
+  formSchema?: FormField[];
+}
+
+/**
+ * Chat response message sent from server to client
+ */
+export interface ChatResponse extends BaseMessage {
+  type: 'chat_response';
+  content: string;
+  timestamp: string;
+}
+
+/**
+ * Form update message sent from server after field extraction
+ */
+export interface FormUpdateMessage extends BaseMessage {
+  type: 'form_update';
+  updates: Record<string, string>;
+  confidence: Record<string, number>;
+  timestamp?: string;
+}
+
+/**
+ * System message for connection status and notifications
+ */
+export interface SystemMessage extends BaseMessage {
+  type: 'system';
+  content: string;
+  timestamp?: string;
+}
+
+/**
+ * Error message sent when something goes wrong
+ */
+export interface ErrorMessage extends BaseMessage {
+  type: 'error';
+  message: string;
+  timestamp?: string;
+}
+
+/**
+ * Union type of all possible WebSocket messages from server
+ */
+export type WebSocketMessage =
+  | ChatResponse
+  | FormUpdateMessage
+  | SystemMessage
+  | ErrorMessage;
+
+/**
+ * WebSocket connection status
+ */
+export type ConnectionStatus =
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'error';
+
+/**
+ * WebSocket connection state interface
+ */
+export interface WebSocketState {
+  connection: WebSocket | null;
+  status: ConnectionStatus;
+  error: string | null;
+}

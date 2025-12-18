@@ -18,6 +18,8 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.api.chat import router as chat_router
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -74,6 +76,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register API routers
+app.include_router(chat_router, tags=["chat"])
 
 
 @app.get("/health")
