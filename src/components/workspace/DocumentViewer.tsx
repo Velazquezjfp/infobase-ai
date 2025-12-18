@@ -62,14 +62,34 @@ export default function DocumentViewer() {
 
       {/* Document Preview */}
       <div className="flex-1 p-4 overflow-auto">
-        <div className="bg-muted/50 rounded-lg p-6 min-h-[300px] flex items-center justify-center border border-border h-full">
-          <div className="text-center">
-            <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-            <p className="font-medium text-foreground mb-1">{selectedDocument.name}</p>
-            <p className="text-sm text-muted-foreground mb-2">{activeTab.toUpperCase()} Rendition • {selectedDocument.size}</p>
-            <p className="text-xs text-muted-foreground">Document preview renders here</p>
+        {selectedDocument.type === 'txt' && selectedDocument.content ? (
+          // Text file content display
+          <div className="bg-background rounded-lg border border-border h-full overflow-auto">
+            <pre className="whitespace-pre-wrap font-mono text-sm p-6 leading-relaxed text-foreground">
+              {selectedDocument.content}
+            </pre>
           </div>
-        </div>
+        ) : selectedDocument.type === 'txt' && !selectedDocument.content ? (
+          // Text file without content (loading or error)
+          <div className="bg-muted/50 rounded-lg p-6 min-h-[300px] flex items-center justify-center border border-border h-full">
+            <div className="text-center">
+              <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+              <p className="font-medium text-foreground mb-1">{selectedDocument.name}</p>
+              <p className="text-sm text-muted-foreground mb-2">Text Document • {selectedDocument.size}</p>
+              <p className="text-xs text-muted-foreground">Loading document content...</p>
+            </div>
+          </div>
+        ) : (
+          // Other document types - show placeholder
+          <div className="bg-muted/50 rounded-lg p-6 min-h-[300px] flex items-center justify-center border border-border h-full">
+            <div className="text-center">
+              <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+              <p className="font-medium text-foreground mb-1">{selectedDocument.name}</p>
+              <p className="text-sm text-muted-foreground mb-2">{activeTab.toUpperCase()} Rendition • {selectedDocument.size}</p>
+              <p className="text-xs text-muted-foreground">Document preview renders here</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Actions */}

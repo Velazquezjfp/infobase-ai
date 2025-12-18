@@ -1,11 +1,13 @@
 export interface Document {
   id: string;
   name: string;
-  type: 'pdf' | 'xml' | 'json' | 'docx';
+  type: 'pdf' | 'xml' | 'json' | 'docx' | 'txt';
   size: string;
   uploadedAt: string;
   metadata: Record<string, string>;
   content?: string;
+  caseId?: string;    // For case-scoped path construction
+  folderId?: string;  // For case-scoped path construction
 }
 
 export interface Folder {

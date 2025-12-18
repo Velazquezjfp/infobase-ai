@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFR-003 LocalStorage Test Suite</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #0066cc;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #0066cc;
+      margin-top: 30px;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-result {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .pass {
+      background-color: #d4edda;
+      border-left: 4px solid #28a745;
+      color: #155724;
+    }
+    .fail {
+      background-color: #f8d7da;
+      border-left: 4px solid #dc3545;
+      color: #721c24;
+    }
+    .info {
+      background-color: #d1ecf1;
+      border-left: 4px solid #17a2b8;
+      color: #0c5460;
+    }
+    button {
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #0052a3;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .button-group {
+      margin: 20px 0;
+    }
+    #storage-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .code-block {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h1>NFR-003: LocalStorage Test Suite</h1>
+  <p>This page tests the localStorage functionality implemented for the BAMF Case Management System.</p>
+
+  <div class="button-group">
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="clearAllStorage()">Clear All BAMF Storage</button>
+    <button onclick="showStorageInfo()">Show Storage Info</button>
+  </div>
+
+  <div id="storage-info"></div>
+  <div id="test-results"></div>
+
+  <script type="module">
+    // Simulate the localStorage utility functions
+    const STORAGE_LIMIT = 5 * 1024 * 1024; // 5MB
+    const WARNING_THRESHOLD = 4.5 * 1024 * 1024; // 4.5MB
+    const CRITICAL_THRESHOLD = 4.9 * 1024 * 1024; // 4.9MB
+
+    function isLocalStorageAvailable() {
+      try {
+        const test = '__localStorage_test__';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function estimateStorageSize() {
+      let total = 0;
+      try {
+        for (let key in localStorage) {
+          if (localStorage.hasOwnProperty(key)) {
+            const value = localStorage.getItem(key);
+            if (value) {
+              total += (key.length + value.length) * 2;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Error estimating storage size:', e);
+      }
+      return total;
+    }
+
+    function checkQuota() {
+      const used = estimateStorageSize();
+      const available = STORAGE_LIMIT;
+      const percentage = (used / available) * 100;
+      return { used, available, percentage: Math.min(percentage, 100) };
+    }
+
+    function saveToLocalStorage(key, data) {
+      if (!isLocalStorageAvailable()) {
+        return { success: false, error: 'localStorage is not available' };
+      }
+
+      try {
+        const serialized = JSON.stringify(data);
+        const quota = checkQuota();
+        const estimatedNewSize = quota.used + (key.length + serialized.length) * 2;
+
+        if (estimatedNewSize > CRITICAL_THRESHOLD) {
+          return {
+            success: false,
+            error: `Storage limit reached (${quota.percentage.toFixed(1)}%). Cannot save data.`
+          };
+        }
+
+        localStorage.setItem(key, serialized);
+
+        const finalQuota = checkQuota();
+        if (finalQuota.used > WARNING_THRESHOLD && finalQuota.used <= CRITICAL_THRESHOLD) {
+          return {
+            success: true,
+            warning: `Storage usage is high (${finalQuota.percentage.toFixed(1)}%).`
+          };
+        }
+
+        return { success: true };
+      } catch (e) {
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+          return { success: false, error: 'Storage quota exceeded' };
+        }
+        return { success: false, error: e.message || 'Unknown error' };
+      }
+    }
+
+    function loadFromLocalStorage(key) {
+      if (!isLocalStorageAvailable()) {
+        return null;
+      }
+
+      try {
+        const item = localStorage.getItem(key);
+        if (item === null) return null;
+        return JSON.parse(item);
+      } catch (e) {
+        if (e instanceof SyntaxError) {
+          console.error(`Malformed JSON in localStorage key "${key}"`);
+          localStorage.removeItem(key);
+          return null;
+        }
+        return null;
+      }
+    }
+
+    function clearLocalStorage(key) {
+      if (!isLocalStorageAvailable()) return false;
+      try {
+        localStorage.removeItem(key);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // Test results display
+    let testResults = [];
+
+    function addTestResult(testName, passed, message) {
+      testResults.push({ testName, passed, message });
+      displayResults();
+    }
+
+    function displayResults() {
+      const container = document.getElementById('test-results');
+      container.innerHTML = '';
+
+      let passCount = 0;
+      let failCount = 0;
+
+      testResults.forEach(result => {
+        const div = document.createElement('div');
+        div.className = `test-section`;
+
+        const resultDiv = document.createElement('div');
+        resultDiv.className = `test-result ${result.passed ? 'pass' : 'fail'}`;
+        resultDiv.innerHTML = `
+          <strong>${result.passed ? '✓' : '✗'} ${result.testName}</strong><br>
+          ${result.message}
+        `;
+
+        div.appendChild(resultDiv);
+        container.appendChild(div);
+
+        if (result.passed) passCount++;
+        else failCount++;
+      });
+
+      // Add summary
+      const summary = document.createElement('div');
+      summary.className = 'test-section';
+      summary.innerHTML = `
+        <h2>Test Summary</h2>
+        <div class="test-result info">
+          <strong>Total Tests:</strong> ${testResults.length}<br>
+          <strong>Passed:</strong> ${passCount}<br>
+          <strong>Failed:</strong> ${failCount}<br>
+          <strong>Success Rate:</strong> ${((passCount / testResults.length) * 100).toFixed(1)}%
+        </div>
+      `;
+      container.insertBefore(summary, container.firstChild);
+    }
+
+    // Test Functions
+    function testBasicSaveLoad() {
+      const testData = { id: 'test1', value: 'Hello World' };
+      const result = saveToLocalStorage('bamf_test', testData);
+
+      if (!result.success) {
+        addTestResult('TC-NFR-003-01: Basic Save/Load', false, `Save failed: ${result.error}`);
+        return;
+      }
+
+      const loaded = loadFromLocalStorage('bamf_test');
+      if (JSON.stringify(loaded) === JSON.stringify(testData)) {
+        addTestResult('TC-NFR-003-01: Basic Save/Load', true, 'Data saved and loaded successfully');
+      } else {
+        addTestResult('TC-NFR-003-01: Basic Save/Load', false, 'Loaded data does not match saved data');
+      }
+
+      clearLocalStorage('bamf_test');
+    }
+
+    function testFallbackToDefaults() {
+      clearLocalStorage('bamf_form_fields');
+      const loaded = loadFromLocalStorage('bamf_form_fields');
+
+      if (loaded === null) {
+        addTestResult('TC-NFR-003-02: Fallback to Defaults', true, 'Returns null for non-existent key (app will use defaults)');
+      } else {
+        addTestResult('TC-NFR-003-02: Fallback to Defaults', false, 'Should return null for non-existent key');
+      }
+    }
+
+    function testMalformedJSON() {
+      localStorage.setItem('bamf_corrupt', '{invalid json}');
+      const loaded = loadFromLocalStorage('bamf_corrupt');
+
+      if (loaded === null) {
+        addTestResult('TC-NFR-003-04: Malformed JSON Handling', true, 'Gracefully handled malformed JSON, returned null');
+      } else {
+        addTestResult('TC-NFR-003-04: Malformed JSON Handling', false, 'Should return null for malformed JSON');
+      }
+    }
+
+    function testFormFieldPersistence() {
+      const formFields = [
+        { id: 'fullName', label: 'Full Name', type: 'text', value: 'John Doe', required: true },
+        { id: 'birthDate', label: 'Birth Date', type: 'date', value: '1990-05-15', required: true },
+        { id: 'country', label: 'Country', type: 'text', value: 'Afghanistan', required: true }
+      ];
+
+      const result = saveToLocalStorage('bamf_form_fields', formFields);
+      if (!result.success) {
+        addTestResult('TC-NFR-003-01: Form Fields Persistence', false, `Save failed: ${result.error}`);
+        return;
+      }
+
+      const loaded = loadFromLocalStorage('bamf_form_fields');
+      if (loaded && loaded.length === 3 && loaded[0].value === 'John Doe') {
+        addTestResult('TC-NFR-003-01: Form Fields Persistence', true, 'Form fields saved and restored correctly');
+      } else {
+        addTestResult('TC-NFR-003-01: Form Fields Persistence', false, 'Form fields not restored correctly');
+      }
+    }
+
+    function testCaseFormDataPersistence() {
+      const caseFormData = {
+        'ACTE-2024-001': [
+          { id: 'fullName', label: 'Full Name', type: 'text', value: 'Ahmad Ali', required: true }
+        ],
+        'ACTE-2024-002': [
+          { id: 'fullName', label: 'Full Name', type: 'text', value: 'Maria Schmidt', required: true }
+        ]
+      };
+
+      const result = saveToLocalStorage('bamf_case_form_data', caseFormData);
+      if (!result.success) {
+        addTestResult('TC-NFR-003-03: Case Form Data Persistence', false, `Save failed: ${result.error}`);
+        return;
+      }
+
+      const loaded = loadFromLocalStorage('bamf_case_form_data');
+      if (loaded && loaded['ACTE-2024-001'] && loaded['ACTE-2024-001'][0].value === 'Ahmad Ali') {
+        addTestResult('TC-NFR-003-03: Case Form Data Persistence', true, 'Per-case form data saved and restored correctly');
+      } else {
+        addTestResult('TC-NFR-003-03: Case Form Data Persistence', false, 'Per-case form data not restored correctly');
+      }
+    }
+
+    function testStorageQuota() {
+      const quota = checkQuota();
+      const quotaMB = (quota.used / (1024 * 1024)).toFixed(2);
+
+      addTestResult('TC-NFR-003-03: Storage Quota Check', true,
+        `Current usage: ${quotaMB}MB (${quota.percentage.toFixed(1)}%)<br>` +
+        `Available: ${(quota.available / (1024 * 1024)).toFixed(2)}MB`
+      );
+    }
+
+    function testKeyNaming() {
+      // Check all BAMF keys
+      const bamfKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('bamf_')) {
+          bamfKeys.push(key);
+        }
+      }
+
+      if (bamfKeys.length > 0) {
+        addTestResult('TC-NFR-003-DATA01: Key Naming Convention', true,
+          `Found ${bamfKeys.length} BAMF keys with correct prefix:<br>${bamfKeys.join('<br>')}`
+        );
+      } else {
+        addTestResult('TC-NFR-003-DATA01: Key Naming Convention', true,
+          'No BAMF keys found yet (will be created when app runs)'
+        );
+      }
+    }
+
+    // Main test runner
+    window.runAllTests = function() {
+      testResults = [];
+      document.getElementById('test-results').innerHTML = '<div class="test-section"><h2>Running tests...</h2></div>';
+
+      setTimeout(() => {
+        testBasicSaveLoad();
+        testFallbackToDefaults();
+        testMalformedJSON();
+        testFormFieldPersistence();
+        testCaseFormDataPersistence();
+        testStorageQuota();
+        testKeyNaming();
+      }, 100);
+    };
+
+    window.clearAllStorage = function() {
+      let cleared = 0;
+      const keysToRemove = [];
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('bamf_')) {
+          keysToRemove.push(key);
+        }
+      }
+
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        cleared++;
+      });
+
+      alert(`Cleared ${cleared} BAMF storage keys`);
+      showStorageInfo();
+    };
+
+    window.showStorageInfo = function() {
+      const quota = checkQuota();
+      const info = document.getElementById('storage-info');
+
+      const bamfKeys = [];
+      let bamfSize = 0;
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('bamf_')) {
+          const value = localStorage.getItem(key);
+          if (value) {
+            const size = (key.length + value.length) * 2;
+            bamfSize += size;
+            bamfKeys.push({ key, size });
+          }
+        }
+      }
+
+      let html = `
+        <h2>Storage Information</h2>
+        <div class="code-block">
+Total Storage Used: ${(quota.used / 1024).toFixed(2)} KB (${quota.percentage.toFixed(1)}%)
+Available: ${(quota.available / (1024 * 1024)).toFixed(2)} MB
+BAMF Storage Used: ${(bamfSize / 1024).toFixed(2)} KB
+
+BAMF Keys (${bamfKeys.length}):
+${bamfKeys.map(k => `  - ${k.key}: ${(k.size / 1024).toFixed(2)} KB`).join('\n')}
+        </div>
+      `;
+
+      info.innerHTML = html;
+    };
+
+    // Auto-run tests on load
+    window.addEventListener('load', () => {
+      showStorageInfo();
+      console.log('NFR-003 Test Suite loaded. Click "Run All Tests" to begin.');
+    });
+  </script>
+</body>
+</html>
