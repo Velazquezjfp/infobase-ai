@@ -1,0 +1,99 @@
+===============================================================================
+                         KABUL UNIVERSITY
+                    Faculty of Engineering / Fakultät für Ingenieurwesen
+                         ACADEMIC TRANSCRIPT
+                    Akademische Leistungsübersicht
+===============================================================================
+
+Student Information / Studenteninformationen
+---------------------------------------------
+Name:                           Ahmad Ali
+Student ID:                     KU-2008-ENG-1247
+Date of Birth:                  15.05.1990
+Place of Birth:                 Kabul, Afghanistan
+Program:                        Bachelor of Science in Civil Engineering
+                                (Bauingenieurwesen)
+Enrollment Date:                September 2008
+Graduation Date:                June 2012
+Degree Conferred:               Bachelor of Science (B.Sc.)
+
+===============================================================================
+                         ACADEMIC RECORD
+===============================================================================
+
+YEAR 1 (2008-2009)
+-------------------
+Course Code    Course Name                              Credits  Grade
+---------------------------------------------------------------------------
+ENG101         Introduction to Engineering              3        A
+MATH101        Calculus I                               4        A-
+PHYS101        Physics I                                4        B+
+CHEM101        General Chemistry                        3        A
+ENG102         Engineering Drawing                      3        A
+MATH102        Calculus II                              4        B+
+                                          Semester GPA: 3.65
+
+YEAR 2 (2009-2010)
+-------------------
+Course Code    Course Name                              Credits  Grade
+---------------------------------------------------------------------------
+MATH201        Linear Algebra                           3        A-
+PHYS201        Physics II                               4        B+
+CE201          Mechanics of Materials                   4        A
+CE202          Surveying                                3        A
+CE203          Fluid Mechanics                          4        B+
+CE204          Structural Analysis I                    4        A-
+                                          Semester GPA: 3.58
+
+YEAR 3 (2010-2011)
+-------------------
+Course Code    Course Name                              Credits  Grade
+---------------------------------------------------------------------------
+CE301          Structural Analysis II                   4        A
+CE302          Soil Mechanics                           4        A-
+CE303          Construction Materials                   3        B+
+CE304          Hydrology                                3        A
+CE305          Transportation Engineering               4        B+
+CE306          Reinforced Concrete Design               4        A
+                                          Semester GPA: 3.62
+
+YEAR 4 (2011-2012)
+-------------------
+Course Code    Course Name                              Credits  Grade
+---------------------------------------------------------------------------
+CE401          Steel Structure Design                   4        A
+CE402          Foundation Engineering                   4        A-
+CE403          Construction Management                  3        A
+CE404          Environmental Engineering                3        B+
+CE405          Senior Design Project                    6        A
+CE406          Professional Practice                    2        A
+                                          Semester GPA: 3.75
+
+===============================================================================
+                         SUMMARY / ZUSAMMENFASSUNG
+===============================================================================
+
+Total Credits Earned:           134
+Cumulative GPA:                 3.65 / 4.00
+Class Rank:                     12 / 156
+Honors:                         Cum Laude
+
+===============================================================================
+
+This transcript is issued upon request for the purpose of further education
+and employment applications.
+
+Diese Leistungsübersicht wird auf Anfrage für Bildungs- und
+Beschäftigungszwecke ausgestellt.
+
+Issue Date:                     05.01.2024
+Document No:                    KU-TR-2024-00892
+
+                    [UNIVERSITY SEAL / UNIVERSITÄTSSIEGEL]
+
+_________________________________
+Prof. Dr. Abdullah Karimi
+Dean, Faculty of Engineering
+Kabul University
+
+===============================================================================

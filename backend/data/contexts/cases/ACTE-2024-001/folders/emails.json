@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "emails",
+  "folderName": "Emails",
+  "purpose": "Official correspondence related to Ahmad Ali's integration course application.",
+  "expectedDocuments": [
+    "correspondence",
+    "official_notices",
+    "appointment_confirmations",
+    "status_updates"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "official_sender",
+      "description": "Verify communications are from official sources",
+      "checkPoints": ["Sender email domain is official", "Reference numbers included"],
+      "officialDomains": ["@bamf.bund.de", "@jobcenter.de", "@auslaenderbehorde.de"]
+    },
+    {
+      "criterionId": "relevant_to_case",
+      "description": "Correspondence must relate to Ahmad Ali's case",
+      "checkPoints": ["Case reference: ACTE-2024-001", "Applicant name: Ahmad Ali", "Subject relates to integration course"],
+      "caseReference": "ACTE-2024-001"
+    },
+    {
+      "criterionId": "date_and_timeline",
+      "description": "Track communication dates for timeline",
+      "checkPoints": ["Send date visible", "Response deadlines noted"],
+      "importance": "Response deadlines are legally binding"
+    }
+  ],
+  "processingGuidelines": [
+    "Verify sender authenticity for official communications",
+    "Track application confirmation receipt",
+    "Note any deadlines or required actions",
+    "Maintain chronological order"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Missing application confirmation email",
+      "frequency": "common",
+      "resolution": "Follow up with BAMF if no confirmation within 2 weeks"
+    }
+  ],
+  "currentCorrespondence": "Application confirmation email from BAMF dated 18.01.2024"
+}

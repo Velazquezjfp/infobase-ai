@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "personal-data",
+  "folderName": "Personal Data",
+  "purpose": "Identity verification and personal information documents.",
+  "expectedDocuments": [
+    "birth_certificate",
+    "passport",
+    "national_id",
+    "residence_permit",
+    "registration_certificate",
+    "passport_photo"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "name_consistency",
+      "description": "Full name must be consistent across all identity documents",
+      "checkPoints": ["First name spelling", "Last name spelling", "Name order"]
+    },
+    {
+      "criterionId": "valid_dates",
+      "description": "All date fields must be valid and consistent",
+      "checkPoints": ["Birth date format", "Document issue dates", "Document expiry dates"]
+    },
+    {
+      "criterionId": "certified_translations",
+      "description": "Foreign language documents require certified German translations",
+      "checkPoints": ["Translator certification", "Translation completeness"]
+    }
+  ],
+  "processingGuidelines": [
+    "Verify name consistency across all documents",
+    "Check document expiry dates",
+    "Ensure foreign documents have certified translations",
+    "Verify residence permit eligibility for integration course"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Missing certified translation",
+      "resolution": "Request certified German translation"
+    },
+    {
+      "mistake": "Name spelling differences",
+      "resolution": "Document variations, use residence permit as primary"
+    }
+  ]
+}

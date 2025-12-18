@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "1.0",
+  "caseId": "{{CASE_ID}}",
+  "caseType": "integration_course",
+  "name": "German Integration Course Application",
+  "description": "Integration course application process per BAMF requirements. Includes eligibility verification, document collection, course assignment, and completion tracking.",
+  "applicant": {
+    "name": "{{APPLICANT_NAME}}",
+    "dateOfBirth": "{{DATE_OF_BIRTH}}",
+    "nationality": "{{NATIONALITY}}",
+    "currentStatus": "{{STATUS}}"
+  },
+  "regulations": [
+    {
+      "id": "§43_AufenthG",
+      "title": "Integrationskurs - Berechtigung",
+      "summary": "Defines entitlement to participate in integration courses. Foreigners with permanent residence permits or certain residence titles are entitled to participate. The course consists of a language course (600 hours) and an orientation course (100 hours)."
+    },
+    {
+      "id": "§44_AufenthG",
+      "title": "Integrationskurs - Verpflichtung",
+      "summary": "Establishes mandatory participation requirements. Foreigners who cannot communicate in German at a basic level may be obligated to participate. Non-compliance can affect residence permit renewal and social benefits."
+    },
+    {
+      "id": "§44a_AufenthG",
+      "title": "Integrationskurs - Teilnahmebedingungen",
+      "summary": "Specifies participation conditions including regular attendance requirements, examination obligations, and consequences of course discontinuation. Participants must attend at least 50% of course hours."
+    },
+    {
+      "id": "§45a_AufenthG",
+      "title": "Berufsbezogene Deutschsprachförderung",
+      "summary": "Covers job-related German language promotion courses that build upon integration course completion."
+    },
+    {
+      "id": "IntV_§4",
+      "title": "Integrationskursverordnung - Zulassung",
+      "summary": "Details the admission process for integration courses including application procedures, required documents, and processing timelines."
+    },
+    {
+      "id": "IntV_§5",
+      "title": "Integrationskursverordnung - Kursträger",
+      "summary": "Specifies requirements for course providers including accreditation standards and quality assurance measures."
+    },
+    {
+      "id": "IntV_§17",
+      "title": "Integrationskursverordnung - Prüfungen",
+      "summary": "Establishes examination requirements including DTZ for language proficiency and LiD test for orientation course completion."
+    }
+  ],
+  "requiredDocuments": [
+    {
+      "documentType": "birth_certificate",
+      "mandatory": true,
+      "validationRules": ["must_be_certified", "certified_translation_if_foreign"]
+    },
+    {
+      "documentType": "passport",
+      "mandatory": true,
+      "validationRules": ["valid_not_expired", "photo_page_required"]
+    },
+    {
+      "documentType": "residence_permit",
+      "mandatory": true,
+      "validationRules": ["current_valid_permit", "permit_type_eligible_for_integration"]
+    },
+    {
+      "documentType": "registration_certificate",
+      "mandatory": true,
+      "validationRules": ["current_address", "issued_within_3_months"]
+    },
+    {
+      "documentType": "language_certificate",
+      "mandatory": false,
+      "validationRules": ["recognized_institution", "cefr_level_specified"]
+    },
+    {
+      "documentType": "health_insurance_card",
+      "mandatory": true,
+      "validationRules": ["valid_insurance"]
+    },
+    {
+      "documentType": "passport_photo",
+      "mandatory": true,
+      "validationRules": ["biometric_standards", "recent_within_6_months"]
+    },
+    {
+      "documentType": "integration_course_application_form",
+      "mandatory": true,
+      "validationRules": ["all_fields_completed", "signature_present"]
+    },
+    {
+      "documentType": "employment_certificate",
+      "mandatory": false,
+      "validationRules": ["current_employer"]
+    },
+    {
+      "documentType": "social_benefits_notice",
+      "mandatory": false,
+      "validationRules": ["current_benefit_status"]
+    }
+  ],
+  "validationRules": [
+    {
+      "rule_id": "age_verification",
+      "condition": "Applicant must be at least 18 years old",
+      "action": "Verify age from birthDate >= 18"
+    },
+    {
+      "rule_id": "residence_eligibility",
+      "condition": "Must hold eligible residence permit type",
+      "action": "Verify permit type per §43 AufenthG"
+    },
+    {
+      "rule_id": "document_validity",
+      "condition": "All documents must be valid",
+      "action": "Check expiry dates"
+    },
+    {
+      "rule_id": "address_consistency",
+      "condition": "Address must match across documents",
+      "action": "Compare addresses"
+    },
+    {
+      "rule_id": "name_consistency",
+      "condition": "Name must match across documents",
+      "action": "Verify name spelling"
+    },
+    {
+      "rule_id": "language_assessment",
+      "condition": "Verify language level if certificate provided",
+      "action": "Check CEFR level"
+    },
+    {
+      "rule_id": "translation_requirement",
+      "condition": "Foreign documents need translation",
+      "action": "Verify certified translations present"
+    },
+    {
+      "rule_id": "photo_compliance",
+      "condition": "Photo must meet standards",
+      "action": "Verify biometric compliance"
+    }
+  ],
+  "commonIssues": [
+    {
+      "issue": "Missing certified translation",
+      "severity": "error",
+      "suggestion": "Request certified translation from sworn translator"
+    },
+    {
+      "issue": "Expired residence permit",
+      "severity": "error",
+      "suggestion": "Advise applicant to renew before course enrollment"
+    },
+    {
+      "issue": "Incomplete application form",
+      "severity": "error",
+      "suggestion": "Return for completion"
+    },
+    {
+      "issue": "Address mismatch",
+      "severity": "warning",
+      "suggestion": "Request updated registration certificate"
+    },
+    {
+      "issue": "Name spelling variations",
+      "severity": "warning",
+      "suggestion": "Document variations, use residence permit as primary"
+    }
+  ],
+  "courseTypes": [
+    {
+      "type": "general_integration_course",
+      "hours": 700,
+      "targetLevel": "B1"
+    },
+    {
+      "type": "intensive_integration_course",
+      "hours": 430,
+      "targetLevel": "B1"
+    },
+    {
+      "type": "literacy_integration_course",
+      "hours": 1000,
+      "targetLevel": "A2-B1"
+    }
+  ]
+}

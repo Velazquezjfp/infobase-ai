@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "evidence",
+  "folderName": "Additional Evidence",
+  "purpose": "Supporting documents for the application.",
+  "expectedDocuments": [
+    "supporting_documents",
+    "educational_records",
+    "employment_documents",
+    "special_circumstance_documentation"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "relevant_to_application",
+      "description": "Evidence must support the application"
+    },
+    {
+      "criterionId": "document_authenticity",
+      "description": "Documents must be authentic"
+    },
+    {
+      "criterionId": "properly_translated",
+      "description": "Foreign documents need certified translation"
+    }
+  ],
+  "processingGuidelines": [
+    "Assess document relevance",
+    "Verify authenticity",
+    "Ensure translations present",
+    "Note special circumstances"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Irrelevant documents",
+      "resolution": "Include only application-relevant evidence"
+    },
+    {
+      "mistake": "Missing translations",
+      "resolution": "Request certified German translation"
+    }
+  ]
+}

@@ -81,7 +81,7 @@ The main requirements document organized into three sections:
 - **D-003**: Sample Document Text Content
   - 6 realistic text files with German/English content
   - Birth certificate, passport, certificates, applications
-  - 300-2000 characters each, UTF-8 encoded
+  - 300-5000 characters each, UTF-8 encoded
 
 ## Implementation Priority
 

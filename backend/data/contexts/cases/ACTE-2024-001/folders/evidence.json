@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "evidence",
+  "folderName": "Additional Evidence",
+  "purpose": "Supporting documents for Ahmad Ali's integration course application.",
+  "expectedDocuments": [
+    "supporting_documents",
+    "educational_records",
+    "employment_documents",
+    "special_circumstance_documentation"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "relevant_to_application",
+      "description": "Evidence must support the integration course application",
+      "checkPoints": ["Connection to eligibility criteria", "Supports claims in application"],
+      "guidance": "Include documents that strengthen the application"
+    },
+    {
+      "criterionId": "document_authenticity",
+      "description": "Supporting documents must be authentic",
+      "checkPoints": ["Official source identifiable", "Document not altered"],
+      "requirements": "Original or certified copies"
+    },
+    {
+      "criterionId": "properly_translated",
+      "description": "Afghan documents require certified translation",
+      "checkPoints": ["Translation attached for non-German documents", "Translator credentials present"],
+      "requirements": "Sworn translator for official use"
+    }
+  ],
+  "processingGuidelines": [
+    "Review educational records from Kabul University",
+    "Verify translations of Afghan documents",
+    "Note any special circumstances affecting course eligibility",
+    "Document refugee status supporting evidence"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Afghan transcripts without translation",
+      "frequency": "common",
+      "resolution": "Request certified German translation"
+    }
+  ],
+  "applicantContext": {
+    "education": "University education from Kabul University",
+    "refugeeStatus": "Recognized refugee with residence permit",
+    "specialConsiderations": "May need literacy assessment for non-Latin script background"
+  }
+}

@@ -1,0 +1,236 @@
+{
+  "schemaVersion": "1.0",
+  "caseId": "ACTE-2024-001",
+  "caseType": "integration_course",
+  "name": "German Integration Course Application",
+  "description": "Integration course application for Ahmad Ali. Process includes eligibility verification, document collection, course assignment, and completion tracking per BAMF requirements.",
+  "applicant": {
+    "name": "Ahmad Ali",
+    "dateOfBirth": "1990-05-15",
+    "nationality": "Afghanistan",
+    "currentStatus": "Refugee with residence permit"
+  },
+  "regulations": [
+    {
+      "id": "§43_AufenthG",
+      "title": "Integrationskurs - Berechtigung",
+      "summary": "Defines entitlement to participate in integration courses. Foreigners with permanent residence permits or certain residence titles are entitled to participate. The course consists of a language course (600 hours) and an orientation course (100 hours)."
+    },
+    {
+      "id": "§44_AufenthG",
+      "title": "Integrationskurs - Verpflichtung",
+      "summary": "Establishes mandatory participation requirements. Foreigners who cannot communicate in German at a basic level may be obligated to participate. Non-compliance can affect residence permit renewal and social benefits."
+    },
+    {
+      "id": "§44a_AufenthG",
+      "title": "Integrationskurs - Teilnahmebedingungen",
+      "summary": "Specifies participation conditions including regular attendance requirements, examination obligations, and consequences of course discontinuation. Participants must attend at least 50% of course hours."
+    },
+    {
+      "id": "§45a_AufenthG",
+      "title": "Berufsbezogene Deutschsprachförderung",
+      "summary": "Covers job-related German language promotion courses that build upon integration course completion. Available for those who have completed or are completing an integration course."
+    },
+    {
+      "id": "IntV_§4",
+      "title": "Integrationskursverordnung - Zulassung",
+      "summary": "Details the admission process for integration courses including application procedures, required documents, and processing timelines. Applications should be processed within 4 weeks."
+    },
+    {
+      "id": "IntV_§5",
+      "title": "Integrationskursverordnung - Kursträger",
+      "summary": "Specifies requirements for course providers including accreditation standards, instructor qualifications, and quality assurance measures. Only BAMF-certified providers may conduct courses."
+    },
+    {
+      "id": "IntV_§17",
+      "title": "Integrationskursverordnung - Prüfungen",
+      "summary": "Establishes examination requirements including the 'Deutsch-Test für Zuwanderer' (DTZ) for language proficiency and 'Leben in Deutschland' (LiD) test for orientation course completion."
+    }
+  ],
+  "requiredDocuments": [
+    {
+      "documentType": "birth_certificate",
+      "mandatory": true,
+      "validationRules": ["must_be_certified", "certified_translation_if_foreign", "max_age_6_months_for_copy"]
+    },
+    {
+      "documentType": "passport",
+      "mandatory": true,
+      "validationRules": ["valid_not_expired", "all_pages_legible", "photo_page_required"]
+    },
+    {
+      "documentType": "residence_permit",
+      "mandatory": true,
+      "validationRules": ["current_valid_permit", "permit_type_eligible_for_integration", "address_matches_registration"]
+    },
+    {
+      "documentType": "registration_certificate",
+      "mandatory": true,
+      "validationRules": ["current_address", "issued_within_3_months", "official_stamp_required"]
+    },
+    {
+      "documentType": "language_certificate",
+      "mandatory": false,
+      "validationRules": ["recognized_institution", "cefr_level_specified", "within_validity_period"]
+    },
+    {
+      "documentType": "employment_certificate",
+      "mandatory": false,
+      "validationRules": ["current_employer", "job_type_specified", "working_hours_stated"]
+    },
+    {
+      "documentType": "social_benefits_notice",
+      "mandatory": false,
+      "validationRules": ["current_benefit_status", "benefit_type_identified", "issuing_authority_verified"]
+    },
+    {
+      "documentType": "health_insurance_card",
+      "mandatory": true,
+      "validationRules": ["valid_insurance", "coverage_period_current"]
+    },
+    {
+      "documentType": "passport_photo",
+      "mandatory": true,
+      "validationRules": ["biometric_standards", "recent_within_6_months", "white_background"]
+    },
+    {
+      "documentType": "integration_course_application_form",
+      "mandatory": true,
+      "validationRules": ["all_fields_completed", "signature_present", "date_current", "course_preference_indicated"]
+    },
+    {
+      "documentType": "previous_course_certificates",
+      "mandatory": false,
+      "validationRules": ["accredited_provider", "completion_status_clear", "hours_documented"]
+    },
+    {
+      "documentType": "referral_letter",
+      "mandatory": false,
+      "validationRules": ["official_authority", "reason_specified", "valid_date"]
+    }
+  ],
+  "validationRules": [
+    {
+      "rule_id": "age_verification",
+      "condition": "Applicant must be at least 18 years old or have parental consent if minor",
+      "action": "Calculate age from birthDate, verify >= 18 or check for parental consent document"
+    },
+    {
+      "rule_id": "residence_eligibility_integration",
+      "condition": "Applicant must hold residence permit type eligible for integration course (§43 AufenthG)",
+      "action": "Verify residence permit type against eligible categories: permanent residence, humanitarian protection, family reunification, recognized refugees"
+    },
+    {
+      "rule_id": "document_validity",
+      "condition": "All identity documents must be valid and not expired",
+      "action": "Check expiry dates on passport, residence permit; flag if expiring within 3 months"
+    },
+    {
+      "rule_id": "address_consistency",
+      "condition": "Address must be consistent across all documents",
+      "action": "Compare addresses on registration certificate, residence permit, and application form"
+    },
+    {
+      "rule_id": "name_consistency",
+      "condition": "Name spelling must match across all documents",
+      "action": "Verify name on birth certificate matches passport and residence permit; note transliteration variations"
+    },
+    {
+      "rule_id": "language_level_assessment_integration",
+      "condition": "If language certificate provided, verify CEFR level for integration course placement",
+      "action": "Check certificate level (A1-C2), verify issuing institution is BAMF-recognized for integration courses"
+    },
+    {
+      "rule_id": "course_history_check",
+      "condition": "Previous integration course participation must be documented if applicable",
+      "action": "Check for previous course certificates, verify completion status or discontinuation reason"
+    },
+    {
+      "rule_id": "obligation_verification_integration",
+      "condition": "If obligated to attend integration course (§44 AufenthG), verify referral documentation",
+      "action": "Check for official referral letter from Ausländerbehörde or Jobcenter with integration course obligation notice"
+    },
+    {
+      "rule_id": "translation_requirement",
+      "condition": "Foreign language documents require certified German translation",
+      "action": "Verify all non-German documents have attached certified translation with translator credentials"
+    },
+    {
+      "rule_id": "photo_compliance",
+      "condition": "Passport photo must meet biometric standards",
+      "action": "Verify photo dimensions, background color, face visibility, and recency (< 6 months)"
+    }
+  ],
+  "commonIssues": [
+    {
+      "issue": "Missing certified translation",
+      "severity": "error",
+      "suggestion": "All non-German documents require certified translation by a sworn translator (beeidigter Übersetzer). Provide translator name, certification number, and stamp."
+    },
+    {
+      "issue": "Expired residence permit",
+      "severity": "error",
+      "suggestion": "Residence permit must be valid. If permit is expiring soon, advise applicant to apply for extension before integration course begins."
+    },
+    {
+      "issue": "Incomplete integration course application form",
+      "severity": "error",
+      "suggestion": "All mandatory fields must be completed including personal details, contact information, course preferences, and signature."
+    },
+    {
+      "issue": "Address mismatch between documents",
+      "severity": "warning",
+      "suggestion": "Registration certificate address must match current residence. If recently moved, applicant needs new Meldebescheinigung."
+    },
+    {
+      "issue": "Name spelling variations",
+      "severity": "warning",
+      "suggestion": "Different transliterations of non-Latin names are common. Document variations but ensure primary spelling matches official residence permit."
+    },
+    {
+      "issue": "Unrecognized language certificate issuer",
+      "severity": "warning",
+      "suggestion": "Only BAMF-recognized institutions accepted for integration course placement: Goethe-Institut, telc, TestDaF, ÖSD."
+    },
+    {
+      "issue": "Previous integration course discontinuation",
+      "severity": "warning",
+      "suggestion": "If applicant previously discontinued an integration course, documentation of reason required. Medical reasons need doctor's certificate."
+    },
+    {
+      "issue": "Missing course preference indication",
+      "severity": "info",
+      "suggestion": "Indicating preferred course type (intensive, part-time, evening) and location helps with faster placement in integration courses."
+    }
+  ],
+  "courseTypes": [
+    {
+      "type": "general_integration_course",
+      "hours": 700,
+      "languageHours": 600,
+      "orientationHours": 100,
+      "targetLevel": "B1"
+    },
+    {
+      "type": "intensive_integration_course",
+      "hours": 430,
+      "languageHours": 400,
+      "orientationHours": 30,
+      "targetLevel": "B1",
+      "eligibility": "Prior language knowledge required"
+    },
+    {
+      "type": "literacy_integration_course",
+      "hours": 1000,
+      "languageHours": 900,
+      "orientationHours": 100,
+      "targetLevel": "A2-B1",
+      "eligibility": "For participants not literate in Latin script"
+    }
+  ],
+  "processingGuidelines": {
+    "standardProcessingTime": "4 weeks from complete application",
+    "priorityCategories": ["obligation_referral", "employment_start", "family_reunification"],
+    "escalationTriggers": ["missing_documents_after_reminder", "eligibility_unclear", "previous_course_issues"]
+  }
+}

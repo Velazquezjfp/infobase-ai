@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "emails",
+  "folderName": "Emails",
+  "purpose": "Official correspondence related to the application.",
+  "expectedDocuments": [
+    "correspondence",
+    "official_notices",
+    "appointment_confirmations",
+    "status_updates"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "official_sender",
+      "description": "Verify communications from official sources",
+      "officialDomains": ["@bamf.bund.de", "@jobcenter.de", "@auslaenderbehorde.de"]
+    },
+    {
+      "criterionId": "relevant_to_case",
+      "description": "Correspondence must relate to the application"
+    },
+    {
+      "criterionId": "timeline_tracking",
+      "description": "Track dates and deadlines"
+    }
+  ],
+  "processingGuidelines": [
+    "Verify sender authenticity",
+    "Track response deadlines",
+    "Maintain chronological order",
+    "Note required actions"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Missing confirmation email",
+      "resolution": "Follow up if no confirmation within 2 weeks"
+    }
+  ]
+}

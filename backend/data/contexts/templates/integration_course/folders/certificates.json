@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "certificates",
+  "folderName": "Certificates",
+  "purpose": "Educational and language certification documents for course placement.",
+  "expectedDocuments": [
+    "language_certificate",
+    "educational_diploma",
+    "vocational_certificate",
+    "course_completion_certificate"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "recognized_institution",
+      "description": "Language certificates must be from BAMF-recognized institutions",
+      "recognizedInstitutions": ["Goethe-Institut", "telc", "TestDaF", "ÖSD", "ECL"]
+    },
+    {
+      "criterionId": "cefr_level_valid",
+      "description": "Language certificates must state CEFR level",
+      "cefrLevels": ["A1", "A2", "B1", "B2", "C1", "C2"]
+    },
+    {
+      "criterionId": "within_validity",
+      "description": "Certificates should be current",
+      "validityPeriod": "2-5 years typical"
+    }
+  ],
+  "processingGuidelines": [
+    "Verify issuing institution is BAMF-recognized",
+    "Note CEFR level for course placement",
+    "Check certificate validity period",
+    "Ensure translations for foreign certificates"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Unrecognized language school certificate",
+      "resolution": "Only BAMF-recognized institutions accepted"
+    }
+  ]
+}

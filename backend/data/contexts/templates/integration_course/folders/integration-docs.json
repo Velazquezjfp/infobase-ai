@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "integration-docs",
+  "folderName": "Integration Course Documents",
+  "purpose": "Documents related to integration course participation and progress.",
+  "expectedDocuments": [
+    "course_confirmation",
+    "attendance_records",
+    "course_completion_certificate",
+    "test_results",
+    "placement_test_results"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "accredited_provider",
+      "description": "Course documents must be from BAMF-accredited providers"
+    },
+    {
+      "criterionId": "minimum_hours",
+      "description": "Attendance must meet minimum 50% requirement",
+      "targetHours": "700 hours for general course"
+    },
+    {
+      "criterionId": "completion_status",
+      "description": "Track DTZ and LiD test completion",
+      "successCriteria": "DTZ B1 level and LiD test passed"
+    }
+  ],
+  "processingGuidelines": [
+    "Verify course provider accreditation",
+    "Track attendance records",
+    "Monitor test results",
+    "Document any course discontinuation reasons"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Non-accredited provider",
+      "resolution": "Enroll only with BAMF-accredited providers"
+    }
+  ]
+}

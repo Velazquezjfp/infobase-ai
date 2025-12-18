@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0",
+  "folderId": "applications",
+  "folderName": "Applications & Forms",
+  "purpose": "Official application forms and signed declarations for Ahmad Ali's integration course application.",
+  "expectedDocuments": [
+    "integration_course_application_form",
+    "signed_declarations",
+    "consent_forms",
+    "amendment_requests"
+  ],
+  "validationCriteria": [
+    {
+      "criterionId": "all_required_fields",
+      "description": "Application forms must have all mandatory fields completed",
+      "checkPoints": ["Personal information: Ahmad Ali", "Date of birth: 15.05.1990", "Nationality: Afghanistan", "Contact details", "Course preference"],
+      "mandatoryFields": ["Full name", "Date of birth", "Address", "Nationality", "Contact", "Signature", "Date"]
+    },
+    {
+      "criterionId": "valid_signature",
+      "description": "All forms must be properly signed by Ahmad Ali",
+      "checkPoints": ["Signature present", "Date accompanies signature", "Signature consistent"],
+      "requirements": "Original signature required"
+    },
+    {
+      "criterionId": "course_preference",
+      "description": "Application should indicate course preference",
+      "checkPoints": ["Course type selected", "Preferred schedule", "Location preference if any"],
+      "options": ["Intensive Course", "Evening Course", "Weekend Course"]
+    }
+  ],
+  "processingGuidelines": [
+    "Verify all mandatory fields are completed",
+    "Check signature matches identity documents",
+    "Note course preference for placement",
+    "Ensure application date is current"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Missing course preference selection",
+      "frequency": "common",
+      "resolution": "Request applicant indicate preferred course type"
+    },
+    {
+      "mistake": "Unsigned application form",
+      "frequency": "common",
+      "resolution": "Return for signature before processing"
+    }
+  ]
+}
