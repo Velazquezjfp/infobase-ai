@@ -68,7 +68,7 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
         <div className="p-3 border-b border-pane-border bg-accent/30">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-foreground text-sm">German Integration Course Application</h3>
+              <h3 className="font-semibold text-foreground text-sm">{currentCase.name}</h3>
               <p className="text-xs text-muted-foreground">{currentCase.id}</p>
             </div>
             <div className="flex items-center gap-2">

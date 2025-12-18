@@ -225,15 +225,15 @@
             <div class="graph-path">/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/code-graph/code-graph.json</div>
             <div class="stats">
                 <div class="stat">
-                    <div class="stat-number">28</div>
+                    <div class="stat-number">38</div>
                     <div class="stat-label">Entities</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">65</div>
+                    <div class="stat-number">82</div>
                     <div class="stat-label">Relations</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">13</div>
+                    <div class="stat-number">20</div>
                     <div class="stat-label">Types</div>
                 </div>
             </div>
@@ -665,6 +665,135 @@
                         "Uses matchMedia API"
                 ],
                 "index": 27
+        },
+        {
+                "id": "backend/main.py",
+                "type": "BackendEntryPoint",
+                "observations": [
+                        "FastAPI application entry point",
+                        "Configures CORS middleware for frontend communication",
+                        "Registers chat_router from backend/api/chat.py",
+                        "Defines lifespan context manager for startup/shutdown events",
+                        "Exposes /health and / (root) endpoints",
+                        "Allows origins: localhost:5173, localhost:3000",
+                        "Uses uvicorn for development server on port 8000"
+                ],
+                "index": 28
+        },
+        {
+                "id": "backend/api/chat.py",
+                "type": "APIRouter",
+                "observations": [
+                        "WebSocket chat API for real-time AI communication",
+                        "Defines ConnectionManager class for WebSocket connection lifecycle",
+                        "Exports FastAPI router with /ws/chat/{case_id} WebSocket endpoint",
+                        "Exports /api/chat/health GET endpoint for service health check",
+                        "Handles message types: chat, system, chat_response, form_update, error",
+                        "Integrates with GeminiService for AI responses",
+                        "Supports form field extraction from documents",
+                        "Each WebSocket connection is scoped to a specific case ID"
+                ],
+                "index": 29
+        },
+        {
+                "id": "backend/api/chat.py::ConnectionManager",
+                "type": "Class",
+                "observations": [
+                        "Manages WebSocket connections for chat sessions",
+                        "Maintains active_connections dict mapping case_id to WebSocket",
+                        "Methods: connect(), disconnect(), send_message()",
+                        "Singleton instance exported as 'manager'",
+                        "Provides connection lifecycle management"
+                ],
+                "index": 30
+        },
+        {
+                "id": "backend/api/chat.py::websocket_chat_endpoint",
+                "type": "WebSocketEndpoint",
+                "observations": [
+                        "WebSocket endpoint at /ws/chat/{case_id}",
+                        "Handles real-time bidirectional AI chat",
+                        "Validates incoming message format (requires 'type' field)",
+                        "Routes 'chat' messages to handle_chat_message function",
+                        "Sends connection confirmation on connect",
+                        "Handles WebSocketDisconnect for cleanup"
+                ],
+                "index": 31
+        },
+        {
+                "id": "backend/api/chat.py::chat_health_check",
+                "type": "HTTPEndpoint",
+                "observations": [
+                        "GET endpoint at /api/chat/health",
+                        "Returns service status and gemini_initialized state",
+                        "Returns 200 if ready, 503 if not ready"
+                ],
+                "index": 32
+        },
+        {
+                "id": "backend/services/context_manager.py",
+                "type": "Service",
+                "observations": [
+                        "Context Manager Service for case-instance document context",
+                        "Defines ContextManager class for hierarchical context inheritance",
+                        "Manages case-level context at cases/{caseId}/case.json",
+                        "Manages folder-level context at cases/{caseId}/folders/{folderId}.json",
+                        "Supports template-based case creation from templates/{caseType}/",
+                        "Ensures complete isolation between cases"
+                ],
+                "index": 33
+        },
+        {
+                "id": "backend/services/context_manager.py::ContextManager",
+                "type": "Class",
+                "observations": [
+                        "Manages case-instance scoped context for AI document processing",
+                        "Initializes with base_path for context files (default: backend/data/contexts)",
+                        "Methods: load_case_context(), load_folder_context(), create_case_from_template(), merge_contexts()",
+                        "Loads regulations, required documents, validation rules from case.json",
+                        "Merges case, folder, and document contexts into AI prompt string",
+                        "Precedence: Document > Folder > Case"
+                ],
+                "index": 34
+        },
+        {
+                "id": "backend/services/gemini_service.py",
+                "type": "Service",
+                "observations": [
+                        "Gemini AI Service for Google Gemini API integration",
+                        "Defines GeminiService class with singleton pattern",
+                        "Uses gemini-2.5-flash model for text generation",
+                        "Integrates with ContextManager for case-specific context loading",
+                        "Handles natural language chat, document analysis, translation",
+                        "Supports structured data extraction for form filling"
+                ],
+                "index": 35
+        },
+        {
+                "id": "backend/services/gemini_service.py::GeminiService",
+                "type": "Class",
+                "observations": [
+                        "Singleton service class for Gemini API interaction",
+                        "Class variables: _instance, _model, _context_manager",
+                        "Methods: generate_response(), _load_context(), _build_prompt(), is_initialized()",
+                        "Loads API key from GEMINI_API_KEY environment variable",
+                        "Uses GenerationConfig with temperature=0.7, top_p=0.8, top_k=40, max_output_tokens=2048",
+                        "Automatically loads case-level and folder-level context based on case_id"
+                ],
+                "index": 36
+        },
+        {
+                "id": "backend/tools/form_parser.py",
+                "type": "Tool",
+                "observations": [
+                        "Form Parser Tool for document data extraction",
+                        "Provides stateless utility functions for form field extraction",
+                        "Functions: parse_document_to_form(), build_extraction_prompt(), validate_form_schema(), parse_extraction_result()",
+                        "Builds structured prompts for AI-powered extraction",
+                        "Parses AI JSON responses into field updates with confidence scores",
+                        "Converts dates to ISO format, matches select options"
+                ],
+                "index": 37
         }
 ];
         const links = [
@@ -992,6 +1121,91 @@
                 "source": "src/components/NavLink.tsx",
                 "target": "src/lib/utils.ts",
                 "type": "imports"
+        },
+        {
+                "source": "backend/main.py",
+                "target": "backend/api/chat.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/main.py",
+                "target": "backend/api/chat.py::websocket_chat_endpoint",
+                "type": "registers_route"
+        },
+        {
+                "source": "backend/main.py",
+                "target": "backend/api/chat.py::chat_health_check",
+                "type": "registers_route"
+        },
+        {
+                "source": "backend/api/chat.py",
+                "target": "backend/services/gemini_service.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/api/chat.py",
+                "target": "backend/tools/form_parser.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/api/chat.py",
+                "target": "backend/api/chat.py::ConnectionManager",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/chat.py",
+                "target": "backend/api/chat.py::websocket_chat_endpoint",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/chat.py",
+                "target": "backend/api/chat.py::chat_health_check",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/chat.py::websocket_chat_endpoint",
+                "target": "backend/api/chat.py::ConnectionManager",
+                "type": "uses"
+        },
+        {
+                "source": "backend/api/chat.py::websocket_chat_endpoint",
+                "target": "backend/services/gemini_service.py::GeminiService",
+                "type": "uses"
+        },
+        {
+                "source": "backend/api/chat.py::chat_health_check",
+                "target": "backend/services/gemini_service.py::GeminiService",
+                "type": "uses"
+        },
+        {
+                "source": "backend/services/gemini_service.py",
+                "target": "backend/services/context_manager.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/services/gemini_service.py",
+                "target": "backend/services/gemini_service.py::GeminiService",
+                "type": "defines"
+        },
+        {
+                "source": "backend/services/gemini_service.py::GeminiService",
+                "target": "backend/services/context_manager.py::ContextManager",
+                "type": "uses"
+        },
+        {
+                "source": "backend/services/context_manager.py",
+                "target": "backend/services/context_manager.py::ContextManager",
+                "type": "defines"
+        },
+        {
+                "source": "backend/tools/form_parser.py",
+                "target": "backend/services/gemini_service.py::GeminiService",
+                "type": "used_by"
+        },
+        {
+                "source": "src/components/workspace/AIChatInterface.tsx",
+                "target": "backend/api/chat.py::websocket_chat_endpoint",
+                "type": "connects_to"
         }
 ];
 

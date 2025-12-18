@@ -10,7 +10,8 @@ and ensure efficient resource usage.
 
 import logging
 import os
-from typing import Optional, Dict, Any
+import time
+from typing import Optional, Dict, Any, AsyncGenerator, Union
 
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
@@ -118,7 +119,7 @@ class GeminiService:
         folder_id: Optional[str] = None,
         document_content: Optional[str] = None,
         stream: bool = False
-    ) -> str:
+    ) -> Union[str, AsyncGenerator[str, None]]:
         """
         Generate an AI response using Gemini API with case-instance context.
 
@@ -133,10 +134,11 @@ class GeminiService:
             folder_id: Folder identifier for loading folder-specific context
                       (e.g., "personal-data"). If None, only case context loaded.
             document_content: Optional document text to analyze.
-            stream: If True, enable streaming responses (future enhancement).
+            stream: If True, enable streaming responses for real-time delivery.
 
         Returns:
-            str: The AI-generated response text.
+            Union[str, AsyncGenerator[str, None]]: Complete response text if
+                stream=False, or async generator yielding chunks if stream=True.
 
         Raises:
             ValueError: If the model is not initialized.
@@ -144,12 +146,18 @@ class GeminiService:
 
         Example:
             >>> service = GeminiService()
+            >>> # Non-streaming
             >>> response = await service.generate_response(
             ...     prompt="Validate this document",
             ...     case_id="ACTE-2024-001",
             ...     folder_id="personal-data",
             ...     document_content="Birth Certificate: Ahmad Ali..."
             ... )
+            >>> # Streaming
+            >>> async for chunk in await service.generate_response(
+            ...     prompt="Summarize", stream=True
+            ... ):
+            ...     print(chunk, end='')
         """
         if self._model is None:
             raise ValueError("Gemini model not initialized")
@@ -167,7 +175,12 @@ class GeminiService:
             # Build the complete prompt with context and document content
             full_prompt = self._build_prompt(prompt, document_content, merged_context)
 
-            logger.info(f"Generating response for prompt (length: {len(prompt)})")
+            logger.info(
+                f"Generating response - "
+                f"prompt_length: {len(prompt)}, "
+                f"case_id: {case_id or 'none'}, "
+                f"stream: {stream}"
+            )
 
             # Configure generation parameters
             generation_config = GenerationConfig(
@@ -177,18 +190,43 @@ class GeminiService:
                 max_output_tokens=2048,
             )
 
-            # Generate response
-            response = self._model.generate_content(
-                full_prompt,
-                generation_config=generation_config
-            )
+            # Start timing for performance metrics
+            start_time = time.perf_counter()
+            first_token_time = None
 
-            # Extract text from response
-            response_text = response.text
+            if stream:
+                # Return async generator for streaming mode
+                return self._generate_streaming_response(
+                    full_prompt,
+                    generation_config,
+                    start_time,
+                    case_id
+                )
+            else:
+                # Non-streaming mode - return complete response
+                response = self._model.generate_content(
+                    full_prompt,
+                    generation_config=generation_config
+                )
 
-            logger.info(f"Response generated successfully (length: {len(response_text)})")
+                # Extract text from response
+                response_text = response.text
 
-            return response_text
+                # Calculate performance metrics
+                end_time = time.perf_counter()
+                latency_ms = (end_time - start_time) * 1000
+                token_count = len(response_text.split())
+
+                # Log performance metrics
+                logger.info(
+                    f"Response complete - "
+                    f"latency: {latency_ms:.2f}ms, "
+                    f"tokens: {token_count}, "
+                    f"case_id: {case_id or 'none'}, "
+                    f"response_length: {len(response_text)}"
+                )
+
+                return response_text
 
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
@@ -200,6 +238,75 @@ class GeminiService:
                 raise Exception("Request timed out, please try again")
             else:
                 raise Exception(f"Failed to generate response: {str(e)}")
+
+    async def _generate_streaming_response(
+        self,
+        full_prompt: str,
+        generation_config: GenerationConfig,
+        start_time: float,
+        case_id: Optional[str]
+    ) -> AsyncGenerator[str, None]:
+        """
+        Generate streaming response with performance metrics.
+
+        Args:
+            full_prompt: Complete prompt with context.
+            generation_config: Gemini generation configuration.
+            start_time: Request start time for metrics.
+            case_id: Case identifier for logging.
+
+        Yields:
+            str: Response text chunks as they arrive.
+
+        Raises:
+            Exception: If streaming fails.
+        """
+        try:
+            first_token_time = None
+            total_tokens = 0
+            full_response = []
+
+            # Generate streaming response
+            response = self._model.generate_content(
+                full_prompt,
+                generation_config=generation_config,
+                stream=True
+            )
+
+            # Yield chunks as they arrive
+            for chunk in response:
+                if chunk.text:
+                    # Record first token timing
+                    if first_token_time is None:
+                        first_token_time = time.perf_counter()
+                        time_to_first_token_ms = (first_token_time - start_time) * 1000
+                        logger.info(
+                            f"First token received - "
+                            f"latency: {time_to_first_token_ms:.2f}ms, "
+                            f"case_id: {case_id or 'none'}"
+                        )
+
+                    full_response.append(chunk.text)
+                    total_tokens += len(chunk.text.split())
+                    yield chunk.text
+
+            # Log final metrics
+            end_time = time.perf_counter()
+            total_latency_ms = (end_time - start_time) * 1000
+            response_text = ''.join(full_response)
+
+            logger.info(
+                f"Streaming complete - "
+                f"total_latency: {total_latency_ms:.2f}ms, "
+                f"first_token_latency: {(first_token_time - start_time) * 1000:.2f}ms, "
+                f"tokens: {total_tokens}, "
+                f"case_id: {case_id or 'none'}, "
+                f"response_length: {len(response_text)}"
+            )
+
+        except Exception as e:
+            logger.error(f"Error in streaming response: {str(e)}")
+            raise
 
     def _load_context(
         self,

@@ -25,6 +25,7 @@ export interface ChatRequest extends BaseMessage {
   folderId?: string | null;
   documentContent?: string;
   formSchema?: FormField[];
+  stream?: boolean;
 }
 
 /**
@@ -34,6 +35,16 @@ export interface ChatResponse extends BaseMessage {
   type: 'chat_response';
   content: string;
   timestamp: string;
+}
+
+/**
+ * Chat chunk message for streaming responses
+ */
+export interface ChatChunkMessage extends BaseMessage {
+  type: 'chat_chunk';
+  content: string;
+  is_complete: boolean;
+  timestamp?: string;
 }
 
 /**
@@ -69,6 +80,7 @@ export interface ErrorMessage extends BaseMessage {
  */
 export type WebSocketMessage =
   | ChatResponse
+  | ChatChunkMessage
   | FormUpdateMessage
   | SystemMessage
   | ErrorMessage;
