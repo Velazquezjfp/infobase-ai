@@ -1032,11 +1032,27 @@ Document Text → AI Analysis → JSON Extraction → Validation → Form Update
 
 **Extraction Features:**
 
+- **Enhanced Multilingual Support:** Documents can be in German or English with explicit field mappings
+  - German-English mappings: 'Vorname' → firstName, 'Nachname' → lastName, 'Geburtsdatum' → birthDate, 'Geburtsort' → placeOfBirth, 'Staatsangehörigkeit' → nationality, 'Passnummer' → passportNumber, 'Adresse' → address
+  - AI extracts actual data values, not labels (e.g., from "Name: John Doe", extracts "John Doe" not "Name:")
+  - Handles umlauts and special characters correctly (ä, ö, ü, ß)
+- **Advanced Date Format Conversion:** Intelligent date parsing and normalization
+  - Handles German format: DD.MM.YYYY (e.g., 15.05.1990 → 1990-05-15)
+  - Supports multiple formats: DD/MM/YYYY, DD-MM-YYYY, and natural language dates
+  - Validates date realism (years between 1900-2030 for birthdates)
+  - Automatic conversion to ISO 8601 format (YYYY-MM-DD)
+- **Fuzzy Select Field Matching:** Flexible matching for predefined option fields
+  - Case-insensitive matching: 'EVENING' matches option 'Evening'
+  - Partial word matching: 'weekend classes' matches option 'Weekend'
+  - Word-based matching: 'intensive course' matches option 'Intensive'
+  - Prioritizes exact matches, falls back to fuzzy matching
+- **Enhanced Confidence Scoring:** Field-specific confidence based on validation
+  - Date fields: 0.95 (valid ISO), 0.80 (converted format), 0.50 (questionable dates)
+  - Select fields: 0.95 (exact match), 0.80 (fuzzy match), 0.40 (no match found)
+  - Text fields: 0.90 (normal length), 0.60 (very short), 0.70 (very long)
+  - Textarea fields: 0.85 (standard confidence)
 - **Intelligent Field Mapping:** AI understands field semantics, not just labels
-- **Date Normalization:** Converts various date formats to ISO 8601 (YYYY-MM-DD)
-- **Multi-Language Support:** Works with documents in different languages
-- **Confidence Scoring:** Each extracted value includes confidence score (0.0-1.0)
-- **Partial Extraction:** Only returns fields where data was found
+- **Partial Extraction:** Only returns fields where data was found with sufficient confidence
 - **Type Validation:** Ensures extracted values match field type requirements
 
 **Supported Field Types:**
@@ -1105,12 +1121,29 @@ Document Text → AI Analysis → JSON Extraction → Validation → Form Update
 
 **Confidence Scoring:**
 
-- `0.90 - 1.00`: High confidence - exact match found
-- `0.75 - 0.89`: Medium confidence - inferred from context
-- `0.50 - 0.74`: Low confidence - ambiguous or uncertain
-- `< 0.50`: Very low confidence (typically not returned)
+The system provides field-specific confidence scores based on validation and matching quality:
 
-Default confidence is 0.85 for all extracted fields.
+- `0.90 - 1.00`: High confidence
+  - Date fields with valid ISO format (0.95)
+  - Text fields with normal length (0.90)
+  - Select fields with exact case-insensitive match (0.95)
+- `0.75 - 0.89`: Medium confidence
+  - Date fields converted from other formats (0.80)
+  - Textarea fields (0.85)
+  - Select fields with fuzzy match (0.80)
+- `0.50 - 0.74`: Low confidence
+  - Text fields with very short (<2 chars) or very long (>200 chars) content (0.60-0.70)
+  - Date fields with questionable format (0.50)
+- `< 0.50`: Very low confidence
+  - Select fields with no matching option (0.40)
+  - Fields with this score may still be returned but require manual verification
+
+Default confidence is 0.85 for fields without specific validation rules.
+
+**Confidence Score Interpretation:**
+- Scores ≥ 0.85: Generally safe for automatic form filling
+- Scores 0.70-0.84: Recommended to highlight for user review
+- Scores < 0.70: Require manual verification before use
 
 **Error Handling:**
 
@@ -1140,11 +1173,34 @@ The backend validates form schemas before extraction:
 **Best Practices:**
 
 1. **Provide Clear Field Labels:** Use descriptive labels that match document terminology
+   - Include both English and German labels when possible
+   - Labels should be semantically meaningful (e.g., "Full Name" or "Vollständiger Name")
 2. **Include Field Context:** Add all relevant fields, even optional ones
-3. **Review Confidence Scores:** Manually verify fields with confidence < 0.85
+   - More fields provide better context for the AI
+   - Optional fields can be extracted when data is available
+3. **Review Confidence Scores:** Implement UI highlighting based on confidence
+   - Auto-accept fields with confidence ≥ 0.85
+   - Highlight for review: confidence 0.70-0.84 (yellow/warning)
+   - Require verification: confidence < 0.70 (red/error)
 4. **Use Structured Documents:** Works best with well-formatted documents
-5. **Specify Select Options:** Provide valid options for select fields
+   - Clear labels and values (e.g., "Name: John Doe")
+   - Consistent formatting throughout
+   - German documents with standard field labels work excellently
+5. **Specify Select Options:** Provide all valid options for select fields
+   - Include common variations if known (e.g., "Intensive" and "Intensive Course")
+   - System will fuzzy match to closest option
+   - Order doesn't matter (system finds best match)
 6. **Handle Partial Results:** Not all fields may be extracted from every document
+   - Only fields with sufficient confidence are returned
+   - Missing fields may require manual input or additional documents
+7. **Date Field Handling:** System automatically converts date formats
+   - German format DD.MM.YYYY is fully supported
+   - No need to pre-process dates before extraction
+   - System validates date realism automatically
+8. **Multilingual Documents:** Specify document language in context if known
+   - System handles German and English automatically
+   - Mixed-language documents are supported
+   - Special characters (umlauts) preserved correctly
 
 **Implementation Details:**
 
@@ -1155,12 +1211,29 @@ The backend validates form schemas before extraction:
 
 **Prompt Engineering:**
 
-The extraction prompt includes:
-- Clear task description
-- Field definitions with types and requirements
-- Document content
-- Output format instructions (JSON)
-- Data normalization rules
+The extraction prompt includes 6 comprehensive sections:
+1. **Field Extraction Rules:** General extraction guidelines and semantic matching
+2. **Multilingual Document Handling:** German-English field mappings with examples
+3. **Date Format Conversion:** Detailed date parsing and validation rules
+4. **Select Field Matching:** Fuzzy matching strategies (case-insensitive, partial, word-based)
+5. **Text Field Extraction:** Special character handling and whitespace management
+6. **Output Format:** Strict JSON output requirements
+
+Key prompt features:
+- Explicit German-English field mapping examples
+- Multiple date format conversion examples
+- Clear fuzzy matching instructions for select fields
+- Emphasis on extracting values, not labels
+- Confidence-based field omission strategy
+
+**Helper Functions:**
+
+The form_parser module includes specialized helper functions:
+- `_convert_to_iso_date()`: Multi-format date converter (DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY → YYYY-MM-DD)
+- `_match_select_option()`: Three-tier fuzzy matching (exact → partial → word-based)
+- `_is_valid_iso_date()`: ISO 8601 date format validator with datetime parsing
+- `parse_extraction_result()`: AI response parser with validation and confidence scoring
+- `build_extraction_prompt()`: Comprehensive prompt builder with all instructions
 
 **Performance:**
 
@@ -1171,11 +1244,14 @@ The extraction prompt includes:
 
 **Limitations:**
 
-- No OCR support (requires pre-extracted text)
-- No image analysis (text only)
-- English and German languages tested most
-- Complex nested structures not supported
-- Maximum ~10,000 characters document length
+- No OCR support (requires pre-extracted text from documents)
+- No image analysis (text-based documents only)
+- Primary language support: German and English (other languages may work but not tested)
+- Complex nested form structures not supported (flat field lists only)
+- Maximum ~10,000 characters document length for optimal performance
+- Date format conversion limited to common European formats
+- Fuzzy select matching requires options to be provided in form schema
+- Very low confidence fields (< 0.40) are typically omitted from results
 
 ---
 
@@ -1731,5 +1807,5 @@ Breaking changes will result in a new version. Non-breaking changes (additions) 
 ---
 
 **Last Updated:** 2025-12-18
-**API Version:** 1.2.0 (Partial Implementation)
-**Current Implementation:** Backend with WebSocket + AI + Streaming, Frontend simulations for other operations
+**API Version:** 1.3.0 (Partial Implementation)
+**Current Implementation:** Backend with WebSocket + AI + Streaming + Enhanced Form Extraction, Frontend simulations for other operations
