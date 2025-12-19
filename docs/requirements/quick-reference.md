@@ -209,7 +209,7 @@ Case Context (integration_course.json)
 
 ```bash
 # .env file
-GEMINI_API_KEY=AIzaSyA25jr2EC9eaQtUs50OHleoz69B7ULh1ZU
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ## Development Commands

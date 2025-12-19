@@ -173,7 +173,7 @@ Required environment variables (`.env`):
 GEMINI_API_KEY=your_api_key_here
 ```
 
-Current API key in project: `AIzaSyA25jr2EC9eaQtUs50OHleoz69B7ULh1ZU`
+**Note:** Obtain your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
 
 ## Success Criteria
 

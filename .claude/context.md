@@ -374,7 +374,7 @@ Admin: "Add dropdown for education level with options: high school, bachelor, ma
 
 **Required Environment Variables**:
 ```
-GEMINI_API_KEY=AIzaSyA25jr2EC9eaQtUs50OHleoz69B7ULh1ZU
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 **Development Setup**:
