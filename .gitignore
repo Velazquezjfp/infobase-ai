@@ -23,5 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 
-#Python 
-.env
+#Not necessary docs
+requirements._sprint1.md 
