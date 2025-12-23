@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(npx tsc:*)",
+      "Bash(/home/ayanm/projects/info-base/infobase-ai/backend/venv/bin/python3 -m pytest:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(source backend/venv/bin/activate)"
+    ]
+  }
+}
