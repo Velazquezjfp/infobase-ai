@@ -1,474 +1,337 @@
-# Sprint 1 Implementation Plan
+# Implementation Plan - BAMF AI Case Management System
 
 ## Overview
 
-This document provides a prioritized, dependency-aware implementation roadmap for Sprint 1 of the BAMF AI Case Management System. The plan is organized into phases based on dependencies between requirements and code components.
+This document provides a prioritized, dependency-aware implementation roadmap for the BAMF AI Case Management System. The plan covers Sprint 1 (completed foundation) and Sprint 2 (Admin Features - NLP interface and SHACL standardization).
 
-## Case-Instance Scoping Architecture
+---
 
-All content in this system is scoped to specific case instances (ACTEs). When switching cases, **everything switches**:
+## Sprint 1 Summary (Completed)
 
-| Component | Scoping | Path Pattern |
-|-----------|---------|--------------|
-| **Context** | Per case instance | `backend/data/contexts/cases/{caseId}/` |
-| **Documents** | Per case instance | `public/documents/{caseId}/{folderId}/` |
-| **Forms** | Per case instance | `sampleCaseFormData[caseId]` |
-| **Folders** | Per case instance | Defined in case's folder structure |
+Sprint 1 established the foundational architecture with case-instance scoping. All core requirements are implemented:
 
-### Key Principles:
+| ID | Name | Status | Notes |
+|----|------|--------|-------|
+| NFR-002 | Modular Backend Architecture | ✅ Complete | FastAPI with services/tools/api layers |
+| D-001 | Hierarchical Context Data Schema | ✅ Complete | Case-instance scoped contexts |
+| D-002 | Case-Type Form Schemas | ✅ Complete | 7-field form with case-level management |
+| D-003 | Sample Document Text Content | ✅ Complete | Text files in case-specific directories |
+| F-001 | Document Assistant Agent | ✅ Complete | WebSocket + Gemini streaming |
+| F-002 | Document Context Management | ✅ Complete | Cascading context system |
+| F-003 | Form Auto-Fill | ✅ Complete | Document extraction with confidence |
+| F-004 | AI-Powered Field Generator | ⚠️ Partial | Basic implementation, Sprint 2 enhances |
+| F-005 | Case-Level Form Management | ✅ Complete | Forms persist across folders |
+| F-006 | Document Loading | ✅ Complete | Text file loading from case directories |
+| NFR-001 | Real-Time Performance | ✅ Complete | Streaming with &lt;2s first token |
+| NFR-003 | Local Storage | ✅ Complete | localStorage persistence |
 
-1. **Complete Isolation**: ACTE-2024-001's content is never mixed with ACTE-2024-002
-2. **Dynamic Creation**: New cases get their own directories from templates
-3. **Modular Demo**: German Integration Course (ACTE-2024-001) is the main demo case
-4. **Template System**: Templates enable creating new cases of each type
+---
 
-### Directory Structure:
-```
-backend/data/contexts/
-├── cases/
-│   ├── ACTE-2024-001/    # German Integration Course
-│   ├── ACTE-2024-002/    # Asylum Application
-│   └── ACTE-2024-003/    # Family Reunification
-└── templates/
-    ├── integration_course/
-    ├── asylum_application/
-    └── family_reunification/
+## Sprint 2: Admin Features - NLP Interface & Schema Standardization
 
-public/documents/
-├── ACTE-2024-001/
-│   ├── personal-data/
-│   ├── certificates/
-│   └── ...
-├── ACTE-2024-002/
-└── templates/
-```
+### Primary Goal
+Transition from manual form-field coding to a Natural Language Processing (NLP) interface while standardizing the underlying data schema using SHACL/JSON-LD.
 
-## Requirements Summary
+### Sprint 2 Requirements Summary
 
-| ID | Name | Category | Complexity |
-|----|------|----------|------------|
-| NFR-002 | Modular Backend Architecture | Non-Functional | Moderate |
-| D-001 | Hierarchical Context Data Schema | Data | Simple |
-| D-002 | Case-Type Form Schemas | Data | Simple |
-| D-003 | Sample Document Text Content | Data | Simple |
-| F-001 | Document Assistant Agent - WebSocket | Functional | Complex |
-| F-002 | Document Context Management System | Functional | Moderate |
-| F-003 | Form Auto-Fill from Documents | Functional | Complex |
-| F-004 | AI-Powered Form Field Generator | Functional | Complex |
-| F-005 | Case-Level Form Management | Functional | Moderate |
-| F-006 | Replace Mock Documents with Text Files | Functional | Simple |
-| NFR-001 | Real-Time AI Response Performance | Non-Functional | Moderate |
-| NFR-003 | Local Storage Without Database | Non-Functional | Simple |
+| ID | Name | Priority | Complexity | Dependencies |
+|----|------|----------|------------|--------------|
+| S2-001 | Conversational Field Addition | Must-have | Complex | F-004 (partial) |
+| S2-002 | Dynamic Structure Definition (SHACL/JSON-LD) | Must-have | Moderate | None |
+| S2-003 | Legacy Form Standardization | Must-have | Simple | S2-002 |
+| S2-004 | Multi-Format Contextual Extraction | Should-have | Moderate | F-002 |
 
-## Dependency Graph
+---
+
+## Dependency Graph - Sprint 2
 
 ```
-NFR-002 (Backend Structure)
+S2-002 (SHACL Schema Definition)
     │
-    ├──▶ F-001 (WebSocket Service)
+    ├──▶ S2-001 (Conversational Field Addition)
     │        │
-    │        ├──▶ NFR-001 (Performance)
-    │        │
-    │        └──▶ F-003 (Form Auto-Fill)
-    │                 │
-    │                 └──▶ F-004 (AI Field Generator)
+    │        └──▶ AdminConfigPanel AI Fields Tab enhancement
     │
-D-001 (Context Schema)
-    │
-    └──▶ F-002 (Context Management)
+    └──▶ S2-003 (Legacy Form Standardization)
               │
-              └──▶ F-003 (Form Auto-Fill)
+              └──▶ mockData.ts migration
 
-D-002 (Form Schemas)
+F-002 (Existing Context Management)
     │
-    └──▶ F-005 (Case-Level Forms)
+    └──▶ S2-004 (Multi-Format Contextual Extraction)
               │
-              └──▶ F-003 (Form Auto-Fill)
-
-D-003 (Sample Documents)
-    │
-    └──▶ F-006 (Document Loading)
+              ├──▶ PDF Support (stub for future)
               │
-              └──▶ F-003 (Form Auto-Fill)
-
-NFR-003 (LocalStorage)
-    │
-    └──▶ F-004 (AI Field Generator)
+              └──▶ Enhanced cascading context
 ```
 
-## Code-Graph Component Impact
+---
+
+## Code-Graph Component Impact - Sprint 2
 
 | Component | Affected by Requirements |
 |-----------|-------------------------|
-| `src/contexts/AppContext.tsx` | F-001, F-003, F-004, F-005, NFR-003 |
-| `src/components/workspace/AIChatInterface.tsx` | F-001, F-003, NFR-001 |
-| `src/components/workspace/FormViewer.tsx` | F-005 |
-| `src/components/workspace/AdminConfigPanel.tsx` | F-004, F-005 |
-| `src/components/workspace/DocumentViewer.tsx` | F-006 |
-| `src/components/workspace/CaseTreeExplorer.tsx` | F-006 |
-| `src/types/case.ts` | F-004, F-005 |
-| `src/data/mockData.ts` | D-002, F-005, F-006 |
-| `backend/` (new) | NFR-002, F-001, F-002, F-003, F-004 |
+| `src/types/case.ts` | S2-002, S2-003 |
+| `src/data/mockData.ts` | S2-003 |
+| `src/components/workspace/AdminConfigPanel.tsx` | S2-001 |
+| `src/components/workspace/FormViewer.tsx` | S2-003 |
+| `backend/services/field_generator.py` (new) | S2-001, S2-002 |
+| `backend/api/admin.py` (new) | S2-001 |
+| `backend/schemas/shacl.py` (new) | S2-002 |
+| `backend/services/context_manager.py` | S2-004 |
+| `backend/tools/document_processor.py` (new) | S2-004 |
 
 ---
 
-## Phase 1: Foundation (Independent Requirements)
+## Phase 1: SHACL Foundation (Independent)
 
-**Goal:** Establish backend structure and create all data files that have no dependencies.
+**Goal:** Establish SHACL/JSON-LD schema standard that all other requirements depend on.
 
-**Can be done in parallel:** Yes - all items in this phase are independent.
+**Can be done in parallel:** No - this is foundational for S2-001 and S2-003.
 
-### 1.1 NFR-002: Modular Backend Architecture
+### 1.1 S2-002: Dynamic Structure Definition (SHACL & JSON-LD)
 
-**Priority:** Must-have (foundation for all AI features)
+**Priority:** Must-have (foundation for NLP field generation)
 **Dependencies:** None
 **Complexity:** Moderate
 
-**Files to Create (backend only):**
-- `backend/main.py` - FastAPI entry point
-- `backend/requirements.txt` - Python dependencies
-- `backend/api/__init__.py` - API package
-- `backend/services/__init__.py` - Services package
-- `backend/tools/__init__.py` - Tools package
-- `backend/data/contexts/__init__.py` - Data package
-- `backend/tests/__init__.py` - Tests package
+**Files to Create (backend):**
+- `backend/schemas/__init__.py` - Schema package
+- `backend/schemas/shacl.py` - SHACL property and node shape definitions
+- `backend/schemas/jsonld_context.py` - JSON-LD context definitions
 
-**Rationale:** Backend structure must exist before any AI services can be implemented. This is the foundational requirement.
+**Files to Create (frontend):**
+- `src/types/shacl.ts` - TypeScript interfaces for SHACL metadata
 
-**Scope:** Backend directory structure only. No frontend changes.
+**Files to Modify (frontend):**
+- `src/types/case.ts` - Extend FormField with SHACL metadata property
+
+**SHACL Schema Structure:**
+```json
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "schema": "http://schema.org/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@type": "sh:PropertyShape",
+  "sh:path": "schema:givenName",
+  "sh:datatype": "xsd:string",
+  "sh:minCount": 1,
+  "sh:maxCount": 1,
+  "sh:name": "Full Name",
+  "sh:description": "The applicant's full legal name"
+}
+```
+
+**Rationale:** SHACL provides semantic meaning to form fields, enabling better AI understanding during extraction and allowing validation of field constraints. JSON-LD representation ensures interoperability.
+
+**Scope:**
+- Backend: Python schema definitions only
+- Frontend: TypeScript types only
 
 ---
 
-### 1.2 D-001: Hierarchical Context Data Schema (Case-Instance Scoped)
+## Phase 2: NLP Interface (Depends on Phase 1)
 
-**Priority:** Must-have (provides domain knowledge for AI)
-**Dependencies:** None
-**Complexity:** Simple
-
-**Directory Structure:**
-```
-backend/data/contexts/
-├── cases/
-│   └── ACTE-2024-001/           # German Integration Course case
-│       ├── case.json            # Case-level context
-│       └── folders/
-│           ├── personal-data.json
-│           ├── certificates.json
-│           ├── integration-docs.json
-│           ├── applications.json
-│           ├── emails.json
-│           └── evidence.json
-└── templates/                    # Templates for new case creation
-    └── integration_course/
-        ├── case.json
-        └── folders/
-```
-
-**Files to Create:**
-- `backend/data/contexts/cases/ACTE-2024-001/case.json`
-- `backend/data/contexts/cases/ACTE-2024-001/folders/personal-data.json`
-- `backend/data/contexts/cases/ACTE-2024-001/folders/certificates.json`
-- `backend/data/contexts/cases/ACTE-2024-001/folders/integration-docs.json`
-- `backend/data/contexts/cases/ACTE-2024-001/folders/applications.json`
-- `backend/data/contexts/cases/ACTE-2024-001/folders/emails.json`
-- `backend/data/contexts/cases/ACTE-2024-001/folders/evidence.json`
-- `backend/data/contexts/templates/integration_course/` (template copy)
-
-**Rationale:** Context is case-instance scoped - each ACTE has its own context directory. When switching cases, all context switches. New cases can be created from templates.
-
-**Scope:** JSON data files with case-instance directory structure.
-
----
-
-### 1.3 D-003: Sample Document Text Content (Case-Instance Scoped)
-
-**Priority:** Must-have (required for testing AI features)
-**Dependencies:** None
-**Complexity:** Simple
-
-**Directory Structure:**
-```
-public/documents/
-├── ACTE-2024-001/                    # German Integration Course case
-│   ├── personal-data/
-│   │   ├── Birth_Certificate.txt
-│   │   └── Passport_Scan.txt
-│   ├── certificates/
-│   │   └── Language_Certificate_A1.txt
-│   ├── integration-docs/
-│   ├── applications/
-│   │   └── Integration_Application.txt
-│   ├── emails/
-│   │   └── Confirmation_Email.txt
-│   └── evidence/
-│       └── School_Transcripts.txt
-└── templates/                        # Templates for new case creation
-    └── integration_course/
-```
-
-**Files to Create for ACTE-2024-001:**
-- `public/documents/ACTE-2024-001/personal-data/Birth_Certificate.txt`
-- `public/documents/ACTE-2024-001/personal-data/Passport_Scan.txt`
-- `public/documents/ACTE-2024-001/certificates/Language_Certificate_A1.txt`
-- `public/documents/ACTE-2024-001/applications/Integration_Application.txt`
-- `public/documents/ACTE-2024-001/emails/Confirmation_Email.txt`
-- `public/documents/ACTE-2024-001/evidence/School_Transcripts.txt`
-
-**Rationale:** Documents are case-instance scoped - each ACTE has its own documents directory. When switching cases, document tree shows only that case's documents. Ahmad Ali's documents are ONLY in ACTE-2024-001.
-
-**Scope:** Text files with case-instance directory structure.
-
----
-
-### 1.4 D-002: Case-Type Form Schemas
-
-**Priority:** Must-have (defines form structure for case types)
-**Dependencies:** None (types already support required structure)
-**Complexity:** Simple
-
-**Files to Verify:**
-- `src/data/mockData.ts` - Verify form definitions exist
-
-**Changes:**
-- Verify `initialFormFields: FormField[]` has 7 fields
-- Verify `sampleCaseFormData` maps case IDs to form data
-- Each case has ONE form template (not folder-specific)
-
-**Rationale:** Form schemas are at the case level, not folder level. The existing initialFormFields array and sampleCaseFormData already support this structure.
-
-**Scope:** Data verification. The existing implementation already uses case-level forms.
-
----
-
-## Phase 2: Core Infrastructure
-
-**Goal:** Build the core services that other features depend on.
+**Goal:** Implement natural language form field generation with SHACL output.
 
 **Dependencies:** Phase 1 must be complete.
 
-### 2.1 F-001: Document Assistant Agent - WebSocket Service
+### 2.1 S2-001: Conversational Field Addition
 
-**Priority:** Must-have (core AI functionality)
-**Dependencies:** NFR-002 (backend structure)
+**Priority:** Must-have (core admin feature)
+**Dependencies:** S2-002 (SHACL schema)
 **Complexity:** Complex
 
 **Files to Create (backend):**
-- `backend/services/gemini_service.py` - Gemini API integration
-- `backend/api/chat.py` - WebSocket endpoint
+- `backend/services/field_generator.py` - NLP to SHACL field generation service
+- `backend/api/admin.py` - Admin REST API endpoints
 
 **Files to Create (frontend):**
-- `src/types/websocket.ts` - WebSocket message types
+- `src/lib/adminApi.ts` - API client for admin endpoints
 
 **Files to Modify (frontend):**
-- `src/contexts/AppContext.tsx` - Add WebSocket state management
-- `src/components/workspace/AIChatInterface.tsx` - Replace mock with WebSocket
+- `src/components/workspace/AdminConfigPanel.tsx` - Enhance AI Fields tab
 
-**Rationale:** WebSocket service is the foundation for all AI-powered features. Must be implemented before form auto-fill and field generation.
+**Key Features:**
+1. Natural language input textarea (existing from F-004)
+2. Parse commands like "I need a choice, a drop-down, a list and add these options"
+3. Generate SHACL-compliant FormField specification
+4. Preview generated field with editable properties
+5. Add to form with SHACL metadata
 
-**Scope:**
-- Backend: Gemini service + WebSocket route
-- Frontend: Types + context + chat interface
+**API Endpoint:**
+```
+POST /api/admin/generate-field
+Request: { "prompt": "Add a dropdown for marital status with options single, married, divorced" }
+Response: {
+  "field": {
+    "id": "marital_status",
+    "label": "Marital Status",
+    "type": "select",
+    "options": ["Single", "Married", "Divorced"],
+    "required": false,
+    "shaclMetadata": {
+      "@context": {...},
+      "@type": "sh:PropertyShape",
+      "sh:path": "schema:maritalStatus",
+      ...
+    }
+  }
+}
+```
 
----
-
-### 2.2 F-002: Document Context Management System (Case-Instance Scoped)
-
-**Priority:** Must-have (enables context-aware AI responses)
-**Dependencies:** D-001 (context schema files), NFR-002 (backend)
-**Complexity:** Moderate
-
-**Files to Create (backend):**
-- `backend/services/context_manager.py` - Case-instance context loading and merging
-
-**Key Methods:**
-- `load_case_context(case_id)` → loads from `cases/{case_id}/case.json`
-- `load_folder_context(case_id, folder_id)` → loads from `cases/{case_id}/folders/{folder_id}.json`
-- `create_case_from_template(case_id, case_type)` → creates new case directory from template
-- `merge_contexts(case_ctx, folder_ctx, doc_ctx)` → combines for AI prompt
-
-**Files to Modify (backend):**
-- `backend/services/gemini_service.py` - Accept case_id for context resolution
-
-**Files to Modify (frontend):**
-- `src/types/websocket.ts` - Add caseId, folderId to ChatRequest
-- `src/contexts/AppContext.tsx` - Reload context when case changes
-
-**Rationale:** Context is case-instance scoped - each ACTE has its own context. When switching cases, AI receives different context. Supports dynamic case creation from templates.
-
-**Scope:**
-- Backend: Context manager with case-instance path resolution
-- Frontend: WebSocket types + context reload on case switch
-
----
-
-### 2.3 F-006: Replace Mock Documents with Text Files (Case-Instance Scoped)
-
-**Priority:** Must-have (enables real document loading)
-**Dependencies:** D-003 (sample documents exist)
-**Complexity:** Simple
-
-**Files to Create (frontend):**
-- `src/lib/documentLoader.ts` - Case-aware document loading utility
-
-**Key Function:**
-- `loadDocumentContent(caseId, folderId, filename)` → fetches from `/documents/${caseId}/${folderId}/${filename}`
-
-**Files to Modify (frontend):**
-- `src/data/mockData.ts` - Document paths use case-scoped template
-- `src/components/workspace/CaseTreeExplorer.tsx` - Load content using currentCase.id
-- `src/components/workspace/DocumentViewer.tsx` - Display loaded content
-- `src/contexts/AppContext.tsx` - Clear selectedDocument when case changes
-
-**Rationale:** Documents are case-instance scoped - each ACTE has its own documents directory. When switching cases, document tree shows only that case's documents. Prevents cross-case document access.
-
-**Scope:** Frontend only. Case-aware document loading + tree explorer + viewer.
-
----
-
-### 2.4 NFR-003: Local Storage Without Database
-
-**Priority:** Must-have (enables persistence without backend DB)
-**Dependencies:** None (can be done in parallel with 2.1-2.3)
-**Complexity:** Simple
-
-**Files to Create (frontend):**
-- `src/lib/localStorage.ts` - Storage utility functions
-
-**Files to Modify (frontend):**
-- `src/contexts/AppContext.tsx` - Add persistence effects
-
-**Rationale:** LocalStorage utilities are needed for form field persistence in F-004 and general state persistence. Simple utility module.
-
-**Scope:** Frontend only. Utility module + context integration.
-
----
-
-## Phase 3: Feature Implementation
-
-**Goal:** Implement the main user-facing features.
-
-**Dependencies:** Phase 2 must be complete.
-
-### 3.1 F-005: Case-Level Form Management
-
-**Priority:** Must-have (each case has a form)
-**Dependencies:** D-002 (form schemas)
-**Complexity:** Moderate
-
-**Files to Verify (frontend):**
-- `src/types/case.ts` - Verify Case interface supports form data
-- `src/data/mockData.ts` - Verify sampleCaseFormData maps case IDs to form data
-- `src/contexts/AppContext.tsx` - Verify formFields tied to currentCase
-- `src/components/workspace/FormViewer.tsx` - Verify displays case form
-- `src/components/workspace/AdminConfigPanel.tsx` - Verify admin can edit form
-
-**Rationale:** Case-level forms ensure the form persists across folder navigation. The form is tied to the case, not individual folders.
-
-**Scope:** Frontend verification. The existing implementation already uses case-level forms.
-
----
-
-### 3.2 F-003: Form Auto-Fill from Document Content
-
-**Priority:** Must-have (core AI feature)
-**Dependencies:** F-001 (WebSocket), F-002 (context), F-005 (case-level forms), F-006 (documents)
-**Complexity:** Complex
-
-**Files to Create (backend):**
-- `backend/tools/form_parser.py` - Field extraction tool
-
-**Files to Modify (backend):**
-- `backend/services/gemini_service.py` - Register form parser tool
-
-**Files to Modify (frontend):**
-- `src/types/websocket.ts` - Add FormUpdateMessage type
-- `src/data/mockData.ts` - Add /fillForm command
-- `src/components/workspace/AIChatInterface.tsx` - Handle form updates
-
-**Rationale:** Form auto-fill is the primary AI feature that extracts data from documents into form fields. It depends on all previous infrastructure.
-
-**Scope:**
-- Backend: Form parser tool + Gemini tool registration
-- Frontend: Types + chat interface updates
-
----
-
-### 3.3 NFR-001: Real-Time AI Response Performance
-
-**Priority:** Should-have (improves UX)
-**Dependencies:** F-001 (WebSocket service exists)
-**Complexity:** Moderate
-
-**Files to Modify (backend):**
-- `backend/services/gemini_service.py` - Add streaming, connection pooling
-
-**Files to Modify (frontend):**
-- `src/components/workspace/AIChatInterface.tsx` - Handle streaming messages
-
-**Rationale:** Performance optimization should be done after the basic WebSocket functionality works. Streaming improves perceived responsiveness.
-
-**Scope:**
-- Backend: Gemini service streaming
-- Frontend: Chat interface streaming support
-
----
-
-## Phase 4: Admin Features
-
-**Goal:** Implement admin-facing features for form management.
-
-**Dependencies:** Phases 2-3 should be complete.
-
-### 4.1 F-004: AI-Powered Form Field Generator
-
-**Priority:** Nice-to-have (admin convenience feature)
-**Dependencies:** F-001 (WebSocket/API), F-003 (form infrastructure), NFR-003 (localStorage)
-**Complexity:** Complex
-
-**Files to Create (backend):**
-- `backend/services/field_generator.py` - Field generation service
-- `backend/api/admin.py` - Admin API endpoint
-
-**Files to Modify (frontend):**
-- `src/types/case.ts` - Add JSON-LD metadata to FormField
-- `src/components/workspace/AdminConfigPanel.tsx` - Add AI Fields tab
-
-**Rationale:** AI field generation is an advanced feature that builds on existing AI infrastructure. Lower priority than core document processing.
+**Rationale:** Administrators can create form fields using natural language instead of manual configuration. The AI interprets intent and generates semantically-rich SHACL specifications.
 
 **Scope:**
 - Backend: Field generator service + admin API
-- Frontend: Types + admin panel tab
+- Frontend: Enhanced admin panel tab + API client
+
+---
+
+## Phase 3: Migration (Depends on Phase 1)
+
+**Goal:** Migrate existing form schemas to SHACL/JSON-LD standard.
+
+**Dependencies:** Phase 1 must be complete.
+
+### 3.1 S2-003: Legacy Form Standardization
+
+**Priority:** Must-have (ensures unified schema)
+**Dependencies:** S2-002 (SHACL schema)
+**Complexity:** Simple
+
+**Files to Create (backend):**
+- `backend/scripts/migrate_forms_to_shacl.py` - One-time migration script
+
+**Files to Modify (frontend):**
+- `src/data/mockData.ts` - Add SHACL metadata to all 7 existing form fields
+- `src/components/workspace/FormViewer.tsx` - Handle SHACL-enhanced fields (display metadata in admin mode)
+
+**Migration Mapping:**
+
+| Current Field | SHACL Property | Schema.org Type |
+|---------------|----------------|-----------------|
+| fullName | sh:path schema:name | xsd:string |
+| birthDate | sh:path schema:birthDate | xsd:date |
+| countryOfOrigin | sh:path schema:nationality | xsd:string |
+| existingLanguageCertificates | sh:path schema:knows | xsd:string |
+| coursePreference | sh:path schema:courseCode | xsd:string |
+| currentAddress | sh:path schema:address | xsd:string |
+| reasonForApplication | sh:path schema:description | xsd:string |
+
+**Rationale:** All existing forms must follow the same SHACL/JSON-LD definitions as newly created fields, ensuring a unified schema across the system.
+
+**Scope:**
+- Backend: Migration script (one-time)
+- Frontend: Data file + form viewer updates
+
+---
+
+## Phase 4: Enhanced Context (Can parallel with Phase 2-3)
+
+**Goal:** Improve contextual extraction with better cascading and future PDF support.
+
+**Dependencies:** F-002 (existing context management)
+
+### 4.1 S2-004: Multi-Format Contextual Extraction
+
+**Priority:** Should-have (improves AI accuracy)
+**Dependencies:** F-002 (context management)
+**Complexity:** Moderate
+
+**Files to Create (backend):**
+- `backend/tools/document_processor.py` - Document processing abstraction
+- `backend/tools/text_processor.py` - Text file processor (current functionality)
+- `backend/tools/pdf_processor.py` - PDF processor (stub for future)
+
+**Files to Modify (backend):**
+- `backend/services/context_manager.py` - Enhanced cascading logic
+- `backend/services/gemini_service.py` - Better context injection
+
+**Files to Modify (frontend):**
+- `src/components/workspace/AIChatInterface.tsx` - Context source indicators
+
+**Cascading Context Precedence:**
+```
+Document Context (highest priority)
+    ↓ overrides
+Folder Context
+    ↓ overrides
+Case Context (lowest priority)
+```
+
+**Document Processor Interface:**
+```python
+class DocumentProcessor(ABC):
+    @abstractmethod
+    def extract_text(self, file_path: str) -> str:
+        """Extract text content from document."""
+        pass
+
+    @abstractmethod
+    def get_metadata(self, file_path: str) -> dict:
+        """Extract document metadata."""
+        pass
+
+    @abstractmethod
+    def supports_format(self, file_extension: str) -> bool:
+        """Check if processor supports file format."""
+        pass
+```
+
+**Rationale:** The cascading context ensures AI responses are contextually accurate. The document processor abstraction prepares for future PDF support without major refactoring.
+
+**Scope:**
+- Backend: Document processor interface + enhanced context manager
+- Frontend: Context indicators in chat
 
 ---
 
 ## Implementation Order Summary
 
 ```
-Week 1: Foundation
-├── Day 1-2: Phase 1 (All parallel)
-│   ├── NFR-002: Backend structure
-│   ├── D-001: Context JSON files
-│   ├── D-002: Form schema definitions
-│   └── D-003: Sample document files
-│
-└── Day 3-5: Phase 2 (Sequential)
-    ├── F-001: WebSocket service
-    ├── F-002: Context management (after F-001)
-    ├── F-006: Document loading (parallel with F-002)
-    └── NFR-003: LocalStorage (parallel)
+Phase 1: SHACL Foundation (Required First)
+├── S2-002: SHACL/JSON-LD Schema Definitions
+│   ├── backend/schemas/shacl.py
+│   ├── backend/schemas/jsonld_context.py
+│   ├── src/types/shacl.ts
+│   └── src/types/case.ts (extend FormField)
 
-Week 2: Features
-├── Day 6-7: Phase 3
-│   ├── F-005: Case-level forms
-│   ├── F-003: Form auto-fill (after F-005)
-│   └── NFR-001: Performance (after F-003)
-│
-└── Day 8-10: Phase 4
-    └── F-004: AI field generator
+Phase 2: NLP Interface (After Phase 1)
+├── S2-001: Conversational Field Addition
+│   ├── backend/services/field_generator.py
+│   ├── backend/api/admin.py
+│   ├── src/lib/adminApi.ts
+│   └── src/components/workspace/AdminConfigPanel.tsx
 
-Week 2 End: Testing & Polish
-└── Day 11-14: Integration testing
+Phase 3: Migration (After Phase 1, parallel with Phase 2)
+├── S2-003: Legacy Form Standardization
+│   ├── backend/scripts/migrate_forms_to_shacl.py
+│   ├── src/data/mockData.ts
+│   └── src/components/workspace/FormViewer.tsx
+
+Phase 4: Enhanced Context (Parallel with Phase 2-3)
+└── S2-004: Multi-Format Contextual Extraction
+    ├── backend/tools/document_processor.py
+    ├── backend/tools/text_processor.py
+    ├── backend/tools/pdf_processor.py (stub)
+    ├── backend/services/context_manager.py
+    └── src/components/workspace/AIChatInterface.tsx
 ```
+
+---
+
+## File Change Summary - Sprint 2
+
+| Requirement | New Files | Modified Files |
+|-------------|-----------|----------------|
+| S2-002 | 4 (schemas, types) | 1 (case.ts) |
+| S2-001 | 3 (field_generator, admin.py, adminApi.ts) | 1 (AdminConfigPanel) |
+| S2-003 | 1 (migration script) | 2 (mockData, FormViewer) |
+| S2-004 | 3 (document processors) | 2 (context_manager, AIChatInterface) |
+| **Total** | **11 new files** | **6 file modifications** |
 
 ---
 
@@ -476,56 +339,38 @@ Week 2 End: Testing & Polish
 
 ### High-Risk Items
 
-1. **F-001 (WebSocket + Gemini)** - Complex integration
-   - Mitigation: Test Gemini API separately before WebSocket integration
-   - Fallback: Keep mock responses as fallback while developing
+1. **S2-002 (SHACL Schema)** - Complex standard
+   - Mitigation: Start with minimal required properties
+   - Fallback: Simplified JSON-LD without full SHACL validation
 
-2. **F-003 (Form Auto-Fill)** - Depends on many components
-   - Mitigation: Implement incrementally, test each dependency first
-   - Fallback: Manual form filling remains available
+2. **S2-001 (NLP Field Generation)** - AI interpretation accuracy
+   - Mitigation: Provide preview/edit before adding
+   - Fallback: Manual field creation remains available
 
 ### Medium-Risk Items
 
-3. **NFR-001 (Performance)** - Streaming complexity
-   - Mitigation: Implement basic non-streaming first, add streaming later
-   - Fallback: Non-streaming responses are acceptable for POC
+3. **S2-003 (Migration)** - Backward compatibility
+   - Mitigation: SHACL metadata is optional property, existing forms work without it
+   - Fallback: Gradual migration, not all-at-once
+
+4. **S2-004 (PDF Support)** - External library dependency
+   - Mitigation: Create interface now, implement later
+   - Fallback: Text-only extraction remains default
 
 ---
 
-## File Change Summary by Requirement
+## Success Criteria - Sprint 2
 
-| Requirement | New Files | Modified Files |
-|-------------|-----------|----------------|
-| NFR-002 | 7 (backend structure) | 0 |
-| D-001 | 7 (JSON files) | 0 |
-| D-002 | 0 | 1 (mockData.ts) |
-| D-003 | 6 (text files) | 0 |
-| F-001 | 3 (backend + types) | 2 (AppContext, AIChatInterface) |
-| F-002 | 1 (context_manager.py) | 2 (gemini_service, websocket.ts) |
-| F-006 | 1 (documentLoader.ts) | 3 (mockData, CaseTree, DocViewer) |
-| NFR-003 | 1 (localStorage.ts) | 1 (AppContext) |
-| F-005 | 0 | 0 (verify existing case-level forms) |
-| F-003 | 1 (form_parser.py) | 3 (gemini, types, chat) |
-| NFR-001 | 0 | 2 (gemini_service, AIChatInterface) |
-| F-004 | 2 (field_gen, admin.py) | 2 (types, AdminConfigPanel) |
+Sprint 2 is complete when:
 
-**Total:** 29 new files, 21 file modifications (some files modified by multiple requirements)
-
----
-
-## Success Criteria
-
-Sprint 1 is complete when:
-
-1. ✅ Backend starts and serves WebSocket connections
-2. ✅ AI chat responds to questions about documents
-3. ✅ "/fillForm" extracts data into form fields
-4. ✅ Each case displays its form (persists across folder navigation)
-5. ✅ Document content loads from text files
-6. ✅ Context influences AI responses appropriately
-7. ✅ Form changes persist across page refresh
-8. ✅ First AI response token arrives within 2 seconds
-9. ✅ Admin can generate fields via natural language (nice-to-have)
+1. ✅ Admin can generate form fields via natural language in AI Fields tab
+2. ✅ Generated fields include SHACL/JSON-LD semantic metadata
+3. ✅ All 7 existing form fields have SHACL metadata
+4. ✅ Context cascading properly prioritizes Document > Folder > Case
+5. ✅ Field generation endpoint POST /api/admin/generate-field works
+6. ✅ FormViewer displays SHACL metadata in admin mode
+7. ✅ Document processor interface ready for PDF support (stub)
+8. ✅ Natural language commands like "add a dropdown for X" are correctly interpreted
 
 ---
 
@@ -533,7 +378,14 @@ Sprint 1 is complete when:
 
 After completing this plan:
 
-1. Start with Phase 1 items in parallel
-2. Use `/start-requirement <ID>` to get detailed task breakdown
+1. Start with Phase 1 (S2-002) - SHACL schema definitions
+2. Use `/start-requirement S2-002` to get detailed task breakdown
 3. Run tests after each requirement completion
-4. Update requirement status in requirements.md as work progresses
+4. Update test-matrix.md with Sprint 2 test cases
+5. Create test files in `docs/tests/S2-XXX/` directories
+
+---
+
+*Last Updated*: 2025-12-22
+*Version*: 2.0 (Sprint 2 - Admin Features)
+*Sprint*: Sprint 2 - Admin Features (NLP Interface & SHACL Standardization)

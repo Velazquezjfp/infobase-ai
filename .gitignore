@@ -23,5 +23,38 @@ dist-ssr
 *.sln
 *.sw?
 
-#Not necessary docs
-requirements._sprint1.md 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+
+# Virtual environments
+venv/
+backend/venv/
+info-env/
+.venv/
+ENV/
+
+# Temp files
+temp/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Not necessary docs
+requirements._sprint1.md
+requirements._sprint2.md
+
+# Windows Zone.Identifier files
+*:Zone.Identifier

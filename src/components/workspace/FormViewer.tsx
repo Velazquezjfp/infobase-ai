@@ -1,18 +1,19 @@
 import { useApp } from '@/contexts/AppContext';
-import { ClipboardList, Sparkles, Database } from 'lucide-react';
+import { ClipboardList, Sparkles, Database, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface FormViewerProps {
   showMetadata?: boolean;
 }
 
 export default function FormViewer({ showMetadata = false }: FormViewerProps) {
-  const { selectedDocument, formFields, updateFormField, currentCase, viewMode } = useApp();
+  const { selectedDocument, formFields, updateFormField, currentCase, viewMode, isAdminMode } = useApp();
 
   const renderMetadataView = () => {
     const metadata = selectedDocument?.metadata || {
@@ -139,6 +140,18 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
                     rows={2}
                     className={cn(field.value && 'border-success/50 bg-success/5')}
                   />
+                )}
+                {/* S2-003: Display SHACL metadata in admin mode */}
+                {isAdminMode && field.shaclMetadata && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Tag className="w-3 h-3 text-muted-foreground" />
+                    <Badge variant="outline" className="text-xs font-mono px-1.5 py-0">
+                      {field.shaclMetadata['sh:path']}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs font-mono px-1.5 py-0">
+                      {field.shaclMetadata['sh:datatype']}
+                    </Badge>
+                  </div>
                 )}
               </div>
             ))}
