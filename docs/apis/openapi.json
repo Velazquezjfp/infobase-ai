@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "BAMF ACTE Companion API",
-    "description": "API specification for the BAMF ACTE (Automated Case and Task Environment) Companion application.\n\n**Current Status:** This is a PLANNED API specification. The application currently operates as a frontend-only prototype with simulated operations. This specification documents the target architecture for future backend implementation.\n\nThe API will provide document management, AI-powered case processing, and integration course application handling for BAMF (Bundesamt für Migration und Flüchtlinge).",
-    "version": "1.0.0",
+    "description": "API specification for the BAMF ACTE (Automated Case and Task Environment) Companion application.\n\n**Current Status:** This is a PLANNED API specification. The application currently operates as a\nfrontend-only prototype with simulated operations. This specification documents the target\narchitecture for future backend implementation.\n\nThe API will provide document management, AI-powered case processing, and integration course\napplication handling for BAMF (Bundesamt f\u00fcr Migration und Fl\u00fcchtlinge).\n",
+    "version": "1.4.0",
     "contact": {
       "name": "BAMF Development Team",
       "email": "api@bamf.example.de"
@@ -27,6 +27,10 @@
     }
   ],
   "tags": [
+    {
+      "name": "Admin",
+      "description": "Administrative operations and form field generation"
+    },
     {
       "name": "Authentication",
       "description": "User authentication and authorization"
@@ -53,9 +57,162 @@
     }
   ],
   "paths": {
+    "/api/admin/generate-field": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Generate form field from natural language",
+        "description": "Generate a SHACL-compliant form field specification from a natural language prompt.\n\nThe service uses rule-based extraction for common patterns and falls back to AI\n(Gemini) for more complex or ambiguous requests.\n\n**Supported field types:**\n- text: Standard text input\n- date: Date picker\n- select: Dropdown with options\n- textarea: Multi-line text\n\n**Supported languages:** English, German\n",
+        "operationId": "generateField",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "prompt"
+                ],
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500,
+                    "description": "Natural language description of the desired field",
+                    "example": "Add a dropdown for marital status with options single, married, divorced"
+                  }
+                }
+              },
+              "examples": {
+                "textField": {
+                  "summary": "Text field example",
+                  "value": {
+                    "prompt": "Add a required text field for passport number"
+                  }
+                },
+                "selectField": {
+                  "summary": "Select field example",
+                  "value": {
+                    "prompt": "Add dropdown for education level with options high school, bachelor, master"
+                  }
+                },
+                "dateField": {
+                  "summary": "Date field example",
+                  "value": {
+                    "prompt": "Create a date field for visa expiry date"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Field generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "$ref": "#/components/schemas/GeneratedField"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Successfully generated 'Marital Status' field"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or generation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Field generation failed"
+                        },
+                        "detail": {
+                          "type": "string",
+                          "example": "Prompt is too short or ambiguous"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/admin.py"
+      }
+    },
+    "/api/admin/health": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Admin service health check",
+        "description": "Check the health status of the admin service and feature availability",
+        "operationId": "adminHealthCheck",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "service": {
+                      "type": "string",
+                      "example": "admin"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "ready"
+                    },
+                    "features": {
+                      "type": "object",
+                      "properties": {
+                        "field_generation": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/admin.py"
+      }
+    },
     "/auth/login": {
       "post": {
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "summary": "User login",
         "description": "Authenticate user and receive access token",
         "operationId": "login",
@@ -65,7 +222,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["username", "password"],
+                "required": [
+                  "username",
+                  "password"
+                ],
                 "properties": {
                   "username": {
                     "type": "string",
@@ -102,16 +262,23 @@
               }
             }
           }
-        }
+        },
+        "x-source-file": "Planned - not yet implemented"
       }
     },
     "/auth/logout": {
       "post": {
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "summary": "User logout",
         "description": "Invalidate current access token",
         "operationId": "logout",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "204": {
             "description": "Successfully logged out"
@@ -131,11 +298,17 @@
     },
     "/cases": {
       "get": {
-        "tags": ["Cases"],
+        "tags": [
+          "Cases"
+        ],
         "summary": "List all cases",
         "description": "Retrieve list of cases accessible to the authenticated user",
         "operationId": "listCases",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "status",
@@ -143,7 +316,11 @@
             "description": "Filter by case status",
             "schema": {
               "type": "string",
-              "enum": ["open", "pending", "completed"]
+              "enum": [
+                "open",
+                "pending",
+                "completed"
+              ]
             }
           },
           {
@@ -201,22 +378,42 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
-        }
+        },
+        "x-source-file": "src/contexts/AppContext.tsx (simulated)"
       },
       "post": {
-        "tags": ["Cases"],
+        "tags": [
+          "Cases"
+        ],
         "summary": "Create new case",
         "description": "Create a new case with specified template",
         "operationId": "createCase",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name", "template"],
+                "required": [
+                  "name",
+                  "template"
+                ],
                 "properties": {
                   "name": {
                     "type": "string",
@@ -224,7 +421,13 @@
                   },
                   "template": {
                     "type": "string",
-                    "enum": ["standard", "asylum", "familyReunification", "integration", "citizenship"],
+                    "enum": [
+                      "standard",
+                      "asylum",
+                      "familyReunification",
+                      "integration",
+                      "citizenship"
+                    ],
                     "example": "integration"
                   }
                 }
@@ -242,21 +445,50 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
-        }
+        },
+        "x-source-file": "src/components/workspace/NewCaseDialog.tsx (simulated)"
       }
     },
     "/cases/{caseId}": {
       "get": {
-        "tags": ["Cases"],
+        "tags": [
+          "Cases"
+        ],
         "summary": "Get case by ID",
+        "description": "Retrieve detailed information about a specific case",
         "operationId": "getCaseById",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "caseId",
             "in": "path",
             "required": true,
+            "description": "Case identifier",
             "schema": {
               "type": "string",
               "example": "ACTE-2024-001"
@@ -273,16 +505,175 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Case not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "src/contexts/AppContext.tsx (simulated)"
+      },
+      "patch": {
+        "tags": [
+          "Cases"
+        ],
+        "summary": "Update case",
+        "description": "Update case metadata (name, status, etc.)",
+        "operationId": "updateCase",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "description": "Case identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "open",
+                      "pending",
+                      "completed"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Case updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Case"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/cases/{caseId}/documents": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "List case documents",
+        "description": "Retrieve all documents in a case",
+        "operationId": "listCaseDocuments",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "folderId",
+            "in": "query",
+            "description": "Filter by folder ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "documents": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Document"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "src/types/case.ts (simulated)"
+      },
       "post": {
-        "tags": ["Documents"],
+        "tags": [
+          "Documents"
+        ],
         "summary": "Upload document",
+        "description": "Upload a new document to the case",
         "operationId": "uploadDocument",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "caseId",
@@ -299,17 +690,22 @@
             "multipart/form-data": {
               "schema": {
                 "type": "object",
-                "required": ["file", "folderId"],
+                "required": [
+                  "file",
+                  "folderId"
+                ],
                 "properties": {
                   "file": {
                     "type": "string",
                     "format": "binary"
                   },
                   "folderId": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Target folder ID"
                   },
                   "metadata": {
-                    "type": "object"
+                    "type": "object",
+                    "description": "Optional document metadata"
                   }
                 }
               }
@@ -326,23 +722,145 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "src/components/workspace/CaseTreeExplorer.tsx (simulated)"
+      }
+    },
+    "/cases/{caseId}/documents/{documentId}": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Get document",
+        "description": "Retrieve document metadata and content",
+        "operationId": "getDocument",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Delete document",
+        "description": "Remove document from case",
+        "operationId": "deleteDocument",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Document deleted successfully"
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/ai/convert": {
       "post": {
-        "tags": ["AI Operations"],
+        "tags": [
+          "AI Operations"
+        ],
         "summary": "Convert document format",
+        "description": "Convert document to PDF, JSON, or XML format using AI",
         "operationId": "convertDocument",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["documentId", "targetFormat"],
+                "required": [
+                  "documentId",
+                  "targetFormat"
+                ],
                 "properties": {
                   "documentId": {
                     "type": "string",
@@ -350,7 +868,12 @@
                   },
                   "targetFormat": {
                     "type": "string",
-                    "enum": ["pdf", "json", "xml", "docx"],
+                    "enum": [
+                      "pdf",
+                      "json",
+                      "xml",
+                      "docx"
+                    ],
                     "example": "pdf"
                   }
                 }
@@ -367,39 +890,67 @@
                   "type": "object",
                   "properties": {
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "job-12345"
                     },
                     "status": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "processing"
+                    },
+                    "estimatedCompletion": {
+                      "type": "string",
+                      "format": "date-time"
                     }
                   }
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
-        }
+        },
+        "x-source-file": "src/components/workspace/AIChatInterface.tsx (simulated)"
       }
     },
     "/ai/translate": {
       "post": {
-        "tags": ["AI Operations"],
+        "tags": [
+          "AI Operations"
+        ],
         "summary": "Translate document",
+        "description": "Translate document content to German",
         "operationId": "translateDocument",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["documentId", "targetLanguage"],
+                "required": [
+                  "documentId",
+                  "targetLanguage"
+                ],
                 "properties": {
                   "documentId": {
                     "type": "string"
                   },
                   "targetLanguage": {
                     "type": "string",
-                    "default": "de"
+                    "default": "de",
+                    "example": "de"
                   }
                 }
               }
@@ -408,31 +959,61 @@
         },
         "responses": {
           "202": {
-            "description": "Translation job accepted"
+            "description": "Translation job accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "processing"
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "x-source-file": "src/components/workspace/AIChatInterface.tsx (simulated)"
       }
     },
     "/ai/anonymize": {
       "post": {
-        "tags": ["AI Operations"],
+        "tags": [
+          "AI Operations"
+        ],
         "summary": "Anonymize document",
+        "description": "Remove or redact personal data from document",
         "operationId": "anonymizeDocument",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["documentId"],
+                "required": [
+                  "documentId"
+                ],
                 "properties": {
                   "documentId": {
                     "type": "string"
                   },
                   "redactionLevel": {
                     "type": "string",
-                    "enum": ["minimal", "standard", "maximum"],
+                    "enum": [
+                      "minimal",
+                      "standard",
+                      "maximum"
+                    ],
                     "default": "standard"
                   }
                 }
@@ -442,24 +1023,117 @@
         },
         "responses": {
           "202": {
-            "description": "Anonymization job accepted"
+            "description": "Anonymization job accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "detectedPII": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": [
+                        "names",
+                        "addresses",
+                        "dates_of_birth"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "x-source-file": "src/components/workspace/AIChatInterface.tsx (simulated)"
       }
     },
-    "/ai/validate-case": {
+    "/ai/extract-metadata": {
       "post": {
-        "tags": ["AI Operations"],
-        "summary": "Validate case completeness",
-        "operationId": "validateCase",
-        "security": [{"bearerAuth": []}],
+        "tags": [
+          "AI Operations"
+        ],
+        "summary": "Extract document metadata",
+        "description": "Use AI to extract structured metadata from document",
+        "operationId": "extractMetadata",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["caseId"],
+                "required": [
+                  "documentId"
+                ],
+                "properties": {
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Metadata extracted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "src/components/workspace/AIChatInterface.tsx (simulated)"
+      }
+    },
+    "/ai/validate-case": {
+      "post": {
+        "tags": [
+          "AI Operations"
+        ],
+        "summary": "Validate case completeness",
+        "description": "Check if case has all required documents",
+        "operationId": "validateCase",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "caseId"
+                ],
                 "properties": {
                   "caseId": {
                     "type": "string"
@@ -487,45 +1161,127 @@
                       }
                     },
                     "completeness": {
-                      "type": "number"
+                      "type": "number",
+                      "description": "Percentage of required documents present",
+                      "example": 85.5
+                    },
+                    "recommendations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
               }
             }
           }
-        }
+        },
+        "x-source-file": "src/components/workspace/AIChatInterface.tsx (simulated)"
       }
     },
     "/search": {
       "get": {
-        "tags": ["Search"],
+        "tags": [
+          "Search"
+        ],
         "summary": "Search documents",
+        "description": "Full-text search across all documents in accessible cases",
         "operationId": "searchDocuments",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "q",
             "in": "query",
             "required": true,
+            "description": "Search query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "query",
+            "description": "Limit search to specific case",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentType",
+            "in": "query",
+            "description": "Filter by document type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pdf",
+                "xml",
+                "json",
+                "docx"
+              ]
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Search results"
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "documentId": {
+                            "type": "string"
+                          },
+                          "caseId": {
+                            "type": "string"
+                          },
+                          "matches": {
+                            "type": "integer"
+                          },
+                          "snippets": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "x-source-file": "src/components/workspace/AIChatInterface.tsx (simulated)"
       }
     },
     "/cases/{caseId}/forms": {
       "get": {
-        "tags": ["Forms"],
+        "tags": [
+          "Forms"
+        ],
         "summary": "Get case form",
+        "description": "Retrieve application form data for case",
         "operationId": "getCaseForm",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "caseId",
@@ -538,15 +1294,38 @@
         ],
         "responses": {
           "200": {
-            "description": "Form data retrieved"
+            "description": "Form data retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FormField"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "x-source-file": "src/contexts/AppContext.tsx (simulated)"
       },
       "put": {
-        "tags": ["Forms"],
+        "tags": [
+          "Forms"
+        ],
         "summary": "Update case form",
+        "description": "Update application form data",
         "operationId": "updateCaseForm",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "caseId",
@@ -557,11 +1336,45 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FormField"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Form updated successfully"
+            "description": "Form updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FormField"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "x-source-file": "src/components/workspace/FormViewer.tsx (simulated)"
       }
     }
   },
@@ -577,10 +1390,17 @@
     "schemas": {
       "AuthResponse": {
         "type": "object",
-        "required": ["accessToken", "tokenType", "expiresIn", "user"],
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresIn",
+          "user"
+        ],
         "properties": {
           "accessToken": {
-            "type": "string"
+            "type": "string",
+            "description": "JWT access token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
           },
           "tokenType": {
             "type": "string",
@@ -588,7 +1408,12 @@
           },
           "expiresIn": {
             "type": "integer",
+            "description": "Token expiration time in seconds",
             "example": 3600
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Refresh token for obtaining new access token"
           },
           "user": {
             "$ref": "#/components/schemas/User"
@@ -597,41 +1422,70 @@
       },
       "User": {
         "type": "object",
-        "required": ["id", "username", "role"],
+        "required": [
+          "id",
+          "username",
+          "role"
+        ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "example": "user-123"
           },
           "username": {
-            "type": "string"
+            "type": "string",
+            "example": "bamf.officer@example.de"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Maria Schmidt"
           },
           "role": {
             "type": "string",
-            "enum": ["admin", "officer", "viewer"]
+            "enum": [
+              "admin",
+              "officer",
+              "viewer"
+            ],
+            "example": "officer"
           }
         }
       },
       "Case": {
         "type": "object",
-        "required": ["id", "name", "createdAt", "status", "folders"],
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "status",
+          "folders"
+        ],
         "properties": {
           "id": {
             "type": "string",
+            "description": "Unique case identifier",
             "example": "ACTE-2024-001"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Case name/title",
+            "example": "German Integration Course Application - Ahmed Ali"
           },
           "createdAt": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "description": "Case creation date",
+            "example": "2024-01-15"
           },
           "status": {
             "type": "string",
-            "enum": ["open", "pending", "completed"]
+            "enum": [
+              "open",
+              "pending",
+              "completed"
+            ],
+            "description": "Current case status",
+            "example": "open"
           },
           "folders": {
             "type": "array",
@@ -643,16 +1497,24 @@
       },
       "Folder": {
         "type": "object",
-        "required": ["id", "name", "documents", "subfolders"],
+        "required": [
+          "id",
+          "name",
+          "documents",
+          "subfolders"
+        ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "example": "personal-data"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Personal Data"
           },
           "isExpanded": {
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
           },
           "documents": {
             "type": "array",
@@ -670,67 +1532,244 @@
       },
       "Document": {
         "type": "object",
-        "required": ["id", "name", "type", "size", "uploadedAt"],
+        "required": [
+          "id",
+          "name",
+          "type",
+          "size",
+          "uploadedAt"
+        ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "example": "doc-1"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "Birth_Certificate.pdf"
           },
           "type": {
             "type": "string",
-            "enum": ["pdf", "xml", "json", "docx"]
+            "enum": [
+              "pdf",
+              "xml",
+              "json",
+              "docx"
+            ],
+            "example": "pdf"
           },
           "size": {
-            "type": "string"
+            "type": "string",
+            "description": "Human-readable file size",
+            "example": "245 KB"
           },
           "uploadedAt": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "example": "2024-01-15"
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Document-specific metadata"
+          },
+          "content": {
+            "type": "string",
+            "description": "Document content (for text documents)"
           }
         }
       },
       "FormField": {
         "type": "object",
-        "required": ["id", "label", "type", "value"],
+        "required": [
+          "id",
+          "label",
+          "type",
+          "value"
+        ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "example": "name"
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "example": "Full Name"
           },
           "type": {
             "type": "string",
-            "enum": ["text", "date", "select", "textarea"]
+            "enum": [
+              "text",
+              "date",
+              "select",
+              "textarea"
+            ],
+            "example": "text"
           },
           "value": {
-            "type": "string"
+            "type": "string",
+            "example": "Ahmed Ali"
           },
           "options": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Available options for select fields"
           },
           "required": {
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "GeneratedField": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique field identifier in camelCase",
+            "example": "maritalStatus"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable field label",
+            "example": "Marital Status"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "date",
+              "select",
+              "textarea"
+            ],
+            "description": "Field type",
+            "example": "select"
+          },
+          "value": {
+            "type": "string",
+            "description": "Default field value (usually empty)",
+            "default": ""
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Available options for select fields",
+            "example": [
+              "single",
+              "married",
+              "divorced"
+            ]
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the field is required",
+            "default": false
+          },
+          "shaclMetadata": {
+            "type": "object",
+            "description": "SHACL semantic metadata in JSON-LD format",
+            "properties": {
+              "@context": {
+                "type": "object",
+                "description": "JSON-LD context with namespace prefixes",
+                "properties": {
+                  "sh": {
+                    "type": "string",
+                    "example": "http://www.w3.org/ns/shacl#"
+                  },
+                  "schema": {
+                    "type": "string",
+                    "example": "http://schema.org/"
+                  },
+                  "xsd": {
+                    "type": "string",
+                    "example": "http://www.w3.org/2001/XMLSchema#"
+                  }
+                }
+              },
+              "@type": {
+                "type": "string",
+                "description": "SHACL type",
+                "example": "sh:PropertyShape"
+              },
+              "sh:path": {
+                "type": "string",
+                "description": "Semantic property path",
+                "example": "schema:maritalStatus"
+              },
+              "sh:datatype": {
+                "type": "string",
+                "description": "XSD datatype",
+                "example": "xsd:string"
+              },
+              "sh:name": {
+                "type": "string",
+                "description": "Human-readable name",
+                "example": "Marital Status"
+              },
+              "sh:description": {
+                "type": "string",
+                "description": "Field description",
+                "example": "The person's marital status"
+              },
+              "sh:minCount": {
+                "type": "integer",
+                "description": "Minimum cardinality (1 = required)",
+                "example": 1
+              },
+              "sh:maxCount": {
+                "type": "integer",
+                "description": "Maximum cardinality (1 = single value)",
+                "example": 1
+              },
+              "sh:in": {
+                "type": "object",
+                "description": "Allowed values for select fields",
+                "properties": {
+                  "@list": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "single",
+                      "married",
+                      "divorced"
+                    ]
+                  }
+                }
+              }
+            }
           }
         }
       },
       "Error": {
         "type": "object",
-        "required": ["error", "message"],
+        "required": [
+          "error",
+          "message"
+        ],
         "properties": {
           "error": {
-            "type": "string"
+            "type": "string",
+            "example": "UNAUTHORIZED"
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "example": "Invalid credentials provided"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
           }
         }
       }

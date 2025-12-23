@@ -10,7 +10,7 @@ info:
 
     The API will provide document management, AI-powered case processing, and integration course
     application handling for BAMF (Bundesamt für Migration und Flüchtlinge).
-  version: 1.0.0
+  version: 1.4.0
   contact:
     name: BAMF Development Team
     email: api@bamf.example.de
@@ -26,6 +26,8 @@ servers:
     description: Local development server
 
 tags:
+  - name: Admin
+    description: Administrative operations and form field generation
   - name: Authentication
     description: User authentication and authorization
   - name: Cases
@@ -40,6 +42,119 @@ tags:
     description: Cross-case and document search capabilities
 
 paths:
+  /api/admin/generate-field:
+    post:
+      tags:
+        - Admin
+      summary: Generate form field from natural language
+      description: |
+        Generate a SHACL-compliant form field specification from a natural language prompt.
+
+        The service uses rule-based extraction for common patterns and falls back to AI
+        (Gemini) for more complex or ambiguous requests.
+
+        **Supported field types:**
+        - text: Standard text input
+        - date: Date picker
+        - select: Dropdown with options
+        - textarea: Multi-line text
+
+        **Supported languages:** English, German
+      operationId: generateField
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+              properties:
+                prompt:
+                  type: string
+                  minLength: 3
+                  maxLength: 500
+                  description: Natural language description of the desired field
+                  example: "Add a dropdown for marital status with options single, married, divorced"
+            examples:
+              textField:
+                summary: Text field example
+                value:
+                  prompt: "Add a required text field for passport number"
+              selectField:
+                summary: Select field example
+                value:
+                  prompt: "Add dropdown for education level with options high school, bachelor, master"
+              dateField:
+                summary: Date field example
+                value:
+                  prompt: "Create a date field for visa expiry date"
+      responses:
+        '200':
+          description: Field generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  field:
+                    $ref: '#/components/schemas/GeneratedField'
+                  message:
+                    type: string
+                    example: "Successfully generated 'Marital Status' field"
+        '400':
+          description: Invalid request or generation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: "Field generation failed"
+                      detail:
+                        type: string
+                        example: "Prompt is too short or ambiguous"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-source-file: backend/api/admin.py
+
+  /api/admin/health:
+    get:
+      tags:
+        - Admin
+      summary: Admin service health check
+      description: Check the health status of the admin service and feature availability
+      operationId: adminHealthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    type: string
+                    example: admin
+                  status:
+                    type: string
+                    example: ready
+                  features:
+                    type: object
+                    properties:
+                      field_generation:
+                        type: boolean
+                        example: true
+      x-source-file: backend/api/admin.py
+
   /auth/login:
     post:
       tags:
@@ -948,6 +1063,95 @@ components:
         required:
           type: boolean
           default: false
+
+    GeneratedField:
+      type: object
+      required:
+        - id
+        - label
+        - type
+      properties:
+        id:
+          type: string
+          description: Unique field identifier in camelCase
+          example: maritalStatus
+        label:
+          type: string
+          description: Human-readable field label
+          example: Marital Status
+        type:
+          type: string
+          enum: [text, date, select, textarea]
+          description: Field type
+          example: select
+        value:
+          type: string
+          description: Default field value (usually empty)
+          default: ""
+        options:
+          type: array
+          items:
+            type: string
+          description: Available options for select fields
+          example: ["single", "married", "divorced"]
+        required:
+          type: boolean
+          description: Whether the field is required
+          default: false
+        shaclMetadata:
+          type: object
+          description: SHACL semantic metadata in JSON-LD format
+          properties:
+            "@context":
+              type: object
+              description: JSON-LD context with namespace prefixes
+              properties:
+                sh:
+                  type: string
+                  example: "http://www.w3.org/ns/shacl#"
+                schema:
+                  type: string
+                  example: "http://schema.org/"
+                xsd:
+                  type: string
+                  example: "http://www.w3.org/2001/XMLSchema#"
+            "@type":
+              type: string
+              description: SHACL type
+              example: "sh:PropertyShape"
+            "sh:path":
+              type: string
+              description: Semantic property path
+              example: "schema:maritalStatus"
+            "sh:datatype":
+              type: string
+              description: XSD datatype
+              example: "xsd:string"
+            "sh:name":
+              type: string
+              description: Human-readable name
+              example: "Marital Status"
+            "sh:description":
+              type: string
+              description: Field description
+              example: "The person's marital status"
+            "sh:minCount":
+              type: integer
+              description: Minimum cardinality (1 = required)
+              example: 1
+            "sh:maxCount":
+              type: integer
+              description: Maximum cardinality (1 = single value)
+              example: 1
+            "sh:in":
+              type: object
+              description: Allowed values for select fields
+              properties:
+                "@list":
+                  type: array
+                  items:
+                    type: string
+                  example: ["single", "married", "divorced"]
 
     Error:
       type: object
