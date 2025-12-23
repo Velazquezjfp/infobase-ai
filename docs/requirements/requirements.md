@@ -686,7 +686,8 @@ All existing forms within the system (such as the current holder structures in m
 
 ## S2-004: Multi-Format Contextual Extraction
 
-**Status:** proposed
+**Status:** implemented
+**Progress:** Document processor abstraction created with TextProcessor and PDFProcessor stub. Context manager enhanced with source tracking and resolve_conflict() helper. Gemini service updated with source labels. AIChatInterface shows active context sources.
 
 **Description:**
 The system must utilize a "cascading effect" for context, pulling data from the active case, the specific folder, and the document being visualized. Context precedence: Document > Folder > Case. While currently tested with text files, the system must eventually support PDFs and other formats for form-filling and extraction tasks. This requirement creates the abstraction layer for future format support.

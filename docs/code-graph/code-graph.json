@@ -145,7 +145,12 @@
         "Simulates AI responses for various commands",
         "Supports document drop and analysis",
         "Uses formatMessage function to render markdown-like content",
-        "Handles commands: /convert, /search, /translate, /anonymize, /validateCase, /generateEmail"
+        "Handles commands: /convert, /search, /translate, /anonymize, /validateCase, /generateEmail",
+        "S2-004: Displays context source indicator bar showing active document/folder/case context",
+        "S2-004: formatMessage() highlights [Source: xxx] citations with styled badges",
+        "S2-004: formatMessage() highlights [Case: xxx], [Folder: xxx], [Document: xxx] context labels",
+        "S2-004: getActiveContextSources() returns list of active context sources for display",
+        "S2-004: Uses Info icon and Badge components for context source display"
       ]
     },
     {
@@ -500,7 +505,12 @@
         "Manages case-level context at cases/{caseId}/case.json",
         "Manages folder-level context at cases/{caseId}/folders/{folderId}.json",
         "Supports template-based case creation from templates/{caseType}/",
-        "Ensures complete isolation between cases"
+        "Ensures complete isolation between cases",
+        "S2-004: Defines ContextSource enum for context source tracking",
+        "S2-004: Defines ContextEntry dataclass for individual context entries with source info",
+        "S2-004: Defines MergedContext dataclass for merged context with source tracking",
+        "S2-004: Exports resolve_conflict() function for precedence-based conflict resolution",
+        "S2-004: Adds merge_contexts_with_tracking() method for AI transparency"
       ]
     },
     {
@@ -512,7 +522,49 @@
         "Methods: load_case_context(), load_folder_context(), create_case_from_template(), merge_contexts()",
         "Loads regulations, required documents, validation rules from case.json",
         "Merges case, folder, and document contexts into AI prompt string",
-        "Precedence: Document > Folder > Case"
+        "Precedence: Document > Folder > Case",
+        "S2-004: New method merge_contexts_with_tracking() returns MergedContext with source tracking"
+      ]
+    },
+    {
+      "name": "backend/services/context_manager.py::ContextSource",
+      "entityType": "Enum",
+      "observations": [
+        "S2-004: Enumeration of context source types for tracking",
+        "Values: CASE, FOLDER, DOCUMENT, USER, SYSTEM",
+        "Used to identify where information came from in merged context",
+        "Enables AI transparency about data sources"
+      ]
+    },
+    {
+      "name": "backend/services/context_manager.py::ContextEntry",
+      "entityType": "Dataclass",
+      "observations": [
+        "S2-004: Dataclass for individual context entries with source tracking",
+        "Attributes: key, value, source (ContextSource), source_name, confidence, timestamp",
+        "Has to_dict() method for JSON serialization",
+        "Used by merge_contexts_with_tracking() to track individual entries"
+      ]
+    },
+    {
+      "name": "backend/services/context_manager.py::MergedContext",
+      "entityType": "Dataclass",
+      "observations": [
+        "S2-004: Result dataclass of merging multiple context sources",
+        "Attributes: prompt_text, sources list, entries list, conflicts list",
+        "Has get_source_summary() method for human-readable source summary",
+        "Provides AI transparency about where context information came from"
+      ]
+    },
+    {
+      "name": "backend/services/context_manager.py::resolve_conflict",
+      "entityType": "Function",
+      "observations": [
+        "S2-004: Resolves conflicts between context entries with same key",
+        "Default precedence order: Document > Folder > Case > User > System",
+        "Takes list of ContextEntry objects and optional custom precedence",
+        "Returns tuple of (winning_entry, conflict_info_list)",
+        "Logs conflict resolutions for debugging"
       ]
     },
     {
@@ -548,6 +600,18 @@
       ]
     },
     {
+      "name": "backend/services/gemini_service.py::_build_prompt",
+      "entityType": "Method",
+      "observations": [
+        "S2-004: Builds complete prompt with context, document content, and source labels",
+        "Adds system instructions for source citation behavior",
+        "Includes context_sources parameter for transparency",
+        "Adds response guidelines reminding AI to cite sources",
+        "Structures prompt with clear sections: System Instructions, Context Sources, Case Context, Document Content, User Request",
+        "Returns formatted multi-line prompt string"
+      ]
+    },
+    {
       "name": "backend/services/field_generator.py",
       "entityType": "Service",
       "observations": [
@@ -575,6 +639,19 @@
       ]
     },
     {
+      "name": "backend/tools/__init__.py",
+      "entityType": "Package",
+      "observations": [
+        "Tools Layer package initialization",
+        "Contains reusable stateless utility functions",
+        "S2-004: Imports and re-exports document processor classes",
+        "S2-004: Exports DocumentProcessor, DocumentMetadata, ExtractionResult",
+        "S2-004: Exports get_processor, get_supported_extensions, is_supported, register_processor",
+        "S2-004: Exports TextProcessor and PDFProcessor concrete classes",
+        "Imports trigger processor registration on module load"
+      ]
+    },
+    {
       "name": "backend/tools/form_parser.py",
       "entityType": "Tool",
       "observations": [
@@ -594,6 +671,120 @@
         "parse_extraction_result() implements confidence scoring based on field type and validation (range: 0.40-0.95)",
         "parse_extraction_result() validates select field options using _match_select_option() helper",
         "Helper functions: _is_valid_iso_date(), _convert_to_iso_date(), _match_select_option()"
+      ]
+    },
+    {
+      "name": "backend/tools/document_processor.py",
+      "entityType": "Module",
+      "observations": [
+        "S2-004: Document Processor abstract base class module",
+        "Defines DocumentProcessor ABC with abstract methods: extract_text(), get_metadata(), supports_format()",
+        "Defines DocumentMetadata dataclass for standardized metadata structure",
+        "Defines ExtractionResult dataclass with text, metadata, success status, and source_label",
+        "Implements process() template method combining extract_text and get_metadata with error handling",
+        "Contains _processor_registry dict for extension-to-processor mapping",
+        "Exports register_processor() for registering processor classes",
+        "Exports get_processor() for getting appropriate processor by file extension",
+        "Exports get_supported_extensions() for listing all supported extensions",
+        "Exports is_supported() for checking if file type is supported"
+      ]
+    },
+    {
+      "name": "backend/tools/document_processor.py::DocumentProcessor",
+      "entityType": "AbstractClass",
+      "observations": [
+        "S2-004: Abstract base class for document format processors",
+        "Abstract methods: extract_text(file_path), get_metadata(file_path), supports_format(file_extension)",
+        "Template method: process(file_path) combines extraction with error handling",
+        "Helper methods: _empty_metadata(file_path), _get_source_label()",
+        "Subclasses must implement format-specific extraction logic"
+      ]
+    },
+    {
+      "name": "backend/tools/document_processor.py::DocumentMetadata",
+      "entityType": "Dataclass",
+      "observations": [
+        "S2-004: Standardized metadata structure for all document types",
+        "Attributes: file_name, file_path, file_size, file_extension, modified_at, content_type",
+        "Optional attributes: created_at, page_count, encoding, source, extra dict",
+        "Has to_dict() method for JSON serialization with camelCase keys"
+      ]
+    },
+    {
+      "name": "backend/tools/document_processor.py::ExtractionResult",
+      "entityType": "Dataclass",
+      "observations": [
+        "S2-004: Result of document text extraction",
+        "Attributes: text, metadata (DocumentMetadata), success, error, source_label",
+        "Has context_source property returning formatted source for context tracking",
+        "Used by DocumentProcessor.process() to return extraction results"
+      ]
+    },
+    {
+      "name": "backend/tools/document_processor.py::get_processor",
+      "entityType": "Function",
+      "observations": [
+        "S2-004: Factory function to get appropriate processor for a file",
+        "Takes file_path and returns Optional[DocumentProcessor]",
+        "Looks up processor class in _processor_registry by file extension",
+        "Returns None if no processor registered for extension"
+      ]
+    },
+    {
+      "name": "backend/tools/document_processor.py::register_processor",
+      "entityType": "Function",
+      "observations": [
+        "S2-004: Registers a processor class for specific file extensions",
+        "Takes list of extensions and processor class",
+        "Normalizes extensions to lowercase with leading dot",
+        "Called by concrete processor modules on import"
+      ]
+    },
+    {
+      "name": "backend/tools/text_processor.py",
+      "entityType": "Module",
+      "observations": [
+        "S2-004: TextProcessor implementation for plain text files",
+        "Implements DocumentProcessor for .txt and .text extensions",
+        "Auto-registers with register_processor on module import"
+      ]
+    },
+    {
+      "name": "backend/tools/text_processor.py::TextProcessor",
+      "entityType": "Class",
+      "observations": [
+        "S2-004: Processor for plain text documents (.txt, .text files)",
+        "SUPPORTED_EXTENSIONS: ['.txt', '.text']",
+        "CONTENT_TYPE: 'text/plain'",
+        "ENCODINGS_TO_TRY: ['utf-8', 'utf-8-sig', 'latin-1', 'cp1252', 'ascii']",
+        "extract_text(): Tries multiple encodings, normalizes line endings, removes BOM",
+        "get_metadata(): Returns DocumentMetadata with encoding and line count",
+        "supports_format(): Checks if extension in SUPPORTED_EXTENSIONS",
+        "_get_source_label(): Returns 'Text File'",
+        "Helper methods: _normalize_line_endings(), _remove_bom(), _detect_encoding(), _count_lines()"
+      ]
+    },
+    {
+      "name": "backend/tools/pdf_processor.py",
+      "entityType": "Module",
+      "observations": [
+        "S2-004: PDFProcessor stub for future PDF support (Phase 3)",
+        "Implements DocumentProcessor for .pdf extension",
+        "Auto-registers with register_processor on module import"
+      ]
+    },
+    {
+      "name": "backend/tools/pdf_processor.py::PDFProcessor",
+      "entityType": "Class",
+      "observations": [
+        "S2-004: Stub processor for PDF documents (.pdf files)",
+        "SUPPORTED_EXTENSIONS: ['.pdf']",
+        "CONTENT_TYPE: 'application/pdf'",
+        "extract_text(): Raises NotImplementedError (Phase 3 planned)",
+        "get_metadata(): Returns basic file system metadata only",
+        "supports_format(): Checks if extension is .pdf",
+        "_get_source_label(): Returns 'PDF Document'",
+        "Phase 3 will add: text extraction, OCR, multi-page handling, PDF metadata"
       ]
     },
     {
@@ -1252,9 +1443,59 @@
       "relationType": "uses"
     },
     {
+      "from_": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_build_prompt",
+      "relationType": "defines_method"
+    },
+    {
       "from_": "backend/services/context_manager.py",
       "to": "backend/services/context_manager.py::ContextManager",
       "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/context_manager.py",
+      "to": "backend/services/context_manager.py::ContextSource",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/context_manager.py",
+      "to": "backend/services/context_manager.py::ContextEntry",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/context_manager.py",
+      "to": "backend/services/context_manager.py::MergedContext",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/context_manager.py",
+      "to": "backend/services/context_manager.py::resolve_conflict",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/context_manager.py::ContextManager",
+      "to": "backend/services/context_manager.py::ContextSource",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/services/context_manager.py::ContextManager",
+      "to": "backend/services/context_manager.py::ContextEntry",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/services/context_manager.py::ContextManager",
+      "to": "backend/services/context_manager.py::MergedContext",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/services/context_manager.py::resolve_conflict",
+      "to": "backend/services/context_manager.py::ContextEntry",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/services/context_manager.py::resolve_conflict",
+      "to": "backend/services/context_manager.py::ContextSource",
+      "relationType": "uses"
     },
     {
       "from_": "backend/services/field_generator.py",
@@ -1270,6 +1511,21 @@
       "from_": "backend/services/field_generator.py::FieldGenerator",
       "to": "backend/schemas/shacl.py::SHACLPropertyShape",
       "relationType": "uses"
+    },
+    {
+      "from_": "backend/tools/__init__.py",
+      "to": "backend/tools/document_processor.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/tools/__init__.py",
+      "to": "backend/tools/text_processor.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/tools/__init__.py",
+      "to": "backend/tools/pdf_processor.py",
+      "relationType": "imports"
     },
     {
       "from_": "backend/tools/form_parser.py",
@@ -1289,6 +1545,11 @@
     {
       "from_": "backend/services/gemini_service.py",
       "to": "backend/services/gemini_service.py::_generate_streaming_response",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_build_prompt",
       "relationType": "defines"
     },
     {
@@ -1404,6 +1665,101 @@
     {
       "from_": "src/lib/adminApi.ts",
       "to": "backend/api/admin.py::generate_field",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/tools/document_processor.py",
+      "to": "backend/tools/document_processor.py::DocumentProcessor",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/document_processor.py",
+      "to": "backend/tools/document_processor.py::DocumentMetadata",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/document_processor.py",
+      "to": "backend/tools/document_processor.py::ExtractionResult",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/document_processor.py",
+      "to": "backend/tools/document_processor.py::get_processor",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/document_processor.py",
+      "to": "backend/tools/document_processor.py::register_processor",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/document_processor.py::ExtractionResult",
+      "to": "backend/tools/document_processor.py::DocumentMetadata",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/tools/document_processor.py::DocumentProcessor",
+      "to": "backend/tools/document_processor.py::DocumentMetadata",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/tools/document_processor.py::DocumentProcessor",
+      "to": "backend/tools/document_processor.py::ExtractionResult",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/tools/document_processor.py::get_processor",
+      "to": "backend/tools/document_processor.py::DocumentProcessor",
+      "relationType": "returns"
+    },
+    {
+      "from_": "backend/tools/text_processor.py",
+      "to": "backend/tools/document_processor.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/tools/text_processor.py",
+      "to": "backend/tools/text_processor.py::TextProcessor",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/text_processor.py::TextProcessor",
+      "to": "backend/tools/document_processor.py::DocumentProcessor",
+      "relationType": "extends"
+    },
+    {
+      "from_": "backend/tools/text_processor.py::TextProcessor",
+      "to": "backend/tools/document_processor.py::DocumentMetadata",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/tools/text_processor.py",
+      "to": "backend/tools/document_processor.py::register_processor",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/tools/pdf_processor.py",
+      "to": "backend/tools/document_processor.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/tools/pdf_processor.py",
+      "to": "backend/tools/pdf_processor.py::PDFProcessor",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/pdf_processor.py::PDFProcessor",
+      "to": "backend/tools/document_processor.py::DocumentProcessor",
+      "relationType": "extends"
+    },
+    {
+      "from_": "backend/tools/pdf_processor.py::PDFProcessor",
+      "to": "backend/tools/document_processor.py::DocumentMetadata",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/tools/pdf_processor.py",
+      "to": "backend/tools/document_processor.py::register_processor",
       "relationType": "calls"
     }
   ]

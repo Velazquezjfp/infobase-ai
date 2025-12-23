@@ -377,39 +377,66 @@ class GeminiService:
         self,
         prompt: str,
         document_content: Optional[str] = None,
-        context: Optional[str] = None
+        context: Optional[str] = None,
+        context_sources: Optional[list] = None
     ) -> str:
         """
-        Build a complete prompt with context and document content.
+        S2-004: Build a complete prompt with context, document content, and source labels.
 
         Combines user prompt, case context, and document content into
-        a well-structured prompt for the AI model.
+        a well-structured prompt for the AI model. Enhanced with source
+        tracking for AI transparency.
 
         Args:
             prompt: The user's question or instruction.
             document_content: Optional document text to include.
             context: Optional case/folder context information.
+            context_sources: Optional list of context sources for transparency.
 
         Returns:
-            str: The complete formatted prompt.
+            str: The complete formatted prompt with source labels.
         """
         parts = []
+
+        # S2-004: Add system instructions for source citation
+        parts.append("# System Instructions")
+        parts.append("You are an AI assistant helping with case management.")
+        parts.append("When answering questions, cite your sources when the information")
+        parts.append("comes from the provided context (case, folder, or document).")
+        parts.append("Use format: [Source: <source_name>] when citing specific information.")
+        parts.append("")
+
+        # S2-004: Add context sources summary if provided
+        if context_sources:
+            parts.append("# Available Context Sources")
+            for source in context_sources:
+                parts.append(f"  - {source}")
+            parts.append("")
 
         # Add context if provided
         if context:
             parts.append("# Case Context")
+            parts.append("(Information from case configuration and folder settings)")
             parts.append(context)
             parts.append("")
 
-        # Add document content if provided
+        # Add document content if provided (highest priority source)
         if document_content:
             parts.append("# Document Content")
+            parts.append("(Primary source - extracted from uploaded document)")
             parts.append(document_content)
             parts.append("")
 
         # Add user prompt
         parts.append("# User Request")
         parts.append(prompt)
+
+        # S2-004: Append source citation reminder
+        parts.append("")
+        parts.append("# Response Guidelines")
+        parts.append("- Answer the user's request based on the provided context")
+        parts.append("- When information comes from a specific source, cite it")
+        parts.append("- If information is not found in the context, say so clearly")
 
         return "\n".join(parts)
 
