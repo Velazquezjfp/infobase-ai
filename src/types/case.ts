@@ -1,3 +1,5 @@
+import type { SHACLPropertyShape } from './shacl';
+
 export interface Document {
   id: string;
   name: string;
@@ -33,6 +35,8 @@ export interface FormField {
   value: string;
   options?: string[];
   required?: boolean;
+  /** SHACL metadata for semantic form field definition (Sprint 2) */
+  shaclMetadata?: SHACLPropertyShape;
 }
 
 export interface ChatMessage {

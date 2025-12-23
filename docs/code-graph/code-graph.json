@@ -236,7 +236,8 @@
         "Document type union: 'pdf' | 'xml' | 'json' | 'docx'",
         "Case status union: 'open' | 'pending' | 'completed'",
         "FormField type union: 'text' | 'date' | 'select' | 'textarea'",
-        "ChatMessage role union: 'user' | 'assistant'"
+        "ChatMessage role union: 'user' | 'assistant'",
+        "FormField interface extended with optional shaclMetadata?: SHACLPropertyShape property (Sprint 2)"
       ]
     },
     {
@@ -612,6 +613,95 @@
         "Implements confidence scoring based on field type and validation (range: 0.40-0.95)",
         "Validates select field options using _match_select_option() helper",
         "Returns dictionary mapping field IDs to extracted values with confidence scores"
+      ]
+    },
+    {
+      "name": "backend/schemas/__init__.py",
+      "entityType": "Package",
+      "observations": [
+        "SHACL Schema Package for BAMF AI Case Management System",
+        "Exports SHACLPropertyShape from backend/schemas/shacl.py",
+        "Exports SHACLNodeShape from backend/schemas/shacl.py",
+        "Exports SHACL_CONTEXT from backend/schemas/jsonld_context.py",
+        "Exports build_field_context from backend/schemas/jsonld_context.py",
+        "Exports get_xsd_datatype from backend/schemas/jsonld_context.py",
+        "Exports get_schema_org_property from backend/schemas/jsonld_context.py",
+        "Exports create_form_node_shape from backend/schemas/jsonld_context.py",
+        "Added in Sprint 2 (S2-002) for SHACL metadata support"
+      ]
+    },
+    {
+      "name": "backend/schemas/shacl.py",
+      "entityType": "Module",
+      "observations": [
+        "SHACL PropertyShape and NodeShape dataclasses module",
+        "Defines SHACLPropertyShape dataclass with to_jsonld() and from_jsonld() methods",
+        "Defines SHACLNodeShape dataclass with to_jsonld(), from_jsonld(), add_property(), get_property() methods",
+        "Provides JSON-LD serialization/deserialization for SHACL shapes",
+        "SHACLPropertyShape represents constraints on individual properties",
+        "SHACLNodeShape represents constraints on node/entity structures",
+        "Added in Sprint 2 (S2-002) for SHACL metadata support"
+      ]
+    },
+    {
+      "name": "backend/schemas/jsonld_context.py",
+      "entityType": "Module",
+      "observations": [
+        "JSON-LD Context definitions module",
+        "Defines SHACL_CONTEXT constant for SHACL namespace prefixes",
+        "Defines SCHEMA_ORG_CONTEXT constant for Schema.org namespace",
+        "Defines XSD_DATATYPE_MAPPING for mapping field types to XSD datatypes",
+        "Defines SCHEMA_ORG_PROPERTY_MAPPING for mapping field IDs to Schema.org properties",
+        "Exports get_xsd_datatype() function for datatype lookup",
+        "Exports get_schema_org_property() function for Schema.org property lookup",
+        "Exports build_field_context() function for building field-specific context",
+        "Exports create_form_node_shape() function for creating NodeShape from form fields",
+        "Added in Sprint 2 (S2-002) for SHACL metadata support"
+      ]
+    },
+    {
+      "name": "src/types/shacl.ts",
+      "entityType": "Types",
+      "observations": [
+        "TypeScript interfaces for SHACL metadata",
+        "Defines JSONLDContext interface for JSON-LD context objects",
+        "Defines SHACLList interface for SHACL list structures",
+        "Defines SHACLPropertyShape interface for property shape constraints",
+        "Defines SHACLNodeShape interface for node shape structures",
+        "Exports SHACL_CONTEXT constant for SHACL namespace prefixes",
+        "Exports XSD_DATATYPE_MAPPING constant for datatype mappings",
+        "Exports createPropertyShape() function for creating property shapes",
+        "Exports createNodeShape() function for creating node shapes",
+        "Exports getXsdDatatype() function for datatype lookup",
+        "Exports isRequired() function for checking required constraints",
+        "Exports getAllowedValues() function for extracting allowed values from sh:in",
+        "Added in Sprint 2 (S2-002) for SHACL metadata support"
+      ]
+    },
+    {
+      "name": "src/types/shacl.ts::SHACLPropertyShape",
+      "entityType": "Interface",
+      "observations": [
+        "TypeScript interface for SHACL property shape constraints",
+        "Defines path property for property path (sh:path)",
+        "Defines datatype property for XSD datatype (sh:datatype)",
+        "Defines minCount and maxCount for cardinality constraints",
+        "Defines name and description for human-readable metadata",
+        "Defines in property for allowed values list (sh:in)",
+        "Used to attach metadata to FormField interface",
+        "Added in Sprint 2 (S2-002)"
+      ]
+    },
+    {
+      "name": "src/types/shacl.ts::SHACLNodeShape",
+      "entityType": "Interface",
+      "observations": [
+        "TypeScript interface for SHACL node shape structures",
+        "Defines targetClass property for target RDF class",
+        "Defines property array of SHACLPropertyShape for node constraints",
+        "Defines optional closed property for closed world assumption",
+        "Represents complete form schema as SHACL shape",
+        "Added in Sprint 2 (S2-002)"
       ]
     }
   ],
@@ -1110,6 +1200,31 @@
       "from_": "backend/tools/form_parser.py::parse_extraction_result",
       "to": "backend/tools/form_parser.py::_match_select_option",
       "relationType": "calls"
+    },
+    {
+      "from_": "backend/schemas/__init__.py",
+      "to": "backend/schemas/shacl.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/schemas/__init__.py",
+      "to": "backend/schemas/jsonld_context.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/types/case.ts",
+      "to": "src/types/shacl.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::SHACLPropertyShape",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::SHACLNodeShape",
+      "relationType": "defines"
     }
   ]
 }

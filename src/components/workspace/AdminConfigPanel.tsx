@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
-import { 
-  X, FolderTree, FileType, Zap, FileText, Tags, 
-  Plus, Trash2, GripVertical, Save, ChevronDown, ChevronRight
+import {
+  X, FolderTree, FileType, Zap, FileText, Tags,
+  Plus, Trash2, GripVertical, Save, ChevronDown, ChevronRight,
+  Sparkles, Loader2, AlertCircle
 } from 'lucide-react';
+import { generateField, validatePrompt, suggestFieldType, AdminApiError } from '@/lib/adminApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -83,6 +85,12 @@ export default function AdminConfigPanel() {
   ]);
 
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['1', '2']));
+
+  // AI Field Generation State
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [suggestedType, setSuggestedType] = useState<string | null>(null);
 
   const toggleFolderExpand = (id: string) => {
     setExpandedFolders(prev => {
@@ -184,6 +192,43 @@ export default function AdminConfigPanel() {
       required: false,
     };
     setFormFields([...formFields, newField]);
+  };
+
+  // AI Field Generation Handlers
+  const handleAiPromptChange = (value: string) => {
+    setAiPrompt(value);
+    setGenerateError(null);
+    const suggested = suggestFieldType(value);
+    setSuggestedType(suggested);
+  };
+
+  const handleGenerateField = async () => {
+    const validation = validatePrompt(aiPrompt);
+    if (!validation.isValid) {
+      setGenerateError(validation.error || 'Invalid prompt');
+      return;
+    }
+
+    setIsGenerating(true);
+    setGenerateError(null);
+
+    try {
+      const generatedField = await generateField(aiPrompt);
+      setFormFields([...formFields, generatedField]);
+      setAiPrompt('');
+      setSuggestedType(null);
+    } catch (error) {
+      if (error instanceof AdminApiError) {
+        setGenerateError(error.message);
+        if (error.validationErrors) {
+          setGenerateError(`${error.message}: ${error.validationErrors.join(', ')}`);
+        }
+      } else {
+        setGenerateError('Failed to generate field. Please try again.');
+      }
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const removeFormField = (id: string) => {
@@ -470,6 +515,70 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
 
             {/* Form Definitions Tab */}
             <TabsContent value="forms" className="space-y-4">
+              {/* AI Field Generation Card */}
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    AI Field Generator
+                  </CardTitle>
+                  <CardDescription>
+                    Describe the field you need in natural language
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex gap-2">
+                    <div className="flex-1 space-y-1">
+                      <Textarea
+                        placeholder='e.g., "Add a dropdown for marital status with options single, married, divorced"'
+                        value={aiPrompt}
+                        onChange={(e) => handleAiPromptChange(e.target.value)}
+                        className="min-h-[60px] resize-none"
+                        disabled={isGenerating}
+                      />
+                      {suggestedType && (
+                        <p className="text-xs text-muted-foreground">
+                          Detected type: <Badge variant="secondary" className="text-xs">{suggestedType}</Badge>
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      onClick={handleGenerateField}
+                      disabled={isGenerating || !aiPrompt.trim()}
+                      className="self-start"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Generate
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {generateError && (
+                    <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-2 rounded-md">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span>{generateError}</span>
+                    </div>
+                  )}
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p className="font-medium">Example prompts:</p>
+                    <ul className="list-disc list-inside space-y-0.5 pl-1">
+                      <li>"Add a required text field for passport number"</li>
+                      <li>"Create a date field for visa expiry date"</li>
+                      <li>"Add dropdown for education level with options high school, bachelor, master, phd"</li>
+                      <li>"I need a textarea for additional notes"</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Existing Form Fields Card */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Form Field Definitions</CardTitle>
@@ -479,13 +588,19 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                   {formFields.map((field) => (
                     <div
                       key={field.id}
-                      className="flex items-center gap-2 p-2 rounded-md border border-border bg-background group"
+                      className={cn(
+                        "flex items-center gap-2 p-2 rounded-md border bg-background group",
+                        field.shaclMetadata ? "border-primary/30" : "border-border"
+                      )}
                     >
                       <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                      {field.shaclMetadata && (
+                        <Sparkles className="w-3 h-3 text-primary flex-shrink-0" title="AI-generated field with SHACL metadata" />
+                      )}
                       <Input
                         value={field.label}
                         onChange={(e) => {
-                          setFormFields(formFields.map(f => 
+                          setFormFields(formFields.map(f =>
                             f.id === field.id ? { ...f, label: e.target.value } : f
                           ));
                         }}
@@ -532,7 +647,7 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                   ))}
                   <Button variant="outline" size="sm" onClick={addFormField} className="w-full">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Field
+                    Add Field Manually
                   </Button>
                 </CardContent>
               </Card>

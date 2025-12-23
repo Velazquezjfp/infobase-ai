@@ -59,7 +59,7 @@ echo -e "${GREEN}✓ Virtual environment ready${NC}"
 # Activate virtual environment and install dependencies
 echo -e "${YELLOW}Installing backend dependencies...${NC}"
 source backend/venv/bin/activate
-pip install -r backend/requirements.txt --quiet
+backend/venv/bin/pip install -r backend/requirements.txt --quiet
 echo -e "${GREEN}✓ Backend dependencies installed${NC}"
 
 # Check for .env file

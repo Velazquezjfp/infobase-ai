@@ -23,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 from backend.api.chat import router as chat_router
+from backend.api.admin import router as admin_router
 
 # Configure logging
 logging.basicConfig(
@@ -71,18 +72,23 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",  # Vite dev server
+        "http://localhost:8080",  # Vite dev server (configured port)
+        "http://localhost:5173",  # Vite default port
+        "http://localhost:5174",  # Vite alternate port
         "http://localhost:3000",  # Alternative dev port
+        "http://127.0.0.1:8080",
         "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
         "http://127.0.0.1:3000",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
 
 # Register API routers
 app.include_router(chat_router, tags=["chat"])
+app.include_router(admin_router, tags=["admin"])
 
 
 @app.get("/health")
