@@ -12,6 +12,7 @@ This document provides detailed information about the BAMF ACTE Companion API en
 
 - [Health & System](#health--system)
 - [Real-Time Communication](#real-time-communication)
+- [Admin Operations](#admin-operations)
 - [Authentication](#authentication)
 - [Case Management](#case-management)
 - [Document Operations](#document-operations)
@@ -114,6 +115,39 @@ curl -X GET http://localhost:8000/api/chat/health
 - Check if Gemini API key is configured
 - Verify chat service initialization status
 - Frontend can check before enabling chat features
+
+---
+
+### GET /api/admin/health
+
+Admin service health check with feature availability.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/admin.py`
+
+**Source:** `backend/api/admin.py:196-217`
+
+**Authentication:** None (public endpoint)
+
+**Success Response (200 OK):**
+```json
+{
+  "service": "admin",
+  "status": "ready",
+  "features": {
+    "field_generation": true
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X GET http://localhost:8000/api/admin/health
+```
+
+**Usage:**
+- Check if admin service is available
+- Verify field generation feature is enabled
+- Monitoring and health checks
 
 ---
 
@@ -535,6 +569,240 @@ ws.send(JSON.stringify({
 - One connection per case (reconnection required for case switch)
 - No support for file uploads via WebSocket (use REST endpoints)
 - Form extraction always uses non-streaming mode internally
+
+---
+
+## Admin Operations
+
+### POST /api/admin/generate-field
+
+Generate a SHACL-compliant form field specification from a natural language prompt.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/admin.py`
+
+**Source:** `backend/api/admin.py:100-193`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint uses AI-powered natural language processing to generate form field specifications with semantic metadata. The service uses rule-based extraction for common patterns and falls back to AI (Gemini) for more complex or ambiguous requests.
+
+**Request Body:**
+```json
+{
+  "prompt": "Add a dropdown for marital status with options single, married, divorced"
+}
+```
+
+**Request Constraints:**
+- `prompt` (required): Natural language description (3-500 characters)
+
+**Example Prompts:**
+- "Add a text field for passport number"
+- "Add dropdown for marital status with options single, married, divorced"
+- "I need a required date field for visa expiry"
+- "Create a textarea for additional notes"
+
+**Supported Field Types:**
+- `text`: Standard text input
+- `date`: Date picker
+- `select`: Dropdown with options
+- `textarea`: Multi-line text
+
+**Supported Languages:** English, German
+
+**Success Response (200 OK):**
+```json
+{
+  "field": {
+    "id": "maritalStatus",
+    "label": "Marital Status",
+    "type": "select",
+    "value": "",
+    "options": ["single", "married", "divorced"],
+    "required": false,
+    "shaclMetadata": {
+      "@context": {
+        "sh": "http://www.w3.org/ns/shacl#",
+        "schema": "http://schema.org/",
+        "xsd": "http://www.w3.org/2001/XMLSchema#"
+      },
+      "@type": "sh:PropertyShape",
+      "sh:path": "schema:maritalStatus",
+      "sh:datatype": "xsd:string",
+      "sh:name": "Marital Status",
+      "sh:description": "The person's marital status",
+      "sh:in": {
+        "@list": ["single", "married", "divorced"]
+      }
+    }
+  },
+  "message": "Successfully generated 'Marital Status' field"
+}
+```
+
+**Error Response (400 Bad Request - Invalid Input):**
+```json
+{
+  "detail": {
+    "error": "Field generation failed",
+    "detail": "Prompt is too short or ambiguous"
+  }
+}
+```
+
+**Error Response (400 Bad Request - Validation Failed):**
+```json
+{
+  "detail": {
+    "error": "Generated field validation failed",
+    "validation_errors": ["Field ID is missing", "Field type is invalid"]
+  }
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "detail": {
+    "error": "Internal server error",
+    "detail": "Gemini API connection failed"
+  }
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X POST http://localhost:8000/api/admin/generate-field \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Add a required text field for passport number"
+  }'
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const generateField = async (prompt) => {
+  const response = await fetch('http://localhost:8000/api/admin/generate-field', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail.error);
+  }
+
+  return await response.json();
+};
+
+// Usage
+const result = await generateField(
+  "Add dropdown for education level with options high school, bachelor, master, doctorate"
+);
+console.log(result.field);
+```
+
+**Python:**
+```python
+import requests
+
+def generate_field(prompt: str) -> dict:
+    response = requests.post(
+        "http://localhost:8000/api/admin/generate-field",
+        json={"prompt": prompt}
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Field generation failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = generate_field("Add a date field for visa expiry date")
+print(result["field"])
+```
+
+**SHACL Metadata:**
+
+The generated field includes SHACL (Shapes Constraint Language) metadata in JSON-LD format, which provides semantic meaning and validation constraints:
+
+- `@context`: JSON-LD context with namespace prefixes
+  - `sh`: SHACL namespace (http://www.w3.org/ns/shacl#)
+  - `schema`: Schema.org namespace (http://schema.org/)
+  - `xsd`: XML Schema Datatype namespace (http://www.w3.org/2001/XMLSchema#)
+
+- `@type`: Always "sh:PropertyShape" for form fields
+
+- `sh:path`: The semantic property path (e.g., "schema:name", "schema:birthDate")
+
+- `sh:datatype`: XSD datatype defining the field's data type:
+  - `xsd:string` for text and textarea fields
+  - `xsd:date` for date fields
+  - `xsd:string` with `sh:in` for select fields
+
+- `sh:name`: Human-readable name for the field
+
+- `sh:description`: Optional description of the field's purpose
+
+- `sh:minCount`: Minimum cardinality (1 = required field)
+
+- `sh:maxCount`: Maximum cardinality (1 = single value)
+
+- `sh:in`: List of allowed values for select/enum fields (wrapped in JSON-LD @list)
+
+**SHACL Benefits:**
+
+1. **Semantic Interoperability**: Fields are linked to Schema.org vocabulary
+2. **Machine-Readable Validation**: Constraints can be validated automatically
+3. **Linked Data Integration**: Compatible with RDF and semantic web technologies
+4. **Standard Compliance**: Uses W3C SHACL specification
+5. **Future-Proof**: Supports advanced validation and reasoning
+
+**Field Generation Process:**
+
+1. **Prompt Analysis**: System analyzes the natural language prompt
+2. **Rule-Based Extraction**: Common patterns are extracted using regex rules
+3. **AI Fallback**: Complex prompts are sent to Gemini AI for interpretation
+4. **Field Construction**: System builds the field specification
+5. **SHACL Generation**: Semantic metadata is generated with proper namespaces
+6. **Validation**: Generated field is validated against schema requirements
+7. **Response**: Field specification with SHACL metadata is returned
+
+**Use Cases:**
+
+- **Dynamic Form Building**: Admin users can create form fields using natural language
+- **Rapid Prototyping**: Quickly generate field specifications for testing
+- **Form Templates**: Generate reusable field definitions for common use cases
+- **Semantic Forms**: Build forms with semantic metadata for data integration
+- **Multilingual Support**: Create fields with German or English prompts
+
+**Known Limitations:**
+
+- No authentication currently implemented (planned for future)
+- Maximum prompt length: 500 characters
+- Requires Gemini API key for complex prompts
+- Generated field IDs are in camelCase format
+- SHACL validation is performed but not enforced on the client side
+
+**Performance:**
+
+- Typical response time: 1-3 seconds (with AI)
+- Rule-based extraction: < 100ms
+- AI-based generation: 1-3 seconds depending on prompt complexity
+
+**Security Considerations:**
+
+- Input validation on prompt length and content
+- Error messages don't expose sensitive information
+- Rate limiting recommended (not yet implemented)
+- Authentication planned for production use
 
 ---
 
@@ -1806,6 +2074,6 @@ Breaking changes will result in a new version. Non-breaking changes (additions) 
 
 ---
 
-**Last Updated:** 2025-12-18
-**API Version:** 1.3.0 (Partial Implementation)
-**Current Implementation:** Backend with WebSocket + AI + Streaming + Enhanced Form Extraction, Frontend simulations for other operations
+**Last Updated:** 2025-12-23
+**API Version:** 1.4.0 (Partial Implementation)
+**Current Implementation:** Backend with WebSocket + AI + Streaming + Enhanced Form Extraction + Admin API, Frontend simulations for other operations

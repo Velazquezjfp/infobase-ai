@@ -167,14 +167,17 @@
       "entityType": "WorkspaceComponent",
       "observations": [
         "Form viewer component with metadata view",
-        "Uses useApp context for selectedDocument, formFields, updateFormField, currentCase, viewMode",
+        "Uses useApp context for selectedDocument, formFields, updateFormField, currentCase, viewMode, isAdminMode",
         "Accepts showMetadata prop via FormViewerProps interface",
         "Renders metadata view when viewMode is 'metadata'",
         "Renders form view with progress indicator",
         "Supports field types: text, date, select, textarea",
         "Uses Input, Textarea, Select components from shadcn/ui",
         "Includes Save Draft and Submit buttons",
-        "Shows AI auto-fill hint message"
+        "Shows AI auto-fill hint message",
+        "Displays SHACL metadata in admin mode for fields with shaclMetadata property (S2-003)",
+        "Uses SHACLPropertyShape type from @/types/shacl for metadata display (S2-003)",
+        "Shows sh:path, sh:datatype, cardinality constraints in admin metadata view (S2-003)"
       ]
     },
     {
@@ -237,7 +240,8 @@
         "Case status union: 'open' | 'pending' | 'completed'",
         "FormField type union: 'text' | 'date' | 'select' | 'textarea'",
         "ChatMessage role union: 'user' | 'assistant'",
-        "FormField interface extended with optional shaclMetadata?: SHACLPropertyShape property (Sprint 2)"
+        "FormField interface extended with optional shaclMetadata?: SHACLPropertyShape property (Sprint 2)",
+        "Imports SHACLPropertyShape from @/types/shacl for shaclMetadata typing (S2-003)"
       ]
     },
     {
@@ -253,7 +257,11 @@
         "Exports sampleCases array with 3 sample cases",
         "Exports sampleCaseFormData record mapping case IDs to form data",
         "Exports initialChatMessages array with welcome message",
-        "Imports types from @/types/case"
+        "Imports types from @/types/case",
+        "Exports integrationCourseFormTemplate with SHACL metadata for integration course forms (S2-003)",
+        "Exports asylumApplicationFormTemplate with SHACL metadata for asylum applications (S2-003)",
+        "Exports familyReunificationFormTemplate with SHACL metadata for family reunification forms (S2-003)",
+        "Imports SHACL_CONTEXT from @/types/shacl for form template metadata (S2-003)"
       ]
     },
     {
@@ -294,6 +302,19 @@
         "Uses clsx for conditional class names",
         "Uses tailwind-merge for Tailwind CSS class deduplication",
         "Imports ClassValue type from clsx"
+      ]
+    },
+    {
+      "name": "src/lib/adminApi.ts",
+      "entityType": "APIClient",
+      "observations": [
+        "Admin API client module for backend admin endpoints (S2-003)",
+        "Exports generateField async function for NLP-based field generation",
+        "generateField calls POST /api/admin/generate-field endpoint",
+        "Handles field generation request with prompt and optional form context",
+        "Returns generated field with SHACL metadata from backend",
+        "Uses fetch API for HTTP requests",
+        "Includes error handling for API failures"
       ]
     },
     {
@@ -385,6 +406,7 @@
         "FastAPI application entry point",
         "Configures CORS middleware for frontend communication",
         "Registers chat_router from backend/api/chat.py",
+        "Registers admin_router from backend/api/admin.py (S2-003)",
         "Defines lifespan context manager for startup/shutdown events",
         "Exposes /health and / (root) endpoints",
         "Allows origins: localhost:5173, localhost:3000",
@@ -410,6 +432,31 @@
         "Default streaming mode enabled for performance (stream parameter defaults to True)",
         "handle_form_extraction() passes case_id parameter to gemini_service.generate_response()",
         "handle_form_extraction() explicitly sets stream=False for form extraction (non-streaming mode)"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py",
+      "entityType": "APIRouter",
+      "observations": [
+        "Admin API router for administrative operations (S2-003)",
+        "Exports FastAPI router with prefix /api/admin",
+        "Defines POST /api/admin/generate-field endpoint for NLP field generation",
+        "generate_field endpoint accepts prompt and optional form context",
+        "Integrates with FieldGenerator service for AI-powered field creation",
+        "Returns generated FormField with SHACL metadata",
+        "Imports FieldGenerator from backend/services/field_generator",
+        "Imports SHACL types from backend/schemas/shacl"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py::generate_field",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "POST endpoint at /api/admin/generate-field (S2-003)",
+        "Accepts GenerateFieldRequest with prompt and optional formContext",
+        "Calls FieldGenerator.generate_field_from_prompt()",
+        "Returns GenerateFieldResponse with generated field and SHACL metadata",
+        "Handles validation errors and returns appropriate HTTP status codes"
       ]
     },
     {
@@ -498,6 +545,33 @@
         "Streaming mode logs time-to-first-token metric",
         "Uses time.perf_counter() for precise timing measurements",
         "Calls _generate_streaming_response internal method for streaming mode"
+      ]
+    },
+    {
+      "name": "backend/services/field_generator.py",
+      "entityType": "Service",
+      "observations": [
+        "NLP Field Generation Service for AI-powered form field creation (S2-003)",
+        "Defines FieldGenerator class for generating fields from natural language prompts",
+        "Integrates with Gemini API for NLP processing",
+        "Exports parse_field_request() function for parsing user prompts",
+        "Exports generate_field_from_prompt() function for field generation",
+        "Generates FormField with appropriate type, options, and SHACL metadata",
+        "Uses jsonld_context module for SHACL metadata generation",
+        "Maps natural language descriptions to field types (text, date, select, textarea)",
+        "Infers field constraints from prompt context"
+      ]
+    },
+    {
+      "name": "backend/services/field_generator.py::FieldGenerator",
+      "entityType": "Class",
+      "observations": [
+        "Service class for NLP-based field generation (S2-003)",
+        "Methods: parse_field_request(), generate_field_from_prompt(), _infer_field_type(), _generate_shacl_metadata()",
+        "Uses Gemini API for understanding field requirements from prompts",
+        "Generates appropriate field type based on NLP analysis",
+        "Creates SHACL PropertyShape metadata for generated fields",
+        "Supports context-aware field generation with form context parameter"
       ]
     },
     {
@@ -637,10 +711,34 @@
         "SHACL PropertyShape and NodeShape dataclasses module",
         "Defines SHACLPropertyShape dataclass with to_jsonld() and from_jsonld() methods",
         "Defines SHACLNodeShape dataclass with to_jsonld(), from_jsonld(), add_property(), get_property() methods",
+        "Exports property_shape_to_dict() function for serialization (S2-003)",
+        "Exports node_shape_to_dict() function for serialization (S2-003)",
         "Provides JSON-LD serialization/deserialization for SHACL shapes",
         "SHACLPropertyShape represents constraints on individual properties",
         "SHACLNodeShape represents constraints on node/entity structures",
         "Added in Sprint 2 (S2-002) for SHACL metadata support"
+      ]
+    },
+    {
+      "name": "backend/schemas/shacl.py::SHACLPropertyShape",
+      "entityType": "Dataclass",
+      "observations": [
+        "Python dataclass for SHACL property shape constraints (S2-003)",
+        "Attributes: path, datatype, minCount, maxCount, name, description, in_values",
+        "Method to_jsonld() converts to JSON-LD format",
+        "Class method from_jsonld() parses from JSON-LD",
+        "Used by FieldGenerator for metadata generation"
+      ]
+    },
+    {
+      "name": "backend/schemas/shacl.py::SHACLNodeShape",
+      "entityType": "Dataclass",
+      "observations": [
+        "Python dataclass for SHACL node shape structures (S2-003)",
+        "Attributes: targetClass, properties list, closed flag",
+        "Method to_jsonld() converts to JSON-LD format",
+        "Method add_property() adds PropertyShape to node",
+        "Method get_property() retrieves property by path"
       ]
     },
     {
@@ -657,6 +755,18 @@
         "Exports build_field_context() function for building field-specific context",
         "Exports create_form_node_shape() function for creating NodeShape from form fields",
         "Added in Sprint 2 (S2-002) for SHACL metadata support"
+      ]
+    },
+    {
+      "name": "backend/scripts/migrate_forms_to_shacl.py",
+      "entityType": "Script",
+      "observations": [
+        "Migration utility script for adding SHACL metadata to existing forms (S2-003)",
+        "Exports generate_shacl_for_field() function for creating SHACL metadata for individual fields",
+        "Exports migrate_form_fields() function for batch migration of form templates",
+        "Exports validate_shacl_metadata() function for validating SHACL structure",
+        "Used for migrating legacy form definitions to SHACL-enriched format",
+        "Standalone script that can be run via python -m backend.scripts.migrate_forms_to_shacl"
       ]
     },
     {
@@ -842,6 +952,11 @@
       "relationType": "imports"
     },
     {
+      "from_": "src/data/mockData.ts",
+      "to": "src/types/shacl.ts",
+      "relationType": "imports"
+    },
+    {
       "from_": "src/hooks/use-toast.ts",
       "to": "useToast",
       "relationType": "exports"
@@ -987,6 +1102,11 @@
       "relationType": "uses_hook"
     },
     {
+      "from_": "src/components/workspace/FormViewer.tsx",
+      "to": "src/types/shacl.ts",
+      "relationType": "imports"
+    },
+    {
       "from_": "src/components/workspace/AdminConfigPanel.tsx",
       "to": "src/contexts/AppContext.tsx",
       "relationType": "imports"
@@ -1038,12 +1158,22 @@
     },
     {
       "from_": "backend/main.py",
+      "to": "backend/api/admin.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/main.py",
       "to": "backend/api/chat.py::websocket_chat_endpoint",
       "relationType": "registers_route"
     },
     {
       "from_": "backend/main.py",
       "to": "backend/api/chat.py::chat_health_check",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/admin.py::generate_field",
       "relationType": "registers_route"
     },
     {
@@ -1087,6 +1217,26 @@
       "relationType": "uses"
     },
     {
+      "from_": "backend/api/admin.py",
+      "to": "backend/services/field_generator.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/admin.py",
+      "to": "backend/schemas/shacl.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/admin.py",
+      "to": "backend/api/admin.py::generate_field",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/admin.py::generate_field",
+      "to": "backend/services/field_generator.py::FieldGenerator",
+      "relationType": "uses"
+    },
+    {
       "from_": "backend/services/gemini_service.py",
       "to": "backend/services/context_manager.py",
       "relationType": "imports"
@@ -1105,6 +1255,21 @@
       "from_": "backend/services/context_manager.py",
       "to": "backend/services/context_manager.py::ContextManager",
       "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/field_generator.py",
+      "to": "backend/schemas/jsonld_context.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/services/field_generator.py",
+      "to": "backend/services/field_generator.py::FieldGenerator",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/field_generator.py::FieldGenerator",
+      "to": "backend/schemas/shacl.py::SHACLPropertyShape",
+      "relationType": "uses"
     },
     {
       "from_": "backend/tools/form_parser.py",
@@ -1212,6 +1377,16 @@
       "relationType": "imports"
     },
     {
+      "from_": "backend/schemas/shacl.py",
+      "to": "backend/schemas/shacl.py::SHACLPropertyShape",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/schemas/shacl.py",
+      "to": "backend/schemas/shacl.py::SHACLNodeShape",
+      "relationType": "defines"
+    },
+    {
       "from_": "src/types/case.ts",
       "to": "src/types/shacl.ts",
       "relationType": "imports"
@@ -1225,6 +1400,11 @@
       "from_": "src/types/shacl.ts",
       "to": "src/types/shacl.ts::SHACLNodeShape",
       "relationType": "defines"
+    },
+    {
+      "from_": "src/lib/adminApi.ts",
+      "to": "backend/api/admin.py::generate_field",
+      "relationType": "calls"
     }
   ]
 }

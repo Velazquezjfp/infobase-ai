@@ -20,7 +20,7 @@ We follow [Semantic Versioning](https://semver.org/):
 ## [Unreleased]
 
 ### Planned Features
-- Authentication and authorization system
+- Authentication and authorization system for admin endpoints
 - Batch document upload endpoint
 - Document comparison endpoint
 - Case export/import endpoints
@@ -32,6 +32,391 @@ We follow [Semantic Versioning](https://semver.org/):
 - File upload via WebSocket
 - Additional language support beyond German and English
 - OCR integration for image-based documents
+- SHACL validation enforcement on client side
+- Form template library with SHACL metadata
+
+---
+
+## [1.4.0] - 2025-12-23
+
+### Added - Admin API with AI-Powered Form Field Generation
+
+This release introduces a new Admin API module with endpoints for administrative operations, featuring AI-powered form field generation with SHACL semantic metadata support.
+
+#### New Admin API Module
+
+**New Endpoints:**
+
+1. **POST /api/admin/generate-field** - Generate form field from natural language
+   - Source: `backend/api/admin.py:100-193`
+   - AI-powered field generation from natural language prompts
+   - SHACL-compliant metadata generation
+   - Supports English and German prompts
+   - Rule-based extraction with AI fallback
+
+2. **GET /api/admin/health** - Admin service health check
+   - Source: `backend/api/admin.py:196-217`
+   - Service status verification
+   - Feature availability reporting
+
+#### Form Field Generation Service
+
+**New Service: FieldGenerator**
+
+Located in `backend/services/field_generator.py`, this service provides:
+
+**Core Capabilities:**
+- Natural language prompt parsing
+- Rule-based field extraction for common patterns
+- AI-powered generation for complex prompts (via Gemini)
+- SHACL metadata generation with JSON-LD format
+- Field validation and specification normalization
+
+**Supported Field Types:**
+- `text` - Standard text input fields
+- `date` - Date picker fields
+- `select` - Dropdown fields with options
+- `textarea` - Multi-line text fields
+
+**Example Prompts:**
+```
+"Add a text field for passport number"
+"Add dropdown for marital status with options single, married, divorced"
+"I need a required date field for visa expiry"
+"Create a textarea for additional notes"
+```
+
+**Generation Process:**
+
+1. **Prompt Analysis**: Parse natural language input
+2. **Pattern Matching**: Try rule-based extraction first
+3. **AI Fallback**: Use Gemini for ambiguous cases
+4. **Field Construction**: Build field specification
+5. **SHACL Generation**: Add semantic metadata
+6. **Validation**: Verify field completeness
+
+**Performance:**
+- Rule-based extraction: < 100ms
+- AI-based generation: 1-3 seconds
+- Typical response time: 1-3 seconds
+
+#### SHACL Schema Support
+
+**New Module: backend/schemas/**
+
+Provides SHACL (Shapes Constraint Language) schema definitions for semantic form metadata:
+
+**Key Files:**
+- `backend/schemas/shacl.py` - SHACL shape classes (SHACLPropertyShape, SHACLNodeShape)
+- `backend/schemas/jsonld_context.py` - JSON-LD context definitions
+- `backend/schemas/__init__.py` - Module initialization
+
+**SHACLPropertyShape Features:**
+- Semantic property paths (e.g., "schema:name", "schema:birthDate")
+- XSD datatype definitions
+- Cardinality constraints (sh:minCount, sh:maxCount)
+- Allowed values (sh:in) for select fields
+- Pattern validation (sh:pattern)
+- String length constraints
+
+**SHACLNodeShape Features:**
+- Form-level shape definitions
+- Property collection management
+- Target class specification
+- JSON-LD serialization/deserialization
+
+**SHACL Metadata Benefits:**
+1. **Semantic Interoperability**: Fields linked to Schema.org vocabulary
+2. **Machine-Readable Validation**: Constraints can be validated automatically
+3. **Linked Data Integration**: Compatible with RDF and semantic web technologies
+4. **Standard Compliance**: Uses W3C SHACL specification
+5. **Future-Proof**: Supports advanced validation and reasoning
+
+**JSON-LD Context:**
+```json
+{
+  "@context": {
+    "sh": "http://www.w3.org/ns/shacl#",
+    "schema": "http://schema.org/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  }
+}
+```
+
+**Example SHACL Metadata:**
+```json
+{
+  "@context": { ... },
+  "@type": "sh:PropertyShape",
+  "sh:path": "schema:maritalStatus",
+  "sh:datatype": "xsd:string",
+  "sh:name": "Marital Status",
+  "sh:description": "The person's marital status",
+  "sh:in": {
+    "@list": ["single", "married", "divorced"]
+  }
+}
+```
+
+#### Updated Backend Configuration
+
+**Modified Files:**
+- `backend/main.py` - Added admin router registration
+
+**CORS Updates:**
+Added new development ports to CORS allowed origins:
+- Port 8080 (configured Vite dev server)
+- Port 5174 (alternate Vite port)
+
+Existing ports retained:
+- Port 5173 (default Vite)
+- Port 3000 (alternative dev)
+
+**HTTP Methods:**
+Updated from wildcard `*` to explicit list:
+- GET
+- POST
+- PUT
+- DELETE
+- OPTIONS
+- PATCH
+
+**Router Registration:**
+```python
+app.include_router(admin_router, tags=["admin"])
+```
+
+#### API Request/Response Models
+
+**New Pydantic Models (backend/api/admin.py):**
+
+1. **GenerateFieldRequest**
+   - `prompt`: str (3-500 characters)
+   - Validation: min/max length constraints
+
+2. **GeneratedFieldResponse**
+   - `id`: str (field identifier)
+   - `label`: str (human-readable label)
+   - `type`: str (text, date, select, textarea)
+   - `value`: str (default value)
+   - `options`: Optional[List[str]] (for select fields)
+   - `required`: bool
+   - `shaclMetadata`: Optional[dict] (SHACL JSON-LD)
+
+3. **GenerateFieldResponse** (wrapper)
+   - `field`: GeneratedFieldResponse
+   - `message`: str
+
+4. **ErrorResponse**
+   - `error`: str
+   - `detail`: Optional[str]
+
+#### Error Handling
+
+**HTTP Status Codes:**
+- `200 OK` - Field generated successfully
+- `400 Bad Request` - Invalid prompt or validation failure
+- `500 Internal Server Error` - Service error (e.g., Gemini API failure)
+
+**Error Response Format:**
+```json
+{
+  "detail": {
+    "error": "Field generation failed",
+    "detail": "Specific error message"
+  }
+}
+```
+
+**Validation Errors:**
+```json
+{
+  "detail": {
+    "error": "Generated field validation failed",
+    "validation_errors": ["Field ID is missing", "Invalid field type"]
+  }
+}
+```
+
+#### Security & Limitations
+
+**Current State:**
+- No authentication implemented (public endpoints)
+- Input validation on prompt length (3-500 chars)
+- Error messages sanitized (no sensitive info exposure)
+
+**Planned Enhancements:**
+- Authentication and authorization
+- Rate limiting per user/IP
+- Request logging and audit trail
+- RBAC for admin operations
+
+**Known Limitations:**
+- Maximum prompt length: 500 characters
+- Requires Gemini API key for complex prompts
+- Generated field IDs in camelCase only
+- SHACL validation not enforced client-side yet
+- No field type beyond text, date, select, textarea
+
+#### Documentation Updates
+
+**Updated Files:**
+
+1. **docs/apis/endpoints.md**
+   - Added "Admin Operations" section
+   - Detailed POST /api/admin/generate-field documentation
+   - Added GET /api/admin/health documentation
+   - SHACL metadata explanation
+   - Code examples (cURL, JavaScript, Python)
+   - Updated version to 1.4.0
+
+2. **docs/apis/openapi.yaml**
+   - Added "Admin" tag
+   - Added /api/admin/generate-field endpoint spec
+   - Added /api/admin/health endpoint spec
+   - Added GeneratedField schema with SHACL properties
+   - Request examples for text, select, and date fields
+   - Updated version to 1.4.0
+
+3. **docs/apis/openapi.json**
+   - Auto-generated from openapi.yaml
+   - Matches YAML specification
+   - Updated version to 1.4.0
+
+4. **docs/apis/api-changelog.md**
+   - Added version 1.4.0 entry (this document)
+
+5. **docs/apis/.last-sync.json**
+   - Updated last_commit to 29f8271
+   - Updated documentation_version to 1.4.0
+   - Updated last_sync timestamp
+   - Added new tracked paths:
+     - backend/api/admin.py
+     - backend/services/field_generator.py
+     - backend/schemas/shacl.py
+     - backend/schemas/jsonld_context.py
+     - backend/schemas/__init__.py
+   - Added new implemented endpoints
+   - Added notes about SHACL support and admin API
+
+#### Migration Notes
+
+**Non-Breaking Changes:**
+
+All changes are backward compatible:
+- No existing endpoints modified
+- New admin endpoints are additions
+- CORS configuration expanded (existing origins retained)
+- HTTP methods made explicit (same methods supported)
+
+**Integration Requirements:**
+
+For frontend integration:
+1. Add admin panel for field generation
+2. Implement prompt input UI (textarea with 3-500 char validation)
+3. Display generated field preview with SHACL metadata
+4. Add field to form builder/editor
+5. Optional: Implement SHACL validation on client side
+
+**No Action Required:**
+
+Existing functionality continues to work:
+- WebSocket chat endpoint unchanged
+- Form extraction endpoint unchanged
+- Health check endpoints unchanged
+- All AI and chat operations unchanged
+
+#### Use Cases
+
+**Primary Use Cases:**
+
+1. **Dynamic Form Building**
+   - Admin creates new fields using natural language
+   - No need to manually write JSON specifications
+   - Rapid form prototyping and iteration
+
+2. **Semantic Form Metadata**
+   - Forms linked to Schema.org vocabulary
+   - Machine-readable validation constraints
+   - Integration with linked data systems
+
+3. **Multilingual Administration**
+   - German and English prompts supported
+   - Helps non-technical staff create forms
+   - Reduces language barriers in form design
+
+4. **Template Generation**
+   - Quickly generate reusable field definitions
+   - Build libraries of common field types
+   - Standardize form structure across applications
+
+#### Technical Implementation Details
+
+**Technology Stack:**
+- FastAPI for REST API
+- Pydantic for request/response validation
+- Google Gemini for AI-powered generation
+- SHACL/JSON-LD for semantic metadata
+- Python dataclasses for schema modeling
+
+**Dependencies:**
+- No new external dependencies (uses existing Gemini integration)
+- Standard library: json, re, typing
+- FastAPI built-ins: HTTPException, APIRouter
+
+**Code Architecture:**
+```
+backend/
+├── api/
+│   └── admin.py           # Admin REST endpoints
+├── services/
+│   └── field_generator.py  # Field generation logic
+└── schemas/
+    ├── __init__.py
+    ├── shacl.py           # SHACL data classes
+    └── jsonld_context.py   # JSON-LD helpers
+```
+
+**Testing:**
+- Manual testing via cURL and API clients
+- Integration testing recommended for production
+- Unit tests for field_generator service recommended
+
+#### Future Enhancements
+
+**Planned for Next Releases:**
+
+1. **Authentication & Authorization**
+   - JWT-based authentication
+   - Role-based access control (admin only)
+   - API key management
+
+2. **Advanced Field Types**
+   - Number fields with range validation
+   - Email fields with format validation
+   - URL fields
+   - File upload fields
+   - Nested object fields
+
+3. **Field Templates**
+   - Pre-built field template library
+   - Custom template creation and management
+   - Template versioning and history
+
+4. **SHACL Validation**
+   - Server-side SHACL validation enforcement
+   - Client-side SHACL validator library
+   - Validation error reporting with SHACL paths
+
+5. **Batch Operations**
+   - Generate multiple fields from single prompt
+   - Bulk field import/export
+   - Form template generation
+
+6. **Internationalization**
+   - Support for additional languages
+   - Localized field labels and descriptions
+   - Multi-language SHACL metadata
 
 ---
 
