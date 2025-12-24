@@ -400,6 +400,7 @@ export const caseFormTemplates: Record<string, FormField[]> = {
 export const initialFormFields: FormField[] = integrationCourseFormTemplate;
 
 // Default folder template for new cases
+// S4-001: Added 'Uploads' folder for drag-and-drop file upload feature
 export const defaultFolderTemplate: Omit<Folder, 'id'>[] = [
   { name: 'Personal Data', documents: [], subfolders: [], isExpanded: true },
   { name: 'Certificates', documents: [], subfolders: [], isExpanded: false },
@@ -407,6 +408,7 @@ export const defaultFolderTemplate: Omit<Folder, 'id'>[] = [
   { name: 'Applications & Forms', documents: [], subfolders: [], isExpanded: false },
   { name: 'Emails', documents: [], subfolders: [], isExpanded: false },
   { name: 'Additional Evidence', documents: [], subfolders: [], isExpanded: false },
+  { name: 'Uploads', documents: [], subfolders: [], isExpanded: false },
 ];
 
 export const createNewCase = (name: string, id?: string): Case => {
@@ -481,6 +483,13 @@ export const mockCase: Case = {
       documents: [
         { id: 'doc-5', name: 'School_Transcripts.txt', type: 'txt', size: '4.7 KB', uploadedAt: '2024-01-16', metadata: { documentType: 'Transcript', institution: 'Kabul University' }, caseId: 'ACTE-2024-001', folderId: 'evidence' },
       ],
+      subfolders: [],
+    },
+    {
+      id: 'uploads',
+      name: 'Uploads',
+      isExpanded: false,
+      documents: [],
       subfolders: [],
     },
   ],

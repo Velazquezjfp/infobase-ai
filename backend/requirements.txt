@@ -14,3 +14,6 @@ python-dotenv==1.0.0
 
 # Type Checking and Linting (dev dependencies)
 pydantic==2.5.2
+
+# File Upload Support (S4-001)
+python-multipart==0.0.21

@@ -16,6 +16,7 @@ This document provides detailed information about the BAMF ACTE Companion API en
 - [Authentication](#authentication)
 - [Case Management](#case-management)
 - [Document Operations](#document-operations)
+- [File Operations](#file-operations)
 - [AI Operations](#ai-operations)
 - [Form Management](#form-management)
 - [Search](#search)
@@ -1989,6 +1990,659 @@ Update application form data.
 
 ---
 
+## File Operations
+
+### POST /api/files/upload
+
+Upload a file to a specific case folder with size validation and security checks.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/files.py`
+
+**Source:** `backend/api/files.py:67-217`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint handles file uploads to case-scoped storage with comprehensive security features including filename sanitization, path traversal prevention, and file size validation. Files are stored in the `public/documents/{case_id}/{folder_id}/` directory structure.
+
+**Request Body (multipart/form-data):**
+
+- `file` (required): Binary file data to upload
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+- `folder_id` (optional): Target folder ID within the case (default: "uploads")
+- `rename_to` (optional): Alternative filename for duplicate handling
+
+**Request Constraints:**
+
+- Maximum file size: 15 MB (15,728,640 bytes)
+- File must not be empty (0 bytes)
+- case_id and folder_id must be alphanumeric with hyphens/underscores only
+- Filename is automatically sanitized to remove unsafe characters
+
+**Security Features:**
+
+- **Path Traversal Prevention:** No `../` or absolute paths allowed in case_id, folder_id, or filename
+- **Filename Sanitization:** Removes special characters, null bytes, and path separators
+- **Case Path Validation:** Validates case_id and folder_id format (alphanumeric, hyphens, underscores)
+- **Size Validation:** Enforces 15 MB limit to prevent resource exhaustion
+- **Automatic Folder Creation:** Creates target directory structure if it doesn't exist
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "file_path": "documents/ACTE-2024-001/uploads/document.pdf",
+  "file_name": "document.pdf",
+  "size": 2458624,
+  "message": "File 'document.pdf' uploaded successfully"
+}
+```
+
+**Error Response (400 Bad Request - Invalid Path):**
+```json
+{
+  "error": "Validation failed",
+  "detail": "case_id contains invalid characters: '../'",
+  "file_name": "document.pdf"
+}
+```
+
+**Error Response (413 Payload Too Large - File Too Large):**
+```json
+{
+  "error": "File too large",
+  "detail": "File exceeds 15.0 MB size limit. File size: 18.45 MB",
+  "file_name": "large_file.pdf"
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "error": "File system error",
+  "detail": "Failed to save file. Please try again or contact support.",
+  "file_name": "document.pdf"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X POST http://localhost:8000/api/files/upload \
+  -F "file=@/path/to/document.pdf" \
+  -F "case_id=ACTE-2024-001" \
+  -F "folder_id=uploads"
+```
+
+**cURL with duplicate handling:**
+```bash
+curl -X POST http://localhost:8000/api/files/upload \
+  -F "file=@/path/to/document.pdf" \
+  -F "case_id=ACTE-2024-001" \
+  -F "folder_id=uploads" \
+  -F "rename_to=document_2.pdf"
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const uploadFile = async (file, caseId, folderId = 'uploads', renameTo = null) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('case_id', caseId);
+  formData.append('folder_id', folderId);
+
+  if (renameTo) {
+    formData.append('rename_to', renameTo);
+  }
+
+  const response = await fetch('http://localhost:8000/api/files/upload', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || error.error);
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const result = await uploadFile(
+    fileInputElement.files[0],
+    'ACTE-2024-001',
+    'evidence'
+  );
+  console.log('Uploaded:', result.file_path);
+} catch (error) {
+  console.error('Upload failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def upload_file(file_path: str, case_id: str, folder_id: str = "uploads", rename_to: str = None):
+    with open(file_path, 'rb') as f:
+        files = {'file': f}
+        data = {
+            'case_id': case_id,
+            'folder_id': folder_id
+        }
+
+        if rename_to:
+            data['rename_to'] = rename_to
+
+        response = requests.post(
+            'http://localhost:8000/api/files/upload',
+            files=files,
+            data=data
+        )
+
+        if response.status_code != 200:
+            raise Exception(f"Upload failed: {response.json()}")
+
+        return response.json()
+
+# Usage
+result = upload_file("document.pdf", "ACTE-2024-001", "uploads")
+print(f"Uploaded to: {result['file_path']}")
+```
+
+**Storage Structure:**
+
+Files are stored in the following directory structure:
+```
+public/
+  documents/
+    ACTE-2024-001/
+      uploads/
+        document.pdf
+        test_file.txt
+      evidence/
+        passport_scan.jpg
+      personal-data/
+        birth_certificate.pdf
+```
+
+**Duplicate File Handling:**
+
+When a file with the same name already exists:
+
+1. Client should first call `GET /api/files/exists/{case_id}/{folder_id}/{filename}` to check for duplicates
+2. If file exists, the exists endpoint returns a `suggested_name` (e.g., "document_1.pdf")
+3. Client can then:
+   - Use the `rename_to` parameter with the suggested name to upload with a unique name
+   - Prompt user to overwrite (upload without `rename_to` to replace existing file)
+   - Cancel the upload
+
+**Filename Sanitization Rules:**
+
+The service automatically sanitizes filenames using these rules:
+- Removes null bytes and path separators (`/`, `\`)
+- Removes parent directory references (`..`)
+- Replaces spaces with underscores
+- Removes special characters (keeps only alphanumeric, hyphens, dots, underscores)
+- Ensures filename starts with alphanumeric character
+- Limits filename length to 255 characters (preserves extension)
+
+Examples:
+- `my document.pdf` → `my_document.pdf`
+- `../../etc/passwd` → `etc_passwd`
+- `file<>:*?.txt` → `file.txt`
+
+**Use Cases:**
+
+- **Drag-and-drop file upload:** Frontend can use this endpoint for drag-and-drop functionality
+- **Evidence upload:** Upload supporting documents to case folders
+- **Document submission:** Applicants can submit required documents
+- **Batch uploads:** Multiple files can be uploaded sequentially with progress tracking
+
+**Known Limitations:**
+
+- No authentication currently implemented (planned for future)
+- Maximum file size: 15 MB (configurable in backend/services/file_service.py)
+- No virus scanning (recommended for production)
+- No file type validation (accepts all file types)
+- Overwrites existing files with same name (unless `rename_to` is used)
+
+**Performance:**
+
+- Typical upload time: < 1 second for files under 5 MB
+- Network-dependent for larger files
+- Atomic write operation ensures no partial files
+
+---
+
+### DELETE /api/files/{case_id}/{folder_id}/{filename}
+
+Delete a file from a specific case folder with security validation.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/files.py`
+
+**Source:** `backend/api/files.py:220-347`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint handles file deletion with comprehensive security checks including path traversal prevention and case directory validation. The resolved file path is verified to stay within the expected case directory to prevent unauthorized access.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+- `folder_id` (required): Folder identifier (e.g., "uploads", "evidence")
+- `filename` (required): Name of the file to delete
+
+**Security Features:**
+
+- **Path Traversal Prevention:** Validates resolved path stays within case directory
+- **Case Path Validation:** Ensures case_id and folder_id contain only safe characters
+- **Filename Sanitization:** Removes unsafe characters before deletion
+- **Directory Validation:** Ensures target is a file, not a directory
+- **Existence Check:** Verifies file exists before attempting deletion
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "File 'document.pdf' deleted successfully",
+  "file_name": "document.pdf"
+}
+```
+
+**Error Response (400 Bad Request - Invalid Path):**
+```json
+{
+  "error": "Validation failed",
+  "detail": "folder_id contains invalid characters: '../'",
+  "file_name": "document.pdf"
+}
+```
+
+**Error Response (403 Forbidden - Path Traversal Attempt):**
+```json
+{
+  "error": "Access denied",
+  "detail": "Access denied: Invalid file path",
+  "file_name": "document.pdf"
+}
+```
+
+**Error Response (404 Not Found):**
+```json
+{
+  "error": "File not found",
+  "detail": "File not found: document.pdf",
+  "file_name": "document.pdf"
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "error": "File system error",
+  "detail": "Failed to delete file. Please try again or contact support.",
+  "file_name": "document.pdf"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X DELETE http://localhost:8000/api/files/ACTE-2024-001/uploads/document.pdf
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const deleteFile = async (caseId, folderId, filename) => {
+  const response = await fetch(
+    `http://localhost:8000/api/files/${caseId}/${folderId}/${filename}`,
+    { method: 'DELETE' }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || error.error);
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const result = await deleteFile('ACTE-2024-001', 'uploads', 'document.pdf');
+  console.log(result.message);
+} catch (error) {
+  console.error('Delete failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def delete_file(case_id: str, folder_id: str, filename: str):
+    response = requests.delete(
+        f'http://localhost:8000/api/files/{case_id}/{folder_id}/{filename}'
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Delete failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = delete_file("ACTE-2024-001", "uploads", "document.pdf")
+print(result['message'])
+```
+
+**Security Considerations:**
+
+1. **Path Resolution Validation:** The endpoint resolves the file path and verifies it stays within the case directory:
+   ```
+   Expected: /public/documents/ACTE-2024-001/
+   Resolved: /public/documents/ACTE-2024-001/uploads/document.pdf
+   ✓ Path is valid (within case directory)
+   ```
+
+2. **Prevented Attack Examples:**
+   ```
+   DELETE /api/files/ACTE-2024-001/../ACTE-2024-002/uploads/file.pdf
+   → 403 Forbidden: "folder_id contains invalid characters"
+
+   DELETE /api/files/ACTE-2024-001/uploads/../../etc/passwd
+   → 403 Forbidden: "Access denied: Invalid file path"
+   ```
+
+3. **Directory Protection:** Attempting to delete a directory returns an error
+
+**Use Cases:**
+
+- **File cleanup:** Remove outdated or incorrect uploads
+- **Privacy compliance:** Delete files when no longer needed
+- **Storage management:** Free up disk space by removing unnecessary files
+- **User corrections:** Allow users to remove files they uploaded by mistake
+
+**Known Limitations:**
+
+- No authentication currently implemented (planned for future)
+- No trash/recycle bin (deletion is permanent)
+- No cascading delete (must delete files individually)
+- Recommended for "uploads" folder only (system folders may affect case functionality)
+
+**Performance:**
+
+- Typical deletion time: < 100ms
+- Synchronous operation (returns after deletion completes)
+
+---
+
+### GET /api/files/exists/{case_id}/{folder_id}/{filename}
+
+Check if a file already exists in a specific case folder (duplicate detection).
+
+**Current Implementation:** IMPLEMENTED in `backend/api/files.py`
+
+**Source:** `backend/api/files.py:364-442`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint checks for file existence and provides a suggested unique filename if the file already exists. It's designed to be called before upload to detect duplicates and allow users to make informed decisions about renaming or overwriting.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+- `folder_id` (required): Folder identifier (e.g., "uploads")
+- `filename` (required): Name of the file to check
+
+**Success Response (200 OK - File Exists):**
+```json
+{
+  "exists": true,
+  "file_name": "document.pdf",
+  "suggested_name": "document_1.pdf"
+}
+```
+
+**Success Response (200 OK - File Does Not Exist):**
+```json
+{
+  "exists": false,
+  "file_name": "new_document.pdf",
+  "suggested_name": null
+}
+```
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "error": "Validation failed",
+  "detail": "case_id contains invalid characters: '../'",
+  "file_name": "document.pdf"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X GET http://localhost:8000/api/files/exists/ACTE-2024-001/uploads/document.pdf
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const checkFileExists = async (caseId, folderId, filename) => {
+  const response = await fetch(
+    `http://localhost:8000/api/files/exists/${caseId}/${folderId}/${filename}`
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || error.error);
+  }
+
+  return await response.json();
+};
+
+// Usage with duplicate handling
+const handleUpload = async (file, caseId, folderId) => {
+  // Check if file exists
+  const existsResult = await checkFileExists(caseId, folderId, file.name);
+
+  if (existsResult.exists) {
+    // Prompt user for action
+    const action = confirm(
+      `File "${file.name}" already exists. Click OK to rename to "${existsResult.suggested_name}" or Cancel to overwrite.`
+    );
+
+    if (action) {
+      // Upload with suggested name
+      return uploadFile(file, caseId, folderId, existsResult.suggested_name);
+    } else {
+      // Upload to overwrite
+      return uploadFile(file, caseId, folderId);
+    }
+  } else {
+    // File doesn't exist, upload normally
+    return uploadFile(file, caseId, folderId);
+  }
+};
+```
+
+**Python:**
+```python
+import requests
+
+def check_file_exists(case_id: str, folder_id: str, filename: str):
+    response = requests.get(
+        f'http://localhost:8000/api/files/exists/{case_id}/{folder_id}/{filename}'
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Check failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = check_file_exists("ACTE-2024-001", "uploads", "document.pdf")
+if result['exists']:
+    print(f"File exists! Suggested name: {result['suggested_name']}")
+else:
+    print("File does not exist, safe to upload")
+```
+
+**Unique Filename Generation:**
+
+If a file exists, the service generates a unique filename by appending a numeric suffix:
+
+- `document.pdf` exists → suggests `document_1.pdf`
+- `document_1.pdf` exists → suggests `document_2.pdf`
+- `document_2.pdf` exists → suggests `document_3.pdf`
+- ...continues up to `document_999.pdf`
+
+The service preserves the file extension and inserts the suffix before it.
+
+**Typical Workflow:**
+
+1. **User selects file for upload**
+2. **Client calls exists endpoint** to check for duplicate
+3. **If file exists:**
+   - Display dialog: "File already exists. Rename, Overwrite, or Cancel?"
+   - If rename: Use suggested_name in upload request's `rename_to` parameter
+   - If overwrite: Upload without `rename_to` parameter
+   - If cancel: Abort upload
+4. **If file doesn't exist:** Proceed with upload normally
+
+**Use Cases:**
+
+- **Duplicate prevention:** Warn users before overwriting existing files
+- **Batch upload validation:** Check multiple files before starting uploads
+- **File versioning:** Automatically create numbered versions of files
+- **User experience:** Provide clear feedback about file conflicts
+
+**Performance:**
+
+- Typical check time: < 50ms
+- Lightweight operation (only checks file existence, doesn't read content)
+
+---
+
+### GET /api/files/health
+
+File service health check endpoint.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/files.py`
+
+**Source:** `backend/api/files.py:445-476`
+
+**Authentication:** None (public endpoint)
+
+**Description:**
+
+This endpoint checks the health and availability of the file upload service, including storage availability and configuration settings. It can be used by monitoring systems, load balancers, and frontend applications to verify service readiness.
+
+**Success Response (200 OK - Service Ready):**
+```json
+{
+  "service": "files",
+  "status": "ready",
+  "features": {
+    "upload": true,
+    "max_file_size_mb": 15,
+    "storage_path": "public/documents/"
+  },
+  "storage": {
+    "available": true,
+    "path": "/home/ayanm/projects/info-base/infobase-ai/public/documents"
+  }
+}
+```
+
+**Service Degraded Response (503 Service Unavailable - Storage Not Available):**
+```json
+{
+  "service": "files",
+  "status": "degraded",
+  "features": {
+    "upload": true,
+    "max_file_size_mb": 15,
+    "storage_path": "public/documents/"
+  },
+  "storage": {
+    "available": false,
+    "path": "/home/ayanm/projects/info-base/infobase-ai/public/documents"
+  }
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X GET http://localhost:8000/api/files/health
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const checkFileServiceHealth = async () => {
+  const response = await fetch('http://localhost:8000/api/files/health');
+  const health = await response.json();
+
+  if (health.status === 'ready') {
+    console.log('File service is ready');
+    console.log(`Max file size: ${health.features.max_file_size_mb} MB`);
+  } else {
+    console.warn('File service is degraded');
+  }
+
+  return health;
+};
+```
+
+**Python:**
+```python
+import requests
+
+def check_file_service_health():
+    response = requests.get('http://localhost:8000/api/files/health')
+    health = response.json()
+
+    if health['status'] == 'ready':
+        print(f"File service ready. Max size: {health['features']['max_file_size_mb']} MB")
+    else:
+        print("File service degraded")
+
+    return health
+```
+
+**Health Status Values:**
+
+- `ready`: Service is fully operational, storage directory exists
+- `degraded`: Service is running but storage directory is missing or inaccessible
+
+**Use Cases:**
+
+- **Monitoring:** Health check probes for container orchestration (Kubernetes, Docker)
+- **Load balancing:** Backend health checks for load balancers
+- **Frontend validation:** Check service availability before enabling upload features
+- **Configuration verification:** Confirm max file size and storage path settings
+
+**Performance:**
+
+- Typical response time: < 50ms
+- Lightweight operation (only checks directory existence)
+
+---
+
 ## Search
 
 ### GET /search
@@ -2189,5 +2843,5 @@ Breaking changes will result in a new version. Non-breaking changes (additions) 
 ---
 
 **Last Updated:** 2025-12-24
-**API Version:** 1.5.0 (Partial Implementation)
-**Current Implementation:** Backend with WebSocket + AI + Streaming + Enhanced Form Extraction + Admin API + Document Anonymization, Frontend simulations for other operations
+**API Version:** 1.6.0 (Partial Implementation)
+**Current Implementation:** Backend with WebSocket + AI + Streaming + Enhanced Form Extraction + Admin API + Document Anonymization + File Management, Frontend simulations for other operations

@@ -39,6 +39,10 @@ interface AppContextType {
   // Anonymization
   isAnonymizing: boolean;
   setIsAnonymizing: (isAnonymizing: boolean) => void;
+  // Document management (S4-001, S4-002)
+  addDocumentToFolder: (caseId: string, folderId: string, document: Document) => void;
+  removeDocumentFromFolder: (caseId: string, folderId: string, documentId: string) => void;
+  refreshDocuments: () => void;
   // UI state
   highlightedFolder: string | null;
   setHighlightedFolder: (folderId: string | null) => void;
@@ -178,6 +182,88 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : folder
       ),
     }));
+  };
+
+  // Document management functions (S4-001)
+  const addDocumentToFolder = (caseId: string, folderId: string, document: Document) => {
+    // Update the cases array
+    setCases(prevCases =>
+      prevCases.map(c =>
+        c.id === caseId
+          ? {
+              ...c,
+              folders: c.folders.map(folder =>
+                folder.id === folderId || folder.name.toLowerCase() === folderId.toLowerCase()
+                  ? { ...folder, documents: [...folder.documents, document] }
+                  : folder
+              ),
+            }
+          : c
+      )
+    );
+
+    // If this is the current case, update it as well
+    if (currentCase.id === caseId) {
+      setCurrentCase(prev => ({
+        ...prev,
+        folders: prev.folders.map(folder =>
+          folder.id === folderId || folder.name.toLowerCase() === folderId.toLowerCase()
+            ? { ...folder, documents: [...folder.documents, document] }
+            : folder
+        ),
+      }));
+    }
+
+    console.log(`Document ${document.name} added to folder ${folderId} in case ${caseId}`);
+  };
+
+  // Document deletion function (S4-002)
+  const removeDocumentFromFolder = (caseId: string, folderId: string, documentId: string) => {
+    // Update the cases array
+    setCases(prevCases =>
+      prevCases.map(c =>
+        c.id === caseId
+          ? {
+              ...c,
+              folders: c.folders.map(folder =>
+                folder.id === folderId || folder.name.toLowerCase() === folderId.toLowerCase()
+                  ? { ...folder, documents: folder.documents.filter(doc => doc.id !== documentId) }
+                  : folder
+              ),
+            }
+          : c
+      )
+    );
+
+    // If this is the current case, update it as well
+    if (currentCase.id === caseId) {
+      setCurrentCase(prev => ({
+        ...prev,
+        folders: prev.folders.map(folder =>
+          folder.id === folderId || folder.name.toLowerCase() === folderId.toLowerCase()
+            ? { ...folder, documents: folder.documents.filter(doc => doc.id !== documentId) }
+            : folder
+        ),
+      }));
+    }
+
+    // Clear selected document if it was the deleted one
+    if (selectedDocument?.id === documentId) {
+      setSelectedDocument(null);
+      setViewMode('form');
+    }
+
+    console.log(`Document ${documentId} removed from folder ${folderId} in case ${caseId}`);
+  };
+
+  const refreshDocuments = () => {
+    // Reload documents for the current case
+    // In a real application, this would fetch from the backend
+    // For now, it's a placeholder that could trigger a re-render
+    console.log('Refreshing documents for case:', currentCase.id);
+
+    // Force a state update to trigger re-render of document tree
+    setCurrentCase(prev => ({ ...prev }));
   };
 
   // WebSocket connection management
@@ -548,6 +634,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isTyping,
         isAnonymizing,
         setIsAnonymizing,
+        addDocumentToFolder,
+        removeDocumentFromFolder,
+        refreshDocuments,
         highlightedFolder,
         setHighlightedFolder,
         isAdminMode,
