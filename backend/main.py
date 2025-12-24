@@ -24,6 +24,7 @@ load_dotenv()
 
 from backend.api.chat import router as chat_router
 from backend.api.admin import router as admin_router
+from backend.api.files import router as files_router
 
 # Configure logging
 logging.basicConfig(
@@ -89,6 +90,7 @@ app.add_middleware(
 # Register API routers
 app.include_router(chat_router, tags=["chat"])
 app.include_router(admin_router, tags=["admin"])
+app.include_router(files_router, tags=["files"])
 
 
 @app.get("/health")

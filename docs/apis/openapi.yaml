@@ -10,7 +10,7 @@ info:
 
     The API will provide document management, AI-powered case processing, and integration course
     application handling for BAMF (Bundesamt für Migration und Flüchtlinge).
-  version: 1.4.0
+  version: 1.6.0
   contact:
     name: BAMF Development Team
     email: api@bamf.example.de
@@ -34,6 +34,8 @@ tags:
     description: Case management operations
   - name: Documents
     description: Document upload, conversion, and retrieval
+  - name: Files
+    description: File upload, deletion, and management operations
   - name: AI Operations
     description: AI-powered document processing and analysis
   - name: Forms
@@ -154,6 +156,329 @@ paths:
                         type: boolean
                         example: true
       x-source-file: backend/api/admin.py
+
+  /api/files/upload:
+    post:
+      tags:
+        - Files
+      summary: Upload file to case folder
+      description: |
+        Upload a file to a specific case folder with size validation and security checks.
+
+        **Features:**
+        - Maximum file size: 15 MB
+        - Case-scoped storage: files stored in public/documents/{caseId}/{folderId}/
+        - Filename sanitization to prevent path traversal attacks
+        - Automatic folder creation if needed
+
+        **Security:**
+        - Path traversal prevention (no ../ allowed)
+        - Filename sanitization (special characters removed)
+        - Case directory validation
+      operationId: uploadFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - case_id
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The file to upload
+                case_id:
+                  type: string
+                  description: Case ID (e.g., ACTE-2024-001)
+                  example: ACTE-2024-001
+                folder_id:
+                  type: string
+                  description: Target folder ID (default uploads)
+                  default: uploads
+                  example: uploads
+                rename_to:
+                  type: string
+                  description: Alternative filename (for duplicate handling)
+                  example: document_1.pdf
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - file_path
+                  - file_name
+                  - size
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  file_path:
+                    type: string
+                    description: Relative path documents/{caseId}/{folderId}/{filename}
+                    example: documents/ACTE-2024-001/uploads/document.pdf
+                  file_name:
+                    type: string
+                    example: document.pdf
+                  size:
+                    type: integer
+                    description: File size in bytes
+                    example: 2458624
+                  message:
+                    type: string
+                    example: File 'document.pdf' uploaded successfully
+        '400':
+          description: Invalid request (bad path, invalid file)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileError'
+        '413':
+          description: File exceeds 15 MB size limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileError'
+      x-source-file: backend/api/files.py
+
+  /api/files/{case_id}/{folder_id}/{filename}:
+    delete:
+      tags:
+        - Files
+      summary: Delete file from case folder
+      description: |
+        Delete a file from a specific case folder with security validation.
+
+        **Security:**
+        - Path traversal prevention (validates resolved path stays within case directory)
+        - Case ID and folder ID format validation
+        - Filename sanitization
+      operationId: deleteFile
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case ID (e.g., ACTE-2024-001)
+          schema:
+            type: string
+            example: ACTE-2024-001
+        - name: folder_id
+          in: path
+          required: true
+          description: Folder ID (e.g., uploads)
+          schema:
+            type: string
+            example: uploads
+        - name: filename
+          in: path
+          required: true
+          description: Name of the file to delete
+          schema:
+            type: string
+            example: document.pdf
+      responses:
+        '200':
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                  - file_name
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: File 'document.pdf' deleted successfully
+                  file_name:
+                    type: string
+                    example: document.pdf
+        '400':
+          description: Invalid request (bad path)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileError'
+        '403':
+          description: Access denied (path traversal attempt)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileError'
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileError'
+      x-source-file: backend/api/files.py
+
+  /api/files/exists/{case_id}/{folder_id}/{filename}:
+    get:
+      tags:
+        - Files
+      summary: Check if file exists (duplicate detection)
+      description: |
+        Check if a file already exists in a specific case folder.
+        If the file exists, returns a suggested unique filename.
+
+        **Use case:** Call this endpoint before uploading to detect duplicates
+        and give the user options to rename or cancel.
+      operationId: checkFileExists
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case ID (e.g., ACTE-2024-001)
+          schema:
+            type: string
+            example: ACTE-2024-001
+        - name: folder_id
+          in: path
+          required: true
+          description: Folder ID (e.g., uploads)
+          schema:
+            type: string
+            example: uploads
+        - name: filename
+          in: path
+          required: true
+          description: Name of the file to check
+          schema:
+            type: string
+            example: document.pdf
+      responses:
+        '200':
+          description: File existence check completed
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - exists
+                  - file_name
+                properties:
+                  exists:
+                    type: boolean
+                    description: Whether the file exists
+                    example: true
+                  file_name:
+                    type: string
+                    description: The sanitized filename checked
+                    example: document.pdf
+                  suggested_name:
+                    type: string
+                    nullable: true
+                    description: If file exists, a suggested unique filename
+                    example: document_1.pdf
+        '400':
+          description: Invalid request (bad path)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileError'
+      x-source-file: backend/api/files.py
+
+  /api/files/health:
+    get:
+      tags:
+        - Files
+      summary: File service health check
+      description: Check the health status of the file upload service
+      operationId: filesHealthCheck
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    type: string
+                    example: files
+                  status:
+                    type: string
+                    example: ready
+                  features:
+                    type: object
+                    properties:
+                      upload:
+                        type: boolean
+                        example: true
+                      max_file_size_mb:
+                        type: integer
+                        example: 15
+                      storage_path:
+                        type: string
+                        example: public/documents/
+                  storage:
+                    type: object
+                    properties:
+                      available:
+                        type: boolean
+                        example: true
+                      path:
+                        type: string
+                        example: /home/ayanm/projects/info-base/infobase-ai/public/documents
+        '503':
+          description: Service is degraded (storage not available)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    type: string
+                    example: files
+                  status:
+                    type: string
+                    example: degraded
+                  features:
+                    type: object
+                    properties:
+                      upload:
+                        type: boolean
+                        example: true
+                      max_file_size_mb:
+                        type: integer
+                        example: 15
+                      storage_path:
+                        type: string
+                        example: public/documents/
+                  storage:
+                    type: object
+                    properties:
+                      available:
+                        type: boolean
+                        example: false
+                      path:
+                        type: string
+                        example: /home/ayanm/projects/info-base/infobase-ai/public/documents
+      x-source-file: backend/api/files.py
 
   /auth/login:
     post:
@@ -1168,3 +1493,21 @@ components:
         details:
           type: object
           additionalProperties: true
+
+    FileError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: Validation failed
+        detail:
+          type: string
+          description: Detailed error message
+          example: case_id contains invalid characters
+        file_name:
+          type: string
+          description: Name of the file involved in the error
+          example: document.pdf

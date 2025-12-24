@@ -32,8 +32,15 @@ export default function DocumentViewer() {
     if (selectedDocument && isImage) {
       setImageLoading(true);
       setImageError(false);
+      // Debug: Log image path for troubleshooting
+      console.log('Loading image:', {
+        name: selectedDocument.name,
+        caseId: currentCase.id,
+        folderId: selectedDocument.folderId,
+        fullPath: `/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`,
+      });
     }
-  }, [selectedDocument?.id, isImage]);
+  }, [selectedDocument?.id, isImage, currentCase.id]);
 
   const tabs: { id: DocumentTab; label: string; icon: React.ReactNode }[] = [
     { id: 'pdf', label: 'PDF', icon: <FileText className="w-4 h-4" /> },

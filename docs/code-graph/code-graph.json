@@ -60,7 +60,10 @@
         "S3-001: /anonymize command sends WebSocket message with type 'anonymize', filePath, caseId, folderId",
         "S3-001: anonymization_complete handler creates new Document object for anonymized file",
         "S3-001: anonymization_complete handler adds document to currentCase folder",
-        "S3-001: anonymization_complete handler auto-selects the anonymized document"
+        "S3-001: anonymization_complete handler auto-selects the anonymized document",
+        "S4-001: Provides addDocumentToFolder function for adding uploaded documents to case folders",
+        "S4-001: Provides refreshDocuments function for forcing document tree re-render",
+        "S4-002: Provides removeDocumentFromFolder function for removing deleted documents from state"
       ]
     },
     {
@@ -137,7 +140,19 @@
         "Displays case status with color-coded badges",
         "Collapsible sidebar with toggle functionality",
         "Uses getFileIcon helper function for document type icons",
-        "Uses toast hook for upload notifications"
+        "Uses toast hook for upload notifications",
+        "S4-001: Imports uploadFile, validateFileSize, formatFileSize, checkFileExists from @/lib/fileApi",
+        "S4-001: Imports UploadProgress type and UploadProgressComponent from upload-related modules",
+        "S4-001: Manages uploadQueue state for tracking multiple file uploads",
+        "S4-001: Implements handleUploadToFolder with duplicate detection and 3s timeout fallback",
+        "S4-001: Implements performUpload helper for actual file upload with progress tracking",
+        "S4-001: Uses DuplicateFileDialog for handling duplicate file names with rename option",
+        "S4-001: Drop zone section at bottom for easy drag-and-drop uploads to uploads folder",
+        "S4-002: Imports DeleteConfirmDialog for file deletion confirmation",
+        "S4-002: Implements handleDeleteDocument to open delete confirmation dialog",
+        "S4-002: Implements handleConfirmDelete to execute file deletion via API",
+        "S4-002: Delete button visible on hover for files in uploads folder only",
+        "S4-002: Context menu includes Delete File option for uploads folder"
       ]
     },
     {
@@ -436,6 +451,7 @@
         "Configures CORS middleware for frontend communication",
         "Registers chat_router from backend/api/chat.py",
         "Registers admin_router from backend/api/admin.py (S2-003)",
+        "S4-001: Registers files_router from backend/api/files.py for file management API",
         "Defines lifespan context manager for startup/shutdown events",
         "Exposes /health and / (root) endpoints",
         "Allows origins: localhost:5173, localhost:3000",
@@ -1260,6 +1276,363 @@
         "S3-002: Array of supported image file extensions",
         "Value: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']",
         "Used to determine if selected document should render as image"
+      ]
+    },
+    {
+      "name": "backend/api/files.py",
+      "entityType": "APIRouter",
+      "observations": [
+        "S4-001: File Management API for BAMF AI Case Management System",
+        "Provides REST endpoints for file upload, deletion, and management operations",
+        "Exports FastAPI router with prefix /api/files",
+        "Defines UploadResponse Pydantic model for file upload responses",
+        "Defines ErrorResponse Pydantic model for error responses",
+        "Defines DeleteResponse Pydantic model for file deletion responses",
+        "Defines FileExistsResponse Pydantic model for file existence check responses",
+        "Features: Maximum file size 15 MB, case-scoped storage, filename sanitization, path traversal prevention"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::POST_/api/files/upload",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "S4-001: POST endpoint for uploading files to case folders",
+        "Accepts multipart/form-data with file, case_id, folder_id, rename_to parameters",
+        "Validates file size (15 MB limit) using validate_file_size()",
+        "Sanitizes filename using sanitize_filename()",
+        "Validates case path using validate_case_path()",
+        "Creates folder if needed using create_folder_if_needed()",
+        "Saves file using save_uploaded_file()",
+        "Returns UploadResponse with file_path, file_name, size, success status",
+        "HTTP status codes: 200 success, 400 validation error, 413 file too large, 500 server error"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::DELETE_/api/files/{case_id}/{folder_id}/{filename}",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "S4-002: DELETE endpoint for removing files from case folders",
+        "Path parameters: case_id, folder_id, filename",
+        "Calls delete_file() from file_service with security validation",
+        "Returns DeleteResponse with success status, message, file_name",
+        "HTTP status codes: 200 success, 400 validation error, 403 access denied, 404 not found, 500 server error",
+        "Includes path traversal prevention and case directory validation"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::GET_/api/files/exists/{case_id}/{folder_id}/{filename}",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "S4-001: GET endpoint for checking if file already exists (duplicate detection)",
+        "Path parameters: case_id, folder_id, filename",
+        "Calls check_file_exists() and generate_unique_filename() from file_service",
+        "Returns FileExistsResponse with exists boolean, file_name, suggested_name",
+        "Used by frontend for duplicate detection before upload",
+        "HTTP status codes: 200 success, 400 validation error"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::GET_/api/files/health",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "S4-001: GET endpoint for file service health check",
+        "Checks if public/documents directory exists",
+        "Returns service status, features (upload enabled, max size), storage availability",
+        "HTTP status codes: 200 ready, 503 degraded"
+      ]
+    },
+    {
+      "name": "backend/services/file_service.py",
+      "entityType": "Service",
+      "observations": [
+        "S4-001: File Management Service for BAMF AI Case Management System",
+        "Provides file validation, sanitization, and storage utilities",
+        "Stateless design pattern for reliability and testability",
+        "Defines MAX_FILE_SIZE_BYTES constant (15 MB)",
+        "Defines MAX_FILENAME_LENGTH constant (255)",
+        "Defines UNSAFE_FILENAME_CHARS regex pattern"
+      ]
+    },
+    {
+      "name": "backend/services/file_service.py::validate_file_size",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Validates file size against maximum limit",
+        "Signature: validate_file_size(file_size: int, max_size: int = MAX_FILE_SIZE_BYTES) -> None",
+        "Raises ValueError if file exceeds limit or is empty (0 bytes)",
+        "Default limit: 15 MB"
+      ]
+    },
+    {
+      "name": "backend/services/file_service.py::sanitize_filename",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Sanitizes filename to prevent security issues",
+        "Signature: sanitize_filename(filename: str) -> str",
+        "Removes path separators, parent directory references, special characters",
+        "Limits filename length to 255 characters",
+        "Prevents null bytes and path traversal attacks",
+        "Replaces spaces with underscores for URL compatibility"
+      ]
+    },
+    {
+      "name": "backend/services/file_service.py::validate_case_path",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Validates case_id and folder_id for safe use in file paths",
+        "Signature: validate_case_path(case_id: str, folder_id: str) -> None",
+        "Prevents path traversal attacks (../, /, \\\\, null bytes)",
+        "Validates format: alphanumeric, hyphens, underscores only",
+        "Raises ValueError on invalid input"
+      ]
+    },
+    {
+      "name": "backend/services/file_service.py::create_folder_if_needed",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Creates folder and parent directories if they don't exist",
+        "Signature: create_folder_if_needed(folder_path: Union[Path, str]) -> None",
+        "Uses Path.mkdir(parents=True, exist_ok=True)",
+        "Raises OSError if creation fails"
+      ]
+    },
+    {
+      "name": "backend/services/file_service.py::save_uploaded_file",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Saves uploaded file contents to disk",
+        "Signature: save_uploaded_file(file_path: Union[Path, str], file_contents: bytes) -> None",
+        "Performs atomic write operation using binary mode",
+        "Creates parent directories if needed",
+        "Raises OSError on failure"
+      ]
+    },
+    {
+      "name": "backend/services/file_service.py::delete_file",
+      "entityType": "Function",
+      "observations": [
+        "S4-002: Deletes file from case folder with security validation",
+        "Signature: delete_file(case_id: str, folder_id: str, filename: str) -> bool",
+        "Validates case path and sanitizes filename",
+        "Security check: ensures resolved path stays within case directory",
+        "Raises FileNotFoundError, PermissionError, ValueError, OSError on errors"
+      ]
+    },
+    {
+      "name": "backend/services/file_service.py::check_file_exists",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Checks if file already exists in case folder",
+        "Signature: check_file_exists(case_id: str, folder_id: str, filename: str) -> bool",
+        "Validates case path and sanitizes filename before checking",
+        "Used for duplicate detection before upload"
+      ]
+    },
+    {
+      "name": "backend/services/file_service.py::generate_unique_filename",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Generates unique filename by adding numeric suffix",
+        "Signature: generate_unique_filename(case_id: str, folder_id: str, filename: str) -> str",
+        "Returns original name if file doesn't exist",
+        "Adds _1, _2, etc. suffix before extension if exists",
+        "Example: document.pdf -> document_1.pdf",
+        "Maximum 1000 attempts before raising ValueError"
+      ]
+    },
+    {
+      "name": "src/components/ui/DeleteConfirmDialog.tsx",
+      "entityType": "UIComponent",
+      "observations": [
+        "S4-002: Reusable confirmation dialog for file deletion operations",
+        "Exports DeleteConfirmDialog component",
+        "Exports DeleteConfirmDialogProps interface",
+        "Props: isOpen, fileName, onConfirm, onCancel, isDeleting",
+        "Features: Warning icon, loading state, keyboard accessible (Escape to close)",
+        "Uses shadcn/ui Dialog, Button components",
+        "Uses lucide-react AlertTriangle icon"
+      ]
+    },
+    {
+      "name": "src/components/ui/DuplicateFileDialog.tsx",
+      "entityType": "UIComponent",
+      "observations": [
+        "S4-001: Dialog for handling duplicate file uploads",
+        "Exports DuplicateFileDialog component",
+        "Exports DuplicateFileDialogProps interface",
+        "Exports DuplicateFileInfo interface",
+        "Props: isOpen, fileInfo, onRename, onCancel",
+        "Shows original and suggested filenames with visual comparison",
+        "Options: Rename & Upload or Cancel Upload",
+        "Uses shadcn/ui Dialog, Button components",
+        "Uses lucide-react AlertCircle, FileText icons"
+      ]
+    },
+    {
+      "name": "src/components/ui/UploadProgress.tsx",
+      "entityType": "UIComponent",
+      "observations": [
+        "S4-001: Upload progress indicator component",
+        "Exports UploadProgress component",
+        "Props: fileName, progress, status, error, size, className",
+        "Status states: idle, uploading, success, error",
+        "Features: Animated progress bar, status icons, file size display, error messages",
+        "Uses shadcn/ui Progress, Card components",
+        "Uses lucide-react FileText, CheckCircle2, XCircle, Loader2 icons",
+        "Imports formatFileSize from @/lib/fileApi"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "S4-001: Drag-and-drop file upload zone component",
+        "Exports FileDropZone component",
+        "Props: caseId, folderId, onUploadComplete, onAllUploadsComplete, className, isVisible, showClickHint",
+        "Features: Visual drag-over indicator, multiple file support, progress tracking, client-side size validation",
+        "Implements sequential upload queue",
+        "Global drag detection for window-level drop events",
+        "Click-to-upload button with hover expansion",
+        "Imports uploadFile, validateFileSize, formatFileSize from @/lib/fileApi",
+        "Imports UploadProgress type from @/types/file",
+        "Uses UploadProgress component for progress display"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts",
+      "entityType": "APIClient",
+      "observations": [
+        "S4-001/S4-002: File API client for BAMF AI Case Management System",
+        "Exports uploadFile async function for file upload with progress tracking",
+        "Exports deleteFile async function for file deletion",
+        "Exports checkFileExists async function for duplicate detection",
+        "Exports validateFileSize function for client-side size validation",
+        "Exports validateFileExtension function for extension validation",
+        "Exports formatFileSize function for display formatting",
+        "Exports getFileExtension function for extension extraction",
+        "Exports checkFileServiceHealth function for service health check",
+        "Exports DeleteResult, FileExistsResult interfaces",
+        "Uses XMLHttpRequest for progress tracking, fetch for simple uploads",
+        "API_BASE_URL from VITE_API_URL environment variable"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::uploadFile",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Async function for file upload with progress tracking",
+        "Signature: uploadFile(request: UploadRequest): Promise<UploadResult>",
+        "Client-side size validation before upload",
+        "Supports optional renameTo parameter for duplicate handling",
+        "Uses XMLHttpRequest if onProgress callback provided, fetch otherwise",
+        "2 minute timeout for large files"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::deleteFile",
+      "entityType": "Function",
+      "observations": [
+        "S4-002: Async function for file deletion",
+        "Signature: deleteFile(caseId: string, folderId: string, filename: string): Promise<DeleteResult>",
+        "Encodes URI components for special characters",
+        "Calls DELETE /api/files/{caseId}/{folderId}/{filename}"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::checkFileExists",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Async function for duplicate detection",
+        "Signature: checkFileExists(caseId: string, folderId: string, filename: string): Promise<FileExistsResult>",
+        "Returns exists boolean and suggested_name if file exists",
+        "Calls GET /api/files/exists/{caseId}/{folderId}/{filename}"
+      ]
+    },
+    {
+      "name": "src/types/file.ts",
+      "entityType": "Types",
+      "observations": [
+        "S4-001: TypeScript type definitions for file upload operations",
+        "Exports UploadResult interface for upload response",
+        "Exports UploadProgress interface for tracking upload status",
+        "Exports FileValidationErrorCode type union for error types",
+        "Exports FileValidationError interface for structured error info",
+        "Exports UploadConstraints interface for upload configuration",
+        "Exports DEFAULT_UPLOAD_CONSTRAINTS constant (15 MB, uploads folder)",
+        "Exports UploadRequest interface for upload parameters",
+        "Exports MultiUploadState interface for multiple file tracking"
+      ]
+    },
+    {
+      "name": "src/contexts/AppContext.tsx::addDocumentToFolder",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Adds document to folder in case state",
+        "Signature: addDocumentToFolder(caseId: string, folderId: string, document: Document) -> void",
+        "Updates both cases array and currentCase state",
+        "Matches folder by id or name (case-insensitive)"
+      ]
+    },
+    {
+      "name": "src/contexts/AppContext.tsx::removeDocumentFromFolder",
+      "entityType": "Function",
+      "observations": [
+        "S4-002: Removes document from folder in case state",
+        "Signature: removeDocumentFromFolder(caseId: string, folderId: string, documentId: string) -> void",
+        "Updates both cases array and currentCase state",
+        "Clears selectedDocument if deleted document was selected",
+        "Resets viewMode to form after deletion"
+      ]
+    },
+    {
+      "name": "src/contexts/AppContext.tsx::refreshDocuments",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Forces re-render of document tree",
+        "Signature: refreshDocuments() -> void",
+        "Triggers state update for currentCase",
+        "Placeholder for future backend document sync"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadToFolder",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Uploads files to specific folder with duplicate detection",
+        "Validates file size before upload",
+        "Checks file existence with 3 second timeout fallback",
+        "Shows DuplicateFileDialog if file exists",
+        "Calls performUpload for actual upload"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::performUpload",
+      "entityType": "Function",
+      "observations": [
+        "S4-001: Internal helper for actual file upload",
+        "Manages upload progress queue",
+        "Supports optional renameTo parameter for duplicates",
+        "Creates Document object and calls addDocumentToFolder on success",
+        "Shows toast notifications for success/error"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDeleteDocument",
+      "entityType": "Function",
+      "observations": [
+        "S4-002: Opens delete confirmation dialog",
+        "Sets documentToDelete state with folderId and document",
+        "Opens DeleteConfirmDialog"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleConfirmDelete",
+      "entityType": "Function",
+      "observations": [
+        "S4-002: Executes file deletion after confirmation",
+        "Calls deleteFile API from fileApi.ts",
+        "Calls removeDocumentFromFolder to update state",
+        "Shows toast notifications for success/error"
       ]
     }
   ],
@@ -2183,6 +2556,331 @@
       "from_": "backend/services/anonymization_service.py::AnonymizationService",
       "to": "backend/services/anonymization_service.py::AnonymizationResult",
       "relationType": "returns"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/files.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/files.py::POST_/api/files/upload",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/files.py::DELETE_/api/files/{case_id}/{folder_id}/{filename}",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/files.py::GET_/api/files/exists/{case_id}/{folder_id}/{filename}",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/files.py::GET_/api/files/health",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/services/file_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::POST_/api/files/upload",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::DELETE_/api/files/{case_id}/{folder_id}/{filename}",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::GET_/api/files/exists/{case_id}/{folder_id}/{filename}",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::GET_/api/files/health",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py::POST_/api/files/upload",
+      "to": "backend/services/file_service.py::validate_file_size",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::POST_/api/files/upload",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::POST_/api/files/upload",
+      "to": "backend/services/file_service.py::validate_case_path",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::POST_/api/files/upload",
+      "to": "backend/services/file_service.py::create_folder_if_needed",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::POST_/api/files/upload",
+      "to": "backend/services/file_service.py::save_uploaded_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::DELETE_/api/files/{case_id}/{folder_id}/{filename}",
+      "to": "backend/services/file_service.py::delete_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::GET_/api/files/exists/{case_id}/{folder_id}/{filename}",
+      "to": "backend/services/file_service.py::check_file_exists",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::GET_/api/files/exists/{case_id}/{folder_id}/{filename}",
+      "to": "backend/services/file_service.py::generate_unique_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::GET_/api/files/exists/{case_id}/{folder_id}/{filename}",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py",
+      "to": "backend/services/file_service.py::validate_file_size",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/file_service.py",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/file_service.py",
+      "to": "backend/services/file_service.py::validate_case_path",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/file_service.py",
+      "to": "backend/services/file_service.py::create_folder_if_needed",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/file_service.py",
+      "to": "backend/services/file_service.py::save_uploaded_file",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/file_service.py",
+      "to": "backend/services/file_service.py::delete_file",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/file_service.py",
+      "to": "backend/services/file_service.py::check_file_exists",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/file_service.py",
+      "to": "backend/services/file_service.py::generate_unique_filename",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/file_service.py::delete_file",
+      "to": "backend/services/file_service.py::validate_case_path",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::delete_file",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::check_file_exists",
+      "to": "backend/services/file_service.py::validate_case_path",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::check_file_exists",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::generate_unique_filename",
+      "to": "backend/services/file_service.py::validate_case_path",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::generate_unique_filename",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::generate_unique_filename",
+      "to": "backend/services/file_service.py::check_file_exists",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::save_uploaded_file",
+      "to": "backend/services/file_service.py::create_folder_if_needed",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "src/types/file.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::uploadFile",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::deleteFile",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::checkFileExists",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/lib/fileApi.ts::uploadFile",
+      "to": "backend/api/files.py::POST_/api/files/upload",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/lib/fileApi.ts::deleteFile",
+      "to": "backend/api/files.py::DELETE_/api/files/{case_id}/{folder_id}/{filename}",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/lib/fileApi.ts::checkFileExists",
+      "to": "backend/api/files.py::GET_/api/files/exists/{case_id}/{folder_id}/{filename}",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/ui/UploadProgress.tsx",
+      "to": "src/lib/fileApi.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/lib/fileApi.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/types/file.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/components/ui/UploadProgress.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/lib/fileApi.ts::uploadFile",
+      "relationType": "uses"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/lib/fileApi.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/types/file.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/ui/UploadProgress.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/ui/DeleteConfirmDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/ui/DuplicateFileDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadToFolder",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::performUpload",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDeleteDocument",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleConfirmDelete",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadToFolder",
+      "to": "src/lib/fileApi.ts::checkFileExists",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadToFolder",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::performUpload",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx::performUpload",
+      "to": "src/lib/fileApi.ts::uploadFile",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx::performUpload",
+      "to": "src/contexts/AppContext.tsx::addDocumentToFolder",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx::handleConfirmDelete",
+      "to": "src/lib/fileApi.ts::deleteFile",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx::handleConfirmDelete",
+      "to": "src/contexts/AppContext.tsx::removeDocumentFromFolder",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::addDocumentToFolder",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::removeDocumentFromFolder",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::refreshDocuments",
+      "relationType": "defines"
     }
   ]
 }
