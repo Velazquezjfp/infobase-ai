@@ -197,13 +197,27 @@ WebSocket endpoint for real-time, case-scoped AI chat communication.
 ```
 
 **Message Fields:**
-- `type` (required): Message type - currently only "chat" is supported
+- `type` (required): Message type - "chat" or "anonymize"
 - `content` (required): User's message, question, or instruction
 - `caseId` (optional): Case ID for context (should match URL parameter)
 - `folderId` (optional): Folder ID for folder-specific context
 - `documentContent` (optional): Document text to include in context
 - `formSchema` (optional): Form field definitions for extraction requests
 - `stream` (optional): Enable streaming responses (default: true)
+
+**Anonymization Message Format:**
+```json
+{
+  "type": "anonymize",
+  "filePath": "/path/to/document.jpg",
+  "folderId": "optional-folder-id"
+}
+```
+
+**Anonymization Message Fields:**
+- `type` (required): Must be "anonymize"
+- `filePath` (required): Path to the document file to anonymize
+- `folderId` (optional): Folder ID for context
 
 **Form Extraction Trigger:**
 The AI automatically detects form filling requests when:
@@ -277,11 +291,34 @@ The AI automatically detects form filling requests when:
 }
 ```
 
+**Anonymization Complete Message:**
+```json
+{
+  "type": "anonymization_complete",
+  "originalPath": "/path/to/document.jpg",
+  "anonymizedPath": "/path/to/anonymized/document.jpg",
+  "detectionsCount": 5,
+  "success": true,
+  "error": null,
+  "timestamp": null
+}
+```
+
+**Anonymization Confirmation Message:**
+```json
+{
+  "type": "chat_response",
+  "content": "Document anonymized successfully. Found and masked 5 PII fields. The anonymized version has been saved.",
+  "timestamp": null
+}
+```
+
 **Message Types Summary:**
 - `system` - System notifications (connection status, etc.)
 - `chat_response` - AI text responses to user queries (non-streaming mode)
 - `chat_chunk` - Streaming AI response chunks with completion flag
 - `form_update` - Extracted form field values with confidence scores
+- `anonymization_complete` - Document anonymization results with file paths and detection count
 - `error` - Error notifications
 
 **Context Loading:**
@@ -518,6 +555,82 @@ ws.send(JSON.stringify({
 // 2. chat_response confirming extraction
 ```
 
+**Document Anonymization Example:**
+```javascript
+// Request anonymization of a document
+ws.send(JSON.stringify({
+  type: "anonymize",
+  filePath: "/path/to/documents/ACTE-2024-001/personal-data/passport.jpg",
+  folderId: "personal-data"
+}));
+
+// Expected responses:
+// 1. anonymization_complete with result details
+// 2. chat_response confirming the operation
+```
+
+**Anonymization Workflow:**
+
+The WebSocket endpoint supports real-time document anonymization for image files:
+
+1. **Client Request:**
+   - Client sends `anonymize` message with `filePath` to document
+   - Optionally includes `folderId` for context
+   - Only image files (PNG, JPG, JPEG, etc.) are currently supported
+
+2. **Server Processing:**
+   - Validates file path is provided
+   - Checks file format is supported (image files only)
+   - Calls anonymization service to detect and mask PII
+   - Creates anonymized version in same directory with "_anonymized" suffix
+
+3. **Server Response:**
+   - Sends `anonymization_complete` message with:
+     - `originalPath`: Path to original document
+     - `anonymizedPath`: Path to anonymized version (or null if failed)
+     - `detectionsCount`: Number of PII fields detected and masked
+     - `success`: Boolean indicating if operation succeeded
+     - `error`: Error message if operation failed (null otherwise)
+   - Sends follow-up `chat_response` with human-readable confirmation
+
+4. **Supported File Formats:**
+   - PNG (.png)
+   - JPEG (.jpg, .jpeg)
+   - Other image formats supported by anonymization service
+
+5. **Error Cases:**
+   - **No file path provided:** Returns error in `anonymization_complete`
+   - **Unsupported format:** Returns error for non-image files
+   - **Service failure:** Returns error with details from anonymization service
+
+**Anonymization Response Examples:**
+
+Success case:
+```json
+{
+  "type": "anonymization_complete",
+  "originalPath": "/public/documents/ACTE-2024-001/personal-data/passport.jpg",
+  "anonymizedPath": "/public/documents/ACTE-2024-001/personal-data/passport_anonymized.jpg",
+  "detectionsCount": 8,
+  "success": true,
+  "error": null,
+  "timestamp": null
+}
+```
+
+Failure case (unsupported format):
+```json
+{
+  "type": "anonymization_complete",
+  "originalPath": "/path/to/document.pdf",
+  "anonymizedPath": null,
+  "detectionsCount": 0,
+  "success": false,
+  "error": "Unsupported file format. Only image files (PNG, JPG, etc.) can be anonymized.",
+  "timestamp": null
+}
+```
+
 **Security Considerations:**
 
 - No authentication currently implemented (planned for future)
@@ -569,6 +682,7 @@ ws.send(JSON.stringify({
 - One connection per case (reconnection required for case switch)
 - No support for file uploads via WebSocket (use REST endpoints)
 - Form extraction always uses non-streaming mode internally
+- Anonymization only supports image files (PDF support planned for future)
 
 ---
 
@@ -2074,6 +2188,6 @@ Breaking changes will result in a new version. Non-breaking changes (additions) 
 
 ---
 
-**Last Updated:** 2025-12-23
-**API Version:** 1.4.0 (Partial Implementation)
-**Current Implementation:** Backend with WebSocket + AI + Streaming + Enhanced Form Extraction + Admin API, Frontend simulations for other operations
+**Last Updated:** 2025-12-24
+**API Version:** 1.5.0 (Partial Implementation)
+**Current Implementation:** Backend with WebSocket + AI + Streaming + Enhanced Form Extraction + Admin API + Document Anonymization, Frontend simulations for other operations

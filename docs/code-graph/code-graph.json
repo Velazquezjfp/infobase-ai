@@ -39,7 +39,7 @@
         "Manages UI state: highlightedFolder, isAdminMode, isSidebarCollapsed",
         "Provides switchCase, addNewCase, searchCases functions",
         "Defines AppContextType interface with 20+ properties",
-        "Imports WebSocketState, ConnectionStatus, WebSocketMessage from @/types/websocket",
+        "Imports WebSocketState, ConnectionStatus, WebSocketMessage, AnonymizationResponse from @/types/websocket",
         "Manages WebSocket state: wsConnection, wsStatus, streamingMessageId, isTyping",
         "Provides connectWebSocket function for establishing WebSocket connections",
         "Provides disconnectWebSocket function for closing connections",
@@ -51,7 +51,16 @@
         "Handles system and error message types",
         "Auto-connects WebSocket when user logs in or case changes via useEffect",
         "Cleans up WebSocket connections on component unmount",
-        "Streaming message accumulation logic appends chunks to last assistant message"
+        "Streaming message accumulation logic appends chunks to last assistant message",
+        "S3-001: Manages isAnonymizing state for anonymization loading indicator",
+        "S3-001: Handles anonymization_complete message type from WebSocket",
+        "S3-001: Uses AnonymizationResponse type from @/types/websocket",
+        "S3-001: sendChatMessage handles /anonymize command for chat-based anonymization",
+        "S3-001: /anonymize command validates selectedDocument is an image type",
+        "S3-001: /anonymize command sends WebSocket message with type 'anonymize', filePath, caseId, folderId",
+        "S3-001: anonymization_complete handler creates new Document object for anonymized file",
+        "S3-001: anonymization_complete handler adds document to currentCase folder",
+        "S3-001: anonymization_complete handler auto-selects the anonymized document"
       ]
     },
     {
@@ -158,13 +167,27 @@
       "entityType": "WorkspaceComponent",
       "observations": [
         "Document viewer component",
-        "Uses useApp context for selectedDocument, setSelectedDocument, setViewMode",
-        "Uses useState for activeTab (pdf, xml, json, docx)",
-        "Displays document with format tabs",
+        "Uses useApp context for selectedDocument, setSelectedDocument, setViewMode, wsConnection, wsStatus, currentCase, isAnonymizing, setIsAnonymizing",
+        "Uses useState for activeTab (pdf, xml, json, docx), imageLoading, imageError",
+        "Displays document with format tabs for non-image documents",
         "Includes document actions: Convert PDF, Translate, Anonymize, Download, Metadata",
         "Uses toast hook for action notifications",
         "Uses Button component from shadcn/ui",
-        "Uses lucide-react icons for document types"
+        "Uses lucide-react icons for document types (FileText, FileJson, FileCode, File, ImageIcon, AlertCircle)",
+        "S3-001: Defines handleAnonymize() function for anonymization workflow",
+        "S3-001: Uses isAnonymizing state from AppContext for loading indicator",
+        "S3-001: Sends AnonymizationRequest via WebSocket when Anonymize button clicked",
+        "S3-002: Defines IMAGE_EXTENSIONS constant: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']",
+        "S3-002: Computes isImage boolean from selectedDocument.type and IMAGE_EXTENSIONS",
+        "S3-002: Computes imagePath for image display: /documents/{caseId}/{folderId}/{filename}",
+        "S3-002: Defines handleDownloadImage() async function for image download",
+        "S3-002: Defines handleImageLoad() callback for successful image load",
+        "S3-002: Defines handleImageError() callback for image load failure",
+        "S3-002: Uses imageLoading and imageError state for image loading UI",
+        "S3-002: Renders img element with onLoad/onError handlers for image documents",
+        "S3-002: Shows loading spinner (Loader2) during image loading",
+        "S3-002: Shows error state (AlertCircle) when image fails to load",
+        "S3-002: useEffect resets imageLoading/imageError when document changes"
       ]
     },
     {
@@ -235,18 +258,19 @@
       "entityType": "Types",
       "observations": [
         "TypeScript type definitions file",
-        "Exports Document interface with properties: id, name, type, size, uploadedAt, metadata, content",
+        "Exports Document interface with properties: id, name, type, size, uploadedAt, metadata, content, caseId, folderId",
         "Exports Folder interface with properties: id, name, documents, subfolders, isExpanded",
         "Exports Case interface with properties: id, name, createdAt, status, folders",
         "Exports FormField interface with properties: id, label, type, value, options, required",
         "Exports ChatMessage interface with properties: id, role, content, timestamp, command",
         "Exports SlashCommand interface with properties: command, label, description, icon",
-        "Document type union: 'pdf' | 'xml' | 'json' | 'docx'",
+        "S3-002: Document type union updated: 'pdf' | 'xml' | 'json' | 'docx' | 'txt' | 'jpg' | 'jpeg' | 'png' | 'gif' | 'webp' | 'bmp'",
         "Case status union: 'open' | 'pending' | 'completed'",
         "FormField type union: 'text' | 'date' | 'select' | 'textarea'",
         "ChatMessage role union: 'user' | 'assistant'",
         "FormField interface extended with optional shaclMetadata?: SHACLPropertyShape property (Sprint 2)",
-        "Imports SHACLPropertyShape from @/types/shacl for shaclMetadata typing (S2-003)"
+        "Imports SHACLPropertyShape from @/types/shacl for shaclMetadata typing (S2-003)",
+        "S3-002: Document interface extended with optional caseId and folderId for case-scoped path construction"
       ]
     },
     {
@@ -428,7 +452,7 @@
         "Defines ConnectionManager class for WebSocket connection lifecycle",
         "Exports FastAPI router with /ws/chat/{case_id} WebSocket endpoint",
         "Exports /api/chat/health GET endpoint for service health check",
-        "Handles message types: chat, system, chat_response, form_update, error",
+        "Handles message types: chat, system, chat_response, form_update, error, anonymize",
         "Integrates with GeminiService for AI responses",
         "Supports form field extraction from documents",
         "Each WebSocket connection is scoped to a specific case ID",
@@ -436,7 +460,13 @@
         "Streaming responses send is_complete: false for chunks, is_complete: true for completion marker",
         "Default streaming mode enabled for performance (stream parameter defaults to True)",
         "handle_form_extraction() passes case_id parameter to gemini_service.generate_response()",
-        "handle_form_extraction() explicitly sets stream=False for form extraction (non-streaming mode)"
+        "handle_form_extraction() explicitly sets stream=False for form extraction (non-streaming mode)",
+        "S3-001: Imports anonymize_document, is_supported_format from backend.tools.anonymization_tool",
+        "S3-001: Defines handle_anonymization() async function for WebSocket anonymize messages",
+        "S3-001: websocket_chat_endpoint routes 'anonymize' message type to handle_anonymization()",
+        "S3-001: handle_anonymization() validates filePath and format support",
+        "S3-001: handle_anonymization() calls anonymize_document(file_path)",
+        "S3-001: handle_anonymization() sends anonymization_complete message with originalPath, anonymizedPath, detectionsCount, success, error"
       ]
     },
     {
@@ -802,7 +832,10 @@
         "Exports ErrorMessage interface for error messages from server",
         "Exports WebSocketMessage union type combining all server message types",
         "Exports ConnectionStatus union type: disconnected | connecting | connected | error",
-        "Exports WebSocketState interface with connection, status, and error fields"
+        "Exports WebSocketState interface with connection, status, and error fields",
+        "S3-001: Exports AnonymizationRequest interface for anonymize message type",
+        "S3-001: Exports AnonymizationResponse interface for anonymization_complete message type",
+        "S3-001: WebSocketMessage union type updated to include AnonymizationResponse"
       ]
     },
     {
@@ -1003,6 +1036,230 @@
         "Defines optional closed property for closed world assumption",
         "Represents complete form schema as SHACL shape",
         "Added in Sprint 2 (S2-002)"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py",
+      "entityType": "Service",
+      "observations": [
+        "S3-001: Anonymization Service for document anonymization integration",
+        "Defines AnonymizationService class with singleton pattern",
+        "Defines AnonymizationResult dataclass for anonymization results",
+        "Provides anonymize_image(base64_image: str) async method for image anonymization",
+        "Provides check_service_health() async method for service health monitoring",
+        "Integrates with external anonymization service at localhost:5000/ai-analysis",
+        "Defines ANONYMIZATION_SERVICE_URL constant (API_URL = http://localhost:5000/ai-analysis)",
+        "Defines SECRET_KEY constant for API authentication",
+        "Defines TIMEOUT_SECONDS constant (30 seconds)",
+        "Uses aiohttp for async HTTP requests to external service",
+        "Handles PII detection and black box masking for identity documents"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py::AnonymizationService",
+      "entityType": "Class",
+      "observations": [
+        "S3-001: Singleton service class for document anonymization",
+        "Implements singleton pattern via __new__ method with _instance class variable",
+        "Class variables: _instance, API_URL, SECRET_KEY, TIMEOUT_SECONDS",
+        "Methods: anonymize_image(base64_image: str) -> AnonymizationResult, check_service_health() -> bool",
+        "anonymize_image() validates input format and adds data URI prefix if missing",
+        "anonymize_image() sends POST request with image and mode:default payload",
+        "anonymize_image() handles 200, 401, 400, and other status codes with appropriate error messages",
+        "check_service_health() pings service root endpoint with 5s timeout",
+        "Uses aiohttp.ClientSession for async HTTP communication"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py::AnonymizationResult",
+      "entityType": "Dataclass",
+      "observations": [
+        "S3-001: Dataclass for anonymization operation results",
+        "Attributes: success (bool), anonymized_image (Optional[str]), detections_count (int), error (Optional[str])",
+        "anonymized_image contains base64-encoded image with data URI prefix",
+        "detections_count indicates number of PII fields detected and masked",
+        "Used as return type for AnonymizationService.anonymize_image() method"
+      ]
+    },
+    {
+      "name": "backend/tools/anonymization_tool.py",
+      "entityType": "Tool",
+      "observations": [
+        "S3-001: Anonymization Tool for document anonymization operations",
+        "Exports anonymize_document(file_path: str) -> AnonymizationToolResult async function",
+        "Exports is_supported_format(file_path: str) -> bool function for format validation",
+        "Exports get_supported_formats() -> list[str] function to list supported formats",
+        "Defines AnonymizationToolResult dataclass for operation results",
+        "Defines SUPPORTED_EXTENSIONS constant: {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'}",
+        "Defines MIME_TYPES constant mapping extensions to MIME types",
+        "Helper functions: _get_anonymized_filename(), _image_to_base64(), _base64_to_image()",
+        "Integrates with AnonymizationService for actual anonymization",
+        "Imports AnonymizationService and AnonymizationResult from backend.services.anonymization_service"
+      ]
+    },
+    {
+      "name": "backend/tools/anonymization_tool.py::anonymize_document",
+      "entityType": "Function",
+      "observations": [
+        "S3-001: Main async function for document anonymization",
+        "Signature: async anonymize_document(file_path: str) -> AnonymizationToolResult",
+        "Step 1: Validates and converts image to base64 using _image_to_base64()",
+        "Step 2: Calls AnonymizationService().anonymize_image(base64_image)",
+        "Step 3: Generates output path using _get_anonymized_filename()",
+        "Step 4: Saves anonymized image using _base64_to_image()",
+        "Returns AnonymizationToolResult with original_path, anonymized_path, detections_count",
+        "Original file remains unchanged"
+      ]
+    },
+    {
+      "name": "backend/tools/anonymization_tool.py::is_supported_format",
+      "entityType": "Function",
+      "observations": [
+        "S3-001: Validates if document format is supported for anonymization",
+        "Signature: is_supported_format(file_path: str) -> bool",
+        "Extracts file extension using Path(file_path).suffix.lower()",
+        "Checks if extension is in SUPPORTED_EXTENSIONS set"
+      ]
+    },
+    {
+      "name": "backend/tools/anonymization_tool.py::get_supported_formats",
+      "entityType": "Function",
+      "observations": [
+        "S3-001: Returns list of supported document formats",
+        "Signature: get_supported_formats() -> list[str]",
+        "Returns list(SUPPORTED_EXTENSIONS)",
+        "Used by frontend/API to validate file selection"
+      ]
+    },
+    {
+      "name": "backend/tools/anonymization_tool.py::AnonymizationToolResult",
+      "entityType": "Dataclass",
+      "observations": [
+        "S3-001: Dataclass for anonymization tool results",
+        "Attributes: success (bool), original_path (str), anonymized_path (Optional[str]), detections_count (int), error (Optional[str])",
+        "original_path contains path to the original document",
+        "anonymized_path contains path to saved anonymized document"
+      ]
+    },
+    {
+      "name": "backend/tools/anonymization_tool.py::_get_anonymized_filename",
+      "entityType": "HelperFunction",
+      "observations": [
+        "S3-001: Generates filename for anonymized document",
+        "Signature: _get_anonymized_filename(original_path: str) -> str",
+        "Adds '_anonymized' suffix before the file extension",
+        "Example: /docs/passport.png -> /docs/passport_anonymized.png",
+        "Uses pathlib.Path for path manipulation"
+      ]
+    },
+    {
+      "name": "backend/tools/anonymization_tool.py::_image_to_base64",
+      "entityType": "HelperFunction",
+      "observations": [
+        "S3-001: Converts image file to base64 string with data URI prefix",
+        "Signature: _image_to_base64(file_path: str) -> tuple[Optional[str], Optional[str]]",
+        "Returns (base64_string, error_message) tuple",
+        "Validates file exists and has supported extension",
+        "Adds MIME type prefix (e.g., data:image/png;base64,...)"
+      ]
+    },
+    {
+      "name": "backend/tools/anonymization_tool.py::_base64_to_image",
+      "entityType": "HelperFunction",
+      "observations": [
+        "S3-001: Saves base64-encoded image to file",
+        "Signature: _base64_to_image(base64_string: str, output_path: str) -> tuple[bool, Optional[str]]",
+        "Returns (success, error_message) tuple",
+        "Removes data URI prefix if present before decoding",
+        "Creates parent directories if needed"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::handle_anonymization",
+      "entityType": "Function",
+      "observations": [
+        "S3-001: Async function handling WebSocket anonymize message type",
+        "Signature: async handle_anonymization(websocket, case_id, message) -> None",
+        "Extracts filePath and folderId from message dict",
+        "Validates filePath is provided, returns error if missing",
+        "Validates file format via is_supported_format(file_path)",
+        "Calls await anonymize_document(file_path) to perform anonymization",
+        "Sends anonymization_complete message with: originalPath, anonymizedPath, detectionsCount, success, error, timestamp",
+        "Sends follow-up chat_response message describing result",
+        "Handles exceptions and sends error response on failure"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::AnonymizationRequest",
+      "entityType": "Interface",
+      "observations": [
+        "S3-001: TypeScript interface for anonymization request messages",
+        "Extends BaseMessage with type 'anonymize'",
+        "Contains document data and filename for anonymization",
+        "Used by frontend to send anonymization requests"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::AnonymizationResponse",
+      "entityType": "Interface",
+      "observations": [
+        "S3-001: TypeScript interface for anonymization response messages",
+        "Contains anonymized document data",
+        "Includes success status and error information",
+        "Used by frontend to handle anonymization results"
+      ]
+    },
+    {
+      "name": "src/components/workspace/DocumentViewer.tsx::handleAnonymize",
+      "entityType": "Function",
+      "observations": [
+        "S3-001: Handler function for anonymize button click",
+        "Validates selectedDocument exists and wsConnection is connected",
+        "Validates document is an image type (supportedExtensions check)",
+        "Builds filePath from currentCase.id, selectedDocument.id, selectedDocument.name",
+        "Sends AnonymizationRequest via WebSocket with type, filePath, caseId, folderId",
+        "Sets isAnonymizing(true) and shows toast notification"
+      ]
+    },
+    {
+      "name": "src/components/workspace/DocumentViewer.tsx::handleDownloadImage",
+      "entityType": "Function",
+      "observations": [
+        "S3-002: Async handler function for image download button",
+        "Validates selectedDocument exists and isImage is true",
+        "Fetches image from imagePath using fetch API",
+        "Creates Blob from response and downloads via temporary anchor element",
+        "Cleans up object URL after download",
+        "Shows toast notifications for download start and completion/failure"
+      ]
+    },
+    {
+      "name": "src/components/workspace/DocumentViewer.tsx::handleImageLoad",
+      "entityType": "Function",
+      "observations": [
+        "S3-002: Callback function for successful image load",
+        "Sets imageLoading to false",
+        "Sets imageError to false",
+        "Called by img element onLoad event"
+      ]
+    },
+    {
+      "name": "src/components/workspace/DocumentViewer.tsx::handleImageError",
+      "entityType": "Function",
+      "observations": [
+        "S3-002: Callback function for image load failure",
+        "Sets imageLoading to false",
+        "Sets imageError to true",
+        "Called by img element onError event"
+      ]
+    },
+    {
+      "name": "src/components/workspace/DocumentViewer.tsx::IMAGE_EXTENSIONS",
+      "entityType": "Constant",
+      "observations": [
+        "S3-002: Array of supported image file extensions",
+        "Value: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']",
+        "Used to determine if selected document should render as image"
       ]
     }
   ],
@@ -1761,6 +2018,171 @@
       "from_": "backend/tools/pdf_processor.py",
       "to": "backend/tools/document_processor.py::register_processor",
       "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::AnonymizationService",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::AnonymizationResult",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::AnonymizationResult",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py",
+      "to": "backend/services/anonymization_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py",
+      "to": "backend/tools/anonymization_tool.py::anonymize_document",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py",
+      "to": "backend/tools/anonymization_tool.py::is_supported_format",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py",
+      "to": "backend/tools/anonymization_tool.py::get_supported_formats",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py",
+      "to": "backend/tools/anonymization_tool.py::AnonymizationToolResult",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py",
+      "to": "backend/tools/anonymization_tool.py::_get_anonymized_filename",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py",
+      "to": "backend/tools/anonymization_tool.py::_image_to_base64",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py",
+      "to": "backend/tools/anonymization_tool.py::_base64_to_image",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py::anonymize_document",
+      "to": "backend/services/anonymization_service.py::AnonymizationService",
+      "relationType": "uses"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py::anonymize_document",
+      "to": "backend/tools/anonymization_tool.py::is_supported_format",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py::anonymize_document",
+      "to": "backend/tools/anonymization_tool.py::_get_anonymized_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py::anonymize_document",
+      "to": "backend/tools/anonymization_tool.py::_image_to_base64",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py::anonymize_document",
+      "to": "backend/tools/anonymization_tool.py::_base64_to_image",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/tools/anonymization_tool.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_anonymization",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/chat.py::websocket_chat_endpoint",
+      "to": "backend/api/chat.py::handle_anonymization",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/chat.py::handle_anonymization",
+      "to": "backend/tools/anonymization_tool.py::anonymize_document",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/types/websocket.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleAnonymize",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx::handleAnonymize",
+      "to": "src/types/websocket.ts::AnonymizationRequest",
+      "relationType": "uses"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "src/types/websocket.ts::AnonymizationResponse",
+      "relationType": "uses"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleDownloadImage",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleImageLoad",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleImageError",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::IMAGE_EXTENSIONS",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/chat.py::handle_anonymization",
+      "to": "backend/tools/anonymization_tool.py::is_supported_format",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::AnonymizationService",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::AnonymizationResult",
+      "relationType": "returns"
     }
   ]
 }

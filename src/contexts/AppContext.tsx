@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Case, Document, FormField, ChatMessage } from '@/types/case';
 import { mockCase, initialFormFields, initialChatMessages, sampleCases, sampleCaseFormData, createNewCase } from '@/data/mockData';
-import { WebSocketState, ConnectionStatus, WebSocketMessage } from '@/types/websocket';
+import { WebSocketState, ConnectionStatus, WebSocketMessage, AnonymizationResponse } from '@/types/websocket';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/localStorage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -36,6 +36,9 @@ interface AppContextType {
   connectWebSocket: () => void;
   disconnectWebSocket: () => void;
   isTyping: boolean;
+  // Anonymization
+  isAnonymizing: boolean;
+  setIsAnonymizing: (isAnonymizing: boolean) => void;
   // UI state
   highlightedFolder: string | null;
   setHighlightedFolder: (folderId: string | null) => void;
@@ -88,6 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [wsStatus, setWsStatus] = useState<ConnectionStatus>('disconnected');
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [isAnonymizing, setIsAnonymizing] = useState(false);
 
   const updateFormField = (id: string, value: string) => {
     setFormFields(fields =>
@@ -268,6 +272,73 @@ export function AppProvider({ children }: { children: ReactNode }) {
               });
               break;
 
+            case 'anonymization_complete':
+              // Handle anonymization completion
+              setIsAnonymizing(false);
+              setIsTyping(false);
+              const anonResponse = message as AnonymizationResponse;
+
+              if (anonResponse.success && anonResponse.anonymizedPath) {
+                // Create document object for the anonymized file
+                const pathParts = anonResponse.anonymizedPath.split('/');
+                const anonymizedFileName = pathParts[pathParts.length - 1];
+
+                // Get the folder ID from the original selected document
+                const originalFolderId = selectedDocument?.folderId || 'personal-data';
+
+                // Extract file extension for type
+                const fileExtension = anonymizedFileName.split('.').pop()?.toLowerCase() || 'png';
+                const docType = (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(fileExtension)
+                  ? fileExtension
+                  : 'png') as Document['type'];
+
+                // Create a new document object for the anonymized file
+                const anonymizedDoc: Document = {
+                  id: `anon-${Date.now()}`,
+                  name: anonymizedFileName,
+                  type: docType,
+                  size: 'Unknown',
+                  uploadedAt: new Date().toISOString(),
+                  metadata: { documentType: 'Anonymized Image' },
+                  caseId: currentCase.id,
+                  folderId: originalFolderId,
+                };
+
+                // Add the anonymized document to the folder in currentCase
+                setCurrentCase(prev => ({
+                  ...prev,
+                  folders: prev.folders.map(folder => {
+                    if (folder.id === originalFolderId) {
+                      // Check if document already exists (avoid duplicates)
+                      const exists = folder.documents.some(doc => doc.name === anonymizedFileName);
+                      if (exists) {
+                        return folder;
+                      }
+                      return {
+                        ...folder,
+                        documents: [...folder.documents, anonymizedDoc],
+                      };
+                    }
+                    return folder;
+                  }),
+                }));
+
+                // Auto-select the anonymized document
+                setSelectedDocument(anonymizedDoc);
+
+                toast({
+                  title: 'Anonymization Complete',
+                  description: `Masked ${anonResponse.detectionsCount} PII field${anonResponse.detectionsCount !== 1 ? 's' : ''}. Document added to folder.`,
+                });
+              } else {
+                toast({
+                  title: 'Anonymization Failed',
+                  description: anonResponse.error || 'Unknown error occurred',
+                  variant: 'destructive',
+                });
+              }
+              break;
+
             default:
               console.warn('Unknown message type:', message);
           }
@@ -320,7 +391,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
       content,
     });
 
-    // Send message via WebSocket
+    // Check if this is an /anonymize command
+    if (content.trim().toLowerCase().startsWith('/anonymize')) {
+      // Handle anonymize command - requires a selected image document
+      if (!selectedDocument) {
+        setIsTyping(false);
+        addChatMessage({
+          role: 'assistant',
+          content: 'Please select an image document first before using /anonymize.',
+        });
+        return;
+      }
+
+      // Check if selected document is an image
+      const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'];
+      const docType = selectedDocument.type?.toLowerCase() || '';
+      if (!imageExtensions.includes(docType)) {
+        setIsTyping(false);
+        addChatMessage({
+          role: 'assistant',
+          content: `Cannot anonymize "${selectedDocument.name}". Only image files (PNG, JPG, etc.) can be anonymized.`,
+        });
+        return;
+      }
+
+      // Build file path for the selected document
+      const filePath = `public/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`;
+
+      // Send anonymize message type
+      const anonymizeMessage = {
+        type: 'anonymize',
+        filePath,
+        caseId: currentCase.id,
+        folderId: selectedDocument.folderId,
+      };
+
+      wsConnection.send(JSON.stringify(anonymizeMessage));
+      return;
+    }
+
+    // Send regular chat message via WebSocket
     const message = {
       type: 'chat',
       content,
@@ -436,6 +546,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         connectWebSocket,
         disconnectWebSocket,
         isTyping,
+        isAnonymizing,
+        setIsAnonymizing,
         highlightedFolder,
         setHighlightedFolder,
         isAdminMode,

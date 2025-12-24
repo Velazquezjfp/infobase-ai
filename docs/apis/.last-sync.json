@@ -1,7 +1,7 @@
 {
-  "last_commit": "29f8271",
-  "last_sync": "2025-12-23T12:00:00.000Z",
-  "documentation_version": "1.4.0",
+  "last_commit": "9154f40",
+  "last_sync": "2025-12-24T14:30:00.000Z",
+  "documentation_version": "1.5.0",
   "api_status": "partial_implementation",
   "tracked_paths": [
     "src/pages/Login.tsx",
@@ -25,6 +25,11 @@
     "backend/services/context_manager.py",
     "backend/services/field_generator.py",
     "backend/tools/form_parser.py",
+    "backend/tools/anonymization_tool.py",
+    "backend/tools/document_processor.py",
+    "backend/tools/pdf_processor.py",
+    "backend/tools/text_processor.py",
+    "backend/tools/__init__.py",
     "backend/schemas/__init__.py",
     "backend/schemas/shacl.py",
     "backend/schemas/jsonld_context.py"
@@ -43,6 +48,9 @@
     "ADMIN API: New admin endpoints for form field generation from natural language",
     "SHACL SUPPORT: Semantic metadata generation with JSON-LD format for fields",
     "AI-POWERED FIELD GENERATION: Rule-based extraction with Gemini AI fallback",
+    "DOCUMENT ANONYMIZATION: Real-time PII detection and masking via WebSocket for image files",
+    "ENHANCED CONTEXT MANAGEMENT (S2-004): Source tracking, conflict resolution, precedence rules",
+    "DOCUMENT PROCESSING FRAMEWORK: Extensible multi-format processor with TextProcessor and PDFProcessor (stub)",
     "CORS UPDATED: Added ports 8080 and 5174, explicit HTTP methods (GET, POST, PUT, DELETE, OPTIONS, PATCH)",
     "Frontend still uses simulated data, needs integration with backend",
     "Authentication is currently simulated in Login.tsx and AppContext.tsx",
@@ -51,7 +59,9 @@
     "React Query configured in App.tsx but not yet connected to backend"
   ],
   "implemented_endpoints": [
-    "WS /ws/chat/{case_id} - backend/api/chat.py (WebSocket real-time AI chat with streaming support)",
+    "WS /ws/chat/{case_id} - backend/api/chat.py (WebSocket real-time AI chat with streaming support and anonymization)",
+    "WS /ws/chat/{case_id} [message type: chat] - backend/api/chat.py (AI chat messages with form extraction)",
+    "WS /ws/chat/{case_id} [message type: anonymize] - backend/api/chat.py (Document anonymization with PII detection)",
     "GET /api/chat/health - backend/api/chat.py (Chat service health check)",
     "POST /api/admin/generate-field - backend/api/admin.py (Generate form field from natural language)",
     "GET /api/admin/health - backend/api/admin.py (Admin service health check)",
@@ -76,7 +86,17 @@
     "Rule-based field extraction with AI fallback (Gemini) for complex prompts",
     "Field validation and specification normalization in FieldGenerator service",
     "SHACLPropertyShape and SHACLNodeShape dataclasses for semantic form modeling",
-    "Support for text, date, select, and textarea field types with SHACL constraints"
+    "Support for text, date, select, and textarea field types with SHACL constraints",
+    "Document anonymization via WebSocket: PII detection and masking for image files (PNG, JPG, JPEG)",
+    "Anonymization result tracking: original path, anonymized path, detection count, success/error status",
+    "Real-time anonymization feedback: anonymization_complete and chat_response messages",
+    "Enhanced context management (S2-004): ContextSource enum, ContextEntry tracking, conflict resolution",
+    "Context precedence rules: DOCUMENT > USER > FOLDER > CASE > SYSTEM",
+    "MergedContext with source tracking for debugging and transparency",
+    "Document processing framework: Abstract DocumentProcessor base class with pluggable processors",
+    "TextProcessor: Full text file support with UTF-8 encoding and metadata extraction",
+    "PDFProcessor stub: Structure ready for Phase 3 PDF processing implementation",
+    "Extensible processor registry: get_processor(), get_supported_extensions(), is_supported()"
   ],
   "simulated_endpoints": [
     "/auth/login - Login.tsx",
@@ -90,10 +110,12 @@
     "/cases/{id}/forms (PUT) - FormViewer.tsx",
     "/ai/convert - AIChatInterface.tsx (to be replaced by WebSocket)",
     "/ai/translate - AIChatInterface.tsx (to be replaced by WebSocket)",
-    "/ai/anonymize - AIChatInterface.tsx (to be replaced by WebSocket)",
     "/ai/validate-case - AIChatInterface.tsx (to be replaced by WebSocket)",
     "/ai/extract-metadata - AIChatInterface.tsx (to be replaced by WebSocket)",
     "/search - AIChatInterface.tsx"
+  ],
+  "deprecated_simulated_endpoints": [
+    "/ai/anonymize - AIChatInterface.tsx (NOW IMPLEMENTED via WebSocket anonymize message type)"
   ],
   "future_implementation_notes": {
     "ready_for_api": [

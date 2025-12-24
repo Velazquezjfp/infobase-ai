@@ -436,6 +436,7 @@ export const mockCase: Case = {
       documents: [
         { id: 'doc-1', name: 'Birth_Certificate.txt', type: 'txt', size: '1.8 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'Birth Certificate', issuer: 'Kabul Civil Registry', language: 'German' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
         { id: 'doc-2', name: 'Passport_Scan.txt', type: 'txt', size: '1.9 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'Passport', expiryDate: '2028-05-20' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
+        { id: 'doc-7', name: 'passport_image.jpg', type: 'jpg', size: '62.6 KB', uploadedAt: '2024-12-24', metadata: { documentType: 'Passport Image' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
       ],
       subfolders: [],
     },

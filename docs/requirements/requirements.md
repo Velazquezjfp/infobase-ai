@@ -725,3 +725,419 @@ The system must utilize a "cascading effect" for context, pulling data from the 
 **Created:** 2025-12-22T00:00:00Z
 
 ---
+
+## Sprint 3 Requirements - Document Processing Features
+
+---
+
+## S3-001: Anonymization Service Integration
+
+**Status:** proposed
+
+**Description:**
+Implement an anonymization service as an AI agent tool that is triggered when users click the "Anonymize" button in the document visualization interface. The service detects and masks Personally Identifiable Information (PII) in identity documents such as passports, birth certificates, and driving licenses.
+
+**Service Workflow:**
+1. User clicks "Anonymize" button on a document
+2. System converts the document image to base64 string
+3. Base64 image is sent to the anonymization service API (`POST /ai-analysis`)
+4. Service returns anonymized image with black boxes over sensitive data
+5. Anonymized document is saved as a clone with `_anonymized` suffix
+6. UI automatically switches to display the newly created anonymized document
+
+**Technical Requirements:**
+- **API Endpoint:** External service at `http://localhost:5000/ai-analysis`
+- **Authentication:** Secret-Key header required (`2b5e151428aed2a6aff7158846cf4f2c`)
+- **Request Format:** JSON with `image` (base64 with data URI prefix) and `mode` ("default")
+- **Response Format:** JSON with `anonymized_image` (base64 PNG) and `detections_count`
+- **File Naming:** Original filename + `_anonymized` suffix (e.g., `birth_certificate_anonymized.png`)
+- **File Location:** Same directory as original document
+- **Privacy:** Self-contained service using its own trained model, no external API calls
+
+**Changes Required:**
+- Backend: Anonymization tool for AI agent
+  - Source: backend/tools/anonymization_tool.py (new file)
+  - Function: `anonymize_document(file_path: str) -> AnonymizationResult`
+  - Converts image to base64, calls API, saves result
+- Backend: Register anonymization tool with Gemini service
+  - Source: backend/services/gemini_service.py
+  - Add: Register `anonymize` as callable tool
+- Backend: Anonymization API client
+  - Source: backend/services/anonymization_service.py (new file)
+  - Class: `AnonymizationService` with methods `detect_pii()`, `anonymize_image()`
+- Frontend: Update DocumentViewer anonymize button
+  - Source: src/components/workspace/DocumentViewer.tsx
+  - Update: Anonymize button triggers actual anonymization via WebSocket
+- Frontend: Handle anonymization response
+  - Source: src/components/workspace/AIChatInterface.tsx
+  - Add: Handle `anonymization_complete` message type
+- Frontend: Auto-switch to anonymized document
+  - Source: src/contexts/AppContext.tsx
+  - Add: Logic to select newly created anonymized document
+- Types: Add anonymization message types
+  - Source: src/types/websocket.ts
+  - Add: `AnonymizationRequest`, `AnonymizationResult` interfaces
+
+**API Specification (External Service):**
+```json
+POST /ai-analysis
+Headers: { "Secret-Key": "2b5e151428aed2a6aff7158846cf4f2c" }
+Request: {
+  "image": "data:image/png;base64,iVBORw0KGgo...",
+  "mode": "default"
+}
+Response: {
+  "anonymized_image": "data:image/png;base64,iVBORw0KGgo...",
+  "detections_count": 5,
+  "mode": "default"
+}
+```
+
+**Test Cases:**
+- TC-S3-001-01: Click Anonymize on birth certificate image, verify service called with correct base64 format
+- TC-S3-001-02: Verify anonymized image saved with `_anonymized` suffix in same directory
+- TC-S3-001-03: Verify UI automatically switches to display anonymized document after completion
+- TC-S3-001-04: Send document without PII, verify service returns image with detections_count=0
+- TC-S3-001-05: Verify anonymization service uses correct Secret-Key header
+- TC-S3-001-06: Test with passport image, verify black boxes appear over sensitive fields
+- TC-S3-001-07: Verify original document remains unchanged after anonymization
+- TC-S3-001-08: Test error handling when anonymization service is unavailable
+- TC-S3-001-09: Verify cascading context includes correct document path for anonymization
+- TC-S3-001-10: Ask agent to anonymize via chat command, verify same workflow triggered
+
+**Created:** 2025-12-24T00:00:00Z
+
+---
+
+## S3-002: Document Viewer Image Support with Download
+
+**Status:** proposed
+
+**Description:**
+Update the DocumentViewer component to display image files (JPG, PNG, GIF, WEBP, BMP) directly in the viewer panel and provide a download option for images, especially anonymized ones. Currently, the DocumentViewer only displays text content for `.txt` files and shows a placeholder for other file types. This requirement adds native image viewing capability and download functionality, which is essential for viewing identity documents, certificates, and other scanned images before and after anonymization.
+
+**User Story:**
+As a case worker, I want to view image documents (passports, birth certificates, photos) directly in the document viewer and download anonymized images so that I can inspect them without needing external tools, see the results of anonymization operations, and save anonymized versions for further processing.
+
+**Technical Requirements:**
+- **Supported Formats:** JPG, JPEG, PNG, GIF, WEBP, BMP
+- **Image Path Resolution:** Construct path from `public/documents/{caseId}/{folderId}/{filename}`
+- **Display:** Render image using HTML `<img>` element with proper sizing and aspect ratio
+- **Responsive:** Image should scale to fit viewer panel while maintaining aspect ratio
+- **Loading State:** Show loading indicator while image loads
+- **Error Handling:** Display error message if image fails to load
+- **Download:** Provide download button for image files, particularly useful for anonymized images
+- **Download Naming:** Downloaded file should retain original filename
+
+**Changes Required:**
+- Frontend: Update DocumentViewer to detect and display images
+  - Source: src/components/workspace/DocumentViewer.tsx
+  - Add: Image type detection based on file extension
+  - Add: `<img>` element rendering for image files
+  - Add: Image loading state handling
+  - Add: Error handling for failed image loads
+  - Add: Download button/action for image files
+  - Add: `handleDownloadImage()` function using fetch + blob download
+- Frontend: Update Document type union if needed
+  - Source: src/types/case.ts
+  - Verify: Document type includes image extensions (jpg, png, etc.)
+- Data: Update mockData if needed
+  - Source: src/data/mockData.ts
+  - Verify: Image documents have correct type property
+
+**Image Display Implementation:**
+```tsx
+// Check if document is an image
+const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+const isImage = imageExtensions.includes(selectedDocument.type.toLowerCase());
+
+// Construct image path
+const imagePath = `/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`;
+
+// Render image
+{isImage && (
+  <img
+    src={imagePath}
+    alt={selectedDocument.name}
+    className="max-w-full max-h-full object-contain"
+    onError={handleImageError}
+  />
+)}
+```
+
+**Download Implementation:**
+```tsx
+// Download handler for image files
+const handleDownloadImage = async () => {
+  const imagePath = `/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`;
+  try {
+    const response = await fetch(imagePath);
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = selectedDocument.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    toast({ title: 'Download started', description: selectedDocument.name });
+  } catch (error) {
+    toast({ title: 'Download failed', variant: 'destructive' });
+  }
+};
+
+// Update Download button action for images
+{ label: 'Download', icon: <Download />, action: isImage ? handleDownloadImage : handleDownloadDefault }
+```
+
+**Test Cases:**
+- TC-S3-002-01: Select JPG file in document tree, verify image displays in DocumentViewer
+- TC-S3-002-02: Select PNG file, verify correct rendering with transparency preserved
+- TC-S3-002-03: Select large image, verify scales to fit viewer panel maintaining aspect ratio
+- TC-S3-002-04: Select non-existent image file, verify error message displays gracefully
+- TC-S3-002-05: Select image, then select text file, verify viewer switches content type correctly
+- TC-S3-002-06: Anonymize image document, verify newly created anonymized image displays correctly
+- TC-S3-002-07: Verify image path construction uses correct case and folder IDs
+- TC-S3-002-08: Click Download on displayed image, verify file downloads with correct filename
+- TC-S3-002-09: Download anonymized image, verify `_anonymized` suffix preserved in downloaded filename
+- TC-S3-002-10: Download fails (network error), verify error toast displayed gracefully
+
+**Created:** 2025-12-24T00:00:00Z
+
+---
+
+## Sprint 4 Requirements - File Management Features
+
+---
+
+## S4-001: Drag-and-Drop File Upload
+
+**Status:** proposed
+
+**Description:**
+Implement a fully functional drag-and-drop file upload mechanism within the document visualization interface. Users can drag files directly into a designated drop zone to initiate uploads. The system enforces a 15 MB maximum file size limit with clear error messaging. Successfully uploaded files are stored in the case folder under a dedicated "uploads" section following existing project conventions for case-scoped file storage.
+
+**User Story:**
+As a case worker, I want to drag and drop files directly into the document viewer so that I can quickly add new documents to a case without navigating through file dialogs.
+
+**Technical Requirements:**
+- **Drop Zone:** Dedicated drag-and-drop area in DocumentViewer or CaseTreeExplorer
+- **File Size Limit:** Maximum 15 MB per file
+- **Supported Formats:** All common document types (PDF, images, text files)
+- **Storage Path:** `public/documents/{caseId}/uploads/{filename}`
+- **Visual Feedback:**
+  - Drag hover state indicator
+  - Upload progress bar
+  - Success/failure toast notifications
+- **Backend Integration:** POST endpoint for file upload with multipart/form-data
+- **Error Handling:** Clear messages for oversized files, network failures, invalid types
+
+**Changes Required:**
+- Backend: File upload API endpoint
+  - Source: backend/api/files.py (new file)
+  - Endpoint: POST /api/files/upload
+  - Parameters: file (multipart), caseId, folderId (optional, defaults to "uploads")
+  - Validates file size (max 15 MB)
+  - Saves to public/documents/{caseId}/{folderId}/
+  - Returns: { success: boolean, filePath: string, fileName: string, size: number }
+- Backend: Create uploads folder structure
+  - Source: backend/services/file_service.py (new file)
+  - Methods: create_uploads_folder(case_id), save_file(case_id, folder_id, file), validate_file_size(file)
+- Frontend: Drag-and-drop component
+  - Source: src/components/workspace/FileDropZone.tsx (new file)
+  - Features: onDragEnter, onDragOver, onDragLeave, onDrop handlers
+  - Visual states: idle, drag-over, uploading, success, error
+- Frontend: Integrate drop zone in DocumentViewer
+  - Source: src/components/workspace/DocumentViewer.tsx
+  - Add: FileDropZone overlay when dragging files
+- Frontend: Upload progress indicator
+  - Source: src/components/ui/UploadProgress.tsx (new file)
+  - Features: Progress bar, file name, cancel button
+- Frontend: Update mockData with uploads folder
+  - Source: src/data/mockData.ts
+  - Add: uploads folder to case folder structure
+- Frontend: API client for file uploads
+  - Source: src/lib/fileApi.ts (new file)
+  - Function: uploadFile(caseId: string, file: File, folderId?: string) -> Promise<UploadResult>
+- Types: File upload types
+  - Source: src/types/file.ts (new file)
+  - Interfaces: UploadResult, UploadProgress, FileValidationError
+
+**File Upload Implementation:**
+```tsx
+// FileDropZone.tsx - Core drop handler
+const handleDrop = async (e: React.DragEvent) => {
+  e.preventDefault();
+  setIsDragging(false);
+
+  const files = Array.from(e.dataTransfer.files);
+
+  for (const file of files) {
+    // Validate file size (15 MB limit)
+    if (file.size > 15 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: `${file.name} exceeds 15 MB limit`,
+        variant: 'destructive'
+      });
+      continue;
+    }
+
+    // Upload file
+    setUploading(true);
+    try {
+      const result = await uploadFile(currentCase.id, file, 'uploads');
+      toast({ title: 'Upload complete', description: file.name });
+      // Refresh document tree
+      refreshDocuments();
+    } catch (error) {
+      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
+  }
+};
+```
+
+**Backend Upload Handler:**
+```python
+# backend/api/files.py
+@router.post("/api/files/upload")
+async def upload_file(
+    file: UploadFile,
+    case_id: str = Form(...),
+    folder_id: str = Form(default="uploads")
+):
+    # Validate file size (15 MB limit)
+    MAX_SIZE = 15 * 1024 * 1024
+    contents = await file.read()
+    if len(contents) > MAX_SIZE:
+        raise HTTPException(413, "File exceeds 15 MB limit")
+
+    # Save file
+    file_path = f"public/documents/{case_id}/{folder_id}/{file.filename}"
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+    return {"success": True, "filePath": file_path, "fileName": file.filename}
+```
+
+**Test Cases:**
+- TC-S4-001-01: Drag file onto drop zone, verify visual hover indicator appears
+- TC-S4-001-02: Drop 5 MB file, verify upload completes and file appears in uploads folder
+- TC-S4-001-03: Drop 20 MB file, verify error message "File exceeds 15 MB limit"
+- TC-S4-001-04: Drop multiple files, verify all valid files upload sequentially
+- TC-S4-001-05: Upload in progress, verify progress bar displays percentage
+- TC-S4-001-06: Upload succeeds, verify success toast notification shown
+- TC-S4-001-07: Network error during upload, verify error toast with retry option
+- TC-S4-001-08: Verify uploaded file appears in case document tree under "uploads" folder
+- TC-S4-001-09: Upload file with special characters in name, verify filename sanitized
+- TC-S4-001-10: Upload duplicate filename, verify handled (overwrite or rename)
+
+**Created:** 2025-12-24T00:00:00Z
+
+---
+
+## S4-002: File Deletion
+
+**Status:** proposed
+
+**Description:**
+Enable users to delete previously uploaded files from the "uploads" section within a case. Each uploaded file displays a clear delete button/icon. Before permanent deletion, the system prompts for confirmation to prevent accidental data loss. Deletion respects existing user role permissions if applicable.
+
+**User Story:**
+As a case worker, I want to delete uploaded files that are no longer needed so that I can keep the case documents organized and remove incorrect uploads.
+
+**Technical Requirements:**
+- **Delete UI:** Delete button/icon visible on hover for each file in uploads folder
+- **Confirmation:** Modal dialog confirming deletion before proceeding
+- **Permissions:** Respect user roles (if implemented) - only authorized users can delete
+- **Backend:** DELETE endpoint to remove file from filesystem
+- **Cleanup:** Remove file from document tree after successful deletion
+- **Error Handling:** Handle file not found, permission denied errors
+
+**Changes Required:**
+- Backend: File deletion API endpoint
+  - Source: backend/api/files.py
+  - Endpoint: DELETE /api/files/{case_id}/{folder_id}/{filename}
+  - Validates file exists, user has permission
+  - Removes file from filesystem
+  - Returns: { success: boolean, message: string }
+- Backend: Add file deletion to file service
+  - Source: backend/services/file_service.py
+  - Method: delete_file(case_id, folder_id, filename) -> bool
+  - Validates path is within case directory (security)
+- Frontend: Delete button on file items
+  - Source: src/components/workspace/CaseTreeExplorer.tsx
+  - Add: Delete icon button for files in uploads folder
+  - Show on hover, red color indicating destructive action
+- Frontend: Confirmation dialog component
+  - Source: src/components/ui/DeleteConfirmDialog.tsx (new file)
+  - Props: isOpen, fileName, onConfirm, onCancel
+  - Message: "Are you sure you want to delete {filename}? This action cannot be undone."
+- Frontend: API client for file deletion
+  - Source: src/lib/fileApi.ts
+  - Function: deleteFile(caseId: string, folderId: string, filename: string) -> Promise<boolean>
+- Frontend: Update document tree after deletion
+  - Source: src/contexts/AppContext.tsx
+  - Method: removeDocumentFromFolder(caseId, folderId, documentId)
+
+**Delete Confirmation Dialog:**
+```tsx
+// DeleteConfirmDialog.tsx
+export function DeleteConfirmDialog({ isOpen, fileName, onConfirm, onCancel }) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onCancel}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete File</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete "{fileName}"?
+            This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button variant="destructive" onClick={onConfirm}>Delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+**Backend Delete Handler:**
+```python
+# backend/api/files.py
+@router.delete("/api/files/{case_id}/{folder_id}/{filename}")
+async def delete_file(case_id: str, folder_id: str, filename: str):
+    file_path = Path(f"public/documents/{case_id}/{folder_id}/{filename}")
+
+    # Security: Ensure path is within expected directory
+    expected_base = Path(f"public/documents/{case_id}")
+    if not file_path.resolve().is_relative_to(expected_base.resolve()):
+        raise HTTPException(403, "Access denied")
+
+    if not file_path.exists():
+        raise HTTPException(404, "File not found")
+
+    file_path.unlink()
+    return {"success": True, "message": f"Deleted {filename}"}
+```
+
+**Test Cases:**
+- TC-S4-002-01: Click delete on uploaded file, verify confirmation dialog appears
+- TC-S4-002-02: Confirm deletion, verify file removed from filesystem
+- TC-S4-002-03: Cancel deletion, verify file remains unchanged
+- TC-S4-002-04: Delete file, verify removed from document tree immediately
+- TC-S4-002-05: Delete non-existent file, verify 404 error handled gracefully
+- TC-S4-002-06: Attempt path traversal attack (../), verify security rejection
+- TC-S4-002-07: Delete last file in uploads folder, verify folder structure remains
+- TC-S4-002-08: Success deletion, verify toast notification shown
+- TC-S4-002-09: Delete button only visible in uploads folder (not other folders)
+- TC-S4-002-10: Verify selected document cleared if deleted file was selected
+
+**Created:** 2025-12-24T00:00:00Z
+
+---
