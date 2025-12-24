@@ -3,7 +3,7 @@ import type { SHACLPropertyShape } from './shacl';
 export interface Document {
   id: string;
   name: string;
-  type: 'pdf' | 'xml' | 'json' | 'docx' | 'txt';
+  type: 'pdf' | 'xml' | 'json' | 'docx' | 'txt' | 'jpg' | 'jpeg' | 'png' | 'gif' | 'webp' | 'bmp';
   size: string;
   uploadedAt: string;
   metadata: Record<string, string>;

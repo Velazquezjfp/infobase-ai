@@ -19,6 +19,7 @@ from backend.tools.form_parser import (
     validate_form_schema,
     parse_extraction_result
 )
+from backend.tools.anonymization_tool import anonymize_document, is_supported_format
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +166,14 @@ async def websocket_chat_endpoint(websocket: WebSocket, case_id: str):
                         websocket,
                         case_id,
                         content,
+                        message
+                    )
+
+                elif message_type == "anonymize":
+                    # Handle anonymization request
+                    await handle_anonymization(
+                        websocket,
+                        case_id,
                         message
                     )
 
@@ -363,6 +372,95 @@ async def handle_form_extraction(
         await websocket.send_json({
             "type": "error",
             "message": f"Failed to extract form fields: {str(e)}",
+            "timestamp": None
+        })
+
+
+async def handle_anonymization(
+    websocket: WebSocket,
+    case_id: str,
+    message: Dict[str, Any]
+) -> None:
+    """
+    Handle document anonymization request.
+
+    Processes the anonymization request by calling the external anonymization
+    service and returns the result with the path to the anonymized file.
+
+    Args:
+        websocket: The WebSocket connection.
+        case_id: The case ID.
+        message: The anonymization request message containing filePath.
+    """
+    file_path = message.get("filePath")
+    folder_id = message.get("folderId")
+
+    logger.info(f"Processing anonymization request for case {case_id}, file: {file_path}")
+
+    # Validate file path
+    if not file_path:
+        await websocket.send_json({
+            "type": "anonymization_complete",
+            "originalPath": "",
+            "anonymizedPath": None,
+            "detectionsCount": 0,
+            "success": False,
+            "error": "No file path provided",
+            "timestamp": None
+        })
+        return
+
+    # Check if file format is supported
+    if not is_supported_format(file_path):
+        await websocket.send_json({
+            "type": "anonymization_complete",
+            "originalPath": file_path,
+            "anonymizedPath": None,
+            "detectionsCount": 0,
+            "success": False,
+            "error": "Unsupported file format. Only image files (PNG, JPG, etc.) can be anonymized.",
+            "timestamp": None
+        })
+        return
+
+    try:
+        # Call anonymization tool
+        result = await anonymize_document(file_path)
+
+        # Send anonymization result
+        await websocket.send_json({
+            "type": "anonymization_complete",
+            "originalPath": result.original_path,
+            "anonymizedPath": result.anonymized_path,
+            "detectionsCount": result.detections_count,
+            "success": result.success,
+            "error": result.error,
+            "timestamp": None
+        })
+
+        # Also send a chat message about the result
+        if result.success:
+            await websocket.send_json({
+                "type": "chat_response",
+                "content": f"Document anonymized successfully. Found and masked {result.detections_count} PII field{'s' if result.detections_count != 1 else ''}. The anonymized version has been saved.",
+                "timestamp": None
+            })
+        else:
+            await websocket.send_json({
+                "type": "chat_response",
+                "content": f"Anonymization failed: {result.error}",
+                "timestamp": None
+            })
+
+    except Exception as e:
+        logger.error(f"Error during anonymization: {str(e)}")
+        await websocket.send_json({
+            "type": "anonymization_complete",
+            "originalPath": file_path,
+            "anonymizedPath": None,
+            "detectionsCount": 0,
+            "success": False,
+            "error": f"Anonymization failed: {str(e)}",
             "timestamp": None
         })
 

@@ -76,6 +76,29 @@ export interface ErrorMessage extends BaseMessage {
 }
 
 /**
+ * Anonymization request message sent from client to server
+ */
+export interface AnonymizationRequest extends BaseMessage {
+  type: 'anonymize';
+  filePath: string;
+  caseId: string;
+  folderId?: string;
+}
+
+/**
+ * Anonymization response message sent from server after anonymization completes
+ */
+export interface AnonymizationResponse extends BaseMessage {
+  type: 'anonymization_complete';
+  originalPath: string;
+  anonymizedPath: string | null;
+  detectionsCount: number;
+  success: boolean;
+  error?: string;
+  timestamp?: string;
+}
+
+/**
  * Union type of all possible WebSocket messages from server
  */
 export type WebSocketMessage =
@@ -83,7 +106,8 @@ export type WebSocketMessage =
   | ChatChunkMessage
   | FormUpdateMessage
   | SystemMessage
-  | ErrorMessage;
+  | ErrorMessage
+  | AnonymizationResponse;
 
 /**
  * WebSocket connection status

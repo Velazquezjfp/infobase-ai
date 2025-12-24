@@ -1,170 +1,93 @@
 {
-  "project": "bamf-acte-companion",
-  "description": "BAMF AI Case Management System - Vite + React + TypeScript + shadcn/ui frontend with FastAPI + Python backend",
-  "version": "1.2.0",
-  "created_at": "2025-12-16T00:00:00.000Z",
-  "last_updated": "2025-12-18T13:51:06.000Z",
-  "last_commit": "486cec9e9beed18f0802e534e26f3c478f53de9d",
+  "version": "1.3.0",
+  "lastUpdated": "2024-12-24T11:10:00Z",
+  "lastUpdateBy": "Code Graph Builder Agent",
+  "description": "BAMF AI Case Management System - Code Architecture Graph",
   "statistics": {
-    "total_entities": 41,
-    "total_relations": 91,
-    "total_observations": 310,
-    "avg_observations_per_entity": 7.56,
-    "entity_types": {
-      "EntryPoint": 1,
-      "RootComponent": 1,
+    "totalEntities": 94,
+    "totalRelations": 184,
+    "entitiesByType": {
       "Context": 1,
+      "RootComponent": 1,
+      "EntryPoint": 1,
+      "BackendEntryPoint": 1,
       "Page": 4,
       "WorkspaceComponent": 8,
-      "Types": 2,
+      "Component": 1,
+      "Types": 3,
       "Data": 1,
       "Hook": 2,
       "Utility": 1,
-      "Component": 1,
+      "APIClient": 1,
       "Route": 3,
       "ReactContext": 1,
       "CustomHook": 3,
-      "BackendEntryPoint": 1,
-      "APIRouter": 1,
-      "Class": 3,
+      "APIRouter": 2,
+      "Class": 13,
       "WebSocketEndpoint": 1,
-      "HTTPEndpoint": 1,
-      "Service": 2,
-      "Tool": 1,
-      "Method": 1,
-      "Function": 1
+      "HTTPEndpoint": 2,
+      "Service": 4,
+      "Dataclass": 8,
+      "Enum": 1,
+      "Function": 15,
+      "Method": 2,
+      "Tool": 2,
+      "Module": 4,
+      "AbstractClass": 1,
+      "Package": 2,
+      "Script": 1,
+      "Interface": 4,
+      "HelperFunction": 8,
+      "Constant": 1
     },
-    "relation_types": {
-      "imports": 47,
+    "relationsByType": {
+      "imports": 46,
+      "defines": 34,
+      "uses": 18,
       "defines_route": 3,
       "renders": 3,
-      "uses_hook": 14,
-      "defines": 8,
+      "uses_hook": 13,
       "exports": 3,
-      "registers_route": 2,
-      "uses": 5,
-      "used_by": 1,
+      "defines_method": 2,
+      "registers_route": 3,
+      "calls": 18,
       "connects_to": 2,
-      "defines_method": 1,
-      "calls": 1,
-      "uses_indirectly": 1
+      "used_by": 1,
+      "extends": 2,
+      "returns": 2
     }
   },
   "languages": {
-    "TypeScript": 69,
-    "TSX": 61,
-    "Python": 5
-  },
-  "framework": {
-    "frontend": {
-      "name": "React",
-      "version": "18.x",
-      "bundler": "Vite",
-      "ui_library": "shadcn/ui",
-      "state_management": "React Context",
-      "routing": "React Router v6"
+    "typescript": {
+      "fileCount": 25,
+      "extensions": [".ts", ".tsx"]
     },
-    "backend": {
-      "name": "FastAPI",
-      "language": "Python",
-      "ai_service": "Google Gemini (gemini-2.5-flash)",
-      "websocket": "FastAPI WebSocket"
+    "python": {
+      "fileCount": 18,
+      "extensions": [".py"]
     }
   },
-  "architecture": {
-    "frontend": {
-      "entry_point": "src/main.tsx",
-      "root_component": "src/App.tsx",
-      "pages": [
-        "src/pages/Index.tsx",
-        "src/pages/Login.tsx",
-        "src/pages/Workspace.tsx",
-        "src/pages/NotFound.tsx"
-      ],
-      "workspace_components": [
-        "src/components/workspace/WorkspaceHeader.tsx",
-        "src/components/workspace/CaseTreeExplorer.tsx",
-        "src/components/workspace/AIChatInterface.tsx",
-        "src/components/workspace/DocumentViewer.tsx",
-        "src/components/workspace/FormViewer.tsx",
-        "src/components/workspace/AdminConfigPanel.tsx",
-        "src/components/workspace/CaseSearchDialog.tsx",
-        "src/components/workspace/NewCaseDialog.tsx"
-      ],
-      "contexts": [
-        "src/contexts/AppContext.tsx"
-      ],
-      "hooks": [
-        "src/hooks/use-toast.ts",
-        "src/hooks/use-mobile.tsx"
-      ],
-      "types": [
-        "src/types/case.ts",
-        "src/types/websocket.ts"
-      ],
-      "data": [
-        "src/data/mockData.ts"
-      ],
-      "utilities": [
-        "src/lib/utils.ts"
-      ]
-    },
-    "backend": {
-      "entry_point": "backend/main.py",
-      "api": [
-        "backend/api/chat.py"
-      ],
-      "services": [
-        "backend/services/gemini_service.py",
-        "backend/services/context_manager.py"
-      ],
-      "tools": [
-        "backend/tools/form_parser.py"
+  "sprints": {
+    "S2-002": "SHACL metadata support for form fields",
+    "S2-003": "Legacy Form Standardization with NLP field generation",
+    "S2-004": "Context Source Tracking for AI transparency",
+    "S3-001": "Document Anonymization Service integration",
+    "S3-002": "Document Viewer Image Support"
+  },
+  "updateHistory": [
+    {
+      "date": "2024-12-24",
+      "changes": [
+        "Added S3-002: DocumentViewer image support entities and relationships",
+        "Updated backend/services/anonymization_service.py with detailed method signatures",
+        "Updated backend/tools/anonymization_tool.py with complete function signatures",
+        "Updated src/components/workspace/DocumentViewer.tsx with image handling functions",
+        "Updated src/types/case.ts Document.type to include image extensions",
+        "Updated src/contexts/AppContext.tsx with /anonymize command handling",
+        "Updated backend/api/chat.py with handle_anonymization details",
+        "Added new entities: handleDownloadImage, handleImageLoad, handleImageError, IMAGE_EXTENSIONS",
+        "Added new relationships for S3-002 image support"
       ]
     }
-  },
-  "routes": {
-    "frontend": [
-      { "path": "/", "component": "Index", "description": "Landing/Login page" },
-      { "path": "/workspace", "component": "Workspace", "description": "Main workspace (protected)" },
-      { "path": "*", "component": "NotFound", "description": "404 page" }
-    ],
-    "backend": [
-      { "path": "/health", "method": "GET", "description": "Backend health check" },
-      { "path": "/", "method": "GET", "description": "API info" },
-      { "path": "/ws/chat/{case_id}", "method": "WebSocket", "description": "Real-time AI chat per case" },
-      { "path": "/api/chat/health", "method": "GET", "description": "Chat service health check" }
-    ]
-  },
-  "most_connected_entities": [
-    { "name": "src/contexts/AppContext.tsx", "connections": 17, "observations": 25 },
-    { "name": "useApp", "connections": 11 },
-    { "name": "src/pages/Workspace.tsx", "connections": 10 },
-    { "name": "src/App.tsx", "connections": 8 },
-    { "name": "src/components/workspace/AIChatInterface.tsx", "connections": 8 }
-  ],
-  "recent_changes": {
-    "commit": "486cec9e9beed18f0802e534e26f3c478f53de9d",
-    "date": "2025-12-18T13:51:06+01:00",
-    "description": "phase 2 changes to chat with agent and parse form information",
-    "entities_added": [
-      "src/types/websocket.ts",
-      "backend/services/gemini_service.py::_generate_streaming_response",
-      "backend/api/chat.py::handle_chat_message"
-    ],
-    "entities_updated": [
-      "backend/services/gemini_service.py::GeminiService",
-      "backend/services/gemini_service.py",
-      "backend/api/chat.py",
-      "backend/main.py",
-      "src/contexts/AppContext.tsx"
-    ],
-    "new_features": [
-      "Streaming response support for AI chat",
-      "Performance metrics logging (latency, tokens, time-to-first-token)",
-      "WebSocket message types for frontend-backend communication",
-      "WebSocket connection management in AppContext",
-      "Environment variable loading via dotenv"
-    ]
-  }
+  ]
 }
