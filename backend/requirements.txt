@@ -17,3 +17,9 @@ pydantic==2.5.2
 
 # File Upload Support (S4-001)
 python-multipart==0.0.21
+
+# Async HTTP Client
+aiohttp==3.9.1
+
+# Image Processing (for PII masking)
+Pillow==10.2.0

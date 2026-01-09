@@ -50,16 +50,30 @@ fi
 
 # Setup Python virtual environment
 echo -e "\n${YELLOW}Setting up Python environment...${NC}"
-if [ ! -d "backend/venv" ]; then
-    echo "Creating virtual environment..."
+
+# Check if venv exists AND is properly set up (has bin/activate)
+if [ ! -f "backend/venv/bin/activate" ]; then
+    echo "Virtual environment missing or incomplete. Creating..."
+    # Remove any incomplete venv folder
+    rm -rf backend/venv
     python3 -m venv backend/venv
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Error: Failed to create virtual environment${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ Virtual environment created${NC}"
+else
+    echo -e "${GREEN}✓ Virtual environment exists${NC}"
 fi
-echo -e "${GREEN}✓ Virtual environment ready${NC}"
 
 # Activate virtual environment and install dependencies
 echo -e "${YELLOW}Installing backend dependencies...${NC}"
 source backend/venv/bin/activate
 backend/venv/bin/pip install -r backend/requirements.txt --quiet
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Error: Failed to install dependencies${NC}"
+    exit 1
+fi
 echo -e "${GREEN}✓ Backend dependencies installed${NC}"
 
 # Check for .env file
