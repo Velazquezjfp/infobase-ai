@@ -2,36 +2,88 @@
 
 ## Overview
 
-This directory contains API documentation for the BAMF ACTE Companion application. The application is a Vite + React + TypeScript frontend application with shadcn/ui components.
+This directory contains API documentation for the BAMF ACTE Companion application. The application uses a hybrid architecture with a React/TypeScript frontend and a FastAPI Python backend.
 
 ## Current Architecture
 
-**Status:** Frontend-Only Application with Simulated APIs
+**Status:** Hybrid Application with Backend API
 
-The BAMF ACTE Companion is currently a **frontend-only prototype** that simulates AI and backend functionality using:
-- Mock data patterns (see `src/data/mockData.ts`)
-- Simulated async operations with setTimeout
-- Client-side state management via React Context
-- @tanstack/react-query setup (ready for future API integration)
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Client Browser                           │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │  Frontend   │
+                    │   (Vite)    │
+                    │ Port: 5173  │
+                    └──────┬──────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+    ┌───▼────┐      ┌─────▼─────┐     ┌──────▼──────┐
+    │ Backend │      │ WebSocket │     │ Anonymize   │
+    │(FastAPI)│◀────▶│   Chat    │     │  Service    │
+    │Port:8000│      │           │     │ Port: 5000  │
+    └─────────┘      └───────────┘     │ (External)  │
+                                       └─────────────┘
+```
 
-### Key Components
+### Backend Services
 
-- **State Management:** AppContext (`src/contexts/AppContext.tsx`)
-- **Mock Data:** `src/data/mockData.ts`
-- **AI Simulation:** `src/components/workspace/AIChatInterface.tsx`
-- **Query Client:** Configured in `src/App.tsx` (ready for future use)
+| Service | Location | Description |
+|---------|----------|-------------|
+| **GeminiService** | `backend/services/gemini_service.py` | AI integration with Google Gemini API |
+| **ContextManager** | `backend/services/context_manager.py` | Case/folder context management |
+| **FieldGenerator** | `backend/services/field_generator.py` | NLP-powered form field generation |
+| **FileService** | `backend/services/file_service.py` | File upload, deletion, validation |
+| **AnonymizationService** | `backend/services/anonymization_service.py` | PII detection client (calls external service) |
+
+### Implemented API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `WS` | `/ws/chat/{case_id}` | Real-time AI chat with streaming |
+| `GET` | `/health` | Backend health check |
+| `GET` | `/` | Backend info |
+| `POST` | `/api/admin/generate-field` | Generate form field from NLP |
+| `GET` | `/api/admin/health` | Admin service health |
+| `POST` | `/api/files/upload` | Upload file (15 MB limit) |
+| `DELETE` | `/api/files/{case_id}/{folder_id}/{filename}` | Delete file |
+| `GET` | `/api/files/exists/{case_id}/{folder_id}/{filename}` | Check file exists |
+| `GET` | `/api/files/health` | File service health |
+| `GET` | `/api/chat/health` | Chat service health |
+
+### External Dependencies
+
+- **Anonymization Service** (port 5000): External PII detection and masking service
+  - Endpoint: `http://localhost:5000/ai-analysis`
+  - Required for `/anonymize` command functionality
+
+## Running the Application
+
+```bash
+# Start all services (frontend + backend)
+./start.sh
+
+# Services will be available at:
+# - Frontend: http://localhost:5173
+# - Backend:  http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+```
+
+**Note:** The anonymization service (port 5000) must be started separately.
 
 ## Documentation Structure
 
 ### 1. **openapi.yaml / openapi.json**
-OpenAPI 3.0 specifications documenting the **planned future API** that will replace the current simulated operations.
+OpenAPI 3.0 specifications documenting the implemented and planned API endpoints.
 
 ### 2. **endpoints.md**
 Detailed endpoint reference including:
-- Current simulated AI operations (slash commands)
-- Planned future backend API endpoints
-- Request/response formats
-- Usage examples
+- Implemented backend API endpoints
+- WebSocket protocol for AI chat
+- Request/response formats with examples
 
 ### 3. **authentication.md**
 Authentication and authorization documentation:
@@ -39,76 +91,72 @@ Authentication and authorization documentation:
 - Planned: Token-based authentication strategy
 
 ### 4. **api-changelog.md**
-Chronological record of API documentation changes and architectural evolution.
+Chronological record of API changes and feature implementations.
 
 ### 5. **.last-sync.json**
 Internal tracking file for documentation synchronization with codebase changes.
 
-## Simulated API Operations
+## API Operations
 
-The application currently simulates these operations via the AI chat interface:
+### Implemented (Backend)
 
-### Document Operations
-- `/convert` - Convert document formats (PDF, JSON, XML)
-- `/translate` - Translate documents to German
-- `/anonymize` - Redact personal data from documents
-- `/extractMetadata` - Extract document metadata
+| Operation | Endpoint | Status |
+|-----------|----------|--------|
+| AI Chat | `WS /ws/chat/{case_id}` | Implemented |
+| Anonymize Document | `WS message type: anonymize` | Implemented |
+| Generate Form Field | `POST /api/admin/generate-field` | Implemented |
+| Upload File | `POST /api/files/upload` | Implemented |
+| Delete File | `DELETE /api/files/{case_id}/{folder_id}/{filename}` | Implemented |
 
-### Search & Discovery
-- `/search` - Search across case documents
-- `/validateCase` - Check for missing required documents
+### Simulated (Frontend Mock)
 
-### Case Management
-- `/addDocument` - Upload new document to case
-- `/switchCase` - Switch between cases
-- `/changeActeName` - Rename case
-
-### Communication
-- `/generateEmail` - Generate notification emails
-- `/transcribe` - Extract text from documents
-
-All these operations are **simulated client-side** and will be replaced with actual API calls in future iterations.
-
-## Future API Architecture
-
-The documentation in this directory describes the **target API architecture** that will:
-
-1. Replace simulated operations with real backend endpoints
-2. Integrate with BAMF systems for document processing
-3. Provide secure authentication and authorization
-4. Support real-time AI operations via WebSocket or Server-Sent Events
-5. Handle file uploads and conversions on the server
+| Operation | Location | Notes |
+|-----------|----------|-------|
+| `/convert` | AIChatInterface.tsx | Document format conversion |
+| `/translate` | AIChatInterface.tsx | Document translation |
+| `/search` | AIChatInterface.tsx | Case document search |
+| `/validateCase` | AIChatInterface.tsx | Missing document check |
+| Authentication | Login.tsx | Simple username storage |
+| Case Management | AppContext.tsx | CRUD operations |
 
 ## Technology Stack
 
-### Current
-- React 18.3
-- TypeScript 5.8
-- Vite 5.4
+### Frontend
+- React 18.3 with TypeScript 5.8
+- Vite 5.4 (dev server)
 - React Router 6.30
-- @tanstack/react-query 5.83 (configured, not yet used for API calls)
+- @tanstack/react-query 5.83
 - shadcn/ui components
 
-### Planned Backend (for API implementation)
-To be determined based on BAMF infrastructure requirements.
+### Backend
+- Python 3.12
+- FastAPI 0.104.1
+- Uvicorn 0.24.0
+- Google Generative AI (Gemini)
+- WebSockets 12.0
+- Pydantic 2.5.2
 
 ## Development Notes
 
-When transitioning from simulated to real APIs:
-1. Replace mock data imports with API service calls
-2. Utilize the configured QueryClient for data fetching
-3. Replace setTimeout simulations with actual async API calls
-4. Implement proper error handling and loading states
-5. Add API authentication headers to all requests
+### Environment Setup
+1. Create `backend/.env` with `GEMINI_API_KEY=your_key`
+2. Run `./start.sh` to start both services
+3. Ensure anonymization service is running on port 5000 if needed
+
+### API Integration Status
+- React Query client configured in `App.tsx`
+- Type definitions in `src/types/case.ts` and `src/types/file.ts`
+- File API client in `src/lib/fileApi.ts`
+- Some frontend operations still use mock data (see Simulated operations above)
 
 ## Related Documentation
 
 - [Code Graph](/docs/code-graph/code-graph.json) - Application structure analysis
-- [Types Definition](/src/types/case.ts) - TypeScript interfaces for Case, Document, Folder, etc.
-- [Mock Data](/src/data/mockData.ts) - Current data structures and simulated responses
+- [Implementation Plan](/docs/implementation_plan.md) - Sprint planning
+- [Requirements](/docs/requirements/) - Feature specifications
 
 ---
 
-**Last Updated:** 2025-12-16
-**Documentation Version:** 1.0.0
+**Last Updated:** 2026-01-05
+**Documentation Version:** 1.7.0
 **Application Version:** 0.0.0

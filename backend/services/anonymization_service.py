@@ -1,18 +1,21 @@
 """
 Anonymization Service for BAMF AI Case Management System.
 
-This module provides integration with an external PII anonymization service
-that detects and masks personally identifiable information in identity documents
+This module provides integration with an external PII detection service
+that identifies personally identifiable information in identity documents
 such as passports, birth certificates, and driving licenses.
 
-The service uses black box masking over sensitive fields and returns
-the anonymized image as base64.
+The service receives detection coordinates from the external API and
+applies black box masking over sensitive fields locally using PIL.
 """
 
+import base64
+import io
 import logging
 import aiohttp
 from dataclasses import dataclass
 from typing import Optional
+from PIL import Image, ImageDraw
 
 logger = logging.getLogger(__name__)
 
@@ -36,19 +39,20 @@ class AnonymizationResult:
 
 class AnonymizationService:
     """
-    Service class for interacting with the external PII anonymization API.
+    Service class for interacting with the external PII detection API.
 
     This service handles:
-    - Sending document images to the anonymization service
-    - Receiving anonymized images with PII masked
-    - Error handling for service unavailability
+    - Sending document images to the detection service
+    - Receiving PII coordinates from the detection service
+    - Drawing black boxes over detected areas using PIL
+    - Returning the masked image as base64
 
     The external service runs a self-contained trained model for privacy.
     """
 
     API_URL = "http://localhost:5000/ai-analysis"
     SECRET_KEY = "2b5e151428aed2a6aff7158846cf4f2c"
-    TIMEOUT_SECONDS = 30
+    TIMEOUT_SECONDS = 60
 
     _instance: Optional['AnonymizationService'] = None
 
@@ -63,12 +67,91 @@ class AnonymizationService:
             cls._instance = super().__new__(cls)
         return cls._instance
 
+    def _extract_base64_data(self, base64_image: str) -> tuple[str, str]:
+        """
+        Extract raw base64 data and mime type from data URI.
+
+        Args:
+            base64_image: Base64 string with or without data URI prefix.
+
+        Returns:
+            tuple: (raw_base64_data, mime_type)
+        """
+        if ';base64,' in base64_image:
+            header, data = base64_image.split(';base64,', 1)
+            mime_type = header.replace('data:', '')
+            return data, mime_type
+        return base64_image, 'image/png'
+
+    def _apply_black_boxes(
+        self,
+        base64_image: str,
+        detections: dict
+    ) -> tuple[Optional[str], int]:
+        """
+        Apply black boxes over detected PII areas in the image.
+
+        Args:
+            base64_image: Base64-encoded image with data URI prefix.
+            detections: Dictionary of field_name -> list of detections,
+                       each detection has 'coordinate': [x, y, width, height].
+
+        Returns:
+            tuple: (masked_image_base64, detections_count)
+        """
+        try:
+            # Extract base64 data
+            raw_base64, mime_type = self._extract_base64_data(base64_image)
+
+            # Decode image
+            image_data = base64.b64decode(raw_base64)
+            image = Image.open(io.BytesIO(image_data))
+
+            # Convert to RGB if necessary (for drawing)
+            if image.mode in ('RGBA', 'LA', 'P'):
+                image = image.convert('RGB')
+
+            draw = ImageDraw.Draw(image)
+            detections_count = 0
+
+            # Draw black boxes over each detection
+            for field_name, field_detections in detections.items():
+                for detection in field_detections:
+                    coord = detection.get('coordinate', [])
+                    if len(coord) >= 4:
+                        x, y, width, height = coord[:4]
+                        # Draw filled black rectangle
+                        draw.rectangle(
+                            [x, y, x + width, y + height],
+                            fill='black'
+                        )
+                        detections_count += 1
+                        logger.debug(
+                            f"Masked {field_name} at ({x}, {y}, {width}, {height})"
+                        )
+
+            # Convert back to base64
+            output_buffer = io.BytesIO()
+            image_format = 'PNG' if 'png' in mime_type else 'JPEG'
+            image.save(output_buffer, format=image_format)
+            output_buffer.seek(0)
+
+            masked_base64 = base64.b64encode(output_buffer.getvalue()).decode('utf-8')
+            masked_with_prefix = f"data:{mime_type};base64,{masked_base64}"
+
+            logger.info(f"Applied {detections_count} black boxes to image")
+            return masked_with_prefix, detections_count
+
+        except Exception as e:
+            logger.error(f"Error applying black boxes: {str(e)}")
+            return None, 0
+
     async def anonymize_image(self, base64_image: str) -> AnonymizationResult:
         """
-        Send an image to the anonymization service and receive the masked result.
+        Send an image to the detection service and mask detected PII.
 
-        The service detects PII in identity documents and applies black box
-        masking over sensitive fields like names, dates, photos, and ID numbers.
+        The service detects PII in identity documents and returns coordinates.
+        This method then applies black box masking over those areas.
 
         Args:
             base64_image: Base64-encoded image with data URI prefix
@@ -95,7 +178,7 @@ class AnonymizationService:
             logger.warning("Image missing data URI prefix, adding default PNG prefix")
             base64_image = f"data:image/png;base64,{base64_image}"
 
-        logger.info(f"Sending image to anonymization service (size: {len(base64_image)} chars)")
+        logger.info(f"Sending image to detection service (size: {len(base64_image)} chars)")
 
         try:
             # Prepare request payload
@@ -121,28 +204,43 @@ class AnonymizationService:
                     if response.status == 200:
                         data = await response.json()
 
-                        anonymized_image = data.get("anonymized_image")
-                        detections_count = data.get("detections_count", 0)
+                        # Extract detections from response
+                        # Response format: {"data": {"field_name": [{"confidence": X, "coordinate": [x, y, w, h]}]}}
+                        detections = data.get("data", {})
 
-                        if anonymized_image:
+                        if not detections:
+                            logger.info("No PII detections found in image")
+                            return AnonymizationResult(
+                                success=True,
+                                anonymized_image=base64_image,
+                                detections_count=0
+                            )
+
+                        # Apply black boxes to the original image
+                        masked_image, detections_count = self._apply_black_boxes(
+                            base64_image,
+                            detections
+                        )
+
+                        if masked_image:
                             logger.info(
                                 f"Anonymization successful - "
                                 f"detections: {detections_count}"
                             )
                             return AnonymizationResult(
                                 success=True,
-                                anonymized_image=anonymized_image,
+                                anonymized_image=masked_image,
                                 detections_count=detections_count
                             )
                         else:
-                            logger.error("Anonymization response missing anonymized_image")
+                            logger.error("Failed to apply masking to image")
                             return AnonymizationResult(
                                 success=False,
-                                error="Invalid response from anonymization service"
+                                error="Failed to apply masking to image"
                             )
 
                     elif response.status == 401:
-                        logger.error("Anonymization service authentication failed")
+                        logger.error("Detection service authentication failed")
                         return AnonymizationResult(
                             success=False,
                             error="Authentication failed - invalid API key"
@@ -151,7 +249,7 @@ class AnonymizationService:
                     elif response.status == 400:
                         error_data = await response.json()
                         error_msg = error_data.get("error", "Bad request")
-                        logger.error(f"Anonymization bad request: {error_msg}")
+                        logger.error(f"Detection bad request: {error_msg}")
                         return AnonymizationResult(
                             success=False,
                             error=f"Invalid request: {error_msg}"
@@ -159,7 +257,7 @@ class AnonymizationService:
 
                     else:
                         logger.error(
-                            f"Anonymization service returned status {response.status}"
+                            f"Detection service returned status {response.status}"
                         )
                         return AnonymizationResult(
                             success=False,
@@ -167,14 +265,14 @@ class AnonymizationService:
                         )
 
         except aiohttp.ClientConnectorError:
-            logger.error("Cannot connect to anonymization service")
+            logger.error("Cannot connect to detection service")
             return AnonymizationResult(
                 success=False,
                 error="Anonymization service unavailable. Please ensure the service is running at localhost:5000"
             )
 
         except aiohttp.ServerTimeoutError:
-            logger.error(f"Anonymization service timeout after {self.TIMEOUT_SECONDS}s")
+            logger.error(f"Detection service timeout after {self.TIMEOUT_SECONDS}s")
             return AnonymizationResult(
                 success=False,
                 error="Anonymization service timed out. The image may be too large."
@@ -189,7 +287,7 @@ class AnonymizationService:
 
     async def check_service_health(self) -> bool:
         """
-        Check if the anonymization service is available.
+        Check if the detection service is available.
 
         Returns:
             bool: True if service is reachable, False otherwise.
