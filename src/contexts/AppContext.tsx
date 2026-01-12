@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Case, Document, FormField, ChatMessage, FormSuggestions, SuggestedValue } from '@/types/case';
 import { mockCase, initialFormFields, initialChatMessages, getInitialChatMessages, sampleCases, sampleCaseFormData, createNewCase } from '@/data/mockData';
 import { WebSocketState, ConnectionStatus, WebSocketMessage, AnonymizationResponse } from '@/types/websocket';
+import { SearchHighlight, SemanticSearchRequest, SemanticSearchResponse } from '@/types/search';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/localStorage';
 import { useToast } from '@/hooks/use-toast';
 import i18n from '@/i18n/config';
@@ -22,6 +23,10 @@ interface AppContextType {
   setSelectedDocument: (doc: Document | null) => void;
   viewMode: 'document' | 'form' | 'metadata';
   setViewMode: (mode: 'document' | 'form' | 'metadata') => void;
+  // S5-006: Render selection
+  selectedRender: string | null;
+  setSelectedRender: (renderId: string | null) => void;
+  selectDocumentWithRender: (doc: Document, renderId?: string) => void;
   // Form fields per case
   formFields: FormField[];
   setFormFields: (fields: FormField[]) => void;
@@ -61,6 +66,16 @@ interface AppContextType {
   // S5-014: Language toggle
   currentLanguage: 'de' | 'en';
   setLanguage: (lang: 'de' | 'en') => void;
+  // S5-003: Semantic search
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  searchHighlights: SearchHighlight[];
+  setSearchHighlights: (highlights: SearchHighlight[]) => void;
+  activeHighlightIndex: number;
+  setActiveHighlightIndex: (index: number) => void;
+  isSearching: boolean;
+  performSemanticSearch: (query: string, documentId: string) => Promise<void>;
+  clearSearch: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -74,6 +89,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currentCase, setCurrentCase] = useState<Case>(mockCase);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [viewMode, setViewMode] = useState<'document' | 'form' | 'metadata'>('form');
+
+  // S5-006: Selected render state
+  const [selectedRender, setSelectedRender] = useState<string | null>(null);
 
   // Load form data from localStorage with fallback to defaults
   const [allCaseFormData, setAllCaseFormData] = useState<Record<string, FormField[]>>(() => {
@@ -121,6 +139,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem('bamf_language');
     return (stored === 'en' || stored === 'de') ? stored : 'de';
   });
+
+  // S5-003: Search state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchHighlights, setSearchHighlights] = useState<SearchHighlight[]>([]);
+  const [activeHighlightIndex, setActiveHighlightIndex] = useState<number>(0);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
 
   // S5-014: Language setter function
   const setLanguage = (lang: 'de' | 'en') => {
@@ -289,6 +313,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  // S5-006: Select document with optional render
+  const selectDocumentWithRender = (doc: Document, renderId?: string) => {
+    setSelectedDocument(doc);
+    // If no renderId provided, default to 'original' if renders exist
+    if (!renderId && doc.renders && doc.renders.length > 0) {
+      const originalRender = doc.renders.find(r => r.type === 'original');
+      setSelectedRender(originalRender?.id || null);
+    } else {
+      setSelectedRender(renderId || null);
+    }
+  };
+
   // Document management functions (S4-001)
   const addDocumentToFolder = (caseId: string, folderId: string, document: Document) => {
     // Update the cases array
@@ -401,6 +437,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             metadata: doc.metadata || {},
             caseId: doc.caseId,
             folderId: doc.folderId,
+            renders: doc.renders || [],  // S5-006: Include renders array
           })),
           subfolders: folder.subfolders || [],
           isExpanded: folder.isExpanded !== false,
@@ -538,63 +575,99 @@ export function AppProvider({ children }: { children: ReactNode }) {
               break;
 
             case 'anonymization_complete':
-              // Handle anonymization completion
+              // S5-006: Handle anonymization completion with render support
               setIsAnonymizing(false);
               setIsTyping(false);
               const anonResponse = message as AnonymizationResponse;
 
               if (anonResponse.success && anonResponse.anonymizedPath) {
-                // Create document object for the anonymized file
-                const pathParts = anonResponse.anonymizedPath.split('/');
-                const anonymizedFileName = pathParts[pathParts.length - 1];
+                // S5-006: Check if render metadata is present (new render system)
+                if (anonResponse.renderMetadata && anonResponse.documentId) {
+                  // New behavior: Add render to existing document
+                  const renderData = anonResponse.renderMetadata;
 
-                // Get the folder ID from the original selected document
-                const originalFolderId = selectedDocument?.folderId || 'personal-data';
+                  setCurrentCase(prev => ({
+                    ...prev,
+                    folders: prev.folders.map(folder => ({
+                      ...folder,
+                      documents: folder.documents.map(doc => {
+                        if (doc.id === anonResponse.documentId) {
+                          // Add the new render to the document
+                          const existingRenders = doc.renders || [];
+                          return {
+                            ...doc,
+                            renders: [...existingRenders, renderData],
+                          };
+                        }
+                        return doc;
+                      }),
+                    })),
+                  }));
 
-                // Extract file extension for type
-                const fileExtension = anonymizedFileName.split('.').pop()?.toLowerCase() || 'png';
-                const docType = (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(fileExtension)
-                  ? fileExtension
-                  : 'png') as Document['type'];
-
-                // Create a new document object for the anonymized file
-                const anonymizedDoc: Document = {
-                  id: `anon-${Date.now()}`,
-                  name: anonymizedFileName,
-                  type: docType,
-                  size: 'Unknown',
-                  uploadedAt: new Date().toISOString(),
-                  metadata: { documentType: 'Anonymized Image' },
-                  caseId: currentCase.id,
-                  folderId: originalFolderId,
-                };
-
-                // Add the anonymized document to the folder in currentCase
-                setCurrentCase(prev => ({
-                  ...prev,
-                  folders: prev.folders.map(folder => {
-                    if (folder.id === originalFolderId) {
-                      // Check if document already exists (avoid duplicates)
-                      const exists = folder.documents.some(doc => doc.name === anonymizedFileName);
-                      if (exists) {
-                        return folder;
-                      }
+                  // Update selected document if it's the one that was anonymized
+                  if (selectedDocument?.id === anonResponse.documentId) {
+                    setSelectedDocument(prev => {
+                      if (!prev) return prev;
+                      const existingRenders = prev.renders || [];
                       return {
-                        ...folder,
-                        documents: [...folder.documents, anonymizedDoc],
+                        ...prev,
+                        renders: [...existingRenders, renderData],
                       };
-                    }
-                    return folder;
-                  }),
-                }));
+                    });
+                  }
 
-                // Auto-select the anonymized document
-                setSelectedDocument(anonymizedDoc);
+                  toast({
+                    title: 'Anonymization Complete',
+                    description: `Masked ${anonResponse.detectionsCount} PII field${anonResponse.detectionsCount !== 1 ? 's' : ''}. Anonymized render created.`,
+                  });
 
-                toast({
-                  title: 'Anonymization Complete',
-                  description: `Masked ${anonResponse.detectionsCount} PII field${anonResponse.detectionsCount !== 1 ? 's' : ''}. Document added to folder.`,
-                });
+                  // S5-006: Refresh from backend to ensure sync with manifest
+                  setTimeout(() => {
+                    loadDocumentsFromBackend(currentCase.id);
+                  }, 500);
+                } else {
+                  // Old behavior: Create new document (fallback for backwards compatibility)
+                  const pathParts = anonResponse.anonymizedPath.split('/');
+                  const anonymizedFileName = pathParts[pathParts.length - 1];
+                  const originalFolderId = selectedDocument?.folderId || 'personal-data';
+                  const fileExtension = anonymizedFileName.split('.').pop()?.toLowerCase() || 'png';
+                  const docType = (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(fileExtension)
+                    ? fileExtension
+                    : 'png') as Document['type'];
+
+                  const anonymizedDoc: Document = {
+                    id: `anon-${Date.now()}`,
+                    name: anonymizedFileName,
+                    type: docType,
+                    size: 'Unknown',
+                    uploadedAt: new Date().toISOString(),
+                    metadata: { documentType: 'Anonymized Image' },
+                    caseId: currentCase.id,
+                    folderId: originalFolderId,
+                  };
+
+                  setCurrentCase(prev => ({
+                    ...prev,
+                    folders: prev.folders.map(folder => {
+                      if (folder.id === originalFolderId) {
+                        const exists = folder.documents.some(doc => doc.name === anonymizedFileName);
+                        if (exists) return folder;
+                        return {
+                          ...folder,
+                          documents: [...folder.documents, anonymizedDoc],
+                        };
+                      }
+                      return folder;
+                    }),
+                  }));
+
+                  setSelectedDocument(anonymizedDoc);
+
+                  toast({
+                    title: 'Anonymization Complete',
+                    description: `Masked ${anonResponse.detectionsCount} PII field${anonResponse.detectionsCount !== 1 ? 's' : ''}. Document added to folder.`,
+                  });
+                }
               } else {
                 toast({
                   title: 'Anonymization Failed',
@@ -717,6 +790,107 @@ export function AppProvider({ children }: { children: ReactNode }) {
     wsConnection.send(JSON.stringify(message));
   };
 
+  // S5-003: Perform semantic search
+  const performSemanticSearch = async (query: string, documentId: string) => {
+    if (!query.trim()) {
+      toast({
+        title: 'Empty Query',
+        description: 'Please enter a search query',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!selectedDocument) {
+      toast({
+        title: 'No Document Selected',
+        description: 'Please select a document to search',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchQuery(query);
+
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+      // Build request based on document type
+      const request: SemanticSearchRequest = {
+        query: query.trim(),
+        documentType: selectedDocument.type,
+        documentContent: selectedDocument.content,
+      };
+
+      // For PDFs, provide the document path instead of content
+      if (selectedDocument.type === 'pdf') {
+        // Construct path to PDF - handles both root_docs and case folders
+        const documentPath = selectedDocument.metadata?.filePath?.includes('root_docs')
+          ? `root_docs/${selectedDocument.name}`
+          : `documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`;
+        request.documentPath = documentPath;
+        request.documentContent = undefined;
+      }
+
+      // Call search API
+      const response = await fetch(`${API_BASE_URL}/api/search/semantic`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Search failed: ${response.statusText}`);
+      }
+
+      const data: SemanticSearchResponse = await response.json();
+
+      // Update highlights
+      setSearchHighlights(data.highlights);
+      setActiveHighlightIndex(0);
+
+      // Show result toast
+      toast({
+        title: 'Search Complete',
+        description: data.matchSummary,
+      });
+
+      console.log(`Search found ${data.count} matches`, data);
+
+    } catch (error) {
+      console.error('Search error:', error);
+
+      toast({
+        title: 'Search Failed',
+        description: error instanceof Error ? error.message : 'An error occurred during search',
+        variant: 'destructive',
+      });
+
+      // Clear highlights on error
+      setSearchHighlights([]);
+      setActiveHighlightIndex(0);
+
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // S5-003: Clear search results
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchHighlights([]);
+    setActiveHighlightIndex(0);
+  };
+
+  // S5-003: Clear search when document changes
+  useEffect(() => {
+    clearSearch();
+  }, [selectedDocument?.id]);
+
   // Clear selectedDocument when case changes (case isolation)
   useEffect(() => {
     // Clear selected document to prevent showing documents from previous case
@@ -814,6 +988,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSelectedDocument,
         viewMode,
         setViewMode,
+        // S5-006: Render selection
+        selectedRender,
+        setSelectedRender,
+        selectDocumentWithRender,
         formFields,
         setFormFields,
         updateFormField,
@@ -845,6 +1023,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // S5-014: Language toggle
         currentLanguage,
         setLanguage,
+        // S5-003: Semantic search
+        searchQuery,
+        setSearchQuery,
+        searchHighlights,
+        setSearchHighlights,
+        activeHighlightIndex,
+        setActiveHighlightIndex,
+        isSearching,
+        performSemanticSearch,
+        clearSearch,
       }}
     >
       {children}

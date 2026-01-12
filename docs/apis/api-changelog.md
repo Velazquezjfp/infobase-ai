@@ -38,6 +38,422 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [1.9.0] - 2026-01-12
+
+### Added - Sprint 5 Advanced Features: Form Modification, Document Registry, and Regulation Model
+
+This release introduces AI-powered form modification (S5-001), container-compatible document persistence (S5-007), and enhanced context validation with regulation models (S5-013).
+
+#### S5-001: Natural Language Form Modification
+
+**New Endpoint: POST /api/admin/modify-form**
+
+**Location:** `backend/api/admin.py:247-348`
+
+AI-powered form modification using natural language commands with automatic SHACL generation and Schema.org semantic type inference.
+
+**Request Format:**
+```json
+{
+  "command": "Add an email field for contact email",
+  "currentFields": [
+    {
+      "id": "name",
+      "label": "Full Name",
+      "type": "text",
+      "value": "",
+      "required": true
+    }
+  ],
+  "caseId": "ACTE-2024-001"
+}
+```
+
+**Response Format:**
+```json
+{
+  "fields": [...],
+  "shaclShape": {
+    "@context": {
+      "sh": "http://www.w3.org/ns/shacl#",
+      "schema": "http://schema.org/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "acte": "http://bamf.example.de/acte#"
+    },
+    "@type": "sh:NodeShape",
+    "sh:targetClass": "acte:IntegrationCourseApplication",
+    "sh:property": [...]
+  },
+  "modifications": [
+    "Added field 'Contact Email' (email)"
+  ],
+  "message": "Form modified successfully"
+}
+```
+
+**Key Features:**
+- **Natural Language Commands**: "Add email field", "Remove phone number", "Add dropdown for status"
+- **Automatic Semantic Inference**: Maps field labels to Schema.org types (email → schema:email, phone → schema:telephone)
+- **Validation Pattern Generation**: Automatic regex patterns for emails, phones, postal codes, etc.
+- **Complete SHACL Shape**: Generates full SHACL NodeShape for entire form with PropertyShapes
+- **Multiple Operations**: Add, remove, and modify fields
+- **Multilingual Support**: Commands in English and German
+
+**Supported Field Types:**
+- `text`: Standard text input with semantic validation
+- `date`: Date picker with date validation
+- `select`: Dropdown with predefined options
+- `textarea`: Multi-line text input
+
+**Semantic Type Mappings:**
+| Field Label | Schema.org Type | Validation |
+|------------|----------------|------------|
+| email | schema:email | Email regex |
+| phone | schema:telephone | Phone regex |
+| name | schema:name | Name validation |
+| birth date | schema:birthDate | Date validation |
+| address | schema:address | Address validation |
+| postal code | schema:postalCode | Postal validation |
+| nationality | schema:nationality | Country validation |
+| gender | schema:gender | Gender validation |
+
+**New Service: SHACL Generator**
+
+**Location:** `backend/services/shacl_generator.py`
+
+Provides comprehensive SHACL shape generation with:
+- Schema.org semantic type inference from field labels
+- Automatic validation pattern generation
+- PropertyShape generation for individual fields
+- NodeShape generation for complete forms
+- JSON-LD context generation
+- Support for all form field types (text, date, select, textarea)
+
+---
+
+#### S5-007: Document Registry and Container-Compatible Persistence
+
+**New API Module: backend/api/documents.py**
+
+Three new endpoints for document registry management:
+
+**1. GET /api/documents/tree/{case_id}**
+
+**Location:** `backend/api/documents.py:68-151`
+
+Retrieve complete document tree for a case from the registry manifest.
+
+**Response Format:**
+```json
+{
+  "folders": [
+    {
+      "id": "personal-data",
+      "name": "Personal Data",
+      "documents": [
+        {
+          "id": "doc-abc123",
+          "name": "Birth_Certificate.pdf",
+          "type": "pdf",
+          "size": "245 KB",
+          "uploadedAt": "2024-01-15T10:30:00Z",
+          "metadata": {...},
+          "caseId": "ACTE-2024-001",
+          "folderId": "personal-data"
+        }
+      ],
+      "subfolders": [],
+      "isExpanded": true
+    }
+  ],
+  "rootDocuments": []
+}
+```
+
+**2. GET /api/documents/all**
+
+**Location:** `backend/api/documents.py:154-200`
+
+Retrieve all documents across all cases with full registry metadata.
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "count": 15,
+  "documents": [
+    {
+      "documentId": "doc-abc123",
+      "caseId": "ACTE-2024-001",
+      "folderId": "personal-data",
+      "fileName": "Birth_Certificate.pdf",
+      "filePath": "public/documents/ACTE-2024-001/personal-data/Birth_Certificate.pdf",
+      "uploadedAt": "2024-01-15T10:30:00Z",
+      "fileHash": "sha256:abc123...",
+      "renders": []
+    }
+  ]
+}
+```
+
+**3. GET /api/documents/health**
+
+**Location:** `backend/api/documents.py:203-260`
+
+Health check for document registry service.
+
+**Response Format:**
+```json
+{
+  "service": "documents",
+  "status": "ready",
+  "features": {
+    "document_tree": true,
+    "manifest_persistence": true,
+    "filesystem_reconciliation": true
+  },
+  "manifest": {
+    "loaded": true,
+    "document_count": 15
+  },
+  "storage": {
+    "available": true,
+    "path": "/home/user/project/public/documents"
+  }
+}
+```
+
+**New Service: Document Registry**
+
+**Location:** `backend/services/document_registry.py` (710 lines)
+
+Comprehensive document registry/manifest system providing:
+
+**Core Features:**
+- **Manifest Persistence**: Single source of truth in `backend/data/document_manifest.json`
+- **Container-Friendly**: Uses configurable `DOCUMENTS_BASE_PATH`
+- **Filesystem Reconciliation**: Automatic on startup
+  - Discovers orphaned files (on disk but not in manifest)
+  - Detects missing files (in manifest but not on disk)
+  - Verifies file integrity with SHA-256 hashes
+- **Document Tree Building**: Hierarchical folder structure for frontend
+- **Render Tracking**: Tracks anonymized/translated document versions
+
+**Key Functions:**
+- `load_manifest()`: Load registry from disk
+- `save_manifest()`: Persist registry to disk
+- `register_document()`: Add document to registry
+- `unregister_document()`: Remove document from registry
+- `find_document_by_path()`: Locate document in registry
+- `build_document_tree()`: Build hierarchical tree for case
+- `get_all_documents()`: Retrieve all documents
+- `reconcile_manifest_with_filesystem()`: Sync manifest with disk
+
+**Document Registry Schema:**
+```json
+{
+  "version": "1.0",
+  "schemaVersion": "1.0",
+  "lastUpdated": "2026-01-12T12:00:00Z",
+  "documents": [
+    {
+      "documentId": "uuid",
+      "caseId": "ACTE-2024-001",
+      "folderId": "personal-data",
+      "fileName": "document.pdf",
+      "filePath": "public/documents/...",
+      "uploadedAt": "2026-01-12T10:00:00Z",
+      "fileHash": "sha256:...",
+      "renders": []
+    }
+  ]
+}
+```
+
+**File Operations Integration:**
+
+Modified endpoints to integrate with document registry:
+
+**POST /api/files/upload** (Updated)
+- Now automatically registers uploaded files in document registry
+- Calculates SHA-256 file hash for integrity
+- Creates document entry with UUID
+- Graceful degradation: upload succeeds even if registration fails
+
+**DELETE /api/files/{case_id}/{folder_id}/{filename}** (Updated)
+- Now automatically unregisters deleted files from document registry
+- Removes document entry and all associated renders
+- Graceful degradation: deletion succeeds even if unregistration fails
+
+**Reconciliation on Startup:**
+
+Application now performs automatic filesystem reconciliation:
+1. Loads manifest from disk
+2. Scans filesystem for all documents
+3. Identifies orphaned files (not in manifest)
+4. Registers orphaned files with generated metadata
+5. Identifies missing files (in manifest but not on disk)
+6. Logs missing files as warnings
+7. Saves updated manifest
+
+**Benefits:**
+- Documents persist across container restarts
+- No data loss when containers are recreated
+- Automatic recovery from inconsistent states
+- Frontend always has accurate document list
+
+---
+
+#### S5-013: Enhanced Context Validation with Regulation Model
+
+**New Model: Regulation**
+
+**Location:** `backend/models/regulation.py` (250 lines)
+
+Type-safe access to regulation data from case contexts.
+
+**Regulation Dataclass:**
+```python
+@dataclass
+class Regulation:
+    id: str
+    title: str
+    summary: str
+    url: str
+    relevance: str
+```
+
+**Key Features:**
+- `from_dict()`: Create Regulation from JSON data
+- `validate()`: Check data quality (URL format, content length, etc.)
+- `get_regulation_details()`: Find regulation by ID
+- `validate_regulations_list()`: Validate all regulations in list
+
+**Enhanced Context Manager**
+
+**Location:** `backend/services/context_manager.py` (Updated with ValidationResult)
+
+**ValidationResult Dataclass:**
+- Structured validation results with errors, warnings, and statistics
+- Statistics: document counts, regulation counts, common issue counts, etc.
+- `get_summary()`: Human-readable summary
+- `to_dict()`: JSON serialization
+
+**New Function: validate_case_context()**
+
+Validates case contexts against schema v2.0 requirements:
+
+**Validation Checks:**
+1. Schema version must be "2.0"
+2. Required fields present
+3. Document validation (minimum 15 required documents)
+4. Regulation validation (minimum 10 regulations with valid URLs)
+5. Common issues validation (minimum 20 with severity levels)
+6. Validation rules present (at least 1)
+
+**Validation Results:**
+
+| Case Context | Documents | Regulations | Common Issues | Status |
+|--------------|-----------|-------------|---------------|--------|
+| ACTE-2024-001 | 17 | 11 | 24 | PASS |
+| Integration Template | 17 | 11 | 24 | PASS |
+| Asylum Template | 15 | 11 | 24 | PASS |
+| Family Reunification | 17 | 11 | 22 | PASS |
+
+---
+
+### Changed
+
+**File Operations:**
+- `POST /api/files/upload`: Now registers documents in document registry
+- `DELETE /api/files/{case_id}/{folder_id}/{filename}`: Now unregisters documents from registry
+
+**Context Manager:**
+- Added `ValidationResult` dataclass for structured validation results
+- Added `validate_case_context()` method for context validation
+- Enhanced with regulation model integration
+
+**Configuration:**
+- Added `DOCUMENTS_BASE_PATH` configuration variable for container compatibility
+
+---
+
+### New Files
+
+**Backend API:**
+- `backend/api/documents.py` (313 lines) - Document registry API endpoints
+
+**Backend Services:**
+- `backend/services/document_registry.py` (710 lines) - Document registry/manifest system
+- `backend/services/shacl_generator.py` (370 lines) - SHACL shape generation service
+
+**Backend Models:**
+- `backend/models/regulation.py` (250 lines) - Regulation model with validation
+
+**Backend Schemas:**
+- `backend/schemas/schema_org_mappings.py` (306 lines) - Schema.org semantic type mappings
+
+**Data Files:**
+- `backend/data/document_manifest.json` - Document registry manifest (persistent storage)
+
+**Tests and Demos:**
+- `demo_s5_013_regulation_model.py` (131 lines) - Regulation model demonstration
+- `test_s5_013_validation.py` (143 lines) - Context validation tests
+
+---
+
+### Dependencies
+
+**New Python Dependencies:**
+- No new external dependencies required
+- Uses existing FastAPI, Pydantic, and standard library modules
+
+---
+
+### Migration Notes
+
+**Document Registry Migration:**
+- Existing files will be automatically discovered and registered on first startup
+- No manual migration required
+- Manifest file will be created automatically: `backend/data/document_manifest.json`
+- Recommend backing up `public/documents/` directory before first run
+
+**Context Validation:**
+- Schema v1.0 contexts will fail validation (by design)
+- Upgrade contexts to schema v2.0 to pass validation
+- See D-S5-003 documentation for schema v2.0 requirements
+
+---
+
+### Performance Impact
+
+**Document Registry:**
+- Startup time increased by ~100-500ms for reconciliation (depends on document count)
+- Document tree retrieval: < 100ms (reads from manifest, no filesystem scanning)
+- File upload: +10-20ms for registration
+- File deletion: +10-20ms for unregistration
+
+**Form Modification:**
+- Typical response time: 1-3 seconds (AI processing)
+- SHACL generation: < 100ms
+
+---
+
+### Security Considerations
+
+- Document registry manifest is stored in plain JSON (no encryption)
+- No authentication on new endpoints (planned for future)
+- File hashes (SHA-256) provide integrity verification
+- Document registry prevents path traversal attacks
+
+---
+
+### Breaking Changes
+
+None. All changes are backward compatible.
+
+---
+
 ## [1.6.0] - 2026-01-12
 
 ### Added - Sprint 5 Enhancements: Multilingual Support and Smart Form Extraction

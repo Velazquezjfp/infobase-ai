@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 # Load environment variables from .env file
 load_dotenv()
@@ -26,6 +27,8 @@ from backend.api.chat import router as chat_router
 from backend.api.admin import router as admin_router
 from backend.api.files import router as files_router
 from backend.api.documents import router as documents_router
+from backend.api.context import router as context_router  # S5-011
+from backend.api.search import router as search_router  # S5-003
 
 # Configure logging
 logging.basicConfig(
@@ -52,6 +55,34 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     # Startup
     logger.info("Starting BAMF AI Case Management Backend...")
+
+    # S5-015: Initialize test documents for ACTE-2024-001
+    try:
+        from backend.scripts.initialize_test_documents import (
+            initialize_test_documents,
+            cleanup_old_test_documents
+        )
+
+        logger.info("Running test document initialization...")
+
+        # Clean up old .txt test files first
+        deleted_count = cleanup_old_test_documents()
+        if deleted_count > 0:
+            logger.info(f"Removed {deleted_count} old test documents")
+
+        # Copy new sample documents from root_docs
+        stats = initialize_test_documents()
+        if stats["copied"] > 0:
+            logger.info(
+                f"Initialized {stats['copied']} test documents "
+                f"(skipped {stats['skipped']}, failed {stats['failed']})"
+            )
+        elif stats["skipped"] > 0:
+            logger.debug(f"Test documents already initialized ({stats['skipped']} files exist)")
+
+    except Exception as e:
+        logger.warning(f"Test document initialization failed: {e}", exc_info=True)
+        logger.info("Application will continue normally")
 
     # S5-007: Document registry reconciliation on startup
     try:
@@ -127,11 +158,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# S5-003: Mount static files for PDF viewing
+# This allows the frontend PDFViewer to access PDFs at http://localhost:8000/root_docs/
+app.mount("/root_docs", StaticFiles(directory="root_docs"), name="root_docs")
+
+# S5-003: Mount documents directory for case PDFs
+# This allows access to PDFs in case folders at http://localhost:8000/documents/
+from pathlib import Path
+from backend.config import DOCUMENTS_BASE_PATH
+if Path(DOCUMENTS_BASE_PATH).exists():
+    app.mount("/documents", StaticFiles(directory=DOCUMENTS_BASE_PATH), name="documents")
+
 # Register API routers
 app.include_router(chat_router, tags=["chat"])
 app.include_router(admin_router, tags=["admin"])
 app.include_router(files_router, tags=["files"])
 app.include_router(documents_router, tags=["documents"])
+app.include_router(context_router, tags=["context"])  # S5-011
+app.include_router(search_router, prefix="/api/search", tags=["search"])  # S5-003
 
 
 @app.get("/health")

@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/contexts/AppContext';
-import { FileText, FileJson, FileCode, File, Download, Languages, EyeOff, FileOutput, Database, X, Loader2, ImageIcon, AlertCircle } from 'lucide-react';
+import { FileText, FileJson, FileCode, File, Download, Languages, EyeOff, FileOutput, Database, X, Loader2, ImageIcon, AlertCircle, Search, ChevronUp, ChevronDown, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { AnonymizationRequest } from '@/types/websocket';
+import HighlightedText from '@/components/workspace/HighlightedText';
+import PDFViewer from '@/components/workspace/PDFViewer';
 
 type DocumentTab = 'pdf' | 'xml' | 'json' | 'docx';
 
@@ -12,10 +16,43 @@ type DocumentTab = 'pdf' | 'xml' | 'json' | 'docx';
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
 
 export default function DocumentViewer() {
-  const { selectedDocument, setSelectedDocument, setViewMode, wsConnection, wsStatus, currentCase, isAnonymizing, setIsAnonymizing } = useApp();
+  const {
+    selectedDocument,
+    setSelectedDocument,
+    setViewMode,
+    wsConnection,
+    wsStatus,
+    currentCase,
+    isAnonymizing,
+    setIsAnonymizing,
+    // S5-003: Search state
+    searchQuery,
+    searchHighlights,
+    activeHighlightIndex,
+    setActiveHighlightIndex,
+    isSearching,
+    performSemanticSearch,
+    clearSearch,
+  } = useApp();
+
   const [activeTab, setActiveTab] = useState<DocumentTab>('pdf');
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+
+  // S5-003: Search dialog state
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+
+  // S5-003: Refs for highlights
+  const highlightRefs = useRef<(HTMLElement | null)[]>([]);
+
+  // Document content fetching state
+  const [documentContent, setDocumentContent] = useState<string>('');
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const [contentError, setContentError] = useState<string | null>(null);
+
+  // PDF view mode: 'visual' shows the PDF, 'text' shows extracted text with highlights
+  const [pdfViewMode, setPdfViewMode] = useState<'visual' | 'text'>('visual');
 
   // Check if document is an image
   const isImage = selectedDocument
@@ -25,6 +62,13 @@ export default function DocumentViewer() {
   // Construct image path for display
   const imagePath = selectedDocument
     ? `/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`
+    : '';
+
+  // Construct PDF path - handles both root_docs and case folders
+  const pdfPath = selectedDocument
+    ? selectedDocument.metadata?.filePath?.includes('root_docs')
+      ? `http://localhost:8000/root_docs/${selectedDocument.name}`
+      : `http://localhost:8000/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`
     : '';
 
   // Reset image state when document changes
@@ -41,6 +85,74 @@ export default function DocumentViewer() {
       });
     }
   }, [selectedDocument?.id, isImage, currentCase.id]);
+
+  // Fetch content for PDFs and .eml files
+  useEffect(() => {
+    const fetchDocumentContent = async () => {
+      if (!selectedDocument) {
+        setDocumentContent('');
+        return;
+      }
+
+      const docType = selectedDocument.type.toLowerCase();
+
+      // Only fetch for PDFs and .eml files that don't have content
+      if ((docType === 'pdf' || docType === 'eml') && !selectedDocument.content) {
+        setIsLoadingContent(true);
+        setContentError(null);
+
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+          if (docType === 'pdf') {
+            // Construct the correct document path
+            const documentPath = selectedDocument.metadata?.filePath?.includes('root_docs')
+              ? `root_docs/${selectedDocument.name}`
+              : `documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`;
+
+            // For PDFs, extract text using our PDF service
+            const pdfResponse = await fetch(`${API_BASE_URL}/api/documents/extract-pdf-text`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                documentPath: documentPath,
+              }),
+            }).catch(() => null);
+
+            if (pdfResponse && pdfResponse.ok) {
+              const data = await pdfResponse.json();
+              setDocumentContent(data.text || 'Could not extract text from PDF');
+            } else {
+              // Fallback: show message that PDF needs to be rendered
+              setDocumentContent('PDF document selected. Click "Search" to search within this PDF using semantic search.');
+            }
+          } else if (docType === 'eml') {
+            // For .eml files, we need an email parsing endpoint
+            // For now, show a placeholder
+            setDocumentContent('Email (.eml) document selected. Email parsing support coming soon.');
+          }
+        } catch (error) {
+          console.error('Error fetching document content:', error);
+          setContentError('Failed to load document content');
+          setDocumentContent('');
+        } finally {
+          setIsLoadingContent(false);
+        }
+      } else if (selectedDocument.content) {
+        // Use existing content if available
+        setDocumentContent(selectedDocument.content);
+        setIsLoadingContent(false);
+        setContentError(null);
+      } else {
+        // For other types or if content exists
+        setDocumentContent('');
+        setIsLoadingContent(false);
+        setContentError(null);
+      }
+    };
+
+    fetchDocumentContent();
+  }, [selectedDocument?.id, selectedDocument?.name, selectedDocument?.type]);
 
   const tabs: { id: DocumentTab; label: string; icon: React.ReactNode }[] = [
     { id: 'pdf', label: 'PDF', icon: <FileText className="w-4 h-4" /> },
@@ -77,17 +189,18 @@ export default function DocumentViewer() {
 
     // Build file path from case, folder, and document
     // Assumes documents are stored at: public/documents/{caseId}/{folderId}/{filename}
-    const filePath = `public/documents/${currentCase.id}/${selectedDocument.id}/${selectedDocument.name}`;
+    const filePath = `public/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`;
 
     setIsAnonymizing(true);
     toast({ title: 'Anonymizing document...', description: 'This may take a moment' });
 
-    // Send anonymization request via WebSocket
+    // S5-006: Send anonymization request via WebSocket with documentId for render registration
     const request: AnonymizationRequest = {
       type: 'anonymize',
       filePath,
       caseId: currentCase.id,
-      folderId: selectedDocument.id,
+      folderId: selectedDocument.folderId || 'uploads',
+      documentId: selectedDocument.id, // S5-006: Include documentId for render registration
     };
 
     wsConnection.send(JSON.stringify(request));
@@ -137,7 +250,73 @@ export default function DocumentViewer() {
     setImageError(true);
   };
 
+  // S5-003: Handle search submission
+  const handleSearchSubmit = async () => {
+    if (!searchInput.trim() || !selectedDocument) return;
+
+    await performSemanticSearch(searchInput.trim(), selectedDocument.id);
+    setSearchDialogOpen(false);
+  };
+
+  // S5-003: Handle search navigation
+  const handleNextHighlight = () => {
+    if (activeHighlightIndex < searchHighlights.length - 1) {
+      const newIndex = activeHighlightIndex + 1;
+      setActiveHighlightIndex(newIndex);
+      scrollToHighlight(newIndex);
+    }
+  };
+
+  const handlePrevHighlight = () => {
+    if (activeHighlightIndex > 0) {
+      const newIndex = activeHighlightIndex - 1;
+      setActiveHighlightIndex(newIndex);
+      scrollToHighlight(newIndex);
+    }
+  };
+
+  // S5-003: Scroll to highlight
+  const scrollToHighlight = (index: number) => {
+    const element = highlightRefs.current[index];
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  };
+
+  // S5-003: Handle highlight ref callback
+  const handleHighlightRef = (index: number, element: HTMLElement | null) => {
+    highlightRefs.current[index] = element;
+  };
+
+  // S5-003: Keyboard shortcut for search (Ctrl+F)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        if (selectedDocument) {
+          setSearchDialogOpen(true);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedDocument]);
+
+  const isPdf = selectedDocument?.type.toLowerCase() === 'pdf';
+
   const documentActions = [
+    // S5-003: Search button
+    { label: 'Search', icon: <Search className="w-4 h-4" />, action: () => setSearchDialogOpen(true) },
+    // PDF view toggle
+    ...(isPdf ? [{
+      label: pdfViewMode === 'visual' ? 'Text View' : 'PDF View',
+      icon: <Eye className="w-4 h-4" />,
+      action: () => setPdfViewMode(prev => prev === 'visual' ? 'text' : 'visual')
+    }] : []),
     { label: 'Convert PDF', icon: <FileOutput className="w-4 h-4" />, action: () => toast({ title: 'Converting to PDF...' }) },
     { label: 'Translate', icon: <Languages className="w-4 h-4" />, action: () => toast({ title: 'Translating to German...' }) },
     {
@@ -188,11 +367,61 @@ export default function DocumentViewer() {
         ))}
       </div>
 
+      {/* S5-003: Search Results Indicator */}
+      {searchHighlights.length > 0 && (
+        <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
+              {searchHighlights.length} {searchHighlights.length === 1 ? 'match' : 'matches'} found for "{searchQuery}"
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSearch}
+              className="h-6 text-xs text-yellow-700 dark:text-yellow-300 hover:text-yellow-900 dark:hover:text-yellow-100"
+            >
+              <X className="w-3 h-3 mr-1" />
+              Clear
+            </Button>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-yellow-700 dark:text-yellow-300 mr-2">
+              {activeHighlightIndex + 1} of {searchHighlights.length}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevHighlight}
+              disabled={activeHighlightIndex === 0}
+              className="h-6 w-6 p-0"
+            >
+              <ChevronUp className="w-3 h-3" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextHighlight}
+              disabled={activeHighlightIndex === searchHighlights.length - 1}
+              className="h-6 w-6 p-0"
+            >
+              <ChevronDown className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Document Preview */}
-      <div className="flex-1 p-4 overflow-auto">
-        {isImage ? (
+      <div className="flex-1 overflow-auto">
+        {isPdf && pdfViewMode === 'visual' && searchHighlights.length === 0 ? (
+          // PDF Visual View (when no search active)
+          <PDFViewer
+            file={pdfPath}
+            highlights={searchHighlights}
+            activeHighlightIndex={activeHighlightIndex}
+          />
+        ) : isImage ? (
           // Image file display
-          <div className="bg-muted/30 rounded-lg border border-border h-full flex items-center justify-center relative">
+          <div className="bg-muted/30 rounded-lg border border-border h-full flex items-center justify-center relative p-4">
             {imageLoading && !imageError && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                 <div className="text-center">
@@ -218,22 +447,50 @@ export default function DocumentViewer() {
               />
             )}
           </div>
-        ) : selectedDocument.type === 'txt' && selectedDocument.content ? (
-          // Text file content display
-          <div className="bg-background rounded-lg border border-border h-full overflow-auto">
-            <pre className="whitespace-pre-wrap font-mono text-sm p-6 leading-relaxed text-foreground">
-              {selectedDocument.content}
-            </pre>
-          </div>
-        ) : selectedDocument.type === 'txt' && !selectedDocument.content ? (
-          // Text file without content (loading or error)
+        ) : isLoadingContent ? (
+          // Loading document content (PDF, .eml, etc.)
           <div className="bg-muted/50 rounded-lg p-6 min-h-[300px] flex items-center justify-center border border-border h-full">
             <div className="text-center">
-              <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-              <p className="font-medium text-foreground mb-1">{selectedDocument.name}</p>
-              <p className="text-sm text-muted-foreground mb-2">Text Document • {selectedDocument.size}</p>
-              <p className="text-xs text-muted-foreground">Loading document content...</p>
+              <Loader2 className="w-12 h-12 mx-auto mb-3 text-primary animate-spin" />
+              <p className="font-medium text-foreground mb-1">Loading {selectedDocument.name}</p>
+              <p className="text-sm text-muted-foreground">Extracting document content...</p>
             </div>
+          </div>
+        ) : contentError ? (
+          // Error loading content
+          <div className="bg-muted/50 rounded-lg p-6 min-h-[300px] flex items-center justify-center border border-border h-full">
+            <div className="text-center">
+              <AlertCircle className="w-12 h-12 mx-auto mb-3 text-destructive" />
+              <p className="font-medium text-foreground mb-1">Error Loading Document</p>
+              <p className="text-sm text-muted-foreground mb-2">{contentError}</p>
+              <p className="text-xs text-muted-foreground">Try selecting the document again</p>
+            </div>
+          </div>
+        ) : documentContent || selectedDocument.content ? (
+          // Text content display with optional highlighting (for txt, pdf text view, eml)
+          <div className="bg-background rounded-lg border border-border h-full overflow-auto p-4">
+            {isPdf && searchHighlights.length > 0 && (
+              <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+                <p className="text-sm text-yellow-900 dark:text-yellow-100 font-medium">
+                  📄 Viewing extracted text with highlights
+                </p>
+                <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                  Switch back to "PDF View" to see the original document layout
+                </p>
+              </div>
+            )}
+            <pre className="whitespace-pre-wrap font-mono text-sm p-2 leading-relaxed text-foreground">
+              {searchHighlights.length > 0 ? (
+                <HighlightedText
+                  text={documentContent || selectedDocument.content || ''}
+                  highlights={searchHighlights}
+                  activeHighlightIndex={activeHighlightIndex}
+                  onHighlightRef={handleHighlightRef}
+                />
+              ) : (
+                documentContent || selectedDocument.content
+              )}
+            </pre>
           </div>
         ) : (
           // Other document types - show placeholder
@@ -241,8 +498,10 @@ export default function DocumentViewer() {
             <div className="text-center">
               <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
               <p className="font-medium text-foreground mb-1">{selectedDocument.name}</p>
-              <p className="text-sm text-muted-foreground mb-2">{activeTab.toUpperCase()} Rendition • {selectedDocument.size}</p>
-              <p className="text-xs text-muted-foreground">Document preview renders here</p>
+              <p className="text-sm text-muted-foreground mb-2">{activeTab.toUpperCase()} Document • {selectedDocument.size}</p>
+              <p className="text-xs text-muted-foreground">
+                {selectedDocument.type === 'pdf' ? 'Click "Search" to search within this PDF' : 'Document preview not available'}
+              </p>
             </div>
           </div>
         )}
@@ -266,6 +525,61 @@ export default function DocumentViewer() {
           ))}
         </div>
       </div>
+
+      {/* S5-003: Search Dialog */}
+      <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Search in Document</DialogTitle>
+            <DialogDescription>
+              Enter your search query. Supports natural language and cross-language search.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Input
+                placeholder="Enter search query (e.g., 'passport number', 'birth date')"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearchSubmit();
+                  }
+                }}
+                autoFocus
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">
+                Try natural language queries like "when was the person born" or cross-language searches.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setSearchDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSearchSubmit}
+              disabled={!searchInput.trim() || isSearching}
+            >
+              {isSearching ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4 mr-2" />
+                  Search
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

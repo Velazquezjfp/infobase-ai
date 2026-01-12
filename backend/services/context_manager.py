@@ -22,7 +22,7 @@ import json
 import os
 import shutil
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple
@@ -31,6 +31,10 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# S5-011: In-memory cache for document tree views
+# Maps case_id to tuple of (tree_string, timestamp)
+_tree_view_cache: Dict[str, Tuple[str, datetime]] = {}
 
 
 class ContextSource(Enum):
@@ -306,6 +310,15 @@ class ContextManager:
         try:
             with open(case_context_path, 'r', encoding='utf-8') as f:
                 context = json.load(f)
+
+            # S5-011: Add document tree view to case context
+            try:
+                tree_view = generate_document_tree(case_id)
+                context['documentTreeView'] = tree_view
+                logger.debug(f"Added document tree view to case context for {case_id}")
+            except Exception as e:
+                logger.warning(f"Could not generate tree view for {case_id}: {e}")
+                context['documentTreeView'] = f"Case: {case_id}\n└── (tree view unavailable)"
 
             logger.info(f"Successfully loaded case context for: {case_id}")
             return context
@@ -956,3 +969,167 @@ class ContextManager:
         )
 
         return result
+
+
+# ============================================================================
+# S5-011: Document Tree View Functions
+# ============================================================================
+
+def generate_document_tree(case_id: str) -> str:
+    """
+    S5-011: Generate a hierarchical text representation of the document tree.
+
+    Creates a tree view showing all folders and documents in a case using
+    ASCII tree characters (├── └──). This tree view is included in AI prompts
+    to provide global document awareness.
+
+    Args:
+        case_id: The case ID to generate tree view for (e.g., "ACTE-2024-001")
+
+    Returns:
+        str: Hierarchical text representation of the document tree.
+
+    Example Output:
+        Case: ACTE-2024-001
+        ├── Personal Data/
+        │   ├── Birth_Certificate.jpg
+        │   ├── Reisepass.png
+        │   └── ID_Card.png
+        ├── Certificates/
+        │   └── Language_Certificate_A1.pdf
+        └── Emails/ (empty)
+    """
+    # Check cache first
+    if case_id in _tree_view_cache:
+        cached_tree, cached_time = _tree_view_cache[case_id]
+        logger.debug(f"Returning cached tree view for {case_id} (cached at {cached_time})")
+        return cached_tree
+
+    try:
+        # Import document registry functions
+        from backend.services.document_registry import (
+            build_document_tree,
+            get_documents_by_case
+        )
+
+        # Get the structured tree from document registry
+        tree_data = build_document_tree(case_id)
+        documents = get_documents_by_case(case_id)
+
+        # Load folder metadata to get display names
+        folder_names = {}
+        context_base = Path("backend/data/contexts/cases") / case_id / "folders"
+
+        if context_base.exists():
+            for folder_file in context_base.glob("*.json"):
+                try:
+                    with open(folder_file, 'r', encoding='utf-8') as f:
+                        folder_ctx = json.load(f)
+                        folder_id = folder_ctx.get('folderId')
+                        folder_name = folder_ctx.get('folderName', folder_id)
+                        if folder_id:
+                            folder_names[folder_id] = folder_name
+                except Exception as e:
+                    logger.warning(f"Could not load folder name from {folder_file}: {e}")
+
+        # Build tree text representation
+        tree_lines = [f"Case: {case_id}"]
+
+        folders = tree_data.get('folders', [])
+        root_documents = tree_data.get('rootDocuments', [])
+
+        # Count total items (folders + root documents)
+        total_items = len(folders) + len(root_documents)
+        current_item = 0
+
+        # Add folders with their documents
+        for folder in folders:
+            current_item += 1
+            is_last_item = (current_item == total_items)
+
+            folder_id = folder.get('id')
+            folder_display_name = folder_names.get(folder_id, folder_id)
+            folder_docs = folder.get('documents', [])
+
+            # Folder line
+            prefix = "└──" if is_last_item else "├──"
+            if len(folder_docs) == 0:
+                tree_lines.append(f"{prefix} {folder_display_name}/ (empty)")
+            else:
+                tree_lines.append(f"{prefix} {folder_display_name}/")
+
+                # Add documents in folder
+                for doc_idx, doc in enumerate(folder_docs):
+                    is_last_doc = (doc_idx == len(folder_docs) - 1)
+                    doc_name = doc.get('fileName', 'Unknown')
+
+                    # Determine the prefix for the document
+                    if is_last_item:
+                        # Last folder, use spaces
+                        doc_prefix = "    └──" if is_last_doc else "    ├──"
+                    else:
+                        # Not last folder, use vertical bar continuation
+                        doc_prefix = "│   └──" if is_last_doc else "│   ├──"
+
+                    tree_lines.append(f"{doc_prefix} {doc_name}")
+
+        # Add root documents (documents not in any folder)
+        for root_doc in root_documents:
+            current_item += 1
+            is_last_item = (current_item == total_items)
+
+            doc_name = root_doc.get('fileName', 'Unknown')
+            prefix = "└──" if is_last_item else "├──"
+            tree_lines.append(f"{prefix} {doc_name}")
+
+        # If no folders and no documents
+        if total_items == 0:
+            tree_lines.append("└── (empty)")
+
+        tree_text = "\n".join(tree_lines)
+
+        # Cache the result
+        _tree_view_cache[case_id] = (tree_text, datetime.now(timezone.utc))
+        logger.info(f"Generated and cached tree view for {case_id} ({len(documents)} documents)")
+
+        return tree_text
+
+    except Exception as e:
+        logger.error(f"Failed to generate tree view for {case_id}: {e}", exc_info=True)
+        return f"Case: {case_id}\n└── (error generating tree view)"
+
+
+def invalidate_tree_cache(case_id: str) -> None:
+    """
+    S5-011: Invalidate the cached tree view for a case.
+
+    Should be called whenever documents are added, deleted, or moved
+    to ensure the tree view stays up-to-date.
+
+    Args:
+        case_id: The case ID whose cache should be invalidated
+    """
+    if case_id in _tree_view_cache:
+        del _tree_view_cache[case_id]
+        logger.debug(f"Invalidated tree view cache for {case_id}")
+    else:
+        logger.debug(f"No cached tree view to invalidate for {case_id}")
+
+
+def get_cached_tree_stats() -> Dict[str, Any]:
+    """
+    S5-011: Get statistics about the tree view cache.
+
+    Useful for monitoring and debugging cache performance.
+
+    Returns:
+        dict: Cache statistics including size and entries
+    """
+    return {
+        "cache_size": len(_tree_view_cache),
+        "cached_cases": list(_tree_view_cache.keys()),
+        "cache_timestamps": {
+            case_id: timestamp.isoformat()
+            for case_id, (_, timestamp) in _tree_view_cache.items()
+        }
+    }

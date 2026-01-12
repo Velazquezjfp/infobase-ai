@@ -44,12 +44,14 @@ class AnonymizationToolResult:
         anonymized_path: Path to the saved anonymized document.
         detections_count: Number of PII fields detected and masked.
         error: Error message if operation failed.
+        render_metadata: S5-006: Render metadata for document registry (optional)
     """
     success: bool
     original_path: str
     anonymized_path: Optional[str] = None
     detections_count: int = 0
     error: Optional[str] = None
+    render_metadata: Optional[dict] = None
 
 
 def _get_anonymized_filename(original_path: str) -> str:
@@ -154,7 +156,11 @@ def _base64_to_image(base64_string: str, output_path: str) -> tuple[bool, Option
         return False, f"Error saving file: {str(e)}"
 
 
-async def anonymize_document(file_path: str) -> AnonymizationToolResult:
+async def anonymize_document(
+    file_path: str,
+    document_id: str = None,
+    register_render: bool = False
+) -> AnonymizationToolResult:
     """
     Anonymize a document image by masking PII with black boxes.
 
@@ -162,22 +168,33 @@ async def anonymize_document(file_path: str) -> AnonymizationToolResult:
     1. Reads the image file and converts it to base64
     2. Sends it to the anonymization service
     3. Saves the anonymized result with '_anonymized' suffix
-    4. Returns the path to the anonymized file
+    4. Optionally registers the result as a render in document registry (S5-006)
+    5. Returns the path to the anonymized file
 
     The original file remains unchanged.
 
     Args:
         file_path: Absolute or relative path to the image file.
                   Supported formats: PNG, JPG, JPEG, GIF, BMP, WEBP
+        document_id: Optional document ID for render registration (S5-006)
+        register_render: If True, register anonymized file as a render (requires document_id)
 
     Returns:
-        AnonymizationToolResult: Result containing paths and detection count.
+        AnonymizationToolResult: Result containing paths, detection count, and render metadata.
 
     Example:
         >>> result = await anonymize_document("/documents/ACTE-2024-001/personal-data/passport.png")
         >>> if result.success:
         ...     print(f"Anonymized file saved to: {result.anonymized_path}")
         ...     print(f"Masked {result.detections_count} PII fields")
+        >>>
+        >>> # S5-006: With render registration
+        >>> result = await anonymize_document(
+        ...     "/documents/ACTE-2024-001/personal-data/passport.png",
+        ...     document_id="doc_001",
+        ...     register_render=True
+        ... )
+        >>> print(result.render_metadata)
     """
     logger.info(f"Starting anonymization for: {file_path}")
 
@@ -225,11 +242,27 @@ async def anonymize_document(file_path: str) -> AnonymizationToolResult:
         f"output: {anonymized_path}"
     )
 
+    # S5-006: Optionally register as a render
+    render_metadata = None
+    if register_render and document_id:
+        try:
+            from backend.services.file_service import add_document_render
+            render_metadata = add_document_render(
+                document_id=document_id,
+                render_type='anonymized',
+                file_path=anonymized_path
+            )
+            logger.info(f"Registered anonymized render: {render_metadata['id']}")
+        except Exception as e:
+            logger.warning(f"Failed to register render (continuing anyway): {e}")
+            # Don't fail the anonymization if render registration fails
+
     return AnonymizationToolResult(
         success=True,
         original_path=file_path,
         anonymized_path=anonymized_path,
-        detections_count=result.detections_count
+        detections_count=result.detections_count,
+        render_metadata=render_metadata
     )
 
 

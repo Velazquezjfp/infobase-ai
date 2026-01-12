@@ -458,8 +458,9 @@ async def handle_anonymization(
     """
     file_path = message.get("filePath")
     folder_id = message.get("folderId")
+    document_id = message.get("documentId")  # S5-006: Get documentId for render registration
 
-    logger.info(f"Processing anonymization request for case {case_id}, file: {file_path}")
+    logger.info(f"Processing anonymization request for case {case_id}, file: {file_path}, documentId: {document_id}")
 
     # Validate file path
     if not file_path:
@@ -488,10 +489,14 @@ async def handle_anonymization(
         return
 
     try:
-        # Call anonymization tool
-        result = await anonymize_document(file_path)
+        # S5-006: Call anonymization tool with render registration
+        result = await anonymize_document(
+            file_path,
+            document_id=document_id,
+            register_render=bool(document_id)  # Only register if documentId provided
+        )
 
-        # Send anonymization result
+        # S5-006: Send anonymization result with render metadata
         await websocket.send_json({
             "type": "anonymization_complete",
             "originalPath": result.original_path,
@@ -499,7 +504,9 @@ async def handle_anonymization(
             "detectionsCount": result.detections_count,
             "success": result.success,
             "error": result.error,
-            "timestamp": None
+            "timestamp": None,
+            "renderMetadata": result.render_metadata,  # S5-006: Include render metadata
+            "documentId": document_id  # S5-006: Echo back documentId
         })
 
         # Also send a chat message about the result

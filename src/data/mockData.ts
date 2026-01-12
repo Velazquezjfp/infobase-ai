@@ -436,9 +436,9 @@ export const mockCase: Case = {
       name: 'Personal Data',
       isExpanded: true,
       documents: [
-        { id: 'doc-1', name: 'Birth_Certificate.txt', type: 'txt', size: '1.8 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'Birth Certificate', issuer: 'Kabul Civil Registry', language: 'German' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
-        { id: 'doc-2', name: 'Passport_Scan.txt', type: 'txt', size: '1.9 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'Passport', expiryDate: '2028-05-20' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
-        { id: 'doc-7', name: 'passport_image.jpg', type: 'jpg', size: '62.6 KB', uploadedAt: '2024-12-24', metadata: { documentType: 'Passport Image' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
+        { id: 'doc-1', name: 'Geburtsurkunde.jpg', type: 'jpg', size: '261 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'Birth Certificate', issuer: 'Kabul Civil Registry', language: 'German' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
+        { id: 'doc-2', name: 'Personalausweis.png', type: 'png', size: '255 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'ID Card', issuer: 'German authorities' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
+        { id: 'doc-3', name: 'Aufenthalstitel.png', type: 'png', size: '815 KB', uploadedAt: '2024-01-15', metadata: { documentType: 'Residence Permit' }, caseId: 'ACTE-2024-001', folderId: 'personal-data' },
       ],
       subfolders: [],
     },
@@ -447,7 +447,7 @@ export const mockCase: Case = {
       name: 'Certificates',
       isExpanded: false,
       documents: [
-        { id: 'doc-3', name: 'Language_Certificate_A1.txt', type: 'txt', size: '2.6 KB', uploadedAt: '2024-01-16', metadata: { level: 'A1', institution: 'Goethe Institut' }, caseId: 'ACTE-2024-001', folderId: 'certificates' },
+        { id: 'doc-4', name: 'Sprachzeugnis-Zertifikat.pdf', type: 'pdf', size: '149 KB', uploadedAt: '2024-01-16', metadata: { level: 'A2', institution: 'Goethe Institut', documentType: 'Language Certificate' }, caseId: 'ACTE-2024-001', folderId: 'certificates' },
       ],
       subfolders: [],
     },
@@ -463,7 +463,7 @@ export const mockCase: Case = {
       name: 'Applications & Forms',
       isExpanded: false,
       documents: [
-        { id: 'doc-4', name: 'Integration_Application.txt', type: 'txt', size: '3.6 KB', uploadedAt: '2024-01-17', metadata: { status: 'draft', documentType: 'Application Form' }, caseId: 'ACTE-2024-001', folderId: 'applications' },
+        { id: 'doc-5', name: 'Anmeldeformular.pdf', type: 'pdf', size: '101 KB', uploadedAt: '2024-01-17', metadata: { status: 'draft', documentType: 'Integration Course Application Form' }, caseId: 'ACTE-2024-001', folderId: 'applications' },
       ],
       subfolders: [],
     },
@@ -472,7 +472,7 @@ export const mockCase: Case = {
       name: 'Emails',
       isExpanded: false,
       documents: [
-        { id: 'doc-6', name: 'Confirmation_Email.txt', type: 'txt', size: '2.9 KB', uploadedAt: '2024-01-18', metadata: { from: 'bamf@example.de', subject: 'Application Received' }, caseId: 'ACTE-2024-001', folderId: 'emails' },
+        { id: 'doc-6', name: 'Email.eml', type: 'eml', size: '20 KB', uploadedAt: '2024-01-18', metadata: { from: 'bamf@example.de', subject: 'Application Confirmation', language: 'Arabic', documentType: 'Email' }, caseId: 'ACTE-2024-001', folderId: 'emails' },
       ],
       subfolders: [],
     },
@@ -481,7 +481,7 @@ export const mockCase: Case = {
       name: 'Additional Evidence',
       isExpanded: false,
       documents: [
-        { id: 'doc-5', name: 'School_Transcripts.txt', type: 'txt', size: '4.7 KB', uploadedAt: '2024-01-16', metadata: { documentType: 'Transcript', institution: 'Kabul University' }, caseId: 'ACTE-2024-001', folderId: 'evidence' },
+        { id: 'doc-7', name: 'Notenspiegel.pdf', type: 'pdf', size: '79 KB', uploadedAt: '2024-01-16', metadata: { documentType: 'University Transcript', institution: 'Kabul University' }, caseId: 'ACTE-2024-001', folderId: 'evidence' },
       ],
       subfolders: [],
     },

@@ -8,6 +8,7 @@ Endpoints:
     GET /api/documents/tree/{case_id}: Get the complete document tree for a case
     GET /api/documents/all: Get all documents across all cases
     GET /api/documents/health: Document service health check
+    POST /api/documents/extract-pdf-text: Extract text from a PDF document
 """
 
 import logging
@@ -16,6 +17,8 @@ from typing import Dict, List
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+from backend.services.pdf_service import get_pdf_service
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +43,7 @@ class DocumentResponse(BaseModel):
     metadata: Dict[str, str] = Field(default_factory=dict, description="Additional metadata")
     caseId: str = Field(..., description="Case ID")
     folderId: str | None = Field(None, description="Folder ID")
+    renders: List[Dict] = Field(default_factory=list, description="S5-006: Document renders (original, anonymized, translated, etc.)")
 
 
 class FolderResponse(BaseModel):
@@ -310,4 +314,74 @@ def _transform_document(registry_doc: Dict) -> DocumentResponse:
         },
         caseId=registry_doc.get('caseId', ''),
         folderId=registry_doc.get('folderId'),
+        renders=registry_doc.get('renders', [])  # S5-006: Include renders array
     )
+
+
+# ============================================================================
+# S5-003: PDF Text Extraction Endpoint
+# ============================================================================
+
+class PDFTextExtractionRequest(BaseModel):
+    """Request model for PDF text extraction."""
+    documentPath: str = Field(..., description="Path to the PDF document")
+
+
+class PDFTextExtractionResponse(BaseModel):
+    """Response model for PDF text extraction."""
+    text: str = Field(..., description="Extracted text from PDF")
+    pageCount: int = Field(..., description="Number of pages in PDF")
+    charCount: int = Field(..., description="Number of characters extracted")
+
+
+@router.post("/extract-pdf-text", response_model=PDFTextExtractionResponse)
+async def extract_pdf_text(request: PDFTextExtractionRequest):
+    """
+    Extract text content from a PDF document.
+
+    This endpoint uses the PDF service to extract all text from a PDF file.
+    Useful for displaying PDF content in the document viewer and enabling
+    search functionality.
+
+    Args:
+        request: Request with document path
+
+    Returns:
+        PDFTextExtractionResponse: Extracted text and metadata
+
+    Raises:
+        HTTPException 404: If PDF file not found
+        HTTPException 500: If text extraction fails
+    """
+    try:
+        pdf_service = get_pdf_service()
+
+        # Extract text from PDF
+        text = pdf_service.extract_text(request.documentPath)
+
+        # Get page count
+        page_count = pdf_service.get_page_count(request.documentPath)
+
+        logger.info(
+            f"Extracted {len(text)} characters from {page_count} pages: {request.documentPath}"
+        )
+
+        return PDFTextExtractionResponse(
+            text=text,
+            pageCount=page_count,
+            charCount=len(text)
+        )
+
+    except FileNotFoundError:
+        logger.error(f"PDF file not found: {request.documentPath}")
+        raise HTTPException(
+            status_code=404,
+            detail=f"PDF file not found: {request.documentPath}"
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to extract PDF text: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to extract PDF text: {str(e)}"
+        )

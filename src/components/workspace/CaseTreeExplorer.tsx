@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useApp } from '@/contexts/AppContext';
-import { Folder, Document } from '@/types/case';
-import { ChevronRight, ChevronDown, Folder as FolderIcon, FolderOpen, FileText, FileJson, FileCode, File, Upload, Plus, MoreVertical, Loader2, Trash2 } from 'lucide-react';
+import { Folder, Document, DocumentRender } from '@/types/case';
+import { ChevronRight, ChevronDown, Folder as FolderIcon, FolderOpen, FileText, FileJson, FileCode, File, Upload, Plus, MoreVertical, Loader2, Trash2, EyeOff, Globe, Edit, Badge } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -36,6 +36,127 @@ const getFileIcon = (type: Document['type']) => {
   }
 };
 
+// S5-006: Get icon for render type
+const getRenderIcon = (renderType: string) => {
+  switch (renderType) {
+    case 'original':
+      return <FileText className="w-3.5 h-3.5" />;
+    case 'anonymized':
+      return <EyeOff className="w-3.5 h-3.5" />;
+    case 'translated':
+      return <Globe className="w-3.5 h-3.5" />;
+    case 'annotated':
+      return <Edit className="w-3.5 h-3.5" />;
+    default:
+      return <File className="w-3.5 h-3.5" />;
+  }
+};
+
+// S5-006: Get display name for render
+const getRenderDisplayName = (render: DocumentRender, t: any) => {
+  switch (render.type) {
+    case 'original':
+      return t('documents.renders.original', 'Original');
+    case 'anonymized':
+      return t('documents.renders.anonymized', 'Anonymized');
+    case 'translated':
+      const lang = render.metadata?.language || '';
+      return lang ? `${t('documents.renders.translated', 'Translated')} (${lang.toUpperCase()})` : t('documents.renders.translated', 'Translated');
+    case 'annotated':
+      return t('documents.renders.annotated', 'Annotated');
+    default:
+      return render.name;
+  }
+};
+
+// S5-006: Render Container Component
+interface RenderContainerProps {
+  document: Document;
+  level: number;
+  folderId: string;
+  onDeleteRender: (documentId: string, renderId: string) => void;
+  canDeleteFiles: boolean;
+}
+
+function RenderContainer({ document, level, folderId, onDeleteRender, canDeleteFiles }: RenderContainerProps) {
+  const { selectDocumentWithRender, selectedDocument, selectedRender, setViewMode } = useApp();
+  const { t } = useTranslation();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [hoveredRenderId, setHoveredRenderId] = useState<string | null>(null);
+
+  const renders = document.renders || [];
+  const hasMultipleRenders = renders.length > 1;
+
+  // If only one render (or no renders array), display as normal file
+  if (!hasMultipleRenders) {
+    return null; // Parent will handle single-render display
+  }
+
+  return (
+    <div className="animate-fade-in">
+      {/* Document header with expand/collapse */}
+      <div
+        className={cn(
+          'tree-item group cursor-pointer',
+          selectedDocument?.id === document.id && 'selected'
+        )}
+        style={{ paddingLeft: `${28 + level * 16}px` }}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <span className="text-muted-foreground transition-transform" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+          <ChevronRight className="w-4 h-4" />
+        </span>
+        {getFileIcon(document.type)}
+        <span className="flex-1 truncate">{document.name}</span>
+        <span className="px-1.5 py-0.5 text-xs bg-secondary/50 text-secondary-foreground rounded">
+          {renders.length} {t('documents.renders.count', 'renders')}
+        </span>
+      </div>
+
+      {/* Renders list (shown when expanded) */}
+      {isExpanded && (
+        <div className="ml-6">
+          {renders.map((render) => (
+            <div
+              key={render.id}
+              className={cn(
+                'tree-item group cursor-pointer',
+                selectedDocument?.id === document.id && selectedRender === render.id && 'selected'
+              )}
+              style={{ paddingLeft: `${28 + level * 16}px` }}
+              onMouseEnter={() => setHoveredRenderId(render.id)}
+              onMouseLeave={() => setHoveredRenderId(null)}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectDocumentWithRender(document, render.id);
+                setViewMode('document');
+              }}
+            >
+              {getRenderIcon(render.type)}
+              <span className="flex-1 truncate text-sm">
+                {getRenderDisplayName(render, t)}
+              </span>
+              {/* Delete button - only for non-original renders and in deletable folders */}
+              {canDeleteFiles && render.type !== 'original' && hoveredRenderId === render.id && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteRender(document.id, render.id);
+                  }}
+                  className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                  title={t('documents.renders.delete', 'Delete render')}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface FolderItemProps {
   folder: Folder;
   level: number;
@@ -44,7 +165,7 @@ interface FolderItemProps {
 }
 
 function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: FolderItemProps) {
-  const { toggleFolder, selectedDocument, setSelectedDocument, setViewMode, highlightedFolder, currentCase } = useApp();
+  const { toggleFolder, selectedDocument, setSelectedDocument, setViewMode, highlightedFolder, currentCase, refreshDocuments } = useApp();
   const { t } = useTranslation();
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -116,6 +237,57 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
     }
   };
 
+  // S5-006: Handle render deletion
+  const handleDeleteRender = async (documentId: string, renderId: string) => {
+    const confirmed = window.confirm(t('documents.renders.confirmDelete', 'Delete this render?'));
+    if (!confirmed) return;
+
+    if (!currentCase) {
+      toast({
+        title: t('documents.renders.deleteFailed', 'Delete failed'),
+        description: t('documents.renders.noCaseSelected', 'No case selected'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      console.log(`Deleting render ${renderId} from document ${documentId} in case ${currentCase.id}`);
+
+      // Call backend API to delete render (S5-006)
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_BASE_URL}/api/files/renders/${currentCase.id}/${documentId}/${renderId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to delete render' }));
+        throw new Error(errorData.detail || 'Failed to delete render');
+      }
+
+      const result = await response.json();
+      console.log('Render deleted successfully:', result);
+
+      // Refresh document tree to update UI
+      await refreshDocuments();
+
+      toast({
+        title: t('documents.renders.deleted', 'Render deleted'),
+        description: t('documents.renders.deleteSuccess', 'The render has been removed'),
+      });
+    } catch (error) {
+      console.error('Failed to delete render:', error);
+      toast({
+        title: t('documents.renders.deleteFailed', 'Delete failed'),
+        description: error instanceof Error ? error.message : t('documents.renders.deleteError', 'Failed to delete render'),
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="animate-fade-in">
       {/* Hidden file input for upload */}
@@ -183,7 +355,26 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
 
       {folder.isExpanded && (
         <div>
-          {folder.documents.map((doc) => (
+          {folder.documents.map((doc) => {
+            // S5-006: Check if document has multiple renders
+            const hasMultipleRenders = doc.renders && doc.renders.length > 1;
+
+            // If multiple renders, use RenderContainer
+            if (hasMultipleRenders) {
+              return (
+                <RenderContainer
+                  key={doc.id}
+                  document={doc}
+                  level={level}
+                  folderId={folder.id}
+                  onDeleteRender={handleDeleteRender}
+                  canDeleteFiles={canDeleteFiles}
+                />
+              );
+            }
+
+            // Otherwise, render as normal document
+            return (
             <ContextMenu key={doc.id}>
               <ContextMenuTrigger>
                 <div
@@ -274,7 +465,8 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
                 )}
               </ContextMenuContent>
             </ContextMenu>
-          ))}
+            );
+          })}
           {folder.subfolders.map((subfolder) => (
             <FolderItem key={subfolder.id} folder={subfolder} level={level + 1} onUploadToFolder={onUploadToFolder} onDeleteDocument={onDeleteDocument} />
           ))}
@@ -285,7 +477,7 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
 }
 
 export default function CaseTreeExplorer() {
-  const { currentCase, setViewMode, isSidebarCollapsed, setIsSidebarCollapsed, addDocumentToFolder, removeDocumentFromFolder } = useApp();
+  const { currentCase, setViewMode, isSidebarCollapsed, setIsSidebarCollapsed, addDocumentToFolder, removeDocumentFromFolder, refreshDocuments } = useApp();
   const { t } = useTranslation();
   const [uploadQueue, setUploadQueue] = useState<UploadProgress[]>([]);
   const [isDraggingOverDropZone, setIsDraggingOverDropZone] = useState(false);

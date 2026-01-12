@@ -36,7 +36,21 @@
       "mcp__knowledge-graph-custom-path__get_current_graph_path",
       "Bash(for case in ACTE-2024-001 ACTE-2024-002 ACTE-2024-003)",
       "Bash(do echo:*)",
-      "Bash(for template in integration_course asylum_application family_reunification)"
+      "Bash(for template in integration_course asylum_application family_reunification)",
+      "Bash(grep:*)",
+      "Bash(tree:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_hover",
+      "mcp__playwright__browser_handle_dialog"
     ]
   }
 }

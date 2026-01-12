@@ -240,7 +240,17 @@ def register_document(
         # Get current timestamp
         uploaded_at = datetime.now(timezone.utc).isoformat()
 
-        # Create document entry
+        # S5-006: Create original render entry for the document
+        original_render = {
+            "id": f"render_{generate_document_id()}",
+            "type": "original",
+            "name": file_name,
+            "filePath": file_path,
+            "createdAt": uploaded_at,
+            "metadata": {}
+        }
+
+        # Create document entry with original render
         document_entry = {
             "documentId": document_id,
             "caseId": case_id,
@@ -249,7 +259,7 @@ def register_document(
             "filePath": file_path,
             "uploadedAt": uploaded_at,
             "fileHash": file_hash,
-            "renders": []
+            "renders": [original_render]  # S5-006: Include original as first render
         }
 
         # Add to manifest
@@ -483,14 +493,35 @@ def reconcile(registry: DocumentRegistry, filesystem_files: List[FileInfo]) -> R
         for f in filesystem_files
     }
 
+    # S5-006: Helper function to check if a file is a render file (not a top-level document)
+    def is_render_file(filename: str) -> bool:
+        """Check if a filename matches render file patterns (anonymized, translated, etc.)"""
+        render_patterns = ['_anonymized.', '_translated.', '_annotated.']
+        return any(pattern in filename for pattern in render_patterns)
+
     # Find orphaned files (on disk but not in manifest)
     documents_list = list(registry.documents)
     for file_info in filesystem_files:
         key = (file_info.caseId, file_info.folderId, file_info.fileName)
         if key not in manifest_files:
+            # S5-006: Skip render files - they should only exist as renders, not top-level documents
+            if is_render_file(file_info.fileName):
+                logger.debug(f"Skipping render file during reconciliation: {file_info.filePath}")
+                continue
+
             # Orphaned file - add to manifest
             document_id = generate_document_id()
             uploaded_at = datetime.now(timezone.utc).isoformat()
+
+            # S5-006: Create original render entry for the document
+            original_render = {
+                "id": f"render_original_{generate_document_id()}",
+                "type": "original",
+                "name": file_info.fileName,
+                "filePath": file_info.filePath,
+                "createdAt": uploaded_at,
+                "metadata": {}
+            }
 
             document_entry = {
                 "documentId": document_id,
@@ -500,7 +531,7 @@ def reconcile(registry: DocumentRegistry, filesystem_files: List[FileInfo]) -> R
                 "filePath": file_info.filePath,
                 "uploadedAt": uploaded_at,
                 "fileHash": file_info.fileHash,
-                "renders": []
+                "renders": [original_render]  # S5-006: Include original render
             }
 
             documents_list.append(document_entry)
@@ -708,3 +739,124 @@ def generate_document_id() -> str:
     """
     # Use UUID4 for guaranteed uniqueness
     return f"doc_{uuid.uuid4().hex[:12]}"
+
+
+# ============================================================================
+# S5-006: Document Render Management Functions
+# ============================================================================
+
+def add_render_to_document(document_id: str, render_data: Dict) -> None:
+    """
+    Add a render (anonymized, translated, etc.) to a document in the registry.
+
+    This function updates the document manifest to include the new render.
+
+    Args:
+        document_id: The ID of the parent document
+        render_data: Dictionary containing render metadata
+                    {id, type, name, filePath, createdAt, metadata}
+
+    Raises:
+        ValueError: If document not found in registry
+
+    Example:
+        >>> render = {
+        ...     'id': 'render_abc123',
+        ...     'type': 'anonymized',
+        ...     'name': 'document_anonymized.png',
+        ...     'filePath': 'public/documents/ACTE-2024-001/uploads/document_anonymized.png',
+        ...     'createdAt': '2026-01-12T20:00:00Z',
+        ...     'metadata': {}
+        ... }
+        >>> add_render_to_document('doc_001', render)
+    """
+    registry = load_manifest()
+
+    # Find the document
+    document_found = False
+    for doc_entry in registry.documents:
+        if doc_entry.get('documentId') == document_id:
+            document_found = True
+
+            # Ensure renders array exists
+            if 'renders' not in doc_entry:
+                doc_entry['renders'] = []
+
+            # Add the new render
+            doc_entry['renders'].append(render_data)
+
+            logger.info(f"Added render {render_data['id']} to document {document_id}")
+            break
+
+    if not document_found:
+        raise ValueError(f"Document {document_id} not found in registry")
+
+    # Save updated manifest
+    save_manifest(registry)
+
+
+def get_document_renders(document_id: str) -> List[Dict]:
+    """
+    Get all renders for a specific document.
+
+    Args:
+        document_id: The ID of the document
+
+    Returns:
+        List[Dict]: List of render dictionaries, or empty list if no renders
+
+    Example:
+        >>> renders = get_document_renders('doc_001')
+        >>> len(renders)
+        2
+        >>> renders[0]['type']
+        'anonymized'
+    """
+    registry = load_manifest()
+
+    # Find the document
+    for doc_entry in registry.documents:
+        if doc_entry.get('documentId') == document_id:
+            return doc_entry.get('renders', [])
+
+    logger.warning(f"Document {document_id} not found in registry")
+    return []
+
+
+def remove_render_from_document(document_id: str, render_id: str) -> bool:
+    """
+    Remove a specific render from a document.
+
+    Args:
+        document_id: The ID of the parent document
+        render_id: The ID of the render to remove
+
+    Returns:
+        bool: True if render was removed, False if not found
+
+    Example:
+        >>> remove_render_from_document('doc_001', 'render_abc123')
+        True
+    """
+    registry = load_manifest()
+
+    # Find the document
+    for doc_entry in registry.documents:
+        if doc_entry.get('documentId') == document_id:
+            renders = doc_entry.get('renders', [])
+
+            # Find and remove the render
+            initial_length = len(renders)
+            doc_entry['renders'] = [r for r in renders if r.get('id') != render_id]
+
+            if len(doc_entry['renders']) < initial_length:
+                # Render was removed
+                save_manifest(registry)
+                logger.info(f"Removed render {render_id} from document {document_id}")
+                return True
+            else:
+                logger.warning(f"Render {render_id} not found in document {document_id}")
+                return False
+
+    logger.warning(f"Document {document_id} not found in registry")
+    return False

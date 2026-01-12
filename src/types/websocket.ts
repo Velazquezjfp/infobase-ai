@@ -97,6 +97,7 @@ export interface AnonymizationRequest extends BaseMessage {
   filePath: string;
   caseId: string;
   folderId?: string;
+  documentId?: string; // S5-006: Document ID for render registration
 }
 
 /**
@@ -110,6 +111,8 @@ export interface AnonymizationResponse extends BaseMessage {
   success: boolean;
   error?: string;
   timestamp?: string;
+  renderMetadata?: any; // S5-006: Render metadata from document registry
+  documentId?: string;   // S5-006: Document ID that was anonymized
 }
 
 /**

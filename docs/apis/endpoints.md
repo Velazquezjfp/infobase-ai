@@ -1135,6 +1135,354 @@ The generated field includes SHACL (Shapes Constraint Language) metadata in JSON
 
 ---
 
+### POST /api/admin/modify-form
+
+Modify a form using natural language commands with automatic SHACL generation (S5-001).
+
+**Current Implementation:** IMPLEMENTED in `backend/api/admin.py`
+
+**Source:** `backend/api/admin.py:247-348`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint uses AI-powered natural language processing to modify form structures. It interprets natural language commands (add, remove, modify fields) and automatically generates SHACL metadata with Schema.org semantic types for each field.
+
+**Request Body:**
+```json
+{
+  "command": "Add an email field for contact email",
+  "currentFields": [
+    {
+      "id": "name",
+      "label": "Full Name",
+      "type": "text",
+      "value": "",
+      "required": true
+    }
+  ],
+  "caseId": "ACTE-2024-001"
+}
+```
+
+**Request Constraints:**
+- `command` (required): Natural language command (3-500 characters)
+- `currentFields` (optional): Current form fields as array of field objects (default: empty array)
+- `caseId` (optional): Case ID for the form (default: "UnknownCase")
+
+**Supported Operations:**
+- Add field: "Add an email field for contact email"
+- Remove field: "Remove the phone number field"
+- Add select field: "Add dropdown for marital status with options single, married, divorced"
+- Add required field: "Add a required date field for birth date"
+
+**Supported Field Types:**
+- `text`: Standard text input (email, phone, name, etc.)
+- `date`: Date picker
+- `select`: Dropdown with options
+- `textarea`: Multi-line text
+
+**Automatic Semantic Type Inference:**
+
+The system automatically infers Schema.org types from field labels:
+- "email" → `schema:email` with email validation pattern
+- "phone" → `schema:telephone` with phone validation pattern
+- "name" → `schema:name` with name validation
+- "birth date" → `schema:birthDate` with date validation
+- "address" → `schema:address` with address validation
+
+**Success Response (200 OK):**
+```json
+{
+  "fields": [
+    {
+      "id": "name",
+      "label": "Full Name",
+      "type": "text",
+      "value": "",
+      "required": true,
+      "shaclMetadata": {
+        "@context": {
+          "sh": "http://www.w3.org/ns/shacl#",
+          "schema": "http://schema.org/",
+          "xsd": "http://www.w3.org/2001/XMLSchema#"
+        },
+        "@type": "sh:PropertyShape",
+        "sh:path": "schema:name",
+        "sh:datatype": "xsd:string",
+        "sh:name": "Full Name",
+        "sh:description": "Person's full name",
+        "sh:minCount": 1,
+        "sh:maxCount": 1
+      }
+    },
+    {
+      "id": "contactEmail",
+      "label": "Contact Email",
+      "type": "text",
+      "value": "",
+      "required": false,
+      "shaclMetadata": {
+        "@context": {
+          "sh": "http://www.w3.org/ns/shacl#",
+          "schema": "http://schema.org/",
+          "xsd": "http://www.w3.org/2001/XMLSchema#"
+        },
+        "@type": "sh:PropertyShape",
+        "sh:path": "schema:email",
+        "sh:datatype": "xsd:string",
+        "sh:name": "Contact Email",
+        "sh:description": "Contact email address",
+        "sh:pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+      }
+    }
+  ],
+  "shaclShape": {
+    "@context": {
+      "sh": "http://www.w3.org/ns/shacl#",
+      "schema": "http://schema.org/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "acte": "http://bamf.example.de/acte#"
+    },
+    "@type": "sh:NodeShape",
+    "sh:targetClass": "acte:IntegrationCourseApplication",
+    "sh:property": [
+      {
+        "@type": "sh:PropertyShape",
+        "sh:path": "schema:name",
+        "sh:datatype": "xsd:string",
+        "sh:name": "Full Name",
+        "sh:minCount": 1,
+        "sh:maxCount": 1
+      },
+      {
+        "@type": "sh:PropertyShape",
+        "sh:path": "schema:email",
+        "sh:datatype": "xsd:string",
+        "sh:name": "Contact Email",
+        "sh:pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+      }
+    ]
+  },
+  "modifications": [
+    "Added field 'Contact Email' (email)"
+  ],
+  "message": "Form modified successfully"
+}
+```
+
+**Error Response (400 Bad Request - Invalid Command):**
+```json
+{
+  "error": "Form modification failed",
+  "detail": "Unable to parse command: unclear operation"
+}
+```
+
+**Error Response (400 Bad Request - Invalid Field Structure):**
+```json
+{
+  "error": "Invalid field structure",
+  "detail": "Field ID 'contactEmail' already exists"
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "error": "Internal server error",
+  "detail": "Gemini API connection failed"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X POST http://localhost:8000/api/admin/modify-form \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "Add an email field for contact email",
+    "currentFields": [
+      {
+        "id": "name",
+        "label": "Full Name",
+        "type": "text",
+        "value": "",
+        "required": true
+      }
+    ],
+    "caseId": "ACTE-2024-001"
+  }'
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const modifyForm = async (command, currentFields, caseId) => {
+  const response = await fetch('http://localhost:8000/api/admin/modify-form', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ command, currentFields, caseId }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || error.error);
+  }
+
+  return await response.json();
+};
+
+// Usage
+const result = await modifyForm(
+  "Add dropdown for marital status with options single, married, divorced",
+  currentFields,
+  "ACTE-2024-001"
+);
+console.log('Modifications:', result.modifications);
+console.log('Updated fields:', result.fields);
+```
+
+**Python:**
+```python
+import requests
+
+def modify_form(command: str, current_fields: list, case_id: str) -> dict:
+    response = requests.post(
+        "http://localhost:8000/api/admin/modify-form",
+        json={
+            "command": command,
+            "currentFields": current_fields,
+            "caseId": case_id
+        }
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Form modification failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = modify_form(
+    "Add a required date field for birth date",
+    current_fields,
+    "ACTE-2024-001"
+)
+print(f"Modifications: {result['modifications']}")
+print(f"Updated fields: {len(result['fields'])} fields")
+```
+
+**SHACL Shape Generation:**
+
+The endpoint automatically generates a complete SHACL NodeShape for the entire form:
+
+- `@context`: JSON-LD context with namespace prefixes
+  - `sh`: SHACL namespace
+  - `schema`: Schema.org namespace
+  - `xsd`: XML Schema Datatype namespace
+  - `acte`: BAMF ACTE custom namespace
+
+- `@type`: Always "sh:NodeShape" for form definitions
+
+- `sh:targetClass`: The semantic class the form validates (e.g., "acte:IntegrationCourseApplication")
+
+- `sh:property`: Array of PropertyShapes, one for each form field
+
+Each PropertyShape includes:
+- `sh:path`: Semantic property path with Schema.org type
+- `sh:datatype`: XSD datatype
+- `sh:name`: Human-readable field name
+- `sh:description`: Field description (auto-generated)
+- `sh:pattern`: Validation regex pattern (for email, phone, etc.)
+- `sh:minCount`: Minimum cardinality (1 for required fields)
+- `sh:maxCount`: Maximum cardinality (1 for single-value fields)
+- `sh:in`: List of allowed values (for select fields)
+
+**Semantic Type Mappings:**
+
+The SHACL generator service automatically maps field labels to Schema.org types:
+
+| Field Label Contains | Schema.org Type | Validation Pattern |
+|---------------------|----------------|-------------------|
+| email | schema:email | Email regex |
+| phone, telephone | schema:telephone | Phone regex |
+| name (full/given/family) | schema:name/givenName/familyName | Name validation |
+| birth date, date of birth | schema:birthDate | Date validation |
+| address | schema:address | Address validation |
+| postal code, zip | schema:postalCode | Postal code validation |
+| nationality, country | schema:nationality | Country validation |
+| gender | schema:gender | Gender validation |
+| occupation, job | schema:jobTitle | Job validation |
+
+**Modification Operations:**
+
+The AI interprets commands and applies these operations:
+
+1. **Add Field**: Creates new field with SHACL metadata
+   - Infers field type from command
+   - Assigns unique ID (camelCase format)
+   - Generates semantic type and validation
+   - Command examples: "Add email field", "Add dropdown for status"
+
+2. **Remove Field**: Removes field by ID or label
+   - Searches by exact ID or label match
+   - Removes field and its SHACL metadata
+   - Command examples: "Remove phone field", "Delete email"
+
+3. **Modify Field**: Updates existing field properties
+   - Changes label, type, options, or required status
+   - Preserves field ID and value
+   - Updates SHACL metadata accordingly
+   - Command examples: "Make email required", "Change name to full name"
+
+**Form Modification Process:**
+
+1. **Command Parsing**: AI interprets the natural language command
+2. **Operation Detection**: Identifies operation type (add/remove/modify)
+3. **Field Generation**: Creates or modifies field specification
+4. **Semantic Inference**: Maps field to Schema.org type
+5. **SHACL Generation**: Generates PropertyShape with validation
+6. **Form Integration**: Adds/removes/updates field in current fields
+7. **NodeShape Generation**: Builds complete SHACL NodeShape for form
+8. **Response Construction**: Returns updated fields, shape, and modifications
+
+**Use Cases:**
+
+- **Dynamic Form Building**: Administrators can modify forms using natural language
+- **Rapid Prototyping**: Quickly add/remove fields during form design
+- **Form Templates**: Create reusable form templates with semantic metadata
+- **Semantic Forms**: Build forms with Schema.org types for data integration
+- **Multilingual Support**: Commands work in German and English
+
+**Known Limitations:**
+
+- No authentication currently implemented (planned for future)
+- Maximum command length: 500 characters
+- Requires Gemini API key for AI processing
+- Field IDs are auto-generated in camelCase format
+- SHACL validation is performed but not enforced on the client side
+- Cannot modify complex nested structures
+- Single operation per command (cannot add multiple fields at once)
+
+**Performance:**
+
+- Typical response time: 1-3 seconds (with AI)
+- AI-based command interpretation: 1-3 seconds
+- SHACL generation: < 100ms
+
+**Security Considerations:**
+
+- Input validation on command length and field structure
+- Error messages don't expose sensitive information
+- Rate limiting recommended (not yet implemented)
+- Authentication planned for production use
+- No script injection validation (recommend adding)
+
+---
+
 ## Authentication
 
 ### POST /auth/login
@@ -2204,6 +2552,461 @@ Update application form data.
 
 ---
 
+## Document Registry Operations
+
+The following endpoints provide access to the document registry system (S5-007), which tracks all uploaded documents, their metadata, renders (anonymized/translated versions), and folder locations. The registry persists across application restarts to ensure documents remain visible after container restarts.
+
+### GET /api/documents/tree/{case_id}
+
+Retrieve the complete document tree for a specific case, including all folders and documents organized in a hierarchical structure.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/documents.py`
+
+**Source:** `backend/api/documents.py:68-151`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint retrieves the complete document tree from the document registry manifest. It is called by the frontend on app startup to load the document structure from the persisted manifest file.
+
+**Path Parameters:**
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+
+**Success Response (200 OK):**
+```json
+{
+  "folders": [
+    {
+      "id": "personal-data",
+      "name": "Personal Data",
+      "documents": [
+        {
+          "id": "doc-abc123",
+          "name": "Birth_Certificate.pdf",
+          "type": "pdf",
+          "size": "245 KB",
+          "uploadedAt": "2024-01-15T10:30:00Z",
+          "metadata": {
+            "documentType": "Birth Certificate",
+            "issuer": "Kabul Civil Registry",
+            "language": "Dari"
+          },
+          "caseId": "ACTE-2024-001",
+          "folderId": "personal-data"
+        }
+      ],
+      "subfolders": [],
+      "isExpanded": true
+    },
+    {
+      "id": "certificates",
+      "name": "Certificates",
+      "documents": [],
+      "subfolders": [],
+      "isExpanded": false
+    }
+  ],
+  "rootDocuments": []
+}
+```
+
+**Response Fields:**
+- `folders`: Array of folder objects containing documents
+  - `id`: Folder identifier
+  - `name`: Human-readable folder name
+  - `documents`: Array of document objects in this folder
+  - `subfolders`: Array of nested subfolders (currently empty)
+  - `isExpanded`: UI state for folder expansion (default: true)
+- `rootDocuments`: Array of documents not in any folder
+
+**Document Fields:**
+- `id`: Unique document ID (UUID)
+- `name`: Filename
+- `type`: File extension (pdf, jpg, png, etc.)
+- `size`: Human-readable file size (e.g., "245 KB")
+- `uploadedAt`: ISO 8601 timestamp of upload
+- `metadata`: Additional document metadata (type, issuer, language, etc.)
+- `caseId`: Case ID this document belongs to
+- `folderId`: Folder ID this document is in (null for root documents)
+
+**Error Response (404 Not Found):**
+```json
+{
+  "error": "Case not found",
+  "detail": "No documents found for case ACTE-2024-999",
+  "case_id": "ACTE-2024-999"
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "error": "Failed to retrieve document tree",
+  "detail": "Error loading manifest file",
+  "case_id": "ACTE-2024-001"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X GET http://localhost:8000/api/documents/tree/ACTE-2024-001
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const getDocumentTree = async (caseId) => {
+  const response = await fetch(
+    `http://localhost:8000/api/documents/tree/${caseId}`
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || error.error);
+  }
+
+  return await response.json();
+};
+
+// Usage
+const tree = await getDocumentTree('ACTE-2024-001');
+console.log(`Loaded ${tree.folders.length} folders`);
+tree.folders.forEach(folder => {
+  console.log(`Folder: ${folder.name} (${folder.documents.length} documents)`);
+});
+```
+
+**Python:**
+```python
+import requests
+
+def get_document_tree(case_id: str) -> dict:
+    response = requests.get(
+        f'http://localhost:8000/api/documents/tree/{case_id}'
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Failed to get document tree: {response.json()}")
+
+    return response.json()
+
+# Usage
+tree = get_document_tree("ACTE-2024-001")
+print(f"Loaded {len(tree['folders'])} folders")
+for folder in tree['folders']:
+    print(f"Folder: {folder['name']} ({len(folder['documents'])} documents)")
+```
+
+**Document Registry Integration:**
+
+This endpoint reads from the document registry manifest (`backend/data/document_manifest.json`), which is the single source of truth for all document metadata. The manifest is automatically updated when:
+- Files are uploaded via `POST /api/files/upload`
+- Files are deleted via `DELETE /api/files/{case_id}/{folder_id}/{filename}`
+- Application starts up and performs filesystem reconciliation
+
+**Use Cases:**
+- **Frontend initialization**: Load document tree on app startup
+- **Case view**: Display all documents for a specific case
+- **Document navigation**: Provide hierarchical folder structure
+- **Container-compatible persistence**: Maintain document state across restarts
+
+**Performance:**
+- Typical response time: < 100ms
+- Reads from manifest file (JSON)
+- No filesystem scanning (uses cached registry)
+
+**Known Limitations:**
+- No authentication currently implemented (planned for future)
+- No pagination (all documents returned at once)
+- Subfolders currently not supported (flat folder structure)
+
+---
+
+### GET /api/documents/all
+
+Retrieve all documents from the registry across all cases.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/documents.py`
+
+**Source:** `backend/api/documents.py:154-200`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint retrieves all documents from the document registry across all cases. It is primarily used for administrative purposes or debugging.
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "count": 15,
+  "documents": [
+    {
+      "documentId": "doc-abc123",
+      "caseId": "ACTE-2024-001",
+      "folderId": "personal-data",
+      "fileName": "Birth_Certificate.pdf",
+      "filePath": "public/documents/ACTE-2024-001/personal-data/Birth_Certificate.pdf",
+      "uploadedAt": "2024-01-15T10:30:00Z",
+      "fileHash": "sha256:abc123...",
+      "renders": []
+    },
+    {
+      "documentId": "doc-def456",
+      "caseId": "ACTE-2024-001",
+      "folderId": "personal-data",
+      "fileName": "Passport_Scan_anonymized.jpg",
+      "filePath": "public/documents/ACTE-2024-001/personal-data/Passport_Scan_anonymized.jpg",
+      "uploadedAt": "2024-01-15T11:00:00Z",
+      "fileHash": "sha256:def456...",
+      "renders": [
+        {
+          "renderId": "render-xyz789",
+          "type": "anonymized",
+          "filePath": "public/documents/ACTE-2024-001/personal-data/Passport_Scan_anonymized.jpg",
+          "createdAt": "2024-01-15T11:00:00Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Response Fields:**
+- `success`: Boolean indicating successful retrieval
+- `count`: Total number of documents
+- `documents`: Array of all document registry entries with full metadata
+
+**Document Registry Entry Fields:**
+- `documentId`: Unique UUID for the document
+- `caseId`: Case ID the document belongs to
+- `folderId`: Folder ID within the case (null for root)
+- `fileName`: Original filename
+- `filePath`: Full file path relative to project root
+- `uploadedAt`: ISO 8601 timestamp of initial upload
+- `fileHash`: SHA-256 hash of file content for integrity verification
+- `renders`: Array of rendered versions (anonymized, translated, etc.)
+
+**Render Object Fields:**
+- `renderId`: Unique UUID for the render
+- `type`: Render type ("anonymized" or "translated")
+- `filePath`: Path to the rendered file
+- `createdAt`: ISO 8601 timestamp of render creation
+- `language`: Target language (for translations only, optional)
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "error": "Failed to retrieve documents",
+  "detail": "Error loading manifest file"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X GET http://localhost:8000/api/documents/all
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const getAllDocuments = async () => {
+  const response = await fetch('http://localhost:8000/api/documents/all');
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || error.error);
+  }
+
+  return await response.json();
+};
+
+// Usage
+const result = await getAllDocuments();
+console.log(`Total documents: ${result.count}`);
+result.documents.forEach(doc => {
+  console.log(`${doc.caseId}/${doc.folderId}/${doc.fileName}`);
+  if (doc.renders.length > 0) {
+    console.log(`  → ${doc.renders.length} render(s)`);
+  }
+});
+```
+
+**Python:**
+```python
+import requests
+
+def get_all_documents() -> dict:
+    response = requests.get('http://localhost:8000/api/documents/all')
+
+    if response.status_code != 200:
+        raise Exception(f"Failed to get all documents: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = get_all_documents()
+print(f"Total documents: {result['count']}")
+for doc in result['documents']:
+    print(f"{doc['caseId']}/{doc['folderId']}/{doc['fileName']}")
+    if doc['renders']:
+        print(f"  → {len(doc['renders'])} render(s)")
+```
+
+**Use Cases:**
+- **Administrative dashboard**: View all documents across all cases
+- **Debugging**: Inspect document registry state
+- **Bulk operations**: Export or analyze all document metadata
+- **Storage audit**: Check file hashes and integrity
+
+**Performance:**
+- Typical response time: < 200ms
+- Reads from manifest file (JSON)
+- Returns all documents (no filtering or pagination)
+
+**Known Limitations:**
+- No authentication (expose all documents)
+- No pagination (performance issue with many documents)
+- No filtering (returns all documents)
+- Planned for admin use only
+
+---
+
+### GET /api/documents/health
+
+Check the health status of the document registry service.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/documents.py`
+
+**Source:** `backend/api/documents.py:203-260`
+
+**Authentication:** None (public endpoint)
+
+**Description:**
+
+This endpoint checks the health and availability of the document registry service, including manifest file status and storage directory availability.
+
+**Success Response (200 OK - Service Ready):**
+```json
+{
+  "service": "documents",
+  "status": "ready",
+  "features": {
+    "document_tree": true,
+    "manifest_persistence": true,
+    "filesystem_reconciliation": true
+  },
+  "manifest": {
+    "loaded": true,
+    "document_count": 15
+  },
+  "storage": {
+    "available": true,
+    "path": "/home/user/project/public/documents"
+  }
+}
+```
+
+**Service Degraded Response (503 Service Unavailable - Manifest or Storage Issues):**
+```json
+{
+  "service": "documents",
+  "status": "degraded",
+  "features": {
+    "document_tree": true,
+    "manifest_persistence": false,
+    "filesystem_reconciliation": true
+  },
+  "manifest": {
+    "loaded": false,
+    "document_count": 0
+  },
+  "storage": {
+    "available": false,
+    "path": "/home/user/project/public/documents"
+  }
+}
+```
+
+**Response Fields:**
+- `service`: Always "documents"
+- `status`: Service status ("ready" or "degraded")
+- `features`: Object listing available features
+  - `document_tree`: Document tree endpoint availability
+  - `manifest_persistence`: Whether manifest file loads successfully
+  - `filesystem_reconciliation`: Whether reconciliation is enabled
+- `manifest`: Manifest file status
+  - `loaded`: Boolean indicating if manifest loaded successfully
+  - `document_count`: Number of documents in manifest
+- `storage`: Storage directory status
+  - `available`: Boolean indicating if storage directory exists
+  - `path`: Absolute path to documents directory
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X GET http://localhost:8000/api/documents/health
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const checkDocumentServiceHealth = async () => {
+  const response = await fetch('http://localhost:8000/api/documents/health');
+  const health = await response.json();
+
+  if (health.status === 'ready') {
+    console.log(`Document service ready: ${health.manifest.document_count} documents`);
+  } else {
+    console.warn('Document service degraded');
+    if (!health.manifest.loaded) console.error('Manifest failed to load');
+    if (!health.storage.available) console.error('Storage directory not available');
+  }
+
+  return health;
+};
+```
+
+**Python:**
+```python
+import requests
+
+def check_document_service_health():
+    response = requests.get('http://localhost:8000/api/documents/health')
+    health = response.json()
+
+    if health['status'] == 'ready':
+        print(f"Document service ready: {health['manifest']['document_count']} documents")
+    else:
+        print("Document service degraded")
+        if not health['manifest']['loaded']:
+            print("  Error: Manifest failed to load")
+        if not health['storage']['available']:
+            print("  Error: Storage directory not available")
+
+    return health
+```
+
+**Health Status Values:**
+- `ready`: Service is fully operational (manifest loads, storage directory exists)
+- `degraded`: Service has issues (manifest corrupt or storage directory missing)
+
+**Use Cases:**
+- **Monitoring**: Health check probes for container orchestration
+- **Load balancing**: Backend health checks for load balancers
+- **Frontend validation**: Check service availability before loading documents
+- **Debugging**: Verify manifest and storage configuration
+
+**Performance:**
+- Typical response time: < 50ms
+- Lightweight operation (checks file/directory existence)
+
+---
+
 ## File Operations
 
 ### POST /api/files/upload
@@ -2383,6 +3186,22 @@ public/
       personal-data/
         birth_certificate.pdf
 ```
+
+**Document Registry Integration (S5-007):**
+
+Upon successful file upload, the endpoint automatically registers the document in the document registry manifest (`backend/data/document_manifest.json`). This ensures:
+- Document persists across container restarts
+- Document appears in `GET /api/documents/tree/{case_id}` responses
+- Document metadata is tracked (upload time, file hash, etc.)
+- Document can have renders (anonymized, translated versions) associated with it
+
+The registration process:
+1. File is saved to filesystem
+2. File hash (SHA-256) is calculated
+3. Document entry is created in manifest with unique UUID
+4. Manifest is persisted to disk
+
+If registration fails (e.g., manifest corruption), the file upload still succeeds. The error is logged, and the document will be discovered during the next filesystem reconciliation on application startup.
 
 **Duplicate File Handling:**
 
@@ -2576,6 +3395,22 @@ print(result['message'])
    ```
 
 3. **Directory Protection:** Attempting to delete a directory returns an error
+
+**Document Registry Unregistration (S5-007):**
+
+Upon successful file deletion, the endpoint automatically unregisters the document from the document registry manifest. This ensures:
+- Document no longer appears in `GET /api/documents/tree/{case_id}` responses
+- Document metadata is removed from manifest
+- Document renders (anonymized versions, etc.) are also unregistered
+- Manifest is persisted to disk
+
+The unregistration process:
+1. Document is located in manifest by case_id, folder_id, and filename
+2. File is deleted from filesystem
+3. Document entry is removed from manifest (including all renders)
+4. Manifest is persisted to disk
+
+If the document is not found in the registry (orphaned file), a warning is logged but deletion proceeds normally. If unregistration fails (e.g., manifest corruption), the file deletion still succeeds. The error is logged, and the orphaned entry will be cleaned up during the next filesystem reconciliation.
 
 **Use Cases:**
 

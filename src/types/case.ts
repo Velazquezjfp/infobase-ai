@@ -1,5 +1,23 @@
 import type { SHACLPropertyShape } from './shacl';
 
+/**
+ * S5-006: Render type for document versions
+ */
+export type RenderType = 'original' | 'anonymized' | 'translated' | 'annotated';
+
+/**
+ * S5-006: Document render metadata
+ * Represents a specific version/render of a document
+ */
+export interface DocumentRender {
+  id: string;
+  type: RenderType;
+  name: string;
+  filePath: string;
+  createdAt: string;
+  metadata?: Record<string, any>;
+}
+
 export interface Document {
   id: string;
   name: string;
@@ -10,6 +28,8 @@ export interface Document {
   content?: string;
   caseId?: string;    // For case-scoped path construction
   folderId?: string;  // For case-scoped path construction
+  /** S5-006: Array of document renders (original, anonymized, translated, etc.) */
+  renders?: DocumentRender[];
 }
 
 export interface Folder {

@@ -469,3 +469,187 @@ def generate_unique_filename(case_id: str, folder_id: str, filename: str) -> str
             return new_filename
 
     raise ValueError(f"Unable to generate unique filename for {filename} after {max_attempts} attempts")
+
+
+# ==============================================================================
+# S5-006: Document Renders Management Functions
+# ==============================================================================
+
+def add_document_render(
+    document_id: str,
+    render_type: str,
+    file_path: str,
+    metadata: dict = None
+) -> dict:
+    """
+    Add a new render to a document in the document registry.
+
+    This function creates a render entry and updates the document manifest
+    (via document_registry service from S5-007).
+
+    Args:
+        document_id: The parent document ID
+        render_type: Type of render ('anonymized', 'translated', 'annotated')
+        file_path: Path to the render file
+        metadata: Optional metadata (e.g., {'language': 'de'} for translations)
+
+    Returns:
+        dict: Render metadata with id, type, name, filePath, createdAt, metadata
+
+    Raises:
+        ValueError: If document_id not found or render_type invalid
+        ImportError: If document_registry service not available
+
+    Example:
+        >>> render = add_document_render(
+        ...     'doc_001',
+        ...     'anonymized',
+        ...     'public/documents/ACTE-2024-001/personal-data/passport_anonymized.png'
+        ... )
+        >>> render['type']
+        'anonymized'
+    """
+    try:
+        from backend.services import document_registry
+    except ImportError as e:
+        logger.error("document_registry service not available (S5-007 dependency)")
+        raise ImportError(
+            "S5-006 requires S5-007 (document_registry) to be implemented"
+        ) from e
+
+    # Validate render type
+    valid_types = {'original', 'anonymized', 'translated', 'annotated'}
+    if render_type not in valid_types:
+        raise ValueError(
+            f"Invalid render_type '{render_type}'. Must be one of: {valid_types}"
+        )
+
+    # Create render metadata
+    import uuid
+    from datetime import datetime
+
+    render_id = f"render_{uuid.uuid4().hex[:12]}"
+    render_data = {
+        'id': render_id,
+        'type': render_type,
+        'name': Path(file_path).name,
+        'filePath': file_path,
+        'createdAt': datetime.utcnow().isoformat() + 'Z',
+        'metadata': metadata or {}
+    }
+
+    # Update document registry
+    document_registry.add_render_to_document(document_id, render_data)
+
+    logger.info(
+        f"Added {render_type} render to document {document_id}: {render_id}"
+    )
+    return render_data
+
+
+def get_document_renders(document_id: str) -> list:
+    """
+    Get all renders for a document from the document registry.
+
+    Args:
+        document_id: The document ID
+
+    Returns:
+        list: List of render dictionaries
+
+    Raises:
+        ValueError: If document not found
+        ImportError: If document_registry service not available
+
+    Example:
+        >>> renders = get_document_renders('doc_001')
+        >>> len(renders)
+        3
+    """
+    try:
+        from backend.services import document_registry
+    except ImportError as e:
+        logger.error("document_registry service not available (S5-007 dependency)")
+        raise ImportError(
+            "S5-006 requires S5-007 (document_registry) to be implemented"
+        ) from e
+
+    renders = document_registry.get_document_renders(document_id)
+
+    logger.debug(f"Retrieved {len(renders)} renders for document {document_id}")
+    return renders
+
+
+def delete_document_render(
+    document_id: str,
+    render_id: str,
+    case_id: str = None,
+    folder_id: str = None
+) -> bool:
+    """
+    Delete a specific render from a document.
+
+    This function:
+    1. Retrieves render metadata from registry
+    2. Deletes the render file from filesystem
+    3. Removes render entry from document registry
+
+    Args:
+        document_id: The parent document ID
+        render_id: The render ID to delete
+        case_id: Optional case ID for file path construction
+        folder_id: Optional folder ID for file path construction
+
+    Returns:
+        bool: True if deletion successful
+
+    Raises:
+        ValueError: If trying to delete 'original' render or render not found
+        FileNotFoundError: If render file not found
+        ImportError: If document_registry service not available
+
+    Security:
+        - Cannot delete 'original' render type
+        - Uses same path validation as delete_file()
+
+    Example:
+        >>> delete_document_render('doc_001', 'render_abc123')
+        True
+    """
+    try:
+        from backend.services import document_registry
+    except ImportError as e:
+        logger.error("document_registry service not available (S5-007 dependency)")
+        raise ImportError(
+            "S5-006 requires S5-007 (document_registry) to be implemented"
+        ) from e
+
+    # Get render metadata
+    renders = document_registry.get_document_renders(document_id)
+    render = next((r for r in renders if r.get('id') == render_id), None)
+
+    if not render:
+        raise ValueError(f"Render {render_id} not found for document {document_id}")
+
+    # Security: Prevent deletion of 'original' render
+    if render.get('type') == 'original':
+        raise ValueError("Cannot delete 'original' render type")
+
+    # Delete render file from filesystem
+    render_file_path = Path(render.get('filePath', ''))
+
+    if render_file_path.exists():
+        try:
+            render_file_path.unlink()
+            logger.info(f"Deleted render file: {render_file_path}")
+        except OSError as e:
+            logger.error(f"Failed to delete render file {render_file_path}: {e}")
+            raise OSError(f"Failed to delete render file: {str(e)}")
+    else:
+        logger.warning(f"Render file not found (already deleted?): {render_file_path}")
+
+    # Remove from registry
+    document_registry.remove_render_from_document(document_id, render_id)
+
+    logger.info(f"Deleted render {render_id} from document {document_id}")
+    return True

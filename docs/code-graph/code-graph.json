@@ -243,7 +243,15 @@
         "Uses SHACLPropertyShape type from @/types/shacl for metadata display (S2-003)",
         "Shows sh:path, sh:datatype, cardinality constraints in admin metadata view (S2-003)",
         "Sprint 5 update: Updated to handle suggestion mode for form field updates (S5-002)",
-        "Sprint 5 update: Added UI for accepting/rejecting suggestions from AI extraction"
+        "Sprint 5 update: Added UI for accepting/rejecting suggestions from AI extraction",
+        "S5-001: Added natural language form modification dialog",
+        "S5-001: handleModifyForm() sends NL command to /api/admin/modify-form endpoint",
+        "S5-001: Updates form fields with FormModificationResponse from backend",
+        "S5-001: Maintains command history for previous NL form modifications",
+        "S5-001: Added SHACL visualization dialog showing current NodeShape",
+        "S5-001: Field validation using validateValue() from SHACL types",
+        "S5-001: Tracks field validation errors in fieldValidationErrors state",
+        "S5-001: Integrates Edit3, FileCode, Send, Loader2 icons for NL UI"
       ]
     },
     {
@@ -258,7 +266,12 @@
         "Uses shadcn/ui Tabs, Card, Switch, Badge, Select components",
         "Provides CRUD operations for each configuration type",
         "Includes YAML preview for folder templates",
-        "Full-screen modal overlay design"
+        "Full-screen modal overlay design",
+        "S5-001: Added SHACL visualization dialog with JSON-LD display",
+        "S5-001: handleViewShacl() generates SHACL NodeShape from current form fields",
+        "S5-001: handleCopyShacl() copies SHACL shape to clipboard",
+        "S5-001: Integrates FileCode and Copy icons for SHACL visualization UI",
+        "S5-001: Shows SHACL shape with sh:property array from field shaclMetadata"
       ]
     },
     {
@@ -480,7 +493,12 @@
         "Allows origins: localhost:5173, localhost:3000",
         "Uses uvicorn for development server on port 8000",
         "Imports load_dotenv from dotenv module",
-        "Calls load_dotenv() at startup to load environment variables from .env file"
+        "Calls load_dotenv() at startup to load environment variables from .env file",
+        "S5-007: Registers documents_router from backend/api/documents.py",
+        "S5-007: Performs document registry reconciliation on startup",
+        "S5-007: Calls load_manifest(), scan_filesystem(), reconcile() from document_registry service",
+        "S5-007: Logs document registry reconciliation report on startup",
+        "S5-007: Handles reconciliation errors gracefully with warning logs"
       ]
     },
     {
@@ -528,7 +546,11 @@
         "Integrates with FieldGenerator service for AI-powered field creation",
         "Returns generated FormField with SHACL metadata",
         "Imports FieldGenerator from backend/services/field_generator",
-        "Imports SHACL types from backend/schemas/shacl"
+        "Imports SHACL types from backend/schemas/shacl",
+        "Updated for S5-001 and S5-013 with enhanced form modification capabilities",
+        "Integrates with SHACLGeneratorService for natural language form field operations",
+        "Supports SHACL NodeShape generation for entire forms",
+        "Handles form field add, remove, modify, reorder operations via NL commands"
       ]
     },
     {
@@ -1065,7 +1087,10 @@
         "Exports getXsdDatatype() function for datatype lookup",
         "Exports isRequired() function for checking required constraints",
         "Exports getAllowedValues() function for extracting allowed values from sh:in",
-        "Added in Sprint 2 (S2-002) for SHACL metadata support"
+        "Added in Sprint 2 (S2-002) for SHACL metadata support",
+        "S5-001: Added FormModificationResponse interface for NL form modification results",
+        "S5-001: Added validateValue() function for SHACL constraint validation",
+        "S5-001: FormModificationResponse contains fields, modifications array, shaclShape"
       ]
     },
     {
@@ -1755,7 +1780,10 @@
         "Defines RESERVE_TOKENS setting (default: 5000 tokens)",
         "Defines LOG_LEVEL setting from environment",
         "Provides get_config_summary() for debugging configuration state",
-        "Imports: os, typing.Optional"
+        "Imports: os, typing.Optional",
+        "S5-007: Defines DOCUMENTS_BASE_PATH configuration for container-compatible file persistence",
+        "DOCUMENTS_BASE_PATH defaults to backend/data/contexts/cases",
+        "Configuration used by document_registry service for filesystem operations"
       ]
     },
     {
@@ -1979,6 +2007,86 @@
         "Shadcn UI badge component",
         "Provides Badge component for labels and tags",
         "Used by CodeBlock for language display"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py",
+      "entityType": "APIRouter",
+      "observations": [
+        "Documents API for document tree retrieval and metadata management",
+        "Exports FastAPI router with prefix /api/documents",
+        "Defines GET /api/documents/tree/{case_id} endpoint",
+        "Defines GET /api/documents/all endpoint",
+        "Defines GET /api/documents/health endpoint",
+        "Integrates with document registry system",
+        "Response models: DocumentResponse, FolderResponse, DocumentTreeResponse",
+        "Maps internal document registry format to frontend format",
+        "Related to S5-007: Container-Compatible File Persistence"
+      ]
+    },
+    {
+      "name": "backend/models/regulation.py",
+      "entityType": "Model",
+      "observations": [
+        "Regulation model for German immigration law references",
+        "S5-013: Enhanced Acte Context Research",
+        "Provides Regulation dataclass with id, title, summary, url, relevance fields",
+        "from_dict() factory method for JSON deserialization",
+        "validate() method for data validation",
+        "to_dict() method for serialization",
+        "References German laws: AufenthG, IntV, AsylG, Freiz\u00fcgG/EU",
+        "Used in case context templates for legal requirement documentation"
+      ]
+    },
+    {
+      "name": "backend/services/document_registry.py",
+      "entityType": "Service",
+      "observations": [
+        "Document Registry Service for manifest-based document tracking",
+        "S5-007: Container-Compatible File Persistence",
+        "D-S5-002: Document Registry Schema implementation",
+        "Manages backend/data/document_manifest.json as single source of truth",
+        "Provides filesystem reconciliation on startup",
+        "Detects orphaned files and registers them",
+        "Detects missing files and logs warnings",
+        "File integrity verification using SHA-256 hashes",
+        "Document tree building for frontend consumption",
+        "Type definitions: DocumentRender, DocumentRegistryEntry, DocumentRegistry, FileInfo",
+        "Key functions: load_manifest(), save_manifest(), scan_filesystem(), reconcile()",
+        "Stateless functions for testability",
+        "Container-friendly with configurable DOCUMENTS_BASE_PATH"
+      ]
+    },
+    {
+      "name": "backend/services/shacl_generator.py",
+      "entityType": "Service",
+      "observations": [
+        "SHACL Generator Service for natural language form modification",
+        "S5-001: Natural Language Form Field Modification with SHACL Validation",
+        "Uses Gemini AI (gemini-2.0-flash-exp) for NL command parsing",
+        "Handles form field operations: add, remove, modify, reorder",
+        "Generates SHACL PropertyShape for individual fields",
+        "Generates SHACL NodeShape for entire forms",
+        "Integrates with schema.org vocabulary via schema_org_mappings",
+        "Provides SHACLGeneratorService class with modify_form() method",
+        "FormField and FormModificationResult dataclasses",
+        "Automatic semantic type inference from field labels",
+        "Validation pattern assignment based on field type"
+      ]
+    },
+    {
+      "name": "backend/schemas/schema_org_mappings.py",
+      "entityType": "Schema",
+      "observations": [
+        "Schema.org vocabulary mappings for semantic form fields",
+        "S5-001: Natural Language Form Field Modification with SHACL Validation",
+        "Maps field labels to schema.org properties",
+        "SCHEMA_ORG_PROPERTIES dict with 60+ property mappings",
+        "Supports Person, Contact, Address, Date, Identification properties",
+        "Functions: get_schema_org_type(), infer_field_type_from_label(), normalize_field_label()",
+        "Function: get_validation_pattern_for_type() returns ValidationPattern",
+        "Integrates with backend/schemas/validation_patterns",
+        "Enables automatic semantic type inference for SHACL generation"
       ]
     }
   ],
@@ -3426,6 +3534,51 @@
     {
       "from_": "backend/services/gemini_service.py",
       "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/documents.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/services/document_registry.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/documents.py",
+      "to": "backend/services/document_registry.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/services/shacl_generator.py",
+      "to": "backend/models/shacl_property_shape.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/services/shacl_generator.py",
+      "to": "backend/schemas/schema_org_mappings.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/services/shacl_generator.py",
+      "to": "backend/schemas/validation_patterns.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/schemas/schema_org_mappings.py",
+      "to": "backend/schemas/validation_patterns.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/models/__init__.py",
+      "to": "backend/models/regulation.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/services/context_manager.py",
+      "to": "backend/models/regulation.py",
       "relationType": "imports"
     }
   ]

@@ -13,7 +13,7 @@ import os
 import time
 import json
 import re
-from typing import Optional, Dict, Any, AsyncGenerator, Union
+from typing import Optional, Dict, Any, AsyncGenerator, Union, Tuple, List
 
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
@@ -192,9 +192,11 @@ class GeminiService:
 
         try:
             # Load and merge context based on case_id and folder_id
+            # S5-011: Now returns both merged_context and document_tree
             merged_context = None
+            document_tree = None
             if case_id:
-                merged_context = self._load_context(
+                merged_context, document_tree = self._load_context(
                     case_id,
                     folder_id,
                     document_content
@@ -210,13 +212,14 @@ class GeminiService:
                         f"for case {case_id}"
                     )
 
-            # Build the complete prompt with context, document content, conversation history, and language
+            # S5-011: Build the complete prompt with context, document content, conversation history, language, and tree view
             full_prompt = self._build_prompt(
                 prompt,
                 document_content,
                 merged_context,
                 conversation_history=conversation_history,
-                language=language
+                language=language,
+                document_tree=document_tree
             )
 
             logger.info(
@@ -376,13 +379,15 @@ class GeminiService:
         case_id: str,
         folder_id: Optional[str] = None,
         document_content: Optional[str] = None
-    ) -> Optional[str]:
+    ) -> Tuple[Optional[str], Optional[str]]:
         """
         Load and merge case-instance context.
+        S5-011: Enhanced to return document tree view separately.
 
         Loads case-level context, folder-level context (if folder_id provided),
         and merges with document content to create a comprehensive context
-        string for the AI prompt.
+        string for the AI prompt. Also extracts the document tree view for
+        separate inclusion in the prompt.
 
         Args:
             case_id: Case identifier (e.g., "ACTE-2024-001").
@@ -390,19 +395,26 @@ class GeminiService:
             document_content: Optional document text.
 
         Returns:
-            Optional[str]: Merged context string, or None if context
-                          loading fails.
+            Tuple[Optional[str], Optional[str]]: (merged_context, document_tree_view)
+                          Returns (None, None) if context loading fails.
         """
         if not self._context_manager:
             logger.warning("Context manager not initialized, skipping context load")
-            return None
+            return None, None
 
         try:
             # Load case context
             case_ctx = None
+            document_tree = None
             try:
                 case_ctx = self._context_manager.load_case_context(case_id)
                 logger.info(f"Loaded case context for: {case_id}")
+
+                # S5-011: Extract document tree view if present
+                if case_ctx and 'documentTreeView' in case_ctx:
+                    document_tree = case_ctx.get('documentTreeView')
+                    logger.debug(f"Extracted document tree view for {case_id}")
+
             except FileNotFoundError:
                 logger.warning(f"Case context not found for: {case_id}")
             except Exception as e:
@@ -430,11 +442,11 @@ class GeminiService:
                 document_content
             )
 
-            return merged_context
+            return merged_context, document_tree
 
         except Exception as e:
             logger.error(f"Failed to load context: {str(e)}")
-            return None
+            return None, None
 
     def _build_prompt(
         self,
@@ -443,16 +455,18 @@ class GeminiService:
         context: Optional[str] = None,
         context_sources: Optional[list] = None,
         conversation_history: Optional[list] = None,
-        language: str = 'de'
+        language: str = 'de',
+        document_tree: Optional[str] = None
     ) -> str:
         """
         S2-004: Build a complete prompt with context, document content, and source labels.
         S5-010: Enhanced with conversation history support.
+        S5-011: Enhanced with document tree view for global document awareness.
         S5-014: Enhanced with language parameter for AI response language.
 
-        Combines user prompt, case context, document content, and conversation
-        history into a well-structured prompt for the AI model. Enhanced with
-        source tracking for AI transparency and language-specific responses.
+        Combines user prompt, case context, document content, conversation
+        history, and document tree view into a well-structured prompt for the AI model.
+        Enhanced with source tracking for AI transparency and language-specific responses.
 
         Args:
             prompt: The user's question or instruction.
@@ -461,6 +475,7 @@ class GeminiService:
             context_sources: Optional list of context sources for transparency.
             conversation_history: Optional list of previous conversation turns (S5-010).
             language: Language code ('de' or 'en') for AI response language (S5-014).
+            document_tree: Optional document tree view for document awareness (S5-011).
 
         Returns:
             str: The complete formatted prompt with source labels and history.
@@ -490,6 +505,19 @@ class GeminiService:
             parts.append("# Case Context")
             parts.append("(Information from case configuration and folder settings)")
             parts.append(context)
+            parts.append("")
+
+        # S5-011: Add document tree view if provided
+        if document_tree:
+            parts.append("# Available Documents (Tree View)")
+            parts.append("(Complete overview of all documents in this case)")
+            parts.append(document_tree)
+            parts.append("")
+            parts.append("IMPORTANT: Use this tree view to:")
+            parts.append("- Answer questions about what documents are available")
+            parts.append("- Locate specific documents by name or type")
+            parts.append("- Correct user misconceptions (e.g., if user says 'I don't have X' but X exists in tree)")
+            parts.append("- Understand document organization in folders")
             parts.append("")
 
         # Add document content if provided (highest priority source)
@@ -641,6 +669,163 @@ class GeminiService:
                 # Continue with original response if conversion fails
 
         return response
+
+    async def semantic_search(
+        self,
+        query: str,
+        document_text: str,
+        query_lang: str = 'en',
+        doc_lang: str = 'en'
+    ) -> List[Dict[str, Any]]:
+        """
+        S5-003: Perform semantic search using Gemini API.
+
+        Analyzes a document and finds all passages relevant to the user's query
+        using semantic understanding. Supports cross-language search where the
+        query and document can be in different languages.
+
+        Args:
+            query: The search query in natural language
+            document_text: The full text content of the document to search
+            query_lang: Language code of the query (ISO 639-1: en, de, etc.)
+            doc_lang: Language code of the document (ISO 639-1: en, de, etc.)
+
+        Returns:
+            List[Dict[str, Any]]: List of highlight dictionaries with:
+                - matched_text: Exact text from document
+                - start_position: Character index where match starts
+                - end_position: Character index where match ends
+                - relevance_score: Float 0.0-1.0 indicating match quality
+                - context: Brief explanation of why this matches
+
+        Raises:
+            ValueError: If model is not initialized
+            Exception: If API call fails
+
+        Example:
+            >>> service = GeminiService()
+            >>> highlights = await service.semantic_search(
+            ...     query="passport number",
+            ...     document_text="Reisepassnummer: 123456789",
+            ...     query_lang="en",
+            ...     doc_lang="de"
+            ... )
+            >>> print(highlights[0]['matched_text'])
+            Reisepassnummer: 123456789
+        """
+        if self._model is None:
+            raise ValueError("Gemini model not initialized")
+
+        try:
+            # Build the semantic search prompt
+            prompt = f"""Analyze the following document and find all passages relevant to the user's query.
+
+Query (in {query_lang}): {query}
+
+Document (in {doc_lang}):
+{document_text}
+
+Return a JSON array of all relevant text passages with their exact positions in the document.
+If the query and document languages differ, match by semantic meaning, not literal translation.
+
+Important Instructions:
+- Find the EXACT text from the document (character-perfect match)
+- Calculate precise character positions (0-indexed)
+- Assign relevance scores from 0.0 to 1.0
+- Provide brief context explaining why each passage matches
+- Return empty array [] if no matches found
+
+Format:
+[
+  {{
+    "matched_text": "exact text from document",
+    "start_position": 0,
+    "end_position": 25,
+    "relevance_score": 0.95,
+    "context": "brief explanation of why this matches"
+  }}
+]
+
+Return ONLY the JSON array, no additional text."""
+
+            logger.info(
+                f"Performing semantic search - "
+                f"query: '{query}' ({query_lang}), "
+                f"document length: {len(document_text)} chars ({doc_lang})"
+            )
+
+            # Use lower temperature for more consistent results
+            generation_config = GenerationConfig(
+                temperature=0.3,  # Lower temperature for deterministic outputs
+                top_p=0.8,
+                top_k=40,
+                max_output_tokens=2048,
+            )
+
+            # Call Gemini API
+            start_time = time.perf_counter()
+            response = self._model.generate_content(
+                prompt,
+                generation_config=generation_config
+            )
+
+            # Extract and parse response
+            response_text = response.text.strip()
+
+            # Remove markdown code blocks if present
+            if response_text.startswith('```'):
+                # Remove ```json and ``` markers
+                response_text = response_text.replace('```json', '').replace('```', '').strip()
+
+            # Parse JSON response
+            highlights = json.loads(response_text)
+
+            # Validate response is an array
+            if not isinstance(highlights, list):
+                logger.warning(f"Gemini returned non-array response: {type(highlights)}")
+                highlights = []
+
+            # Validate and clean highlight objects
+            cleaned_highlights = []
+            for h in highlights:
+                if not isinstance(h, dict):
+                    continue
+
+                # Ensure all required fields exist
+                if not all(k in h for k in ['matched_text', 'start_position', 'end_position']):
+                    logger.warning(f"Skipping malformed highlight: {h}")
+                    continue
+
+                # Add default relevance and context if missing
+                if 'relevance_score' not in h:
+                    h['relevance_score'] = 0.5
+
+                if 'context' not in h:
+                    h['context'] = 'Semantic match'
+
+                cleaned_highlights.append(h)
+
+            # Calculate performance metrics
+            end_time = time.perf_counter()
+            latency_ms = (end_time - start_time) * 1000
+
+            logger.info(
+                f"Semantic search complete - "
+                f"found {len(cleaned_highlights)} matches, "
+                f"latency: {latency_ms:.2f}ms"
+            )
+
+            return cleaned_highlights
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse Gemini JSON response: {str(e)}")
+            logger.error(f"Raw response: {response_text[:500]}")
+            # Return empty results on parse error
+            return []
+
+        except Exception as e:
+            logger.error(f"Error in semantic search: {str(e)}")
+            raise
 
     def is_initialized(self) -> bool:
         """

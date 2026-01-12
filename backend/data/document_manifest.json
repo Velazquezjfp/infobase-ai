@@ -1,57 +1,140 @@
 {
   "version": "1.0",
   "schemaVersion": "1.0",
-  "lastUpdated": "2026-01-12T16:05:00.000000+00:00",
+  "lastUpdated": "2026-01-12T21:22:04.111965+00:00",
   "documents": [
     {
-      "documentId": "doc_f3a1f8bc25c7",
+      "documentId": "doc_8d26a7f6bf5f",
       "caseId": "ACTE-2024-001",
       "folderId": "personal-data",
-      "fileName": "Passport_Scan.txt",
-      "filePath": "public/documents/ACTE-2024-001/personal-data/Passport_Scan.txt",
-      "uploadedAt": "2026-01-12T14:40:30.622278+00:00",
-      "fileHash": "sha256:66fe80d63713b00823b313e72eca6e379b345a076335a5091cf5d74b1d015ae7",
-      "renders": []
+      "fileName": "Personalausweis.png",
+      "filePath": "public/documents/ACTE-2024-001/personal-data/Personalausweis.png",
+      "uploadedAt": "2026-01-12T20:03:32.161894+00:00",
+      "fileHash": "sha256:4e4f8e6e2f05f7764fa9f7469c9c8017aa53ef64f76914221e48255cc39edddb",
+      "renders": [
+        {
+          "id": "render_original_8d26a7f6bf5f",
+          "type": "original",
+          "name": "Personalausweis.png",
+          "filePath": "public/documents/ACTE-2024-001/personal-data/Personalausweis.png",
+          "createdAt": "2026-01-12T20:03:32.161894+00:00",
+          "metadata": {}
+        }
+      ]
     },
     {
-      "documentId": "doc_3ba808948ceb",
+      "documentId": "doc_929c1f33278f",
+      "caseId": "ACTE-2024-001",
+      "folderId": "personal-data",
+      "fileName": "Aufenthalstitel.png",
+      "filePath": "public/documents/ACTE-2024-001/personal-data/Aufenthalstitel.png",
+      "uploadedAt": "2026-01-12T20:03:32.161932+00:00",
+      "fileHash": "sha256:8ab8785120baf68d2a50782f712c196124f339a2e84f3c972337073b35701fee",
+      "renders": [
+        {
+          "id": "render_original_929c1f33278f",
+          "type": "original",
+          "name": "Aufenthalstitel.png",
+          "filePath": "public/documents/ACTE-2024-001/personal-data/Aufenthalstitel.png",
+          "createdAt": "2026-01-12T20:03:32.161932+00:00",
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "documentId": "doc_39c3efcb9a39",
+      "caseId": "ACTE-2024-001",
+      "folderId": "personal-data",
+      "fileName": "Geburtsurkunde.jpg",
+      "filePath": "public/documents/ACTE-2024-001/personal-data/Geburtsurkunde.jpg",
+      "uploadedAt": "2026-01-12T20:03:32.161982+00:00",
+      "fileHash": "sha256:f7cd6d0ae5e1e24bf1ea43e715b1825003c784f462b8829cc26a308a51ca06c8",
+      "renders": [
+        {
+          "id": "render_original_39c3efcb9a39",
+          "type": "original",
+          "name": "Geburtsurkunde.jpg",
+          "filePath": "public/documents/ACTE-2024-001/personal-data/Geburtsurkunde.jpg",
+          "createdAt": "2026-01-12T20:03:32.161982+00:00",
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "documentId": "doc_9df102aa207c",
       "caseId": "ACTE-2024-001",
       "folderId": "evidence",
-      "fileName": "School_Transcripts.txt",
-      "filePath": "public/documents/ACTE-2024-001/evidence/School_Transcripts.txt",
-      "uploadedAt": "2026-01-12T14:40:30.622943+00:00",
-      "fileHash": "sha256:ad10426641650523117c174348b86d28efbe7c4cd75675d19d6d4f364ce1b41b",
-      "renders": []
+      "fileName": "Notenspiegel.pdf",
+      "filePath": "public/documents/ACTE-2024-001/evidence/Notenspiegel.pdf",
+      "uploadedAt": "2026-01-12T20:03:32.161996+00:00",
+      "fileHash": "sha256:517ad9fed3eab1f8704bc3887e5e6323cf6bd0443ddc890334a5ee810cb36bfc",
+      "renders": [
+        {
+          "id": "render_original_9df102aa207c",
+          "type": "original",
+          "name": "Notenspiegel.pdf",
+          "filePath": "public/documents/ACTE-2024-001/evidence/Notenspiegel.pdf",
+          "createdAt": "2026-01-12T20:03:32.161996+00:00",
+          "metadata": {}
+        }
+      ]
     },
     {
-      "documentId": "doc_4bb468b87f47",
+      "documentId": "doc_c4578fcc2907",
       "caseId": "ACTE-2024-001",
       "folderId": "emails",
-      "fileName": "Confirmation_Email.txt",
-      "filePath": "public/documents/ACTE-2024-001/emails/Confirmation_Email.txt",
-      "uploadedAt": "2026-01-12T14:40:30.622963+00:00",
-      "fileHash": "sha256:43734385dca771310822a3a292a264c730cc0910757db52f218db1f476fa6b47",
-      "renders": []
+      "fileName": "Email.eml",
+      "filePath": "public/documents/ACTE-2024-001/emails/Email.eml",
+      "uploadedAt": "2026-01-12T20:03:32.162021+00:00",
+      "fileHash": "sha256:138c8fe3cedfd08769a0c71babb944d00a7edf80c669d971f1b41cca3ced0f3a",
+      "renders": [
+        {
+          "id": "render_original_c4578fcc2907",
+          "type": "original",
+          "name": "Email.eml",
+          "filePath": "public/documents/ACTE-2024-001/emails/Email.eml",
+          "createdAt": "2026-01-12T20:03:32.162021+00:00",
+          "metadata": {}
+        }
+      ]
     },
     {
-      "documentId": "doc_3083e3865bf0",
+      "documentId": "doc_3387249e85cd",
       "caseId": "ACTE-2024-001",
       "folderId": "certificates",
-      "fileName": "Language_Certificate_A1.txt",
-      "filePath": "public/documents/ACTE-2024-001/certificates/Language_Certificate_A1.txt",
-      "uploadedAt": "2026-01-12T14:40:30.622991+00:00",
-      "fileHash": "sha256:fa48eb2e3b027ac87194499749d603c7336a6dec98ef9361eafd19c5fc563a66",
-      "renders": []
+      "fileName": "Sprachzeugnis-Zertifikat.pdf",
+      "filePath": "public/documents/ACTE-2024-001/certificates/Sprachzeugnis-Zertifikat.pdf",
+      "uploadedAt": "2026-01-12T20:03:32.162038+00:00",
+      "fileHash": "sha256:1c7aa873c305ed4f4276fd22c7408abda63cb8ab7d4c319a15214e8ccd4b1ea7",
+      "renders": [
+        {
+          "id": "render_original_3387249e85cd",
+          "type": "original",
+          "name": "Sprachzeugnis-Zertifikat.pdf",
+          "filePath": "public/documents/ACTE-2024-001/certificates/Sprachzeugnis-Zertifikat.pdf",
+          "createdAt": "2026-01-12T20:03:32.162038+00:00",
+          "metadata": {}
+        }
+      ]
     },
     {
-      "documentId": "doc_c56a9b30eb5d",
+      "documentId": "doc_087e8f567223",
       "caseId": "ACTE-2024-001",
       "folderId": "applications",
-      "fileName": "Integration_Application.txt",
-      "filePath": "public/documents/ACTE-2024-001/applications/Integration_Application.txt",
-      "uploadedAt": "2026-01-12T14:40:30.623020+00:00",
-      "fileHash": "sha256:0f7ec8f4bb1a8d2bca882b5c5d0178d334c7a9d93f8e618ff0f43676b9319471",
-      "renders": []
+      "fileName": "Anmeldeformular.pdf",
+      "filePath": "public/documents/ACTE-2024-001/applications/Anmeldeformular.pdf",
+      "uploadedAt": "2026-01-12T20:03:32.162050+00:00",
+      "fileHash": "sha256:766dd47b86169319402562a55e85909876bd73739493eb8c3ad49b5790b4d5bf",
+      "renders": [
+        {
+          "id": "render_original_087e8f567223",
+          "type": "original",
+          "name": "Anmeldeformular.pdf",
+          "filePath": "public/documents/ACTE-2024-001/applications/Anmeldeformular.pdf",
+          "createdAt": "2026-01-12T20:03:32.162050+00:00",
+          "metadata": {}
+        }
+      ]
     }
   ]
 }

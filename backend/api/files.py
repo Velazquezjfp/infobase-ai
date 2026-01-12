@@ -169,6 +169,15 @@ async def upload_file(
             # Log error but don't fail the upload - file was saved successfully
             logger.error(f"Failed to register document in registry: {e}", exc_info=True)
 
+        # S5-011: Invalidate document tree cache after upload
+        try:
+            from backend.services.context_manager import invalidate_tree_cache
+            invalidate_tree_cache(case_id)
+            logger.debug(f"Invalidated tree cache for case {case_id} after upload")
+        except Exception as e:
+            # Log error but don't fail the upload
+            logger.warning(f"Failed to invalidate tree cache: {e}")
+
         # Construct relative path for frontend
         relative_path = f"documents/{case_id}/{folder_id}/{safe_filename}"
 
@@ -300,6 +309,15 @@ async def delete_file_endpoint(
                 logger.error(f"Failed to unregister document from registry: {e}", exc_info=True)
         else:
             logger.warning(f"Document not found in registry: {case_id}/{folder_id}/{filename}")
+
+        # S5-011: Invalidate document tree cache after deletion
+        try:
+            from backend.services.context_manager import invalidate_tree_cache
+            invalidate_tree_cache(case_id)
+            logger.debug(f"Invalidated tree cache for case {case_id} after deletion")
+        except Exception as e:
+            # Log error but don't fail the deletion
+            logger.warning(f"Failed to invalidate tree cache: {e}")
 
         logger.info(f"Successfully deleted {filename} from {case_id}/{folder_id}")
 
@@ -472,6 +490,78 @@ async def check_file_exists_endpoint(
                 "detail": str(e),
                 "file_name": filename,
             }
+        )
+
+
+@router.delete(
+    "/renders/{case_id}/{document_id}/{render_id}",
+    summary="Delete a document render",
+    description="Delete a specific render (anonymized, translated, etc.) from a document (S5-006)"
+)
+async def delete_render(
+    case_id: str,
+    document_id: str,
+    render_id: str
+) -> JSONResponse:
+    """
+    Delete a document render (S5-006).
+
+    Args:
+        case_id: The case ID
+        document_id: The parent document ID
+        render_id: The render ID to delete
+
+    Returns:
+        JSONResponse: Deletion result
+
+    Raises:
+        HTTPException: If deletion fails
+    """
+    logger.info(f"Deleting render {render_id} from document {document_id} in case {case_id}")
+
+    try:
+        from backend.services.file_service import delete_document_render
+
+        # Delete the render
+        success = delete_document_render(
+            document_id=document_id,
+            render_id=render_id,
+            case_id=case_id
+        )
+
+        if not success:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Render {render_id} not found or could not be deleted"
+            )
+
+        # Invalidate tree cache
+        try:
+            from backend.services.context_manager import invalidate_tree_cache
+            invalidate_tree_cache(case_id)
+            logger.debug(f"Invalidated tree cache for case {case_id} after render deletion")
+        except Exception as e:
+            logger.warning(f"Failed to invalidate tree cache: {e}")
+
+        logger.info(f"Successfully deleted render {render_id}")
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "message": "Render deleted successfully",
+                "render_id": render_id,
+                "document_id": document_id
+            },
+            status_code=200
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete render: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete render: {str(e)}"
         )
 
 
