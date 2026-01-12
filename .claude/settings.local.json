@@ -29,7 +29,14 @@
       "Bash(done)",
       "Bash(curl:*)",
       "Bash(xargs kill -9)",
-      "mcp__knowledge-graph-custom-path__read_graph"
+      "mcp__knowledge-graph-custom-path__read_graph",
+      "Bash(ls:*)",
+      "mcp__knowledge-graph-custom-path__open_nodes",
+      "mcp__knowledge-graph-custom-path__generate_report",
+      "mcp__knowledge-graph-custom-path__get_current_graph_path",
+      "Bash(for case in ACTE-2024-001 ACTE-2024-002 ACTE-2024-003)",
+      "Bash(do echo:*)",
+      "Bash(for template in integration_course asylum_application family_reunification)"
     ]
   }
 }

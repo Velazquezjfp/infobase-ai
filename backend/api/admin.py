@@ -6,17 +6,19 @@ including AI-powered form field generation from natural language prompts.
 
 Endpoints:
     POST /api/admin/generate-field: Generate a form field from NLP prompt
+    POST /api/admin/modify-form: Modify form using natural language (S5-001)
     GET /api/admin/health: Admin service health check
 """
 
 import logging
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from backend.services.field_generator import get_field_generator
+from backend.services.shacl_generator import get_shacl_generator
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +97,55 @@ class ErrorResponse(BaseModel):
     """Error response model."""
     error: str
     detail: Optional[str] = None
+
+
+# S5-001: Form Modification Models
+
+class FormModificationRequest(BaseModel):
+    """
+    Request model for form modification endpoint (S5-001).
+
+    Attributes:
+        command: Natural language command describing the modification
+        currentFields: Current list of form fields
+        caseId: Case ID for the form
+    """
+    command: str = Field(
+        ...,
+        min_length=3,
+        max_length=500,
+        description="Natural language command for form modification",
+        examples=[
+            "Add an email field for contact email",
+            "Add a phone number field",
+            "Remove the phone number field",
+            "Add dropdown for marital status with options single, married, divorced"
+        ]
+    )
+    currentFields: List[Dict[str, Any]] = Field(
+        default=[],
+        description="Current form fields as dictionaries"
+    )
+    caseId: str = Field(
+        default="UnknownCase",
+        description="Case ID for the form"
+    )
+
+
+class FormModificationResponse(BaseModel):
+    """
+    Response model for form modification endpoint (S5-001).
+
+    Attributes:
+        fields: Updated list of form fields with SHACL metadata
+        shaclShape: Complete SHACL NodeShape in JSON-LD format
+        modifications: List of modifications applied (human-readable)
+        message: Success message
+    """
+    fields: List[Dict[str, Any]]
+    shaclShape: Dict[str, Any]
+    modifications: List[str]
+    message: str = "Form modified successfully"
 
 
 @router.post(
@@ -193,6 +244,104 @@ async def generate_field(request: GenerateFieldRequest) -> GenerateFieldResponse
         )
 
 
+@router.post(
+    "/modify-form",
+    response_model=FormModificationResponse,
+    responses={
+        200: {"description": "Form modified successfully"},
+        400: {"model": ErrorResponse, "description": "Invalid request or modification failed"},
+        500: {"model": ErrorResponse, "description": "Internal server error"},
+    },
+    summary="Modify form using natural language (S5-001)",
+    description="""
+    Modify a form using natural language commands with automatic SHACL generation.
+
+    The service uses Gemini AI to interpret natural language commands and applies
+    modifications to the form structure. Each field automatically receives:
+    - Schema.org semantic type (e.g., schema:email, schema:name)
+    - Validation patterns based on semantic type
+    - SHACL PropertyShape metadata for validation
+
+    **Supported operations:**
+    - Add field: "Add an email field for contact email"
+    - Remove field: "Remove the phone number field"
+    - Add select field: "Add dropdown for marital status with options single, married, divorced"
+    - Add required field: "Add a required date field for birth date"
+
+    **Supported field types:**
+    - `text`: Standard text input (email, phone, name, etc.)
+    - `date`: Date picker
+    - `select`: Dropdown with options
+    - `textarea`: Multi-line text
+
+    **Automatic semantic type inference:**
+    The system automatically infers schema.org types from field labels:
+    - "email" → schema:email with email validation
+    - "phone" → schema:telephone with phone validation
+    - "name" → schema:name with name validation
+    - "birth date" → schema:birthDate with date validation
+    - "address" → schema:address with address validation
+
+    **Response includes:**
+    - Updated field list with SHACL metadata
+    - Complete SHACL NodeShape for the entire form
+    - List of modifications applied
+
+    **Supported languages:** English, German
+    """,
+)
+async def modify_form(request: FormModificationRequest) -> FormModificationResponse:
+    """
+    Modify a form using natural language commands (S5-001).
+
+    Args:
+        request: Form modification request with command and current fields
+
+    Returns:
+        FormModificationResponse: Updated fields, SHACL shape, and modifications
+
+    Raises:
+        HTTPException: If modification fails or command is unclear
+    """
+    logger.info(f"Received form modification request: {request.command[:50]}... for case {request.caseId}")
+
+    try:
+        # Get the SHACL generator service
+        generator = get_shacl_generator()
+
+        # Apply modification
+        result = await generator.apply_modification(
+            command=request.command,
+            current_fields=request.currentFields,
+            case_id=request.caseId
+        )
+
+        logger.info(f"Form modification successful: {', '.join(result.modifications)}")
+
+        return FormModificationResponse(
+            fields=result.fields,
+            shaclShape=result.shacl_shape,
+            modifications=result.modifications,
+            message=f"Successfully modified form: {', '.join(result.modifications)}"
+        )
+
+    except ValueError as e:
+        # User error (clarification needed, field not found, etc.)
+        logger.warning(f"Form modification failed: {str(e)}")
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "Form modification failed", "detail": str(e)}
+        )
+
+    except Exception as e:
+        # Internal error
+        logger.error(f"Unexpected error in form modification: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "Internal server error", "detail": str(e)}
+        )
+
+
 @router.get(
     "/health",
     summary="Admin service health check",
@@ -211,6 +360,7 @@ async def admin_health_check() -> JSONResponse:
             "status": "ready",
             "features": {
                 "field_generation": True,
+                "form_modification": True,  # S5-001
             }
         },
         status_code=200

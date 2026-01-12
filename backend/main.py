@@ -25,6 +25,7 @@ load_dotenv()
 from backend.api.chat import router as chat_router
 from backend.api.admin import router as admin_router
 from backend.api.files import router as files_router
+from backend.api.documents import router as documents_router
 
 # Configure logging
 logging.basicConfig(
@@ -51,6 +52,45 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     # Startup
     logger.info("Starting BAMF AI Case Management Backend...")
+
+    # S5-007: Document registry reconciliation on startup
+    try:
+        from backend.config import DOCUMENTS_BASE_PATH
+        from backend.services.document_registry import (
+            load_manifest,
+            scan_filesystem,
+            reconcile
+        )
+
+        logger.info("Starting document registry reconciliation...")
+
+        # Load manifest
+        manifest = load_manifest()
+        logger.info(f"Loaded manifest with {len(manifest.documents)} documents")
+
+        # Scan filesystem
+        filesystem_files = scan_filesystem(DOCUMENTS_BASE_PATH)
+        logger.info(f"Filesystem scan found {len(filesystem_files)} files")
+
+        # Reconcile
+        report = reconcile(manifest, filesystem_files)
+        logger.info(
+            f"Reconciliation complete: "
+            f"{len(report.added)} added, "
+            f"{len(report.missing)} missing, "
+            f"{len(report.integrity_failed)} integrity failed"
+        )
+
+        # Log details if there were issues
+        if report.missing:
+            logger.warning(f"Missing files (in manifest but not on disk): {report.missing}")
+        if report.integrity_failed:
+            logger.warning(f"Files with integrity issues: {report.integrity_failed}")
+
+    except Exception as e:
+        logger.error(f"Document registry reconciliation failed: {e}", exc_info=True)
+        logger.warning("Application will continue, but document persistence may be affected")
+
     logger.info("Backend initialization complete.")
 
     yield
@@ -91,6 +131,7 @@ app.add_middleware(
 app.include_router(chat_router, tags=["chat"])
 app.include_router(admin_router, tags=["admin"])
 app.include_router(files_router, tags=["files"])
+app.include_router(documents_router, tags=["documents"])
 
 
 @app.get("/health")

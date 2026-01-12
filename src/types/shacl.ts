@@ -370,3 +370,29 @@ export function validateValue(
 
   return { isValid: true };
 }
+
+/**
+ * S5-001: Validation result for form field validation
+ */
+export interface ValidationResult {
+  /** Whether the field value is valid */
+  isValid: boolean;
+  /** List of validation error messages */
+  errors?: string[];
+  /** Field ID that was validated */
+  fieldId?: string;
+}
+
+/**
+ * S5-001: Response from form modification API endpoint
+ */
+export interface FormModificationResponse {
+  /** Updated list of form fields with SHACL metadata */
+  fields: any[]; // Using any[] to match backend Dict[str, Any]
+  /** Complete SHACL NodeShape for the entire form */
+  shaclShape: SHACLNodeShape;
+  /** List of modifications applied (human-readable) */
+  modifications: string[];
+  /** Success message */
+  message: string;
+}

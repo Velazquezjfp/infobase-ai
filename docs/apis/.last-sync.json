@@ -1,7 +1,7 @@
 {
-  "last_commit": "6301535",
-  "last_sync": "2026-01-05T12:00:00.000Z",
-  "documentation_version": "1.7.0",
+  "last_commit": "33ec7d83df633730838a904f6ec945eff069f10f",
+  "last_sync": "2026-01-12T14:00:00.000Z",
+  "documentation_version": "1.8.0",
   "api_status": "partial_implementation",
   "tracked_paths": [
     "src/pages/Login.tsx",
@@ -24,8 +24,10 @@
     "backend/api/files.py",
     "backend/services/gemini_service.py",
     "backend/services/context_manager.py",
+    "backend/services/conversation_manager.py",
     "backend/services/field_generator.py",
     "backend/services/file_service.py",
+    "backend/config.py",
     "backend/tools/form_parser.py",
     "backend/tools/anonymization_tool.py",
     "backend/tools/document_processor.py",
@@ -39,6 +41,9 @@
   "notes": [
     "Backend API implementation has started with FastAPI framework",
     "WebSocket chat endpoint implemented for real-time AI communication",
+    "MULTILINGUAL SUPPORT (S5-014): WebSocket now accepts language query parameter (de/en)",
+    "SMART FORM EXTRACTION (S5-002): currentFormValues enables suggestion mode with direct updates vs suggestions",
+    "CONVERSATION HISTORY (S5-010): Optional ConversationManager service with in-memory storage",
     "STREAMING RESPONSES: Now supports real-time progressive delivery of AI responses",
     "AI service integrated using Google Gemini API with performance metrics",
     "Context-aware AI responses with case and folder isolation",
@@ -67,10 +72,11 @@
     "React Query configured in App.tsx but not yet connected to backend"
   ],
   "implemented_endpoints": [
-    "WS /ws/chat/{case_id} - backend/api/chat.py (WebSocket real-time AI chat with streaming support and anonymization)",
-    "WS /ws/chat/{case_id} [message type: chat] - backend/api/chat.py (AI chat messages with form extraction)",
+    "WS /ws/chat/{case_id}?language={lang} - backend/api/chat.py (WebSocket AI chat with multilingual support, streaming, anonymization - S5-014)",
+    "WS /ws/chat/{case_id} [message type: chat] - backend/api/chat.py (AI chat messages with smart form extraction and suggestion mode - S5-002)",
     "WS /ws/chat/{case_id} [message type: anonymize] - backend/api/chat.py (Document anonymization with PII detection)",
     "GET /api/chat/health - backend/api/chat.py (Chat service health check)",
+    "POST /api/chat/clear/{case_id} - backend/api/chat.py (Clear conversation history for case - S5-010)",
     "POST /api/admin/generate-field - backend/api/admin.py (Generate form field from natural language)",
     "GET /api/admin/health - backend/api/admin.py (Admin service health check)",
     "POST /api/files/upload - backend/api/files.py (Upload file to case folder with 15 MB limit)",
@@ -81,6 +87,17 @@
     "GET / - backend/main.py (Backend root info)"
   ],
   "implemented_features": [
+    "Multilingual chat support (S5-014): Language query parameter and per-message language override (de/en)",
+    "Translated welcome messages (S5-014): Localized case ID prefix (ACTE → Akte/Case) based on language",
+    "Language-aware AI responses (S5-014): All AI responses generated in specified language",
+    "Smart form extraction suggestion mode (S5-002): Categorizes updates into direct fills, suggestions, and ignored",
+    "Form suggestion message type (S5-002): New form_suggestion message for non-empty fields requiring approval",
+    "Current values comparison (S5-002): compare_values() function for intelligent update categorization",
+    "Enhanced extraction summaries (S5-002): Detailed confirmation with field counts by category",
+    "Conversation history management (S5-010): In-memory per-case conversation storage with ConversationManager",
+    "Token budget calculation (S5-010): Automatic context window management and truncation",
+    "Clear conversation endpoint (S5-010): POST /api/chat/clear/{case_id} for history reset",
+    "Configuration module (S5-010): Centralized backend/config.py with environment variable support",
     "Streaming AI responses (default): chat_chunk messages with is_complete flag",
     "Non-streaming AI responses: chat_response messages with complete text",
     "Performance metrics: time-to-first-token, total latency, token counts",

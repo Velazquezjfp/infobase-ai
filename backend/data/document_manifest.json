@@ -1,58 +1,56 @@
 {
   "version": "1.0",
   "schemaVersion": "1.0",
-  "lastUpdated": "2026-01-12T12:00:00Z",
+  "lastUpdated": "2026-01-12T16:05:00.000000+00:00",
   "documents": [
     {
-      "documentId": "doc_001",
+      "documentId": "doc_f3a1f8bc25c7",
       "caseId": "ACTE-2024-001",
       "folderId": "personal-data",
-      "fileName": "Birth_Certificate.jpg",
-      "filePath": "public/documents/ACTE-2024-001/personal-data/Birth_Certificate.jpg",
-      "uploadedAt": "2026-01-08T10:00:00Z",
-      "fileHash": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-      "renders": [
-        {
-          "renderId": "render_001",
-          "type": "anonymized",
-          "filePath": "public/documents/ACTE-2024-001/personal-data/Birth_Certificate_anonymized.jpg",
-          "createdAt": "2026-01-08T10:15:00Z"
-        },
-        {
-          "renderId": "render_002",
-          "type": "translated",
-          "language": "en",
-          "filePath": "public/documents/ACTE-2024-001/personal-data/Birth_Certificate_translated_en.jpg",
-          "createdAt": "2026-01-08T10:20:00Z"
-        }
-      ]
+      "fileName": "Passport_Scan.txt",
+      "filePath": "public/documents/ACTE-2024-001/personal-data/Passport_Scan.txt",
+      "uploadedAt": "2026-01-12T14:40:30.622278+00:00",
+      "fileHash": "sha256:66fe80d63713b00823b313e72eca6e379b345a076335a5091cf5d74b1d015ae7",
+      "renders": []
     },
     {
-      "documentId": "doc_002",
+      "documentId": "doc_3ba808948ceb",
       "caseId": "ACTE-2024-001",
-      "folderId": "certificates",
-      "fileName": "Language_Certificate.pdf",
-      "filePath": "public/documents/ACTE-2024-001/certificates/Language_Certificate.pdf",
-      "uploadedAt": "2026-01-09T14:30:00Z",
-      "fileHash": "sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-      "renders": [
-        {
-          "renderId": "render_003",
-          "type": "translated",
-          "language": "de",
-          "filePath": "public/documents/ACTE-2024-001/certificates/Language_Certificate_translated_de.pdf",
-          "createdAt": "2026-01-09T15:00:00Z"
-        }
-      ]
+      "folderId": "evidence",
+      "fileName": "School_Transcripts.txt",
+      "filePath": "public/documents/ACTE-2024-001/evidence/School_Transcripts.txt",
+      "uploadedAt": "2026-01-12T14:40:30.622943+00:00",
+      "fileHash": "sha256:ad10426641650523117c174348b86d28efbe7c4cd75675d19d6d4f364ce1b41b",
+      "renders": []
     },
     {
-      "documentId": "doc_003",
+      "documentId": "doc_4bb468b87f47",
       "caseId": "ACTE-2024-001",
       "folderId": "emails",
-      "fileName": "BAMF_Confirmation.eml",
-      "filePath": "public/documents/ACTE-2024-001/emails/BAMF_Confirmation.eml",
-      "uploadedAt": "2026-01-10T09:15:00Z",
-      "fileHash": "sha256:fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
+      "fileName": "Confirmation_Email.txt",
+      "filePath": "public/documents/ACTE-2024-001/emails/Confirmation_Email.txt",
+      "uploadedAt": "2026-01-12T14:40:30.622963+00:00",
+      "fileHash": "sha256:43734385dca771310822a3a292a264c730cc0910757db52f218db1f476fa6b47",
+      "renders": []
+    },
+    {
+      "documentId": "doc_3083e3865bf0",
+      "caseId": "ACTE-2024-001",
+      "folderId": "certificates",
+      "fileName": "Language_Certificate_A1.txt",
+      "filePath": "public/documents/ACTE-2024-001/certificates/Language_Certificate_A1.txt",
+      "uploadedAt": "2026-01-12T14:40:30.622991+00:00",
+      "fileHash": "sha256:fa48eb2e3b027ac87194499749d603c7336a6dec98ef9361eafd19c5fc563a66",
+      "renders": []
+    },
+    {
+      "documentId": "doc_c56a9b30eb5d",
+      "caseId": "ACTE-2024-001",
+      "folderId": "applications",
+      "fileName": "Integration_Application.txt",
+      "filePath": "public/documents/ACTE-2024-001/applications/Integration_Application.txt",
+      "uploadedAt": "2026-01-12T14:40:30.623020+00:00",
+      "fileHash": "sha256:0f7ec8f4bb1a8d2bca882b5c5d0178d334c7a9d93f8e618ff0f43676b9319471",
       "renders": []
     }
   ]

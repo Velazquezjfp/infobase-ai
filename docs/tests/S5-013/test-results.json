@@ -1,97 +1,291 @@
 {
-  "requirement_id": "S5-013",
-  "requirement_title": "Enhanced Acte Context Research",
-  "last_updated": "2026-01-09T15:29:16Z",
-  "tests": {
-    "TC-S5-013-01": {
-      "description": "Load case context, verify requiredDocuments array has 10+ entries",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-01.py"
-    },
-    "TC-S5-013-02": {
-      "description": "Verify each required document has criticality field ('critical' or 'optional')",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-02.py"
-    },
-    "TC-S5-013-03": {
-      "description": "Verify regulations array contains at least 5 regulation references",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-03.py"
-    },
-    "TC-S5-013-04": {
-      "description": "Each regulation has reference, title, url, and summary fields",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-04.py"
-    },
-    "TC-S5-013-05": {
-      "description": "Verify commonIssues array contains at least 10 common issues with solutions",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-05.py"
-    },
-    "TC-S5-013-06": {
-      "description": "Verify processingInfo includes timeline, costs, and contact information",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-06.py"
-    },
-    "TC-S5-013-07": {
-      "description": "Ask AI 'What documents are required?', verify AI lists documents from enhanced context",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-07.py"
-    },
-    "TC-S5-013-08": {
-      "description": "Ask AI about specific regulation, verify AI cites regulation reference from context",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-08.py"
-    },
-    "TC-S5-013-09": {
-      "description": "Validation report references regulation when document missing",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-09.py"
-    },
-    "TC-S5-013-10": {
-      "description": "Context schema version is tracked in case.json (schemaVersion field)",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-10.py"
-    },
-    "TC-S5-013-11": {
-      "description": "Research sources documented in researchSources array",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-11.py"
-    },
-    "TC-S5-013-12": {
-      "description": "Validate context against schema, verify all required fields present",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-12.py"
-    },
-    "TC-S5-013-13": {
-      "description": "Alternative documents listed for critical requirements (e.g., passport alternatives)",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-13.py"
-    },
-    "TC-S5-013-14": {
-      "description": "Document specifications include validity period and format requirements",
-      "status": "not_run",
-      "last_run": null,
-      "test_file": "TC-S5-013-14.py"
-    }
-  },
+  "requirementId": "S5-013",
+  "executionTimestamp": "2026-01-12T15:10:23.172176+00:00",
   "summary": {
-    "total": 14,
-    "passed": 0,
+    "total": 34,
+    "passed": 28,
     "failed": 0,
-    "not_run": 14
-  }
+    "skipped": 6,
+    "manual": 0
+  },
+  "testCases": [
+    {
+      "testId": "TC-S5-013-01-ACTE-2024-001",
+      "testName": "Required Documents Count - Integration Course Case",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.169538+00:00"
+    },
+    {
+      "testId": "TC-S5-013-01-templates/integration_course",
+      "testName": "Required Documents Count - Integration Course Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.169697+00:00"
+    },
+    {
+      "testId": "TC-S5-013-01-templates/asylum_application",
+      "testName": "Required Documents Count - Asylum Application Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.169812+00:00"
+    },
+    {
+      "testId": "TC-S5-013-01-templates/family_reunification",
+      "testName": "Required Documents Count - Family Reunification Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.169899+00:00"
+    },
+    {
+      "testId": "TC-S5-013-02-ACTE-2024-001",
+      "testName": "Document Criticality - Integration Course Case",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170078+00:00"
+    },
+    {
+      "testId": "TC-S5-013-02-templates/integration_course",
+      "testName": "Document Criticality - Integration Course Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170174+00:00"
+    },
+    {
+      "testId": "TC-S5-013-02-templates/asylum_application",
+      "testName": "Document Criticality - Asylum Application Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170253+00:00"
+    },
+    {
+      "testId": "TC-S5-013-02-templates/family_reunification",
+      "testName": "Document Criticality - Family Reunification Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170331+00:00"
+    },
+    {
+      "testId": "TC-S5-013-03-ACTE-2024-001",
+      "testName": "Regulations Array - Integration Course Case",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170452+00:00"
+    },
+    {
+      "testId": "TC-S5-013-03-templates/integration_course",
+      "testName": "Regulations Array - Integration Course Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170539+00:00"
+    },
+    {
+      "testId": "TC-S5-013-03-templates/asylum_application",
+      "testName": "Regulations Array - Asylum Application Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170615+00:00"
+    },
+    {
+      "testId": "TC-S5-013-03-templates/family_reunification",
+      "testName": "Regulations Array - Family Reunification Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170688+00:00"
+    },
+    {
+      "testId": "TC-S5-013-04-ACTE-2024-001",
+      "testName": "Regulation Fields - Integration Course Case",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170826+00:00"
+    },
+    {
+      "testId": "TC-S5-013-04-templates/integration_course",
+      "testName": "Regulation Fields - Integration Course Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.170917+00:00"
+    },
+    {
+      "testId": "TC-S5-013-04-templates/asylum_application",
+      "testName": "Regulation Fields - Asylum Application Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171011+00:00"
+    },
+    {
+      "testId": "TC-S5-013-04-templates/family_reunification",
+      "testName": "Regulation Fields - Family Reunification Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171093+00:00"
+    },
+    {
+      "testId": "TC-S5-013-05-ACTE-2024-001",
+      "testName": "Common Issues - Integration Course Case",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171234+00:00"
+    },
+    {
+      "testId": "TC-S5-013-05-templates/integration_course",
+      "testName": "Common Issues - Integration Course Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171324+00:00"
+    },
+    {
+      "testId": "TC-S5-013-05-templates/asylum_application",
+      "testName": "Common Issues - Asylum Application Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171400+00:00"
+    },
+    {
+      "testId": "TC-S5-013-05-templates/family_reunification",
+      "testName": "Common Issues - Family Reunification Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171475+00:00"
+    },
+    {
+      "testId": "TC-S5-013-10-ACTE-2024-001",
+      "testName": "Schema Version - Integration Course Case",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171592+00:00"
+    },
+    {
+      "testId": "TC-S5-013-10-templates/integration_course",
+      "testName": "Schema Version - Integration Course Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171668+00:00"
+    },
+    {
+      "testId": "TC-S5-013-10-templates/asylum_application",
+      "testName": "Schema Version - Asylum Application Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171736+00:00"
+    },
+    {
+      "testId": "TC-S5-013-10-templates/family_reunification",
+      "testName": "Schema Version - Family Reunification Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.1,
+      "timestamp": "2026-01-12T15:10:23.171804+00:00"
+    },
+    {
+      "testId": "TC-S5-013-12-ACTE-2024-001",
+      "testName": "Schema Validation - Integration Course Case",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.2,
+      "timestamp": "2026-01-12T15:10:23.171922+00:00"
+    },
+    {
+      "testId": "TC-S5-013-12-templates/integration_course",
+      "testName": "Schema Validation - Integration Course Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.2,
+      "timestamp": "2026-01-12T15:10:23.172009+00:00"
+    },
+    {
+      "testId": "TC-S5-013-12-templates/asylum_application",
+      "testName": "Schema Validation - Asylum Application Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.2,
+      "timestamp": "2026-01-12T15:10:23.172081+00:00"
+    },
+    {
+      "testId": "TC-S5-013-12-templates/family_reunification",
+      "testName": "Schema Validation - Family Reunification Template",
+      "testType": "python",
+      "status": "passed",
+      "executionTime": 0.2,
+      "timestamp": "2026-01-12T15:10:23.172154+00:00"
+    },
+    {
+      "testId": "TC-S5-013-06",
+      "testName": "Validation Service Integration",
+      "testType": "python",
+      "status": "skipped",
+      "executionTime": 0,
+      "timestamp": "2026-01-12T15:10:23.172162+00:00",
+      "errorMessage": "PENDING: Requires S5-005 (Case Validation Agent) implementation"
+    },
+    {
+      "testId": "TC-S5-013-07",
+      "testName": "AI Document Matching",
+      "testType": "python",
+      "status": "skipped",
+      "executionTime": 0,
+      "timestamp": "2026-01-12T15:10:23.172164+00:00",
+      "errorMessage": "PENDING: Requires S5-005 (Case Validation Agent) implementation"
+    },
+    {
+      "testId": "TC-S5-013-08",
+      "testName": "Missing Document Suggestions",
+      "testType": "python",
+      "status": "skipped",
+      "executionTime": 0,
+      "timestamp": "2026-01-12T15:10:23.172166+00:00",
+      "errorMessage": "PENDING: Requires S5-005 (Case Validation Agent) implementation"
+    },
+    {
+      "testId": "TC-S5-013-09",
+      "testName": "Regulation Citation",
+      "testType": "python",
+      "status": "skipped",
+      "executionTime": 0,
+      "timestamp": "2026-01-12T15:10:23.172167+00:00",
+      "errorMessage": "PENDING: Requires S5-005 (Case Validation Agent) implementation"
+    },
+    {
+      "testId": "TC-S5-013-13",
+      "testName": "AI Regulation Citing",
+      "testType": "python",
+      "status": "skipped",
+      "executionTime": 0,
+      "timestamp": "2026-01-12T15:10:23.172169+00:00",
+      "errorMessage": "PENDING: Requires S5-005 (Case Validation Agent) implementation"
+    },
+    {
+      "testId": "TC-S5-013-14",
+      "testName": "AI Alternative Handling",
+      "testType": "python",
+      "status": "skipped",
+      "executionTime": 0,
+      "timestamp": "2026-01-12T15:10:23.172170+00:00",
+      "errorMessage": "PENDING: Requires S5-005 (Case Validation Agent) implementation"
+    }
+  ]
 }

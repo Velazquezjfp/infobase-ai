@@ -118,6 +118,8 @@
     "removeField": "Remove Field",
     "noFields": "No fields available",
     "validationError": "Validation Error",
+    "validationFailed": "Validation Failed",
+    "fixErrors": "Please fix the errors highlighted in red before submitting.",
     "saveSuccess": "Form saved successfully",
     "saveError": "Error saving form",
     "suggested": "Suggested",

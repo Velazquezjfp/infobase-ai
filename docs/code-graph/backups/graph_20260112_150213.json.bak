@@ -154,7 +154,18 @@
         "S4-002: Implements handleDeleteDocument to open delete confirmation dialog",
         "S4-002: Implements handleConfirmDelete to execute file deletion via API",
         "S4-002: Delete button visible on hover for files in uploads folder only",
-        "S4-002: Context menu includes Delete File option for uploads folder"
+        "S4-002: Context menu includes Delete File option for uploads folder",
+        "S4-001: Folder drag-drop upload support with visual indicator",
+        "S4-001: Per-folder file input for click-to-upload",
+        "S4-001: Upload progress queue displayed in fixed position bottom-right",
+        "S4-001: Duplicate file detection with DuplicateFileDialog",
+        "S4-002: Delete button appears on hover for uploads folder files",
+        "S4-002: DeleteConfirmDialog for deletion confirmation",
+        "performUpload() handles individual file upload with progress tracking",
+        "handleUploadToFolder() manages batch uploads with duplicate checking",
+        "handleDuplicateRename() processes renamed file upload",
+        "handleConfirmDelete() executes file deletion via API and updates state",
+        "FolderItem subcomponent renders individual folders with upload support"
       ]
     },
     {
@@ -488,7 +499,12 @@
         "Global gemini_service instance created as singleton: gemini_service = GeminiService()",
         "Global manager instance created: manager = ConnectionManager()",
         "websocket_chat_endpoint routes 'chat' type to handle_chat_message()",
-        "handle_chat_message() supports both streaming and non-streaming modes based on message.stream parameter"
+        "handle_chat_message() supports both streaming and non-streaming modes based on message.stream parameter",
+        "Sprint 5 update: Added language parameter to WebSocket endpoint (S5-014)",
+        "Sprint 5 update: Integrated ConversationManager for chat history (S5-010)",
+        "Sprint 5 update: Added current form values support for suggestion mode (S5-002)",
+        "Sprint 5 update: Updated handle_form_extraction to categorize results into direct_updates and suggestions",
+        "Sprint 5 update: Translated welcome messages based on language preference"
       ]
     },
     {
@@ -630,7 +646,12 @@
         "Handles natural language chat, document analysis, translation",
         "Supports structured data extraction for form filling",
         "Imports time module for performance metrics",
-        "Imports AsyncGenerator and Union from typing for streaming return type"
+        "Imports AsyncGenerator and Union from typing for streaming return type",
+        "Sprint 5 update: Integrated ConversationManager for chat history (S5-010)",
+        "Sprint 5 update: Added language parameter to generate_response method (S5-014)",
+        "Sprint 5 update: Added format_response method for HTML to markdown conversion (S5-009)",
+        "Sprint 5 update: Updated prompt building with conversation history inclusion",
+        "Sprint 5 update: Added conversation history saving for user and assistant messages"
       ]
     },
     {
@@ -1706,6 +1727,245 @@
         "GET /api/files/health endpoint",
         "Checks if public/documents directory exists",
         "Returns storage availability status and configuration"
+      ]
+    },
+    {
+      "name": "backend/config.py",
+      "entityType": "Config",
+      "observations": [
+        "Sprint 5 implementation: S5-010 chat history configuration",
+        "Provides environment variable handling with get_bool_env, get_int_env, get_float_env functions",
+        "Defines ENABLE_CHAT_HISTORY feature flag (default: False)",
+        "Defines MAX_CONVERSATION_HISTORY setting (default: 10 messages)",
+        "Defines MAX_TOKENS_PER_REQUEST setting (default: 30000 tokens)",
+        "Defines TOKEN_ESTIMATE_PER_CHAR setting (default: 0.25 tokens/char)",
+        "Defines RESERVE_TOKENS setting (default: 5000 tokens)",
+        "Defines LOG_LEVEL setting from environment",
+        "Provides get_config_summary() for debugging configuration state",
+        "Imports: os, typing.Optional"
+      ]
+    },
+    {
+      "name": "backend/services/conversation_manager.py",
+      "entityType": "Service",
+      "observations": [
+        "Sprint 5 implementation: S5-010 Optional Persistent Chat History",
+        "Provides ConversationManager class for in-memory conversation history",
+        "Case-scoped conversation isolation - each case has separate history",
+        "Thread-safe operations using threading.Lock",
+        "Token budget calculation with estimate_tokens() method",
+        "Context window management with truncate_to_token_limit() method",
+        "Provides add_message(), get_conversation_history(), clear_conversation() methods",
+        "Provides prepare_history_for_prompt() for AI prompt building",
+        "Provides get_statistics() for conversation metrics",
+        "Singleton pattern via get_conversation_manager() function",
+        "Imports: logging, typing, collections.defaultdict, threading.Lock, backend.config"
+      ]
+    },
+    {
+      "name": "backend/models/shacl_property_shape.py",
+      "entityType": "Model",
+      "observations": [
+        "Sprint 5: SHACL PropertyShape model for form field validation",
+        "Provides SHACLPropertyShape dataclass with semantic validation support",
+        "Supports schema.org property paths (sh:path)",
+        "Supports XSD datatypes (xsd:string, xsd:date, xsd:integer, xsd:boolean)",
+        "Supports validation patterns with sh:pattern and sh:message",
+        "Supports cardinality constraints with sh:minCount and sh:maxCount",
+        "Provides factory method create_for_field_type() for common field types",
+        "Provides to_jsonld() and from_jsonld() serialization methods",
+        "Provides validate_value() for constraint checking",
+        "Includes helper functions: create_email_shape, create_name_shape, create_date_shape, create_phone_shape, create_address_shape",
+        "Imports: dataclasses, typing, backend.schemas.validation_patterns"
+      ]
+    },
+    {
+      "name": "backend/models/__init__.py",
+      "entityType": "Module",
+      "observations": [
+        "Backend models package initialization",
+        "Exports SHACLPropertyShape class",
+        "Exports helper functions: create_email_shape, create_name_shape, create_date_shape, create_phone_shape, create_address_shape",
+        "Imports from backend.models.shacl_property_shape"
+      ]
+    },
+    {
+      "name": "backend/schemas/validation_patterns.py",
+      "entityType": "Schema",
+      "observations": [
+        "Sprint 5: Validation pattern library for SHACL PropertyShapes",
+        "Provides ValidationPattern TypedDict with pattern and message fields",
+        "Defines EMAIL_PATTERN for email validation",
+        "Defines PHONE_PATTERN for international phone numbers",
+        "Defines NAME_PATTERN for names with Unicode support",
+        "Defines DATE_PATTERN for ISO 8601 dates (YYYY-MM-DD)",
+        "Defines ADDRESS_PATTERN for address validation",
+        "Defines POSTAL_CODE_DE_PATTERN for German postal codes (5 digits)",
+        "Defines POSTAL_CODE_PATTERN for international postal codes",
+        "Provides VALIDATION_PATTERNS registry dictionary",
+        "Provides get_validation_pattern() and get_pattern_for_schema_org_property() lookup functions",
+        "Imports: typing.TypedDict"
+      ]
+    },
+    {
+      "name": "backend/schemas/case_context_schema.json",
+      "entityType": "Schema",
+      "observations": [
+        "Sprint 5: Enhanced BAMF Case Context Schema v2.0",
+        "JSON Schema draft-07 format",
+        "Supports case types: integration_course, asylum_application, family_reunification",
+        "Defines required properties: schemaVersion, caseId, caseType, name, description, requiredDocuments, regulations, validationRules, commonIssues",
+        "Case ID pattern: ACTE-YYYY-NNN format",
+        "Requires minimum 10 regulations with id, title, summary, url",
+        "Requires minimum 15 requiredDocuments with criticality levels",
+        "Requires minimum 20 commonIssues with severity levels",
+        "Supports optional courseTypes for integration course cases",
+        "Supports processingGuidelines with timelines and escalation triggers"
+      ]
+    },
+    {
+      "name": "backend/schemas/document_registry_schema.json",
+      "entityType": "Schema",
+      "observations": [
+        "Sprint 5: Document Registry Schema for tracking documents and renders",
+        "JSON Schema draft-07 format",
+        "Defines DocumentEntry with documentId, caseId, folderId, fileName, filePath, fileHash",
+        "Defines RenderEntry for anonymized and translated document versions",
+        "File hash format: sha256:hexdigest",
+        "Supports render types: anonymized, translated",
+        "Translated renders require ISO 639-1 language code",
+        "Tracks upload timestamps and render creation times"
+      ]
+    },
+    {
+      "name": "backend/data/document_manifest.json",
+      "entityType": "Data",
+      "observations": [
+        "Sprint 5: Document manifest data file",
+        "Contains sample documents for ACTE-2024-001 case",
+        "Documents: Birth_Certificate.jpg, Language_Certificate.pdf, BAMF_Confirmation.eml",
+        "Includes anonymized and translated renders",
+        "Uses SHA-256 file hashes for integrity",
+        "Follows document_registry_schema.json structure"
+      ]
+    },
+    {
+      "name": "backend/tests/test_conversation_manager.py",
+      "entityType": "Test",
+      "observations": [
+        "Sprint 5: Unit tests for ConversationManager service (S5-010)",
+        "Uses pytest framework",
+        "TestConversationManager class with setup_method for fresh instances",
+        "Tests: add_message, add_message_with_timestamp, add_message_invalid_role",
+        "Tests: get_conversation_history_empty, context_window_limiting, context_window_custom_limit",
+        "Tests: clear_conversation, case_isolation",
+        "Tests: estimate_tokens, estimate_tokens_empty, truncate_to_token_limit, truncate_keeps_at_least_one_message",
+        "Tests: prepare_history_for_prompt, get_all_case_ids, get_statistics, singleton_instance",
+        "Imports: pytest, backend.services.conversation_manager, backend.config"
+      ]
+    },
+    {
+      "name": "src/i18n/config.ts",
+      "entityType": "Config",
+      "observations": [
+        "Sprint 5 implementation: S5-014 Internationalization configuration",
+        "Configures i18next for React with react-i18next integration",
+        "Uses LanguageDetector for browser language detection",
+        "Supports German (de) and English (en) languages",
+        "Default language: German (de), fallback: English (en)",
+        "Language detection order: localStorage, navigator",
+        "Stores language preference in localStorage as 'bamf_language'",
+        "Imports locale files from ./locales/de.json and ./locales/en.json",
+        "Imports: i18next, react-i18next, i18next-browser-languagedetector"
+      ]
+    },
+    {
+      "name": "src/i18n/locales/de.json",
+      "entityType": "Data",
+      "observations": [
+        "Sprint 5: German translation file for S5-014 internationalization",
+        "Contains translation keys for: common, workspace, chat, documents, folders, forms, metadata, validation, admin, case, caseTemplates, slashCommands, errors, success, language, login, formFields",
+        "Provides German translations for all UI elements",
+        "Includes chat-specific translations for AI assistant, connection states, slash commands"
+      ]
+    },
+    {
+      "name": "src/i18n/locales/en.json",
+      "entityType": "Data",
+      "observations": [
+        "Sprint 5: English translation file for S5-014 internationalization",
+        "Contains translation keys for: common, workspace, chat, documents, folders, forms, metadata, validation, admin, case, caseTemplates, slashCommands, errors, success, language, login, formFields",
+        "Provides English translations for all UI elements",
+        "Mirrors structure of de.json for consistent translations"
+      ]
+    },
+    {
+      "name": "src/lib/messageFormatter.tsx",
+      "entityType": "Utility",
+      "observations": [
+        "Sprint 5 implementation: S5-009 Improved Chat Information Presentation",
+        "Provides sanitizeHTML() function using DOMPurify for XSS prevention",
+        "Provides renderMarkdown() function using ReactMarkdown with remark-gfm",
+        "Custom markdown components for code blocks, links, tables, paragraphs, lists, headings, blockquotes",
+        "Integrates CodeBlock component for syntax-highlighted code",
+        "Provides detectCodeBlocks() and detectTableData() helper functions",
+        "Provides preprocessSourceCitations() for S2-004 source citation highlighting",
+        "Provides formatChatMessage() as main entry point combining sanitization and markdown rendering",
+        "Imports: React, DOMPurify, ReactMarkdown, remark-gfm, CodeBlock, DataTable"
+      ]
+    },
+    {
+      "name": "src/components/ui/CodeBlock.tsx",
+      "entityType": "Component",
+      "observations": [
+        "Sprint 5 implementation: S5-009 Code block component",
+        "Uses react-syntax-highlighter with Prism and vscDarkPlus theme",
+        "Props: code (string), language (string), showLineNumbers (boolean, default false)",
+        "Provides copy-to-clipboard functionality with visual feedback",
+        "Shows language badge and copy button in header",
+        "Normalizes language aliases (js->javascript, ts->typescript, py->python, etc.)",
+        "Uses toast notifications for copy success/failure",
+        "Imports: react-syntax-highlighter, lucide-react, shadcn components (Button, Badge), hooks (use-toast)"
+      ]
+    },
+    {
+      "name": "src/components/workspace/DataTable.tsx",
+      "entityType": "Component",
+      "observations": [
+        "Sprint 5 implementation: S5-009 Data table component",
+        "Renders markdown-formatted tables as styled HTML tables",
+        "Parses markdown table syntax including header, separator, and data rows",
+        "Supports column alignment detection (left, center, right via :--- syntax)",
+        "Uses shadcn Table components (Table, TableBody, TableCell, TableHead, TableHeader, TableRow)",
+        "Provides parseMarkdownTable() helper function for parsing",
+        "Props: markdownTable (string)"
+      ]
+    },
+    {
+      "name": "src/components/ui/table.tsx",
+      "entityType": "Component",
+      "observations": [
+        "Shadcn UI table component",
+        "Provides Table, TableBody, TableCell, TableHead, TableHeader, TableRow components",
+        "Used by DataTable component for markdown table rendering"
+      ]
+    },
+    {
+      "name": "src/components/ui/button.tsx",
+      "entityType": "Component",
+      "observations": [
+        "Shadcn UI button component",
+        "Provides Button component with variants",
+        "Used throughout the application for interactive elements"
+      ]
+    },
+    {
+      "name": "src/components/ui/badge.tsx",
+      "entityType": "Component",
+      "observations": [
+        "Shadcn UI badge component",
+        "Provides Badge component for labels and tags",
+        "Used by CodeBlock for language display"
       ]
     }
   ],
@@ -2954,6 +3214,161 @@
       "from_": "src/contexts/AppContext.tsx",
       "to": "src/contexts/AppContext.tsx::refreshDocuments",
       "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::upload_file",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::delete_file_endpoint",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::check_file_exists_endpoint",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::files_health_check",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::validate_file_size",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::validate_case_path",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::create_folder_if_needed",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::save_uploaded_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::delete_file_endpoint",
+      "to": "backend/services/file_service.py::delete_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::check_file_exists_endpoint",
+      "to": "backend/services/file_service.py::check_file_exists",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::check_file_exists_endpoint",
+      "to": "backend/services/file_service.py::generate_unique_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::check_file_exists_endpoint",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/files.py",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "backend/api/files.py::upload_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "backend/api/files.py::delete_file_endpoint",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "backend/api/files.py::check_file_exists_endpoint",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "backend/api/files.py::files_health_check",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/conversation_manager.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/models/shacl_property_shape.py",
+      "to": "backend/schemas/validation_patterns.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/models/__init__.py",
+      "to": "backend/models/shacl_property_shape.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/tests/test_conversation_manager.py",
+      "to": "backend/services/conversation_manager.py",
+      "relationType": "tests"
+    },
+    {
+      "from_": "backend/tests/test_conversation_manager.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/data/document_manifest.json",
+      "to": "backend/schemas/document_registry_schema.json",
+      "relationType": "validates_against"
+    },
+    {
+      "from_": "src/i18n/config.ts",
+      "to": "src/i18n/locales/de.json",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/i18n/config.ts",
+      "to": "src/i18n/locales/en.json",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/lib/messageFormatter.tsx",
+      "to": "src/components/ui/CodeBlock.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/lib/messageFormatter.tsx",
+      "to": "src/components/workspace/DataTable.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/DataTable.tsx",
+      "to": "src/components/ui/table.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/ui/CodeBlock.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/ui/CodeBlock.tsx",
+      "to": "src/components/ui/badge.tsx",
+      "relationType": "imports"
     }
   ]
 }

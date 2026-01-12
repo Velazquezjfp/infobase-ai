@@ -119,6 +119,68 @@ curl -X GET http://localhost:8000/api/chat/health
 
 ---
 
+### POST /api/chat/clear/{case_id}
+
+Clear conversation history for a specific case (S5-010).
+
+**Current Implementation:** IMPLEMENTED in `backend/api/chat.py`
+
+**Source:** `backend/api/chat.py:550-610`
+
+**Authentication:** None (public endpoint)
+
+**Path Parameters:**
+- `case_id` (required): Case identifier to clear history for (e.g., "ACTE-2024-001")
+
+**Prerequisites:**
+- `ENABLE_CHAT_HISTORY` must be enabled in backend configuration
+- Default: disabled (can be enabled via environment variable)
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "case_id": "ACTE-2024-001",
+  "messages_cleared": 5,
+  "message": "Successfully cleared 5 message(s) from conversation history"
+}
+```
+
+**Feature Disabled Response (400 Bad Request):**
+```json
+{
+  "success": false,
+  "case_id": "ACTE-2024-001",
+  "messages_cleared": 0,
+  "message": "Chat history feature is disabled"
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "success": false,
+  "case_id": "ACTE-2024-001",
+  "messages_cleared": 0,
+  "error": "Error details"
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/chat/clear/ACTE-2024-001
+```
+
+**Usage:**
+- Clear stored conversation history when starting a new topic
+- Reset conversation context without disconnecting WebSocket
+- Privacy: Remove sensitive conversation data
+- Requires `ENABLE_CHAT_HISTORY=true` in backend environment
+
+**Note:** Conversation history is stored in-memory and cleared on application restart. This endpoint only works when the chat history feature is explicitly enabled.
+
+---
+
 ### GET /api/admin/health
 
 Admin service health check with feature availability.
@@ -156,21 +218,27 @@ curl -X GET http://localhost:8000/api/admin/health
 
 ### WS /ws/chat/{case_id}
 
-WebSocket endpoint for real-time, case-scoped AI chat communication.
+WebSocket endpoint for real-time, case-scoped AI chat communication with multilingual support.
 
 **Current Implementation:** IMPLEMENTED in `backend/api/chat.py`
 
-**Source:** `backend/api/chat.py:82-201`
+**Source:** `backend/api/chat.py:85-201`
 
 **Authentication:** None (case-scoped isolation via URL parameter)
 
 **Path Parameters:**
 - `case_id` (required): Case identifier for context isolation (e.g., "ACTE-2024-001")
 
+**Query Parameters:**
+- `language` (optional): Language for AI responses and system messages. Default: 'de' (German)
+  - Supported values: 'de' (German), 'en' (English)
+  - Example: `ws://localhost:8000/ws/chat/ACTE-2024-001?language=en`
+  - Affects: Welcome message translation and AI response language
+
 **Connection Protocol:**
 
-1. Client initiates WebSocket connection to `/ws/chat/{case_id}`
-2. Server accepts connection and sends system message confirming connection
+1. Client initiates WebSocket connection to `/ws/chat/{case_id}?language={lang}`
+2. Server accepts connection and sends translated system message confirming connection
 3. Bidirectional message exchange begins
 4. Connection remains open until client disconnects or error occurs
 
@@ -204,6 +272,15 @@ WebSocket endpoint for real-time, case-scoped AI chat communication.
 - `folderId` (optional): Folder ID for folder-specific context
 - `documentContent` (optional): Document text to include in context
 - `formSchema` (optional): Form field definitions for extraction requests
+- `currentFormValues` (optional): Current form field values for suggestion mode (S5-002)
+  - Format: `{"field_id": "current_value", ...}`
+  - When provided, enables smart form extraction:
+    - Empty fields: Filled automatically (direct update)
+    - Non-empty fields with different values: Presented as suggestions requiring user approval
+    - Identical values: Ignored
+- `language` (optional): Language for AI responses. Default: 'de' (German)
+  - Supported values: 'de', 'en'
+  - Overrides the query parameter language setting for this specific message
 - `stream` (optional): Enable streaming responses (default: true)
 
 **Anonymization Message Format:**
@@ -228,10 +305,24 @@ The AI automatically detects form filling requests when:
 #### Outgoing Messages (Server to Client)
 
 **System Message (Connection Confirmation):**
+
+The welcome message is automatically translated based on the `language` query parameter. The case ID prefix is also localized:
+- German (de): "ACTE" → "Akte"
+- English (en): "ACTE" → "Case"
+
 ```json
 {
   "type": "system",
-  "content": "Connected to AI assistant for case ACTE-2024-001",
+  "content": "Verbunden mit KI-Assistent für Akte-2024-001",
+  "timestamp": null
+}
+```
+
+English example (language=en):
+```json
+{
+  "type": "system",
+  "content": "Connected to AI assistant for Case-2024-001",
   "timestamp": null
 }
 ```
@@ -266,6 +357,8 @@ The AI automatically detects form filling requests when:
 ```
 
 **Form Update (Field Extraction Results):**
+
+When `currentFormValues` is NOT provided (legacy mode), all extracted values are sent as direct updates:
 ```json
 {
   "type": "form_update",
@@ -282,6 +375,47 @@ The AI automatically detects form filling requests when:
   "timestamp": null
 }
 ```
+
+When `currentFormValues` IS provided (suggestion mode - S5-002), only empty fields are sent as direct updates:
+```json
+{
+  "type": "form_update",
+  "updates": {
+    "birthDate": "1995-03-20"
+  },
+  "confidence": {
+    "birthDate": 0.90
+  },
+  "timestamp": null
+}
+```
+
+**Form Suggestion (Suggestion Mode - S5-002):**
+
+New message type sent when `currentFormValues` is provided and non-empty fields have different values. Requires user approval before applying:
+```json
+{
+  "type": "form_suggestion",
+  "suggestions": {
+    "name": {
+      "value": "Ahmad Ali",
+      "confidence": 0.95,
+      "current": "Ahmed Aly"
+    },
+    "countryOfOrigin": {
+      "value": "Afghanistan",
+      "confidence": 0.92,
+      "current": "Syria"
+    }
+  },
+  "timestamp": null
+}
+```
+
+**Suggestion Fields:**
+- `value`: AI-extracted value (suggested new value)
+- `confidence`: Confidence score (0.0 to 1.0)
+- `current`: Current value in the form (for comparison)
 
 **Error Message:**
 ```json
@@ -318,7 +452,8 @@ The AI automatically detects form filling requests when:
 - `system` - System notifications (connection status, etc.)
 - `chat_response` - AI text responses to user queries (non-streaming mode)
 - `chat_chunk` - Streaming AI response chunks with completion flag
-- `form_update` - Extracted form field values with confidence scores
+- `form_update` - Extracted form field values with confidence scores (direct updates)
+- `form_suggestion` - Suggested form field changes requiring user approval (S5-002)
 - `anonymization_complete` - Document anonymization results with file paths and detection count
 - `error` - Error notifications
 
@@ -528,7 +663,44 @@ async def chat_client():
 asyncio.run(chat_client())
 ```
 
+**Multilingual Support Example (S5-014):**
+```javascript
+// Connect with English language preference
+const ws = new WebSocket('ws://localhost:8000/ws/chat/ACTE-2024-001?language=en');
+
+ws.onopen = () => {
+  console.log('Connected');
+};
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+
+  // First message: system welcome in English
+  // { "type": "system", "content": "Connected to AI assistant for Case-2024-001" }
+
+  console.log(message);
+};
+
+// Send chat message with language override (use German for this specific message)
+ws.send(JSON.stringify({
+  type: "chat",
+  content: "Welche Dokumente werden für diesen Fall benötigt?",
+  caseId: "ACTE-2024-001",
+  language: "de"  // Override to German for this message
+}));
+
+// German connection example
+const wsGerman = new WebSocket('ws://localhost:8000/ws/chat/ACTE-2024-001?language=de');
+// Welcome message: "Verbunden mit KI-Assistent für Akte-2024-001"
+
+// Default behavior (no language parameter = German)
+const wsDefault = new WebSocket('ws://localhost:8000/ws/chat/ACTE-2024-001');
+// Welcome message: "Verbunden mit KI-Assistent für Akte-2024-001"
+```
+
 **Form Extraction Example:**
+
+**Basic Form Extraction (Legacy Mode):**
 ```javascript
 const formSchema = [
   { id: "name", label: "Full Name", type: "text", required: true },
@@ -554,6 +726,48 @@ ws.send(JSON.stringify({
 // Expected responses:
 // 1. form_update with extracted values
 // 2. chat_response confirming extraction
+```
+
+**Form Extraction with Suggestion Mode (S5-002):**
+```javascript
+// When currentFormValues is provided, the system intelligently categorizes updates
+const currentFormValues = {
+  name: "Ahmed Aly",          // Non-empty, different from extracted
+  birthDate: "",              // Empty, will be filled directly
+  countryOfOrigin: "Syria"    // Non-empty, different from extracted
+};
+
+ws.send(JSON.stringify({
+  type: "chat",
+  content: "Please extract the form fields from this document",
+  caseId: "ACTE-2024-001",
+  documentContent: documentContent,
+  formSchema: formSchema,
+  currentFormValues: currentFormValues  // Enable suggestion mode
+}));
+
+// Expected responses:
+// 1. form_update with direct updates (empty fields only):
+//    { "updates": { "birthDate": "1995-03-20" } }
+//
+// 2. form_suggestion with suggestions (non-empty fields that differ):
+//    {
+//      "suggestions": {
+//        "name": {
+//          "value": "Ahmad Ali",
+//          "confidence": 0.95,
+//          "current": "Ahmed Aly"
+//        },
+//        "countryOfOrigin": {
+//          "value": "Afghanistan",
+//          "confidence": 0.92,
+//          "current": "Syria"
+//        }
+//      }
+//    }
+//
+// 3. chat_response with summary:
+//    "I've extracted form data: 1 field filled, 2 suggestions available."
 ```
 
 **Document Anonymization Example:**

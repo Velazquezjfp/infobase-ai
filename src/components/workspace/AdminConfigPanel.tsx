@@ -3,10 +3,13 @@ import { useApp } from '@/contexts/AppContext';
 import {
   X, FolderTree, FileType, Zap, FileText, Tags,
   Plus, Trash2, GripVertical, Save, ChevronDown, ChevronRight,
-  Sparkles, Loader2, AlertCircle
+  Sparkles, Loader2, AlertCircle, FileCode, Copy
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { generateField, validatePrompt, suggestFieldType, AdminApiError } from '@/lib/adminApi';
+import { SHACLNodeShape } from '@/types/shacl';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -93,6 +96,10 @@ export default function AdminConfigPanel() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [suggestedType, setSuggestedType] = useState<string | null>(null);
+
+  // S5-001: SHACL Visualization State
+  const [showShaclDialog, setShowShaclDialog] = useState(false);
+  const [currentShaclShape, setCurrentShaclShape] = useState<SHACLNodeShape | null>(null);
 
   const toggleFolderExpand = (id: string) => {
     setExpandedFolders(prev => {
@@ -235,6 +242,36 @@ export default function AdminConfigPanel() {
 
   const removeFormField = (id: string) => {
     setFormFields(formFields.filter(f => f.id !== id));
+  };
+
+  // S5-001: SHACL visualization handler
+  const handleViewShacl = () => {
+    // Generate SHACL shape from current fields if not already available
+    if (!currentShaclShape && formFields.length > 0) {
+      setCurrentShaclShape({
+        '@context': {
+          sh: 'http://www.w3.org/ns/shacl#',
+          schema: 'http://schema.org/',
+          xsd: 'http://www.w3.org/2001/XMLSchema#',
+        },
+        '@type': 'sh:NodeShape',
+        'sh:targetClass': 'schema:Thing',
+        'sh:name': 'Admin Form Configuration',
+        'sh:property': formFields.map(f => f.shaclMetadata).filter(Boolean) as any[],
+      });
+    }
+    setShowShaclDialog(true);
+  };
+
+  // S5-001: Copy SHACL to clipboard
+  const handleCopyShacl = () => {
+    if (currentShaclShape) {
+      navigator.clipboard.writeText(JSON.stringify(currentShaclShape, null, 2));
+      toast({
+        title: 'Copied to clipboard',
+        description: 'SHACL shape copied successfully',
+      });
+    }
   };
 
   return (
@@ -544,23 +581,36 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                         </p>
                       )}
                     </div>
-                    <Button
-                      onClick={handleGenerateField}
-                      disabled={isGenerating || !aiPrompt.trim()}
-                      className="self-start"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          {t('admin.generating')}
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          {t('admin.generate')}
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={handleGenerateField}
+                        disabled={isGenerating || !aiPrompt.trim()}
+                        className="flex-1"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            {t('admin.generating')}
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            {t('admin.generate')}
+                          </>
+                        )}
+                      </Button>
+                      {/* S5-001: View SHACL button */}
+                      <Button
+                        variant="outline"
+                        onClick={handleViewShacl}
+                        disabled={formFields.length === 0}
+                        title="View SHACL Shape"
+                        size="sm"
+                      >
+                        <FileCode className="w-4 h-4 mr-1" />
+                        View SHACL
+                      </Button>
+                    </div>
                   </div>
                   {generateError && (
                     <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-2 rounded-md">
@@ -748,6 +798,39 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
           </div>
         </div>
       </div>
+
+      {/* S5-001: SHACL Shape Visualization Dialog */}
+      <Dialog open={showShaclDialog} onOpenChange={setShowShaclDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>SHACL Shape - Form Configuration</DialogTitle>
+            <DialogDescription>
+              JSON-LD representation of the form's SHACL shape with semantic validation
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="relative">
+              <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-[50vh] text-xs font-mono">
+                <code>{JSON.stringify(currentShaclShape, null, 2)}</code>
+              </pre>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2"
+                onClick={handleCopyShacl}
+              >
+                <Copy className="w-4 h-4 mr-1" />
+                Copy
+              </Button>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setShowShaclDialog(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

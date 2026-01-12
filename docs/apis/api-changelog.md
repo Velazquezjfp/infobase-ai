@@ -38,6 +38,250 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [1.6.0] - 2026-01-12
+
+### Added - Sprint 5 Enhancements: Multilingual Support and Smart Form Extraction
+
+This release introduces multilingual chat capabilities (S5-014), intelligent form field suggestion mode (S5-002), and optional conversation history management (S5-010).
+
+#### S5-014: Multilingual Chat Support
+
+**WebSocket Language Query Parameter**
+
+The WebSocket chat endpoint now accepts an optional `language` query parameter for multilingual AI responses:
+
+**Location:** `backend/api/chat.py:85-137`
+
+**Connection Format:**
+```
+ws://localhost:8000/ws/chat/{case_id}?language={lang}
+```
+
+**Supported Languages:**
+- `de` (German) - Default
+- `en` (English)
+
+**Features:**
+1. **Translated Welcome Messages:**
+   - German: "Verbunden mit KI-Assistent für Akte-2024-001"
+   - English: "Connected to AI assistant for Case-2024-001"
+   - Case ID prefix also localized (ACTE → Akte/Case)
+
+2. **Language-Aware AI Responses:**
+   - All AI responses generated in the specified language
+   - Applies to chat responses, error messages, and confirmations
+
+3. **Per-Message Language Override:**
+   - New `language` field in chat messages
+   - Overrides connection-level language setting for specific messages
+   - Enables mixed-language conversations when needed
+
+**Example Connection:**
+```javascript
+// English connection
+const ws = new WebSocket('ws://localhost:8000/ws/chat/ACTE-2024-001?language=en');
+
+// German connection (default)
+const ws = new WebSocket('ws://localhost:8000/ws/chat/ACTE-2024-001?language=de');
+```
+
+**Example Message with Language Override:**
+```json
+{
+  "type": "chat",
+  "content": "What documents are required?",
+  "language": "en"
+}
+```
+
+**Backward Compatibility:**
+- Language parameter is optional
+- Defaults to German ('de') when not specified
+- Existing clients continue to work without changes
+
+---
+
+#### S5-002: Smart Form Field Suggestion Mode
+
+**Enhanced Form Extraction with Current Values**
+
+The form extraction system now supports intelligent categorization of extracted values based on current form state:
+
+**Location:** `backend/tools/form_parser.py:195-263`, `backend/api/chat.py:341-406`
+
+**New Message Parameter: `currentFormValues`**
+
+When provided, enables smart form extraction that categorizes results into:
+1. **Direct Updates** - Empty fields filled automatically
+2. **Suggestions** - Non-empty fields requiring user approval
+3. **Ignored** - Fields with identical values (no action needed)
+
+**Message Format:**
+```json
+{
+  "type": "chat",
+  "content": "Extract form fields from this document",
+  "formSchema": [...],
+  "currentFormValues": {
+    "field_id": "current_value",
+    ...
+  }
+}
+```
+
+**New Response Message Type: `form_suggestion`**
+
+```json
+{
+  "type": "form_suggestion",
+  "suggestions": {
+    "field_id": {
+      "value": "extracted_value",
+      "confidence": 0.95,
+      "current": "current_value"
+    }
+  },
+  "timestamp": null
+}
+```
+
+**Extraction Logic:**
+
+1. **Empty Field (current value is blank):**
+   - Action: Fill directly without user confirmation
+   - Sent as `form_update` message
+
+2. **Non-Empty Field with Different Value:**
+   - Action: Present as suggestion requiring approval
+   - Sent as `form_suggestion` message
+   - Includes both current and suggested values for comparison
+
+3. **Non-Empty Field with Identical Value:**
+   - Action: Ignore (no update needed)
+   - Not included in any response messages
+
+**Enhanced Confirmation Messages:**
+
+The AI now provides detailed summaries:
+```
+"I've extracted form data: 2 fields filled, 3 suggestions available, 1 field unchanged."
+```
+
+**Backward Compatibility:**
+- `currentFormValues` parameter is optional
+- When not provided, uses legacy behavior (all fields as direct updates)
+- Existing form extraction requests continue to work unchanged
+
+**New Backend Functions:**
+- `compare_values()`: Categorizes extracted values by comparison
+- Enhanced `parse_extraction_result()`: Supports suggestion mode
+
+---
+
+#### S5-010: Conversation History Management (Optional)
+
+**New Conversation Manager Service**
+
+**Location:** `backend/services/conversation_manager.py`
+
+Manages in-memory conversation history for multi-turn AI chat sessions with case-scoped isolation.
+
+**Features:**
+- Per-case conversation storage
+- Automatic context window management (max N messages)
+- Token budget calculation and truncation
+- Thread-safe operations
+
+**Configuration:**
+
+New environment variable in `backend/config.py`:
+
+```bash
+ENABLE_CHAT_HISTORY=false  # Default: disabled for POC phase
+MAX_CONVERSATION_HISTORY=10  # Maximum messages per case
+MAX_TOKENS_PER_REQUEST=30000  # Token limit per request
+```
+
+**New API Endpoint: Clear Conversation History**
+
+**Location:** `backend/api/chat.py:550-610`
+
+```
+POST /api/chat/clear/{case_id}
+```
+
+**Request:**
+```bash
+curl -X POST http://localhost:8000/api/chat/clear/ACTE-2024-001
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "case_id": "ACTE-2024-001",
+  "messages_cleared": 5,
+  "message": "Successfully cleared 5 message(s) from conversation history"
+}
+```
+
+**Response (Feature Disabled):**
+```json
+{
+  "success": false,
+  "case_id": "ACTE-2024-001",
+  "messages_cleared": 0,
+  "message": "Chat history feature is disabled"
+}
+```
+
+**Usage:**
+- Clear conversation history when starting new topic
+- Reset context without disconnecting WebSocket
+- Privacy: Remove sensitive conversation data
+- Only works when `ENABLE_CHAT_HISTORY=true`
+
+**Implementation Notes:**
+- History stored in-memory only (cleared on restart)
+- By design for POC phase
+- Can be extended to persistent storage in future
+- Thread-safe for concurrent access
+
+**ConversationManager Class Methods:**
+- `add_message(case_id, role, content)`: Add message to history
+- `get_conversation_history(case_id, max_messages)`: Retrieve history
+- `clear_conversation(case_id)`: Clear history for case
+- `get_token_budget(case_id, reserve_tokens)`: Calculate available tokens
+
+---
+
+### Changed
+
+- **WebSocket endpoint**: Now accepts optional `language` query parameter
+- **Chat message format**: Added optional `language` and `currentFormValues` fields
+- **System welcome messages**: Now translated based on language preference
+- **Form extraction responses**: Split into direct updates and suggestions when `currentFormValues` provided
+- **Chat confirmation messages**: Enhanced with detailed extraction summaries
+
+### Backend Service Additions
+
+- **ConversationManager** (`backend/services/conversation_manager.py`): Chat history management
+- **Configuration module** (`backend/config.py`): Centralized configuration settings
+
+### Message Type Additions
+
+- **form_suggestion**: New message type for suggested form field changes requiring approval
+
+### Non-Breaking Changes
+
+All changes are backward compatible:
+- Existing WebSocket connections work without language parameter (defaults to German)
+- Form extraction works without `currentFormValues` (uses legacy mode)
+- Conversation history feature disabled by default
+- All existing message formats and endpoints remain functional
+
+---
+
 ## [1.5.0] - 2025-12-24
 
 ### Added - Document Anonymization and Enhanced Context Management (S2-004)

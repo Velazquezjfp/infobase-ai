@@ -37,6 +37,10 @@ export interface FormField {
   required?: boolean;
   /** SHACL metadata for semantic form field definition (Sprint 2) */
   shaclMetadata?: SHACLPropertyShape;
+  /** S5-001: Validation pattern (regex) for client-side validation */
+  validationPattern?: string;
+  /** S5-001: Schema.org semantic type (e.g., "schema:email", "schema:name") */
+  semanticType?: string;
 }
 
 /**

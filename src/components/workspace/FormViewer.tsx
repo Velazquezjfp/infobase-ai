@@ -1,5 +1,5 @@
 import { useApp } from '@/contexts/AppContext';
-import { ClipboardList, Sparkles, Database, Tag, Check, X } from 'lucide-react';
+import { ClipboardList, Sparkles, Database, Tag, Check, X, FileCode, Copy, Send, Loader2, Edit3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { SuggestedValue } from '@/types/case';
+import { SuggestedValue, FormField } from '@/types/case';
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { FormModificationResponse, SHACLNodeShape, validateValue } from '@/types/shacl';
 
 interface FormViewerProps {
   showMetadata?: boolean;
@@ -73,8 +76,207 @@ function SuggestedValueInline({
 }
 
 export default function FormViewer({ showMetadata = false }: FormViewerProps) {
-  const { selectedDocument, formFields, updateFormField, currentCase, viewMode, isAdminMode, formSuggestions, acceptSuggestion, rejectSuggestion } = useApp();
+  const { selectedDocument, formFields, updateFormField, currentCase, viewMode, isAdminMode, formSuggestions, acceptSuggestion, rejectSuggestion, setFormFields } = useApp();
   const { t } = useTranslation();
+
+  // S5-001: Natural language form modification state
+  const [showModifyDialog, setShowModifyDialog] = useState(false);
+  const [modifyCommand, setModifyCommand] = useState('');
+  const [isModifying, setIsModifying] = useState(false);
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+
+  // S5-001: SHACL visualization state
+  const [showShaclDialog, setShowShaclDialog] = useState(false);
+  const [currentShaclShape, setCurrentShaclShape] = useState<SHACLNodeShape | null>(null);
+
+  // S5-001: Validation state
+  const [fieldValidationErrors, setFieldValidationErrors] = useState<Record<string, string>>({});
+
+  // S5-001: Form modification handler
+  const handleModifyForm = async () => {
+    if (!modifyCommand.trim()) {
+      toast({
+        title: 'Empty command',
+        description: 'Please enter a modification command.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsModifying(true);
+
+    try {
+      const response = await fetch('/api/admin/modify-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          command: modifyCommand,
+          currentFields: formFields,
+          caseId: currentCase.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail?.detail || 'Failed to modify form');
+      }
+
+      const data: FormModificationResponse = await response.json();
+
+      // Update form fields with new fields
+      setFormFields(data.fields as FormField[]);
+
+      // Update SHACL shape
+      setCurrentShaclShape(data.shaclShape);
+
+      // Add to command history
+      setCommandHistory(prev => [modifyCommand, ...prev].slice(0, 10));
+
+      // Show success message
+      toast({
+        title: 'Form modified',
+        description: data.modifications.join(', '),
+      });
+
+      // Clear command and close dialog
+      setModifyCommand('');
+      setShowModifyDialog(false);
+
+    } catch (error: any) {
+      toast({
+        title: 'Modification failed',
+        description: error.message || 'An error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
+  // S5-001: SHACL visualization handler
+  const handleViewShacl = async () => {
+    // If we don't have a current shape, generate it
+    if (!currentShaclShape) {
+      try {
+        const response = await fetch('/api/admin/modify-form', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            command: 'show current shape',
+            currentFields: formFields,
+            caseId: currentCase.id,
+          }),
+        });
+
+        if (response.ok) {
+          const data: FormModificationResponse = await response.json();
+          setCurrentShaclShape(data.shaclShape);
+        }
+      } catch (error) {
+        // If generation fails, create a simple shape
+        setCurrentShaclShape({
+          '@context': {
+            sh: 'http://www.w3.org/ns/shacl#',
+            schema: 'http://schema.org/',
+            xsd: 'http://www.w3.org/2001/XMLSchema#',
+          },
+          '@type': 'sh:NodeShape',
+          'sh:targetClass': 'schema:Thing',
+          'sh:name': `${currentCase.name} Form`,
+          'sh:property': formFields.map(f => f.shaclMetadata).filter(Boolean),
+        } as SHACLNodeShape);
+      }
+    }
+    setShowShaclDialog(true);
+  };
+
+  // S5-001: Copy SHACL to clipboard
+  const handleCopyShacl = () => {
+    if (currentShaclShape) {
+      navigator.clipboard.writeText(JSON.stringify(currentShaclShape, null, 2));
+      toast({
+        title: 'Copied to clipboard',
+        description: 'SHACL shape copied successfully',
+      });
+    }
+  };
+
+  // S5-001: Client-side validation function
+  const validateFieldWithSHACL = (field: FormField, value: string) => {
+    // Check required fields first (basic validation)
+    if (field.required && (!value || value.trim() === '')) {
+      const errorMsg = `${field.label} is required`;
+      setFieldValidationErrors(prev => ({
+        ...prev,
+        [field.id]: errorMsg,
+      }));
+      return { isValid: false, errorMessage: errorMsg };
+    }
+
+    // If field has SHACL metadata, use SHACL validation
+    if (field.shaclMetadata) {
+      const result = validateValue(field.shaclMetadata, value);
+
+      if (!result.isValid && result.errorMessage) {
+        setFieldValidationErrors(prev => ({
+          ...prev,
+          [field.id]: result.errorMessage || 'Invalid value',
+        }));
+      } else {
+        setFieldValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[field.id];
+          return newErrors;
+        });
+      }
+
+      return result;
+    }
+
+    // If no SHACL metadata and value exists, it's valid
+    setFieldValidationErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[field.id];
+      return newErrors;
+    });
+
+    return { isValid: true };
+  };
+
+  // S5-001: Validate all fields on form submission
+  const handleFormSubmit = () => {
+    const errors: Record<string, string> = {};
+    let isFormValid = true;
+
+    // Validate all fields
+    formFields.forEach(field => {
+      const value = field.value || '';
+      const result = validateFieldWithSHACL(field, value);
+
+      if (!result.isValid) {
+        isFormValid = false;
+        errors[field.id] = result.errorMessage || 'Invalid value';
+      }
+    });
+
+    // Update all errors at once
+    setFieldValidationErrors(errors);
+
+    if (!isFormValid) {
+      toast({
+        title: t('forms.validationFailed'),
+        description: t('forms.fixErrors'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // If validation passes, submit the form
+    toast({
+      title: t('forms.formSubmitted'),
+      description: t('forms.sentForReview')
+    });
+  };
 
   const renderMetadataView = () => {
     const metadata = selectedDocument?.metadata || {
@@ -129,9 +331,35 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
       <div className="flex-1 flex flex-col">
         <div className="p-3 border-b border-pane-border bg-accent/30">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-foreground text-sm">{currentCase.name}</h3>
-              <p className="text-xs text-muted-foreground">{currentCase.id}</p>
+            <div className="flex items-center gap-2">
+              <div>
+                <h3 className="font-semibold text-foreground text-sm">{currentCase.name}</h3>
+                <p className="text-xs text-muted-foreground">{currentCase.id}</p>
+              </div>
+              {/* S5-001: Admin mode buttons */}
+              {isAdminMode && (
+                <div className="flex items-center gap-1 ml-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() => setShowModifyDialog(true)}
+                    title="Modify form with natural language"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 mr-1" />
+                    <span className="text-xs">Modify</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={handleViewShacl}
+                    title="View SHACL shape"
+                  >
+                    <FileCode className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <div className="text-right">
@@ -167,8 +395,9 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
                   <Input
                     value={field.value}
                     onChange={(e) => updateFormField(field.id, e.target.value)}
+                    onBlur={(e) => validateFieldWithSHACL(field, e.target.value)}
                     placeholder={`Enter ${field.label.toLowerCase()}`}
-                    className={cn('h-9', field.value && 'border-success/50 bg-success/5')}
+                    className={cn('h-9', field.value && 'border-success/50 bg-success/5', fieldValidationErrors[field.id] && 'border-destructive')}
                   />
                 )}
                 {field.type === 'date' && (
@@ -176,12 +405,13 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
                     type="date"
                     value={field.value}
                     onChange={(e) => updateFormField(field.id, e.target.value)}
-                    className={cn('h-9', field.value && 'border-success/50 bg-success/5')}
+                    onBlur={(e) => validateFieldWithSHACL(field, e.target.value)}
+                    className={cn('h-9', field.value && 'border-success/50 bg-success/5', fieldValidationErrors[field.id] && 'border-destructive')}
                   />
                 )}
                 {field.type === 'select' && (
-                  <Select value={field.value} onValueChange={(value) => updateFormField(field.id, value)}>
-                    <SelectTrigger className={cn('h-9', field.value && 'border-success/50 bg-success/5')}>
+                  <Select value={field.value} onValueChange={(value) => { updateFormField(field.id, value); validateFieldWithSHACL(field, value); }}>
+                    <SelectTrigger className={cn('h-9', field.value && 'border-success/50 bg-success/5', fieldValidationErrors[field.id] && 'border-destructive')}>
                       <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
                     </SelectTrigger>
                     <SelectContent>
@@ -197,10 +427,15 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
                   <Textarea
                     value={field.value}
                     onChange={(e) => updateFormField(field.id, e.target.value)}
+                    onBlur={(e) => validateFieldWithSHACL(field, e.target.value)}
                     placeholder={`Enter ${field.label.toLowerCase()}`}
                     rows={2}
-                    className={cn(field.value && 'border-success/50 bg-success/5')}
+                    className={cn(field.value && 'border-success/50 bg-success/5', fieldValidationErrors[field.id] && 'border-destructive')}
                   />
+                )}
+                {/* S5-001: Display validation error */}
+                {fieldValidationErrors[field.id] && (
+                  <p className="text-xs text-destructive mt-1">{fieldValidationErrors[field.id]}</p>
                 )}
                 {/* S5-002: Display inline suggestion if available */}
                 {formSuggestions[field.id] && (
@@ -233,7 +468,7 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
           <Button variant="outline" size="sm" onClick={() => toast({ title: t('forms.draftSaved') })}>
             {t('forms.saveDraft')}
           </Button>
-          <Button size="sm" onClick={() => toast({ title: t('forms.formSubmitted'), description: t('forms.sentForReview') })}>
+          <Button size="sm" onClick={handleFormSubmit}>
             {t('forms.submit')}
           </Button>
         </div>
@@ -250,6 +485,101 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
         </div>
       </div>
       {viewMode === 'metadata' ? renderMetadataView() : renderFormView()}
+
+      {/* S5-001: Natural Language Form Modification Dialog */}
+      <Dialog open={showModifyDialog} onOpenChange={setShowModifyDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modify Form with Natural Language</DialogTitle>
+            <DialogDescription>
+              Describe your form modification in natural language. Examples: "Add an email field for contact email", "Remove the phone number field", "Add dropdown for marital status with options single, married, divorced"
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Command</label>
+              <Textarea
+                value={modifyCommand}
+                onChange={(e) => setModifyCommand(e.target.value)}
+                placeholder="e.g., Add an email field for contact email"
+                rows={3}
+                className="resize-none"
+                disabled={isModifying}
+              />
+            </div>
+
+            {commandHistory.length > 0 && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">Recent Commands</label>
+                <div className="space-y-1">
+                  {commandHistory.slice(0, 5).map((cmd, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setModifyCommand(cmd)}
+                      className="text-xs text-muted-foreground hover:text-foreground block w-full text-left px-2 py-1 rounded hover:bg-accent transition-colors"
+                    >
+                      {cmd}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowModifyDialog(false)} disabled={isModifying}>
+              Cancel
+            </Button>
+            <Button onClick={handleModifyForm} disabled={isModifying || !modifyCommand.trim()}>
+              {isModifying ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Apply
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* S5-001: SHACL Shape Visualization Dialog */}
+      <Dialog open={showShaclDialog} onOpenChange={setShowShaclDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>SHACL Shape - {currentCase.name}</DialogTitle>
+            <DialogDescription>
+              JSON-LD representation of the form's SHACL shape with semantic validation
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="relative">
+              <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-[50vh] text-xs font-mono">
+                <code>{JSON.stringify(currentShaclShape, null, 2)}</code>
+              </pre>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2"
+                onClick={handleCopyShacl}
+              >
+                <Copy className="w-4 h-4 mr-1" />
+                Copy
+              </Button>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setShowShaclDialog(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

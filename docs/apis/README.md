@@ -35,6 +35,7 @@ This directory contains API documentation for the BAMF ACTE Companion applicatio
 |---------|----------|-------------|
 | **GeminiService** | `backend/services/gemini_service.py` | AI integration with Google Gemini API |
 | **ContextManager** | `backend/services/context_manager.py` | Case/folder context management |
+| **ConversationManager** | `backend/services/conversation_manager.py` | Chat history management (optional, S5-010) |
 | **FieldGenerator** | `backend/services/field_generator.py` | NLP-powered form field generation |
 | **FileService** | `backend/services/file_service.py` | File upload, deletion, validation |
 | **AnonymizationService** | `backend/services/anonymization_service.py` | PII detection client (calls external service) |
@@ -43,7 +44,7 @@ This directory contains API documentation for the BAMF ACTE Companion applicatio
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `WS` | `/ws/chat/{case_id}` | Real-time AI chat with streaming |
+| `WS` | `/ws/chat/{case_id}?language={lang}` | Real-time AI chat with streaming and multilingual support (S5-014) |
 | `GET` | `/health` | Backend health check |
 | `GET` | `/` | Backend info |
 | `POST` | `/api/admin/generate-field` | Generate form field from NLP |
@@ -53,6 +54,7 @@ This directory contains API documentation for the BAMF ACTE Companion applicatio
 | `GET` | `/api/files/exists/{case_id}/{folder_id}/{filename}` | Check file exists |
 | `GET` | `/api/files/health` | File service health |
 | `GET` | `/api/chat/health` | Chat service health |
+| `POST` | `/api/chat/clear/{case_id}` | Clear conversation history (S5-010) |
 
 ### External Dependencies
 
@@ -139,9 +141,19 @@ Internal tracking file for documentation synchronization with codebase changes.
 ## Development Notes
 
 ### Environment Setup
-1. Create `backend/.env` with `GEMINI_API_KEY=your_key`
+1. Create `backend/.env` with required configuration:
+   ```
+   GEMINI_API_KEY=your_key
+   ENABLE_CHAT_HISTORY=false  # Optional: Enable conversation history (S5-010)
+   ```
 2. Run `./start.sh` to start both services
 3. Ensure anonymization service is running on port 5000 if needed
+
+### Configuration Options (backend/.env or environment variables)
+- `GEMINI_API_KEY` (required): Google Gemini API key for AI integration
+- `ENABLE_CHAT_HISTORY` (optional, default: false): Enable conversation history management
+- `MAX_CONVERSATION_HISTORY` (optional, default: 10): Maximum messages per case
+- `LOG_LEVEL` (optional, default: INFO): Logging level
 
 ### API Integration Status
 - React Query client configured in `App.tsx`
@@ -157,6 +169,6 @@ Internal tracking file for documentation synchronization with codebase changes.
 
 ---
 
-**Last Updated:** 2026-01-05
-**Documentation Version:** 1.7.0
+**Last Updated:** 2026-01-12
+**Documentation Version:** 1.8.0
 **Application Version:** 0.0.0

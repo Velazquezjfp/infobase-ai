@@ -154,6 +154,21 @@ async def upload_file(
         # Save the file
         save_uploaded_file(target_path, file_contents)
 
+        # Register the document in the document registry (S5-007)
+        try:
+            from backend.services.document_registry import register_document
+
+            register_document(
+                case_id=case_id,
+                folder_id=folder_id,
+                file_path=str(target_path),
+                file_name=safe_filename
+            )
+            logger.info(f"Registered document in registry: {safe_filename}")
+        except Exception as e:
+            # Log error but don't fail the upload - file was saved successfully
+            logger.error(f"Failed to register document in registry: {e}", exc_info=True)
+
         # Construct relative path for frontend
         relative_path = f"documents/{case_id}/{folder_id}/{safe_filename}"
 
@@ -265,8 +280,26 @@ async def delete_file_endpoint(
         # Import file service function
         from backend.services.file_service import delete_file
 
+        # Find the document in the registry before deletion (S5-007)
+        from backend.services.document_registry import find_document_by_path, unregister_document
+
+        document_entry = find_document_by_path(case_id, folder_id, filename)
+
         # Delete the file (includes security validation)
         delete_file(case_id, folder_id, filename)
+
+        # Unregister the document from the registry (S5-007)
+        if document_entry:
+            try:
+                document_id = document_entry.get('documentId')
+                if document_id:
+                    unregister_document(document_id)
+                    logger.info(f"Unregistered document from registry: {document_id}")
+            except Exception as e:
+                # Log error but don't fail the deletion - file was deleted successfully
+                logger.error(f"Failed to unregister document from registry: {e}", exc_info=True)
+        else:
+            logger.warning(f"Document not found in registry: {case_id}/{folder_id}/{filename}")
 
         logger.info(f"Successfully deleted {filename} from {case_id}/{folder_id}")
 

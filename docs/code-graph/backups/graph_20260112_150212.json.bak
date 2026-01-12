@@ -20,9 +20,7 @@
         "Configures TooltipProvider from shadcn/ui",
         "Sets up BrowserRouter with React Router",
         "Defines 3 routes: / (Index), /workspace (Workspace), * (NotFound)",
-        "Includes Toaster and Sonner for notifications",
-        "Sprint 5 update: Added i18n initialization import for S5-014 internationalization",
-        "Sprint 5 update: Integrated internationalization support via src/i18n/config.ts"
+        "Includes Toaster and Sonner for notifications"
       ]
     },
     {
@@ -67,10 +65,7 @@
         "S4-001: Provides refreshDocuments function for forcing document tree re-render",
         "S4-002: Provides removeDocumentFromFolder function for removing deleted documents from state",
         "useToast hook imported from @/hooks/use-toast for notifications",
-        "Uses localStorage persistence via saveToLocalStorage and loadFromLocalStorage from @/lib/localStorage",
-        "Sprint 5 update: Added language state management for S5-014",
-        "Sprint 5 update: Updated WebSocket connection to include language parameter",
-        "Sprint 5 update: Integrated messageFormatter for chat message rendering"
+        "Uses localStorage persistence via saveToLocalStorage and loadFromLocalStorage from @/lib/localStorage"
       ]
     },
     {
@@ -192,10 +187,7 @@
         "S2-004: formatMessage() highlights [Source: xxx] citations with styled badges",
         "S2-004: formatMessage() highlights [Case: xxx], [Folder: xxx], [Document: xxx] context labels",
         "S2-004: getActiveContextSources() returns list of active context sources for display",
-        "S2-004: Uses Info icon and Badge components for context source display",
-        "Sprint 5 update: Integrated messageFormatter for rendering chat messages (S5-009)",
-        "Sprint 5 update: Added CodeBlock and DataTable rendering support",
-        "Sprint 5 update: Updated form extraction to send current form values (S5-002)"
+        "S2-004: Uses Info icon and Badge components for context source display"
       ]
     },
     {
@@ -241,9 +233,7 @@
         "Shows AI auto-fill hint message",
         "Displays SHACL metadata in admin mode for fields with shaclMetadata property (S2-003)",
         "Uses SHACLPropertyShape type from @/types/shacl for metadata display (S2-003)",
-        "Shows sh:path, sh:datatype, cardinality constraints in admin metadata view (S2-003)",
-        "Sprint 5 update: Updated to handle suggestion mode for form field updates (S5-002)",
-        "Sprint 5 update: Added UI for accepting/rejecting suggestions from AI extraction"
+        "Shows sh:path, sh:datatype, cardinality constraints in admin metadata view (S2-003)"
       ]
     },
     {
@@ -656,12 +646,7 @@
         "Handles natural language chat, document analysis, translation",
         "Supports structured data extraction for form filling",
         "Imports time module for performance metrics",
-        "Imports AsyncGenerator and Union from typing for streaming return type",
-        "Sprint 5 update: Integrated ConversationManager for chat history (S5-010)",
-        "Sprint 5 update: Added language parameter to generate_response method (S5-014)",
-        "Sprint 5 update: Added format_response method for HTML to markdown conversion (S5-009)",
-        "Sprint 5 update: Updated prompt building with conversation history inclusion",
-        "Sprint 5 update: Added conversation history saving for user and assistant messages"
+        "Imports AsyncGenerator and Union from typing for streaming return type"
       ]
     },
     {
@@ -753,10 +738,7 @@
         "parse_extraction_result() converts non-ISO dates to ISO format using _convert_to_iso_date()",
         "parse_extraction_result() implements confidence scoring based on field type and validation (range: 0.40-0.95)",
         "parse_extraction_result() validates select field options using _match_select_option() helper",
-        "Helper functions: _is_valid_iso_date(), _convert_to_iso_date(), _match_select_option()",
-        "Sprint 5 update: Updated parse_extraction_result to support suggestion mode (S5-002)",
-        "Sprint 5 update: Added current_values comparison logic for form field updates",
-        "Sprint 5 update: Categorizes extraction results into direct_updates and suggestions based on current values"
+        "Helper functions: _is_valid_iso_date(), _convert_to_iso_date(), _match_select_option()"
       ]
     },
     {
@@ -3381,51 +3363,6 @@
     {
       "from_": "src/components/ui/CodeBlock.tsx",
       "to": "src/components/ui/badge.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from_": "backend/api/chat.py",
-      "to": "backend/services/conversation_manager.py",
-      "relationType": "imports"
-    },
-    {
-      "from_": "backend/services/gemini_service.py",
-      "to": "backend/services/conversation_manager.py",
-      "relationType": "imports"
-    },
-    {
-      "from_": "src/App.tsx",
-      "to": "src/i18n/config.ts",
-      "relationType": "imports"
-    },
-    {
-      "from_": "src/contexts/AppContext.tsx",
-      "to": "src/lib/messageFormatter.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from_": "src/components/workspace/AIChatInterface.tsx",
-      "to": "src/lib/messageFormatter.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from_": "src/components/workspace/AIChatInterface.tsx",
-      "to": "src/components/ui/CodeBlock.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from_": "src/components/workspace/AIChatInterface.tsx",
-      "to": "src/components/workspace/DataTable.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from_": "backend/api/chat.py",
-      "to": "backend/config.py",
-      "relationType": "imports"
-    },
-    {
-      "from_": "backend/services/gemini_service.py",
-      "to": "backend/config.py",
       "relationType": "imports"
     }
   ]

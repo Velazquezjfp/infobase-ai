@@ -105,6 +105,51 @@ class MergedContext:
         return f"Sources: {', '.join(self.sources)}"
 
 
+@dataclass
+class ValidationResult:
+    """
+    S5-013: Result of case context validation.
+
+    Provides validation status, error messages, warnings, and statistics
+    about the validated case context.
+
+    Attributes:
+        valid: True if context passes all validation checks
+        errors: List of validation error messages
+        warnings: List of validation warning messages
+        stats: Dictionary containing validation statistics
+    """
+    valid: bool
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+    stats: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "valid": self.valid,
+            "errors": self.errors,
+            "warnings": self.warnings,
+            "stats": self.stats,
+        }
+
+    def add_error(self, error: str) -> None:
+        """Add an error message and mark validation as invalid."""
+        self.errors.append(error)
+        self.valid = False
+
+    def add_warning(self, warning: str) -> None:
+        """Add a warning message."""
+        self.warnings.append(warning)
+
+    def get_summary(self) -> str:
+        """Get human-readable summary of validation result."""
+        if self.valid:
+            return f"✓ Valid - {self.stats.get('documents', 0)} docs, {self.stats.get('regulations', 0)} regs, {self.stats.get('issues', 0)} issues"
+        else:
+            return f"✗ Invalid - {len(self.errors)} error(s), {len(self.warnings)} warning(s)"
+
+
 def resolve_conflict(
     entries: List[ContextEntry],
     precedence: List[ContextSource] = None
@@ -720,3 +765,194 @@ class ContextManager:
             entries=entries,
             conflicts=all_conflicts
         )
+
+    def validate_case_context(
+        self,
+        context: Dict[str, Any],
+        check_urls: bool = False
+    ) -> ValidationResult:
+        """
+        S5-013: Validate case context against schema v2.0 requirements.
+
+        Validates that a case context dictionary meets all schema requirements
+        including required fields, minimum thresholds, and data quality checks.
+
+        Args:
+            context: Case context dictionary to validate
+            check_urls: If True, verify regulation URLs are accessible (slow)
+
+        Returns:
+            ValidationResult with validation status, errors, warnings, and stats
+
+        Example:
+            >>> context_manager = ContextManager()
+            >>> context = context_manager.load_case_context("ACTE-2024-001")
+            >>> result = context_manager.validate_case_context(context)
+            >>> if result.valid:
+            ...     print("Context is valid!")
+            >>> else:
+            ...     for error in result.errors:
+            ...         print(f"Error: {error}")
+        """
+        result = ValidationResult(valid=True)
+
+        # Validate schema version
+        schema_version = context.get('schemaVersion')
+        if schema_version != '2.0':
+            result.add_error(
+                f"Invalid schema version: expected '2.0', got '{schema_version}'"
+            )
+
+        # Check required top-level fields
+        required_fields = [
+            'schemaVersion', 'caseId', 'caseType', 'name', 'description',
+            'requiredDocuments', 'regulations', 'validationRules', 'commonIssues'
+        ]
+
+        for field in required_fields:
+            if field not in context:
+                result.add_error(f"Missing required field: {field}")
+
+        # If critical fields missing, return early
+        if not result.valid:
+            return result
+
+        # Validate and count required documents
+        required_docs = context.get('requiredDocuments', [])
+        result.stats['documents'] = len(required_docs)
+        result.stats['critical_documents'] = 0
+        result.stats['optional_documents'] = 0
+
+        if len(required_docs) < 15:
+            result.add_error(
+                f"Insufficient required documents: expected ≥15, got {len(required_docs)}"
+            )
+
+        for idx, doc in enumerate(required_docs):
+            # Check required document fields
+            doc_required_fields = ['name', 'documentType', 'description', 'criticality', 'validationRules']
+            for field in doc_required_fields:
+                if field not in doc:
+                    result.add_error(
+                        f"Document {idx} missing required field: {field}"
+                    )
+
+            # Validate criticality value
+            criticality = doc.get('criticality')
+            if criticality == 'critical':
+                result.stats['critical_documents'] += 1
+            elif criticality == 'optional':
+                result.stats['optional_documents'] += 1
+            elif criticality:
+                result.add_error(
+                    f"Document {idx} has invalid criticality: '{criticality}' "
+                    f"(must be 'critical' or 'optional')"
+                )
+
+        # Validate regulations using the regulation model
+        from backend.models.regulation import validate_regulations_list
+
+        regulations = context.get('regulations', [])
+        result.stats['regulations'] = len(regulations)
+
+        if len(regulations) < 10:
+            result.add_error(
+                f"Insufficient regulations: expected ≥10, got {len(regulations)}"
+            )
+
+        # Use regulation model validation
+        regs_valid, reg_errors, reg_stats = validate_regulations_list(regulations)
+        if not regs_valid:
+            for error in reg_errors:
+                result.add_error(f"Regulation validation: {error}")
+
+        result.stats['regulations_valid'] = reg_stats.get('valid', 0)
+        result.stats['regulations_invalid'] = reg_stats.get('invalid', 0)
+
+        # Optional: Check URL accessibility
+        if check_urls and regs_valid:
+            try:
+                import requests
+                for reg in regulations:
+                    url = reg.get('url')
+                    if url:
+                        try:
+                            response = requests.head(url, timeout=5, allow_redirects=True)
+                            if response.status_code >= 400:
+                                result.add_warning(
+                                    f"Regulation URL not accessible: {url} "
+                                    f"(HTTP {response.status_code})"
+                                )
+                        except requests.RequestException as e:
+                            result.add_warning(
+                                f"Could not verify URL: {url} ({str(e)})"
+                            )
+            except ImportError:
+                result.add_warning(
+                    "URL checking requested but 'requests' library not available"
+                )
+
+        # Validate common issues
+        common_issues = context.get('commonIssues', [])
+        result.stats['issues'] = len(common_issues)
+
+        if len(common_issues) < 20:
+            result.add_error(
+                f"Insufficient common issues: expected ≥20, got {len(common_issues)}"
+            )
+
+        result.stats['issues_by_severity'] = {'error': 0, 'warning': 0, 'info': 0}
+        result.stats['issues_by_category'] = {}
+
+        for idx, issue in enumerate(common_issues):
+            # Check required issue fields
+            issue_required_fields = ['issue', 'severity', 'suggestion']
+            for field in issue_required_fields:
+                if field not in issue:
+                    result.add_error(
+                        f"Common issue {idx} missing required field: {field}"
+                    )
+
+            # Validate severity
+            severity = issue.get('severity')
+            if severity in ['error', 'warning', 'info']:
+                result.stats['issues_by_severity'][severity] += 1
+            elif severity:
+                result.add_error(
+                    f"Common issue {idx} has invalid severity: '{severity}' "
+                    f"(must be 'error', 'warning', or 'info')"
+                )
+
+            # Count by category
+            category = issue.get('category')
+            if category:
+                result.stats['issues_by_category'][category] = \
+                    result.stats['issues_by_category'].get(category, 0) + 1
+
+        # Validate validation rules
+        validation_rules = context.get('validationRules', [])
+        result.stats['validation_rules'] = len(validation_rules)
+
+        if len(validation_rules) == 0:
+            result.add_warning("No validation rules defined")
+
+        for idx, rule in enumerate(validation_rules):
+            rule_required_fields = ['rule_id', 'condition', 'action']
+            for field in rule_required_fields:
+                if field not in rule:
+                    result.add_error(
+                        f"Validation rule {idx} missing required field: {field}"
+                    )
+
+        # Add summary info
+        result.stats['case_id'] = context.get('caseId', 'Unknown')
+        result.stats['case_type'] = context.get('caseType', 'Unknown')
+        result.stats['case_name'] = context.get('name', 'Unknown')
+
+        # Log validation result
+        logger.info(
+            f"Validated case context '{context.get('caseId')}': "
+            f"{result.get_summary()}"
+        )
+
+        return result

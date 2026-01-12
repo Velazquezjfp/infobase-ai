@@ -49,6 +49,8 @@ interface AppContextType {
   setHighlightedFolder: (folderId: string | null) => void;
   isAdminMode: boolean;
   setIsAdminMode: (mode: boolean) => void;
+  showAdminPanel: boolean;
+  setShowAdminPanel: (show: boolean) => void;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
   toggleFolder: (folderId: string) => void;
@@ -315,6 +317,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
             : folder
         ),
       }));
+
+      // S5-007: Sync with backend after a short delay
+      setTimeout(() => {
+        loadDocumentsFromBackend(caseId);
+      }, 500);
     }
 
     console.log(`Document ${document.name} added to folder ${folderId} in case ${caseId}`);
@@ -348,6 +355,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
             : folder
         ),
       }));
+
+      // S5-007: Sync with backend after a short delay
+      setTimeout(() => {
+        loadDocumentsFromBackend(caseId);
+      }, 500);
     }
 
     // Clear selected document if it was the deleted one
@@ -359,14 +371,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
     console.log(`Document ${documentId} removed from folder ${folderId} in case ${caseId}`);
   };
 
-  const refreshDocuments = () => {
-    // Reload documents for the current case
-    // In a real application, this would fetch from the backend
-    // For now, it's a placeholder that could trigger a re-render
-    console.log('Refreshing documents for case:', currentCase.id);
+  // S5-007: Load documents from backend on startup
+  const loadDocumentsFromBackend = async (caseId: string) => {
+    try {
+      console.log(`Loading documents from backend for case: ${caseId}`);
 
-    // Force a state update to trigger re-render of document tree
-    setCurrentCase(prev => ({ ...prev }));
+      const response = await fetch(`http://localhost:8000/api/documents/tree/${caseId}`);
+
+      if (!response.ok) {
+        console.error(`Failed to load documents: ${response.status} ${response.statusText}`);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Loaded document tree from backend:', data);
+
+      // Transform backend response to frontend Case structure
+      setCurrentCase(prev => ({
+        ...prev,
+        folders: data.folders.map((folder: any) => ({
+          id: folder.id,
+          name: folder.name,
+          documents: folder.documents.map((doc: any) => ({
+            id: doc.id,
+            name: doc.name,
+            type: doc.type,
+            size: doc.size,
+            uploadedAt: doc.uploadedAt,
+            metadata: doc.metadata || {},
+            caseId: doc.caseId,
+            folderId: doc.folderId,
+          })),
+          subfolders: folder.subfolders || [],
+          isExpanded: folder.isExpanded !== false,
+        })),
+      }));
+
+      console.log(`Successfully loaded ${data.folders.length} folders from backend`);
+    } catch (error) {
+      console.error('Error loading documents from backend:', error);
+      toast({
+        title: 'Failed to load documents',
+        description: 'Could not connect to backend. Documents may not be up to date.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const refreshDocuments = () => {
+    // S5-007: Reload documents from backend
+    console.log('Refreshing documents for case:', currentCase.id);
+    loadDocumentsFromBackend(currentCase.id);
   };
 
   // WebSocket connection management
@@ -669,6 +724,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // Reset view mode to form
     setViewMode('form');
   }, [currentCase.id]);
+
+  // S5-007: Load documents from backend when user logs in or case changes
+  useEffect(() => {
+    if (user && currentCase && currentCase.id) {
+      loadDocumentsFromBackend(currentCase.id);
+    }
+  }, [user, currentCase.id]);
 
   // Auto-connect when user logs in, case changes, or language changes (S5-014)
   useEffect(() => {

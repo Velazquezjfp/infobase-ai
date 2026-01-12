@@ -52,8 +52,28 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isHighlighted = highlightedFolder === folder.id;
 
-  // Check if this folder is the uploads folder (can delete files)
-  const isUploadsFolder = folder.id === 'uploads' || folder.name.toLowerCase() === 'uploads';
+  // Check if this folder allows file deletion
+  // Allow deletion from common user folders, but protect system folders
+  const canDeleteFiles = [
+    'uploads',
+    'personal-data',
+    'certificates',
+    'emails',
+    'documents',
+    'attachments',
+    'evidence',
+    'applications'
+  ].includes(folder.id.toLowerCase()) ||
+  [
+    'uploads',
+    'personal data',
+    'certificates',
+    'emails',
+    'documents',
+    'attachments',
+    'evidence',
+    'applications'
+  ].includes(folder.name.toLowerCase());
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -217,7 +237,7 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
                   <span className="flex-1 truncate">{doc.name}</span>
                   <span className="text-xs text-muted-foreground">{doc.size}</span>
                   {/* Delete button - only visible on hover in uploads folder */}
-                  {isUploadsFolder && hoveredDocId === doc.id && (
+                  {canDeleteFiles && hoveredDocId === doc.id && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -240,7 +260,7 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
                   <MoreVertical className="w-4 h-4 mr-2" />
                   {t('documents.viewMetadata')}
                 </ContextMenuItem>
-                {isUploadsFolder && (
+                {canDeleteFiles && (
                   <>
                     <ContextMenuSeparator />
                     <ContextMenuItem

@@ -92,6 +92,29 @@ RESERVE_TOKENS: int = get_int_env('RESERVE_TOKENS', 5000)
 
 
 # ============================================================================
+# Document Storage Configuration (S5-007)
+# ============================================================================
+
+def get_documents_path() -> str:
+    """
+    Get the base path for document storage.
+
+    For local development, defaults to 'public/documents'.
+    For containers, set DOCUMENTS_PATH environment variable to '/var/app/documents'
+    and mount as a volume for persistence.
+
+    Returns:
+        str: The base path for document storage.
+    """
+    return os.getenv('DOCUMENTS_PATH', 'public/documents')
+
+
+# Base path for document storage
+# In containers, this should be set to '/var/app/documents' and mounted as a volume
+DOCUMENTS_BASE_PATH: str = get_documents_path()
+
+
+# ============================================================================
 # Logging Configuration
 # ============================================================================
 
@@ -116,6 +139,9 @@ def get_config_summary() -> dict:
             'max_tokens': MAX_TOKENS_PER_REQUEST,
             'token_estimate_per_char': TOKEN_ESTIMATE_PER_CHAR,
             'reserve_tokens': RESERVE_TOKENS,
+        },
+        'document_storage': {
+            'base_path': DOCUMENTS_BASE_PATH,
         },
         'logging': {
             'level': LOG_LEVEL,

@@ -118,6 +118,8 @@
     "removeField": "Feld entfernen",
     "noFields": "Keine Felder verfügbar",
     "validationError": "Validierungsfehler",
+    "validationFailed": "Validierung fehlgeschlagen",
+    "fixErrors": "Bitte beheben Sie die rot markierten Fehler, bevor Sie das Formular absenden.",
     "saveSuccess": "Formular erfolgreich gespeichert",
     "saveError": "Fehler beim Speichern des Formulars",
     "suggested": "Vorschlag",

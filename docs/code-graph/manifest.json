@@ -1,11 +1,11 @@
 {
-  "version": "1.5.0",
-  "lastUpdated": "2026-01-09T15:45:00Z",
+  "version": "1.6.0",
+  "lastUpdated": "2026-01-12T12:00:00Z",
   "lastUpdateBy": "Code Graph Builder Agent",
   "description": "BAMF AI Case Management System - Code Architecture Graph",
   "statistics": {
-    "totalEntities": 128,
-    "totalRelations": 267,
+    "totalEntities": 146,
+    "totalRelations": 287,
     "entitiesByType": {
       "Context": 1,
       "RootComponent": 1,
@@ -14,11 +14,11 @@
       "Page": 4,
       "WorkspaceComponent": 9,
       "UIComponent": 3,
-      "Component": 1,
+      "Component": 6,
       "Types": 4,
-      "Data": 1,
+      "Data": 4,
       "Hook": 2,
-      "Utility": 1,
+      "Utility": 2,
       "APIClient": 2,
       "Route": 3,
       "ReactContext": 1,
@@ -27,22 +27,26 @@
       "Class": 7,
       "WebSocketEndpoint": 1,
       "HTTPEndpoint": 10,
-      "Service": 5,
+      "Service": 6,
       "Dataclass": 8,
       "Enum": 1,
       "Function": 31,
       "Method": 2,
       "Tool": 2,
-      "Module": 5,
+      "Module": 6,
       "AbstractClass": 1,
       "Package": 2,
       "Script": 1,
       "Interface": 4,
       "HelperFunction": 6,
-      "Constant": 1
+      "Constant": 1,
+      "Config": 2,
+      "Model": 1,
+      "Schema": 3,
+      "Test": 1
     },
     "relationsByType": {
-      "imports": 76,
+      "imports": 94,
       "defines": 74,
       "uses": 22,
       "defines_route": 3,
@@ -56,17 +60,23 @@
       "used_by": 1,
       "extends": 2,
       "returns": 2,
-      "uses_indirectly": 1
+      "uses_indirectly": 1,
+      "tests": 1,
+      "validates_against": 1
     }
   },
   "languages": {
     "typescript": {
-      "fileCount": 31,
+      "fileCount": 38,
       "extensions": [".ts", ".tsx"]
     },
     "python": {
-      "fileCount": 20,
+      "fileCount": 26,
       "extensions": [".py"]
+    },
+    "json": {
+      "fileCount": 5,
+      "extensions": [".json"]
     }
   },
   "sprints": {
@@ -76,9 +86,44 @@
     "S3-001": "Document Anonymization Service integration",
     "S3-002": "Document Viewer Image Support",
     "S4-001": "Drag-and-Drop File Upload with progress tracking and duplicate detection",
-    "S4-002": "File Deletion with confirmation dialog and backend API"
+    "S4-002": "File Deletion with confirmation dialog and backend API",
+    "S5-002": "Suggestion Mode for Form Field Updates with accept/reject UI",
+    "S5-009": "Improved Chat Information Presentation with markdown, code blocks, and tables",
+    "S5-010": "Optional Persistent Chat History with ConversationManager service",
+    "S5-014": "Internationalization (i18n) with German and English support"
   },
   "updateHistory": [
+    {
+      "date": "2026-01-12",
+      "changes": [
+        "Sprint 5 major update: Added 18 new entities and 20 new relationships",
+        "S5-010: Added backend/config.py with chat history configuration settings",
+        "S5-010: Added backend/services/conversation_manager.py ConversationManager service",
+        "S5-010: Added backend/tests/test_conversation_manager.py unit tests",
+        "S5-002: Added backend/models/shacl_property_shape.py SHACL PropertyShape model",
+        "S5-002: Added backend/models/__init__.py models package",
+        "S5-002: Added backend/schemas/validation_patterns.py validation pattern library",
+        "S5-002: Added backend/schemas/case_context_schema.json enhanced case context schema v2.0",
+        "S5-002: Added backend/schemas/document_registry_schema.json document registry schema",
+        "S5-002: Added backend/data/document_manifest.json sample document manifest",
+        "S5-014: Added src/i18n/config.ts i18next configuration",
+        "S5-014: Added src/i18n/locales/de.json German translations",
+        "S5-014: Added src/i18n/locales/en.json English translations",
+        "S5-009: Added src/lib/messageFormatter.tsx message formatting utility",
+        "S5-009: Added src/components/ui/CodeBlock.tsx code block component",
+        "S5-009: Added src/components/workspace/DataTable.tsx data table component",
+        "Updated backend/api/chat.py with language parameter and ConversationManager integration",
+        "Updated backend/services/gemini_service.py with chat history and format_response",
+        "Updated backend/tools/form_parser.py with suggestion mode support",
+        "Updated src/App.tsx with i18n initialization",
+        "Updated src/contexts/AppContext.tsx with language state and messageFormatter",
+        "Updated src/components/workspace/AIChatInterface.tsx with markdown rendering",
+        "Updated src/components/workspace/FormViewer.tsx with suggestion mode UI",
+        "Total entities increased from 128 to 146 (+18)",
+        "Total relations increased from 267 to 287 (+20)",
+        "Total observations increased from 951 to 1105 (+154)"
+      ]
+    },
     {
       "date": "2026-01-09",
       "changes": [
