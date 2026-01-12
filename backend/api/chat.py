@@ -14,6 +14,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 
 from backend.services.gemini_service import GeminiService
+from backend.services.conversation_manager import get_conversation_manager
+from backend.config import ENABLE_CHAT_HISTORY
 from backend.tools.form_parser import (
     build_extraction_prompt,
     validate_form_schema,
@@ -81,7 +83,11 @@ gemini_service = GeminiService()
 
 
 @router.websocket("/ws/chat/{case_id}")
-async def websocket_chat_endpoint(websocket: WebSocket, case_id: str):
+async def websocket_chat_endpoint(
+    websocket: WebSocket,
+    case_id: str,
+    language: str = 'de'  # S5-014: Language parameter from query string
+):
     """
     WebSocket endpoint for case-scoped AI chat.
 
@@ -125,10 +131,20 @@ async def websocket_chat_endpoint(websocket: WebSocket, case_id: str):
         return
 
     try:
-        # Send connection confirmation
+        # S5-014: Send translated welcome message based on language preference
+        # Also replace ACTE prefix with language-appropriate term (Akte/Case)
+        case_prefix = 'Akte' if language == 'de' else 'Case'
+        translated_case_id = case_id.replace('ACTE', case_prefix)
+
+        welcome_messages = {
+            'de': f"Verbunden mit KI-Assistent für {translated_case_id}",
+            'en': f"Connected to AI assistant for {translated_case_id}"
+        }
+        welcome_message = welcome_messages.get(language, welcome_messages['de'])
+
         await websocket.send_json({
             "type": "system",
-            "content": f"Connected to AI assistant for case {case_id}",
+            "content": welcome_message,
             "timestamp": None
         })
 
@@ -241,11 +257,13 @@ async def handle_chat_message(
     form_schema = message.get("formSchema")
     folder_id = message.get("folderId")
     enable_streaming = message.get("stream", True)  # Default to streaming for performance
+    language = message.get("language", "de")  # S5-014: Language for AI responses (default: German)
 
     logger.info(
         f"Processing chat message for case {case_id}"
         f"{f', folder: {folder_id}' if folder_id else ''}"
         f", streaming: {enable_streaming}"
+        f", language: {language}"
     )
 
     # Check if this is a form filling request
@@ -261,11 +279,14 @@ async def handle_chat_message(
     try:
         if is_form_fill_request and validate_form_schema(form_schema):
             # Handle form field extraction (no streaming for form extraction)
+            # S5-002: Extract current form values for suggestion mode
+            current_values = message.get("currentFormValues")
             await handle_form_extraction(
                 websocket,
                 case_id,
                 document_content or content,
-                form_schema
+                form_schema,
+                current_values
             )
         else:
             # Handle regular chat message with optional streaming
@@ -277,7 +298,8 @@ async def handle_chat_message(
                 case_id=case_id,
                 folder_id=folder_id,
                 document_content=document_content,
-                stream=enable_streaming
+                stream=enable_streaming,
+                language=language  # S5-014: Pass language for AI responses
             )
 
             # Check if response is a streaming generator
@@ -319,19 +341,23 @@ async def handle_form_extraction(
     websocket: WebSocket,
     case_id: str,
     document_text: str,
-    form_schema: list
+    form_schema: list,
+    current_values: Dict[str, str] = None
 ) -> None:
     """
     Handle form field extraction from document content.
 
     Uses AI to extract structured data from document text based on
-    the provided form schema.
+    the provided form schema. S5-002: When current_values is provided,
+    categorizes results into direct updates (empty fields) and suggestions
+    (non-empty fields requiring user approval).
 
     Args:
         websocket: The WebSocket connection.
         case_id: The case ID.
         document_text: The document content to extract from.
         form_schema: The form field definitions.
+        current_values: Optional dict of current form field values (S5-002).
     """
     logger.info(f"Extracting form fields for case {case_id}")
 
@@ -348,24 +374,62 @@ async def handle_form_extraction(
             stream=False  # Form extraction should not stream
         )
 
-        # Parse the extraction result
-        result = parse_extraction_result(ai_response, form_schema)
+        # Parse the extraction result (S5-002: with current_values for comparison)
+        result = parse_extraction_result(ai_response, form_schema, current_values)
 
-        # Send form update message
-        await websocket.send_json({
-            "type": "form_update",
-            "updates": result["updates"],
-            "confidence": result["confidence"],
-            "timestamp": None
-        })
+        # S5-002: Check if we have categorized results (suggestions mode)
+        if "suggestions" in result:
+            # Send direct updates for empty fields
+            direct_count = len(result["direct_updates"])
+            if direct_count > 0:
+                await websocket.send_json({
+                    "type": "form_update",
+                    "updates": result["direct_updates"],
+                    "confidence": result.get("all_confidence", {}),
+                    "timestamp": None
+                })
 
-        # Also send a chat response confirming the action
-        field_count = len(result["updates"])
-        await websocket.send_json({
-            "type": "chat_response",
-            "content": f"I've extracted {field_count} field{'s' if field_count != 1 else ''} from the document and updated the form.",
-            "timestamp": None
-        })
+            # Send suggestions for non-empty fields
+            suggestion_count = len(result["suggestions"])
+            if suggestion_count > 0:
+                await websocket.send_json({
+                    "type": "form_suggestion",
+                    "suggestions": result["suggestions"],
+                    "timestamp": None
+                })
+
+            # Send chat response with summary
+            ignored_count = len(result.get("ignored", []))
+            summary_parts = []
+            if direct_count > 0:
+                summary_parts.append(f"{direct_count} field{'s' if direct_count != 1 else ''} filled")
+            if suggestion_count > 0:
+                summary_parts.append(f"{suggestion_count} suggestion{'s' if suggestion_count != 1 else ''} available")
+            if ignored_count > 0:
+                summary_parts.append(f"{ignored_count} field{'s' if ignored_count != 1 else ''} unchanged")
+
+            summary = "I've extracted form data: " + ", ".join(summary_parts) + "."
+            await websocket.send_json({
+                "type": "chat_response",
+                "content": summary,
+                "timestamp": None
+            })
+        else:
+            # Legacy mode: send all as updates (no current_values provided)
+            await websocket.send_json({
+                "type": "form_update",
+                "updates": result["updates"],
+                "confidence": result["confidence"],
+                "timestamp": None
+            })
+
+            # Also send a chat response confirming the action
+            field_count = len(result["updates"])
+            await websocket.send_json({
+                "type": "chat_response",
+                "content": f"I've extracted {field_count} field{'s' if field_count != 1 else ''} from the document and updated the form.",
+                "timestamp": None
+            })
 
     except Exception as e:
         logger.error(f"Error extracting form fields: {str(e)}")
@@ -483,3 +547,64 @@ async def chat_health_check():
         },
         status_code=200 if is_ready else 503
     )
+
+
+@router.post("/api/chat/clear/{case_id}")
+async def clear_conversation_history(case_id: str):
+    """
+    Clear conversation history for a specific case (S5-010).
+
+    This endpoint clears all stored conversation history for the specified case.
+    Only works when ENABLE_CHAT_HISTORY is enabled.
+
+    Args:
+        case_id: The case ID (e.g., "ACTE-2024-001") to clear history for.
+
+    Returns:
+        JSONResponse: Success/failure status with details.
+
+    Example:
+        POST /api/chat/clear/ACTE-2024-001
+        Response: {"success": true, "case_id": "ACTE-2024-001", "messages_cleared": 5}
+    """
+    try:
+        if not ENABLE_CHAT_HISTORY:
+            return JSONResponse(
+                content={
+                    "success": False,
+                    "case_id": case_id,
+                    "messages_cleared": 0,
+                    "message": "Chat history feature is disabled"
+                },
+                status_code=400
+            )
+
+        # Get conversation manager
+        conversation_manager = get_conversation_manager()
+
+        # Clear conversation history
+        messages_cleared = conversation_manager.clear_conversation(case_id)
+
+        logger.info(f"Cleared conversation history for case {case_id} ({messages_cleared} messages)")
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "case_id": case_id,
+                "messages_cleared": messages_cleared,
+                "message": f"Successfully cleared {messages_cleared} message(s) from conversation history"
+            },
+            status_code=200
+        )
+
+    except Exception as e:
+        logger.error(f"Error clearing conversation history for case {case_id}: {str(e)}")
+        return JSONResponse(
+            content={
+                "success": False,
+                "case_id": case_id,
+                "messages_cleared": 0,
+                "error": str(e)
+            },
+            status_code=500
+        )

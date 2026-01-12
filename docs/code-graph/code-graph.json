@@ -63,7 +63,9 @@
         "S3-001: anonymization_complete handler auto-selects the anonymized document",
         "S4-001: Provides addDocumentToFolder function for adding uploaded documents to case folders",
         "S4-001: Provides refreshDocuments function for forcing document tree re-render",
-        "S4-002: Provides removeDocumentFromFolder function for removing deleted documents from state"
+        "S4-002: Provides removeDocumentFromFolder function for removing deleted documents from state",
+        "useToast hook imported from @/hooks/use-toast for notifications",
+        "Uses localStorage persistence via saveToLocalStorage and loadFromLocalStorage from @/lib/localStorage"
       ]
     },
     {
@@ -152,7 +154,18 @@
         "S4-002: Implements handleDeleteDocument to open delete confirmation dialog",
         "S4-002: Implements handleConfirmDelete to execute file deletion via API",
         "S4-002: Delete button visible on hover for files in uploads folder only",
-        "S4-002: Context menu includes Delete File option for uploads folder"
+        "S4-002: Context menu includes Delete File option for uploads folder",
+        "S4-001: Folder drag-drop upload support with visual indicator",
+        "S4-001: Per-folder file input for click-to-upload",
+        "S4-001: Upload progress queue displayed in fixed position bottom-right",
+        "S4-001: Duplicate file detection with DuplicateFileDialog",
+        "S4-002: Delete button appears on hover for uploads folder files",
+        "S4-002: DeleteConfirmDialog for deletion confirmation",
+        "performUpload() handles individual file upload with progress tracking",
+        "handleUploadToFolder() manages batch uploads with duplicate checking",
+        "handleDuplicateRename() processes renamed file upload",
+        "handleConfirmDelete() executes file deletion via API and updates state",
+        "FolderItem subcomponent renders individual folders with upload support"
       ]
     },
     {
@@ -482,7 +495,11 @@
         "S3-001: websocket_chat_endpoint routes 'anonymize' message type to handle_anonymization()",
         "S3-001: handle_anonymization() validates filePath and format support",
         "S3-001: handle_anonymization() calls anonymize_document(file_path)",
-        "S3-001: handle_anonymization() sends anonymization_complete message with originalPath, anonymizedPath, detectionsCount, success, error"
+        "S3-001: handle_anonymization() sends anonymization_complete message with originalPath, anonymizedPath, detectionsCount, success, error",
+        "Global gemini_service instance created as singleton: gemini_service = GeminiService()",
+        "Global manager instance created: manager = ConnectionManager()",
+        "websocket_chat_endpoint routes 'chat' type to handle_chat_message()",
+        "handle_chat_message() supports both streaming and non-streaming modes based on message.stream parameter"
       ]
     },
     {
@@ -1083,7 +1100,14 @@
         "anonymize_image() sends POST request with image and mode:default payload",
         "anonymize_image() handles 200, 401, 400, and other status codes with appropriate error messages",
         "check_service_health() pings service root endpoint with 5s timeout",
-        "Uses aiohttp.ClientSession for async HTTP communication"
+        "Uses aiohttp.ClientSession for async HTTP communication",
+        "_extract_base64_data() method extracts raw base64 data and mime type from data URI",
+        "_apply_black_boxes() method draws black rectangles over detected PII areas using PIL",
+        "Uses PIL (Pillow) Image and ImageDraw for local image manipulation",
+        "Converts images to RGB mode for drawing if necessary (RGBA, LA, P modes)",
+        "Detection response format: {\"data\": {\"field_name\": [{\"confidence\": X, \"coordinate\": [x, y, w, h]}]}}",
+        "Timeout increased to TIMEOUT_SECONDS = 60 for large images",
+        "Returns original image if no detections found (detections_count = 0)"
       ]
     },
     {
@@ -1289,7 +1313,12 @@
         "Defines ErrorResponse Pydantic model for error responses",
         "Defines DeleteResponse Pydantic model for file deletion responses",
         "Defines FileExistsResponse Pydantic model for file existence check responses",
-        "Features: Maximum file size 15 MB, case-scoped storage, filename sanitization, path traversal prevention"
+        "Features: Maximum file size 15 MB, case-scoped storage, filename sanitization, path traversal prevention",
+        "S4-001, S4-002: File Management API for upload, deletion, and management operations",
+        "FastAPI router with prefix /api/files",
+        "Defines UploadResponse, ErrorResponse, DeleteResponse, FileExistsResponse Pydantic models",
+        "Maximum file size: 15 MB",
+        "Uses FormData for multipart upload handling"
       ]
     },
     {
@@ -1350,7 +1379,10 @@
         "Stateless design pattern for reliability and testability",
         "Defines MAX_FILE_SIZE_BYTES constant (15 MB)",
         "Defines MAX_FILENAME_LENGTH constant (255)",
-        "Defines UNSAFE_FILENAME_CHARS regex pattern"
+        "Defines UNSAFE_FILENAME_CHARS regex pattern",
+        "S4-001, S4-002: File Management Service with validation and storage utilities",
+        "Security features: size validation, filename sanitization, path traversal prevention",
+        "Constants: MAX_FILE_SIZE_BYTES (15 MB), MAX_FILENAME_LENGTH (255), UNSAFE_FILENAME_CHARS regex"
       ]
     },
     {
@@ -1513,7 +1545,13 @@
         "Exports checkFileServiceHealth function for service health check",
         "Exports DeleteResult, FileExistsResult interfaces",
         "Uses XMLHttpRequest for progress tracking, fetch for simple uploads",
-        "API_BASE_URL from VITE_API_URL environment variable"
+        "API_BASE_URL from VITE_API_URL environment variable",
+        "Exports DeleteResult interface for deletion response",
+        "Exports FileExistsResult interface for existence check response",
+        "uploadFileWithProgress() uses XMLHttpRequest for progress events",
+        "uploadFileSimple() uses fetch API without progress tracking",
+        "2 minute timeout (120000ms) for large file uploads",
+        "URI components encoded for special characters in filenames"
       ]
     },
     {
@@ -1560,7 +1598,11 @@
         "Exports UploadConstraints interface for upload configuration",
         "Exports DEFAULT_UPLOAD_CONSTRAINTS constant (15 MB, uploads folder)",
         "Exports UploadRequest interface for upload parameters",
-        "Exports MultiUploadState interface for multiple file tracking"
+        "Exports MultiUploadState interface for multiple file tracking",
+        "Backend uses snake_case (Python convention) for response fields",
+        "UploadProgress status: idle | uploading | success | error",
+        "startedAt and completedAt timestamps for timing",
+        "MultiUploadState uses Map for tracking multiple files"
       ]
     },
     {
@@ -1633,6 +1675,48 @@
         "Calls deleteFile API from fileApi.ts",
         "Calls removeDocumentFromFolder to update state",
         "Shows toast notifications for success/error"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::upload_file",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "S4-001: POST /api/files/upload endpoint",
+        "Accepts multipart/form-data with file, case_id, folder_id, rename_to parameters",
+        "Validates file size (15 MB limit)",
+        "Sanitizes filename to prevent path traversal attacks",
+        "Creates folder structure if needed",
+        "Returns UploadResponse with file_path, file_name, size, message",
+        "HTTP 413 for file too large, 400 for validation errors, 500 for server errors"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::delete_file_endpoint",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "S4-002: DELETE /api/files/{case_id}/{folder_id}/{filename} endpoint",
+        "Validates path components to prevent path traversal",
+        "Returns DeleteResponse with success, message, file_name",
+        "HTTP 403 for access denied, 404 for file not found, 500 for server errors"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::check_file_exists_endpoint",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "S4-001: GET /api/files/exists/{case_id}/{folder_id}/{filename} endpoint",
+        "Used for duplicate file detection before upload",
+        "Returns FileExistsResponse with exists, file_name, suggested_name",
+        "suggested_name provides auto-renamed filename (e.g., document_1.pdf)"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::files_health_check",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "GET /api/files/health endpoint",
+        "Checks if public/documents directory exists",
+        "Returns storage availability status and configuration"
       ]
     }
   ],
@@ -2881,6 +2965,96 @@
       "from_": "src/contexts/AppContext.tsx",
       "to": "src/contexts/AppContext.tsx::refreshDocuments",
       "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::upload_file",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::delete_file_endpoint",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::check_file_exists_endpoint",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::files_health_check",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::validate_file_size",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::validate_case_path",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::create_folder_if_needed",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::upload_file",
+      "to": "backend/services/file_service.py::save_uploaded_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::delete_file_endpoint",
+      "to": "backend/services/file_service.py::delete_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::check_file_exists_endpoint",
+      "to": "backend/services/file_service.py::check_file_exists",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::check_file_exists_endpoint",
+      "to": "backend/services/file_service.py::generate_unique_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::check_file_exists_endpoint",
+      "to": "backend/services/file_service.py::sanitize_filename",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/files.py",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "backend/api/files.py::upload_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "backend/api/files.py::delete_file_endpoint",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "backend/api/files.py::check_file_exists_endpoint",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/lib/fileApi.ts",
+      "to": "backend/api/files.py::files_health_check",
+      "relationType": "calls"
     }
   ]
 }

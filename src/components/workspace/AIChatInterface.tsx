@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { slashCommands } from '@/data/mockData';
-import { Send, Plus, Search, Languages, EyeOff, FileOutput, CheckCircle, Mail, Database, Bot, Loader2, FileText, FolderOpen, Briefcase, Info } from 'lucide-react';
+import { Send, Plus, Search, Languages, EyeOff, FileOutput, CheckCircle, Mail, Database, Bot, Loader2, FileText, FolderOpen, Briefcase, Info, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { formatChatMessage } from '@/lib/messageFormatter';
+import { useTranslation } from 'react-i18next';
 
 const quickActionIcons: Record<string, React.ReactNode> = {
   '/convert': <FileOutput className="w-3.5 h-3.5" />,
@@ -18,13 +20,14 @@ const quickActionIcons: Record<string, React.ReactNode> = {
   '/fillForm': <FileOutput className="w-3.5 h-3.5" />,
 };
 
-const quickActions = [
-  { command: '/fillForm', label: 'Fill Form' },
-  { command: '/search', label: 'Search' },
-  { command: '/translate', label: 'Translate' },
-  { command: '/anonymize', label: 'Anonymize' },
-  { command: '/validateCase', label: 'Validate' },
-  { command: '/extractMetadata', label: 'Metadata' },
+// Quick actions config with translation keys
+const quickActionsConfig = [
+  { command: '/fillForm', labelKey: 'chat.fillForm' },
+  { command: '/search', labelKey: 'chat.search' },
+  { command: '/translate', labelKey: 'chat.translate' },
+  { command: '/anonymize', labelKey: 'chat.anonymize' },
+  { command: '/validateCase', labelKey: 'chat.validate' },
+  { command: '/extractMetadata', labelKey: 'chat.metadata' },
 ];
 
 export default function AIChatInterface() {
@@ -35,8 +38,10 @@ export default function AIChatInterface() {
     wsStatus,
     setHighlightedFolder,
     setViewMode,
-    isTyping
+    isTyping,
+    currentCase
   } = useApp();
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const [showCommands, setShowCommands] = useState(false);
   const [filteredCommands, setFilteredCommands] = useState(slashCommands);
@@ -102,28 +107,50 @@ export default function AIChatInterface() {
     });
   };
 
-  // S2-004: Format message with source citation highlighting
+  // S5-010: Clear conversation history
+  const clearChatHistory = async () => {
+    if (!currentCase) {
+      toast({
+        title: t('chat.clearHistoryError') || "Error",
+        description: "No case selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/chat/clear/${currentCase.id}`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: t('chat.clearHistorySuccess') || "History Cleared",
+          description: data.message || `Cleared ${data.messages_cleared} message(s) from conversation history`,
+        });
+      } else {
+        toast({
+          title: t('chat.clearHistoryError') || "Error",
+          description: data.message || "Failed to clear conversation history",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error clearing chat history:', error);
+      toast({
+        title: t('chat.clearHistoryError') || "Error",
+        description: "Failed to clear conversation history",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // S5-009: Format message with markdown rendering and S2-004 source citation highlighting
   const formatMessage = (content: string) => {
-    return content.split('\n').map((line, i) => {
-      // Bold text
-      line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      // Checkmarks and warnings
-      line = line.replace(/✅/g, '<span class="text-success">✅</span>');
-      line = line.replace(/⚠️/g, '<span class="text-warning">⚠️</span>');
-      // Slash commands
-      line = line.replace(/(\/\w+)/g, '<span class="slash-command">$1</span>');
-      // S2-004: Highlight source citations [Source: xxx]
-      line = line.replace(
-        /\[Source:\s*([^\]]+)\]/g,
-        '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs bg-primary/10 text-primary rounded border border-primary/20 font-mono">[Source: $1]</span>'
-      );
-      // S2-004: Highlight context indicators [Case: xxx], [Folder: xxx], [Document: xxx]
-      line = line.replace(
-        /\[(Case|Folder|Document):\s*([^\]]+)\]/g,
-        '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs bg-muted text-muted-foreground rounded border border-border font-mono">[$1: $2]</span>'
-      );
-      return <p key={i} dangerouslySetInnerHTML={{ __html: line || '&nbsp;' }} />;
-    });
+    // S5-009: Use new markdown formatter for proper rendering
+    return formatChatMessage(content);
   };
 
   // S2-004: Get active context sources for display
@@ -156,22 +183,38 @@ export default function AIChatInterface() {
       <div className="pane-header border-b border-pane-border">
         <div className="flex items-center gap-2">
           <Bot className="w-4 h-4 text-primary" />
-          <span>AI Assistant</span>
+          <span>{t('chat.aiAssistant') || 'AI Assistant'}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className={cn(
-            "w-2 h-2 rounded-full",
-            wsStatus === 'connected' && "bg-green-500",
-            wsStatus === 'connecting' && "bg-yellow-500 animate-pulse",
-            wsStatus === 'disconnected' && "bg-gray-400",
-            wsStatus === 'error' && "bg-red-500"
-          )} />
-          <span className="text-xs text-muted-foreground">
-            {wsStatus === 'connected' && 'Connected'}
-            {wsStatus === 'connecting' && 'Connecting...'}
-            {wsStatus === 'disconnected' && 'Disconnected'}
-            {wsStatus === 'error' && 'Connection Error'}
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "w-2 h-2 rounded-full",
+              wsStatus === 'connected' && "bg-green-500",
+              wsStatus === 'connecting' && "bg-yellow-500 animate-pulse",
+              wsStatus === 'disconnected' && "bg-gray-400",
+              wsStatus === 'error' && "bg-red-500"
+            )} />
+            <span className="text-xs text-muted-foreground">
+              {wsStatus === 'connected' && (t('chat.connected') || 'Connected')}
+              {wsStatus === 'connecting' && (t('chat.connecting') || 'Connecting...')}
+              {wsStatus === 'disconnected' && (t('chat.disconnected') || 'Disconnected')}
+              {wsStatus === 'error' && (t('chat.connectionError') || 'Connection Error')}
+            </span>
+          </div>
+          {/* S5-010: Clear History Button */}
+          <button
+            onClick={clearChatHistory}
+            disabled={wsStatus !== 'connected'}
+            className={cn(
+              "p-1.5 rounded-md transition-colors",
+              "hover:bg-accent hover:text-accent-foreground",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "text-muted-foreground"
+            )}
+            title={t('chat.clearHistory') || 'Clear conversation history'}
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
@@ -211,7 +254,7 @@ export default function AIChatInterface() {
         {isTyping && (
           <div className="chat-bubble chat-bubble-ai flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Thinking...</span>
+            <span>{t('chat.typing')}</span>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -220,14 +263,14 @@ export default function AIChatInterface() {
       {/* Quick Actions */}
       <div className="px-4 py-2 border-t border-pane-border bg-pane-header/30">
         <div className="flex flex-wrap gap-2">
-          {quickActions.map(({ command, label }) => (
+          {quickActionsConfig.map(({ command, labelKey }) => (
             <button
               key={command}
               onClick={() => insertCommand(command)}
               className="command-button"
             >
               {quickActionIcons[command]}
-              <span>{label}</span>
+              <span>{t(labelKey)}</span>
             </button>
           ))}
         </div>
@@ -258,7 +301,7 @@ export default function AIChatInterface() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message or / for commands..."
+              placeholder={t('chat.placeholder')}
               className="w-full h-11 px-4 pr-12 rounded-lg border border-input bg-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button

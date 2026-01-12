@@ -39,6 +39,22 @@ export interface FormField {
   shaclMetadata?: SHACLPropertyShape;
 }
 
+/**
+ * S5-002: Suggested value for a form field
+ * Used when AI extracts a value different from the current field value
+ */
+export interface SuggestedValue {
+  fieldId: string;
+  value: string;
+  confidence: number;
+  current: string;
+}
+
+/**
+ * S5-002: Map of field IDs to their suggested values
+ */
+export type FormSuggestions = Record<string, SuggestedValue>;
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';

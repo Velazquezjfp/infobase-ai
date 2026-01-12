@@ -1,0 +1,97 @@
+{
+  "requirement_id": "S5-012",
+  "requirement_title": "Document Type Capabilities and Command Availability",
+  "last_updated": "2026-01-09T15:29:16Z",
+  "tests": {
+    "TC-S5-012-01": {
+      "description": "Select JPG document, verify Anonymize and Translate buttons enabled, Search disabled",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-01.py"
+    },
+    "TC-S5-012-02": {
+      "description": "Select PDF document, verify Translate and Search enabled, Anonymize disabled",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-02.py"
+    },
+    "TC-S5-012-03": {
+      "description": "Select EML document, verify only Translate enabled, all others disabled",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-03.py"
+    },
+    "TC-S5-012-04": {
+      "description": "Hover over disabled button, verify tooltip explains why disabled",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-04.py"
+    },
+    "TC-S5-012-05": {
+      "description": "Select TXT document, verify all buttons enabled",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-05.py"
+    },
+    "TC-S5-012-06": {
+      "description": "Type '/anonymize' on PDF, verify AI responds 'Anonymization not supported for PDFs'",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-06.py"
+    },
+    "TC-S5-012-07": {
+      "description": "Click disabled Search button on image, verify no action triggered",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-07.py"
+    },
+    "TC-S5-012-08": {
+      "description": "Type '/search what is the passport number' on PDF, verify search executes successfully",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-08.py"
+    },
+    "TC-S5-012-09": {
+      "description": "Select image, verify can anonymize and translate but not search",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-09.py"
+    },
+    "TC-S5-012-10": {
+      "description": "Backend receives /search request for JPG, verify returns error response",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-10.py"
+    },
+    "TC-S5-012-11": {
+      "description": "Disabled button has visual indication (gray, opacity reduced)",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-11.py"
+    },
+    "TC-S5-012-12": {
+      "description": "Document with unknown type, verify all buttons disabled with 'Unsupported type' tooltip",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-12.py"
+    },
+    "TC-S5-012-13": {
+      "description": "Ask AI 'Can I anonymize this PDF?', verify AI responds 'No, only images can be anonymized'",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-13.py"
+    },
+    "TC-S5-012-14": {
+      "description": "Switch from PDF to JPG, verify toolbar button states update dynamically",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-012-14.py"
+    }
+  },
+  "summary": {
+    "total": 14,
+    "passed": 0,
+    "failed": 0,
+    "not_run": 14
+  }
+}

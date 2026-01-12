@@ -11,12 +11,17 @@ and ensure efficient resource usage.
 import logging
 import os
 import time
+import json
+import re
 from typing import Optional, Dict, Any, AsyncGenerator, Union
 
 import google.generativeai as genai
 from google.generativeai.types import GenerationConfig
+from markdownify import markdownify
 
 from backend.services.context_manager import ContextManager
+from backend.services.conversation_manager import get_conversation_manager
+from backend.config import ENABLE_CHAT_HISTORY
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +43,7 @@ class GeminiService:
     _instance: Optional['GeminiService'] = None
     _model: Optional[Any] = None
     _context_manager: Optional[ContextManager] = None
+    _conversation_manager: Optional[Any] = None
 
     def __new__(cls) -> 'GeminiService':
         """
@@ -58,7 +64,8 @@ class GeminiService:
         Initialize the Gemini service.
 
         Configures the Gemini API client using the API key from environment
-        variables and initializes the generative model and context manager.
+        variables and initializes the generative model, context manager,
+        and conversation manager (S5-010).
 
         Raises:
             ValueError: If GEMINI_API_KEY is not found in environment.
@@ -67,6 +74,8 @@ class GeminiService:
             self._initialize_client()
         if self._context_manager is None:
             self._initialize_context_manager()
+        if self._conversation_manager is None:
+            self._initialize_conversation_manager()
 
     def _initialize_client(self) -> None:
         """
@@ -112,13 +121,31 @@ class GeminiService:
             logger.error(f"Failed to initialize context manager: {str(e)}")
             raise
 
+    def _initialize_conversation_manager(self) -> None:
+        """
+        Initialize the conversation manager for chat history (S5-010).
+
+        Creates a ConversationManager instance for managing in-memory
+        conversation history when ENABLE_CHAT_HISTORY is enabled.
+        """
+        try:
+            self._conversation_manager = get_conversation_manager()
+            logger.info(
+                f"Conversation manager initialized "
+                f"(chat history: {'enabled' if ENABLE_CHAT_HISTORY else 'disabled'})"
+            )
+        except Exception as e:
+            logger.error(f"Failed to initialize conversation manager: {str(e)}")
+            raise
+
     async def generate_response(
         self,
         prompt: str,
         case_id: Optional[str] = None,
         folder_id: Optional[str] = None,
         document_content: Optional[str] = None,
-        stream: bool = False
+        stream: bool = False,
+        language: str = 'de'
     ) -> Union[str, AsyncGenerator[str, None]]:
         """
         Generate an AI response using Gemini API with case-instance context.
@@ -135,6 +162,7 @@ class GeminiService:
                       (e.g., "personal-data"). If None, only case context loaded.
             document_content: Optional document text to analyze.
             stream: If True, enable streaming responses for real-time delivery.
+            language: Language code ('de' or 'en') for AI response language (S5-014).
 
         Returns:
             Union[str, AsyncGenerator[str, None]]: Complete response text if
@@ -172,8 +200,24 @@ class GeminiService:
                     document_content
                 )
 
-            # Build the complete prompt with context and document content
-            full_prompt = self._build_prompt(prompt, document_content, merged_context)
+            # S5-010: Get conversation history if enabled
+            conversation_history = []
+            if ENABLE_CHAT_HISTORY and case_id and self._conversation_manager:
+                conversation_history = self._conversation_manager.prepare_history_for_prompt(case_id)
+                if conversation_history:
+                    logger.info(
+                        f"Including conversation history: {len(conversation_history)} messages "
+                        f"for case {case_id}"
+                    )
+
+            # Build the complete prompt with context, document content, conversation history, and language
+            full_prompt = self._build_prompt(
+                prompt,
+                document_content,
+                merged_context,
+                conversation_history=conversation_history,
+                language=language
+            )
 
             logger.info(
                 f"Generating response - "
@@ -196,11 +240,13 @@ class GeminiService:
 
             if stream:
                 # Return async generator for streaming mode
+                # S5-010: Pass prompt for conversation history saving
                 return self._generate_streaming_response(
                     full_prompt,
                     generation_config,
                     start_time,
-                    case_id
+                    case_id,
+                    user_prompt=prompt
                 )
             else:
                 # Non-streaming mode - return complete response
@@ -212,10 +258,19 @@ class GeminiService:
                 # Extract text from response
                 response_text = response.text
 
+                # S5-009: Format response (HTML to markdown, JSON to tables)
+                formatted_response = self.format_response(response_text)
+
+                # S5-010: Save conversation history if enabled
+                if ENABLE_CHAT_HISTORY and case_id and self._conversation_manager:
+                    self._conversation_manager.add_message(case_id, "user", prompt)
+                    self._conversation_manager.add_message(case_id, "assistant", formatted_response)
+                    logger.debug(f"Saved conversation turn to history for case {case_id}")
+
                 # Calculate performance metrics
                 end_time = time.perf_counter()
                 latency_ms = (end_time - start_time) * 1000
-                token_count = len(response_text.split())
+                token_count = len(formatted_response.split())
 
                 # Log performance metrics
                 logger.info(
@@ -223,10 +278,10 @@ class GeminiService:
                     f"latency: {latency_ms:.2f}ms, "
                     f"tokens: {token_count}, "
                     f"case_id: {case_id or 'none'}, "
-                    f"response_length: {len(response_text)}"
+                    f"response_length: {len(formatted_response)}"
                 )
 
-                return response_text
+                return formatted_response
 
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
@@ -244,7 +299,8 @@ class GeminiService:
         full_prompt: str,
         generation_config: GenerationConfig,
         start_time: float,
-        case_id: Optional[str]
+        case_id: Optional[str],
+        user_prompt: Optional[str] = None
     ) -> AsyncGenerator[str, None]:
         """
         Generate streaming response with performance metrics.
@@ -254,6 +310,7 @@ class GeminiService:
             generation_config: Gemini generation configuration.
             start_time: Request start time for metrics.
             case_id: Case identifier for logging.
+            user_prompt: Original user prompt (for conversation history, S5-010).
 
         Yields:
             str: Response text chunks as they arrive.
@@ -303,6 +360,12 @@ class GeminiService:
                 f"case_id: {case_id or 'none'}, "
                 f"response_length: {len(response_text)}"
             )
+
+            # S5-010: Save conversation history if enabled
+            if ENABLE_CHAT_HISTORY and case_id and user_prompt and self._conversation_manager:
+                self._conversation_manager.add_message(case_id, "user", user_prompt)
+                self._conversation_manager.add_message(case_id, "assistant", response_text)
+                logger.debug(f"Saved streaming conversation turn to history for case {case_id}")
 
         except Exception as e:
             logger.error(f"Error in streaming response: {str(e)}")
@@ -378,29 +441,38 @@ class GeminiService:
         prompt: str,
         document_content: Optional[str] = None,
         context: Optional[str] = None,
-        context_sources: Optional[list] = None
+        context_sources: Optional[list] = None,
+        conversation_history: Optional[list] = None,
+        language: str = 'de'
     ) -> str:
         """
         S2-004: Build a complete prompt with context, document content, and source labels.
+        S5-010: Enhanced with conversation history support.
+        S5-014: Enhanced with language parameter for AI response language.
 
-        Combines user prompt, case context, and document content into
-        a well-structured prompt for the AI model. Enhanced with source
-        tracking for AI transparency.
+        Combines user prompt, case context, document content, and conversation
+        history into a well-structured prompt for the AI model. Enhanced with
+        source tracking for AI transparency and language-specific responses.
 
         Args:
             prompt: The user's question or instruction.
             document_content: Optional document text to include.
             context: Optional case/folder context information.
             context_sources: Optional list of context sources for transparency.
+            conversation_history: Optional list of previous conversation turns (S5-010).
+            language: Language code ('de' or 'en') for AI response language (S5-014).
 
         Returns:
-            str: The complete formatted prompt with source labels.
+            str: The complete formatted prompt with source labels and history.
         """
         parts = []
 
         # S2-004: Add system instructions for source citation
+        # S5-014: Add language instruction based on parameter
+        language_name = 'German' if language == 'de' else 'English'
         parts.append("# System Instructions")
         parts.append("You are an AI assistant helping with case management.")
+        parts.append(f"IMPORTANT: Respond in {language_name} language.")
         parts.append("When answering questions, cite your sources when the information")
         parts.append("comes from the provided context (case, folder, or document).")
         parts.append("Use format: [Source: <source_name>] when citing specific information.")
@@ -427,6 +499,15 @@ class GeminiService:
             parts.append(document_content)
             parts.append("")
 
+        # S5-010: Add conversation history if provided
+        if conversation_history:
+            parts.append("# Conversation History")
+            parts.append("(Previous messages in this conversation)")
+            for msg in conversation_history:
+                role_label = "User" if msg["role"] == "user" else "Assistant"
+                parts.append(f"{role_label}: {msg['content']}")
+                parts.append("")
+
         # Add user prompt
         parts.append("# User Request")
         parts.append(prompt)
@@ -439,6 +520,127 @@ class GeminiService:
         parts.append("- If information is not found in the context, say so clearly")
 
         return "\n".join(parts)
+
+    def _is_json_data(self, text: str) -> bool:
+        """
+        Detect if text contains JSON data structures.
+
+        Checks for JSON object or array patterns in the text.
+
+        Args:
+            text: Text content to check.
+
+        Returns:
+            bool: True if JSON data is detected.
+        """
+        text = text.strip()
+        # Check for JSON object or array patterns
+        return (
+            (text.startswith('{') and text.endswith('}')) or
+            (text.startswith('[') and text.endswith(']'))
+        )
+
+    def _format_json_as_markdown_table(self, json_str: str) -> str:
+        """
+        Convert JSON data to markdown table format.
+
+        Transforms JSON objects or arrays into markdown tables
+        for better readability in chat responses.
+
+        Args:
+            json_str: JSON formatted string.
+
+        Returns:
+            str: Markdown table representation of the JSON data.
+        """
+        try:
+            data = json.loads(json_str)
+
+            # Handle array of objects (most common case for tables)
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                # Get headers from first object
+                headers = list(data[0].keys())
+
+                # Build markdown table
+                lines = []
+                lines.append('| ' + ' | '.join(headers) + ' |')
+                lines.append('| ' + ' | '.join(['---'] * len(headers)) + ' |')
+
+                for item in data:
+                    row = [str(item.get(h, '')) for h in headers]
+                    lines.append('| ' + ' | '.join(row) + ' |')
+
+                return '\n'.join(lines)
+
+            # Handle single object as key-value table
+            elif isinstance(data, dict):
+                lines = []
+                lines.append('| Property | Value |')
+                lines.append('| --- | --- |')
+
+                for key, value in data.items():
+                    lines.append(f'| {key} | {value} |')
+
+                return '\n'.join(lines)
+
+            # For other types, return as-is
+            return json_str
+
+        except json.JSONDecodeError:
+            # If not valid JSON, return as-is
+            return json_str
+        except Exception as e:
+            logger.warning(f"Error formatting JSON as table: {str(e)}")
+            return json_str
+
+    def format_response(self, raw_response: str) -> str:
+        """
+        S5-009: Format AI response by converting HTML to Markdown if needed.
+
+        Processes raw AI responses to ensure proper markdown formatting
+        and structured data presentation. Converts HTML to markdown and
+        transforms JSON data into readable tables.
+
+        Args:
+            raw_response: Raw response text from Gemini API.
+
+        Returns:
+            str: Formatted response in markdown format.
+
+        Example:
+            >>> service = GeminiService()
+            >>> formatted = service.format_response("<p>Hello <strong>world</strong></p>")
+            >>> print(formatted)
+            Hello **world**
+        """
+        response = raw_response
+
+        # Convert HTML to Markdown if HTML detected
+        if '<p>' in response or '<ul>' in response or '<div>' in response:
+            try:
+                response = markdownify(
+                    response,
+                    heading_style="ATX",  # Use # style headings
+                    bullets="-",  # Use - for bullet points
+                    strip=['script', 'style']  # Remove dangerous elements
+                )
+                logger.debug("Converted HTML response to markdown")
+            except Exception as e:
+                logger.warning(f"Failed to convert HTML to markdown: {str(e)}")
+                # Continue with original response if conversion fails
+
+        # Convert JSON data to markdown table if applicable
+        if self._is_json_data(response):
+            try:
+                table_response = self._format_json_as_markdown_table(response)
+                if table_response != response:  # If conversion was successful
+                    response = table_response
+                    logger.debug("Converted JSON data to markdown table")
+            except Exception as e:
+                logger.warning(f"Failed to format JSON as table: {str(e)}")
+                # Continue with original response if conversion fails
+
+        return response
 
     def is_initialized(self) -> bool:
         """

@@ -3,6 +3,7 @@ import { useApp } from '@/contexts/AppContext';
 import { Folder, Document } from '@/types/case';
 import { ChevronRight, ChevronDown, Folder as FolderIcon, FolderOpen, FileText, FileJson, FileCode, File, Upload, Plus, MoreVertical, Loader2, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -44,6 +45,7 @@ interface FolderItemProps {
 
 function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: FolderItemProps) {
   const { toggleFolder, selectedDocument, setSelectedDocument, setViewMode, highlightedFolder, currentCase } = useApp();
+  const { t } = useTranslation();
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [hoveredDocId, setHoveredDocId] = useState<string | null>(null);
@@ -134,7 +136,9 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
             ) : (
               <FolderIcon className="w-4 h-4 text-warning" />
             )}
-            <span className="flex-1 truncate">{isDragOver ? 'Drop here!' : folder.name}</span>
+            <span className="flex-1 truncate">
+              {isDragOver ? t('documents.dropHere') : (t(`folders.${folder.name}`, folder.name))}
+            </span>
             <span className="text-xs text-muted-foreground">
               {folder.documents.length}
             </span>
@@ -143,16 +147,16 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
         <ContextMenuContent>
           <ContextMenuItem onClick={handleUploadClick}>
             <Upload className="w-4 h-4 mr-2" />
-            Upload Document
+            {t('documents.uploadDocument')}
           </ContextMenuItem>
           <ContextMenuItem>
             <Plus className="w-4 h-4 mr-2" />
-            Add Subfolder
+            {t('documents.addSubfolder')}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem>
             <MoreVertical className="w-4 h-4 mr-2" />
-            View Metadata
+            {t('documents.viewMetadata')}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -185,14 +189,14 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
                         setSelectedDocument({ ...doc, content });
                         setViewMode('document');
                         toast({
-                          title: 'Document loaded',
-                          description: `${doc.name} loaded successfully`,
+                          title: t('documents.documentLoaded'),
+                          description: `${doc.name} ${t('documents.loadedSuccessfully')}`,
                         });
                       } catch (error) {
                         console.error('Failed to load document:', error);
                         toast({
-                          title: 'Error loading document',
-                          description: error instanceof Error ? error.message : 'Failed to load document content',
+                          title: t('documents.errorLoadingDocument'),
+                          description: error instanceof Error ? error.message : t('documents.failedToLoadContent'),
                           variant: 'destructive',
                         });
                       } finally {
@@ -230,11 +234,11 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
               <ContextMenuContent>
                 <ContextMenuItem onClick={() => setViewMode('document')}>
                   <FileText className="w-4 h-4 mr-2" />
-                  View Document
+                  {t('documents.viewDocument')}
                 </ContextMenuItem>
                 <ContextMenuItem onClick={() => setViewMode('metadata')}>
                   <MoreVertical className="w-4 h-4 mr-2" />
-                  View Metadata
+                  {t('documents.viewMetadata')}
                 </ContextMenuItem>
                 {isUploadsFolder && (
                   <>
@@ -244,7 +248,7 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
                       className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete File
+                      {t('documents.deleteFile')}
                     </ContextMenuItem>
                   </>
                 )}
@@ -262,6 +266,7 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
 
 export default function CaseTreeExplorer() {
   const { currentCase, setViewMode, isSidebarCollapsed, setIsSidebarCollapsed, addDocumentToFolder, removeDocumentFromFolder } = useApp();
+  const { t } = useTranslation();
   const [uploadQueue, setUploadQueue] = useState<UploadProgress[]>([]);
   const [isDraggingOverDropZone, setIsDraggingOverDropZone] = useState(false);
   const dropZoneFileInputRef = useRef<HTMLInputElement>(null);
@@ -613,7 +618,7 @@ export default function CaseTreeExplorer() {
       <div className="pane-header">
         <div className="flex items-center gap-2">
           <FolderOpen className="w-4 h-4 text-primary" />
-          <span>Case Explorer</span>
+          <span>{t('documents.caseExplorer')}</span>
         </div>
         <button
           onClick={() => setIsSidebarCollapsed(true)}
@@ -627,8 +632,8 @@ export default function CaseTreeExplorer() {
       <div className="p-2 border-b border-pane-border bg-pane-header/50">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium text-xs">{currentCase.id}</p>
-            <p className="text-xs text-muted-foreground truncate">{currentCase.name}</p>
+            <p className="font-medium text-xs">{currentCase.id.replace(/^ACTE-/, `${t('case.prefix')}-`)}</p>
+            <p className="text-xs text-muted-foreground truncate">{t(`caseTemplates.integration`, currentCase.name)}</p>
           </div>
           <span className={cn(
             'px-1.5 py-0.5 text-xs rounded-full',
@@ -673,7 +678,7 @@ export default function CaseTreeExplorer() {
         >
           <Upload className={cn('w-4 h-4', isDraggingOverDropZone && 'animate-bounce')} />
           <span className="text-xs font-medium">
-            {isDraggingOverDropZone ? 'Drop to upload!' : 'Click or drop files here'}
+            {isDraggingOverDropZone ? t('chat.dropToUpload') : t('chat.clickOrDrop')}
           </span>
         </div>
       </div>

@@ -555,11 +555,25 @@ export const sampleCaseFormData: Record<string, FormField[]> = {
   }),
 };
 
-export const initialChatMessages: ChatMessage[] = [
-  {
-    id: 'msg-1',
-    role: 'assistant',
-    content: 'Welcome to the BAMF Case Management System. I am ready to assist you with case ACTE-2024-001: German Integration Course Application.\n\nYou can use slash commands (/) to perform actions or simply ask me questions about the case.',
-    timestamp: new Date().toISOString(),
-  },
-];
+// S5-014: Function to generate initial messages based on language
+export const getInitialChatMessages = (language: 'de' | 'en' = 'de', caseId: string = 'ACTE-2024-001', caseName: string = 'German Integration Course Application'): ChatMessage[] => {
+  const casePrefix = language === 'de' ? 'Akte' : 'Case';
+  const translatedCaseId = caseId.replace('ACTE', casePrefix);
+
+  const messages = {
+    de: `Willkommen beim BAMF Aktenverwaltungssystem. Ich bin bereit, Sie bei der ${translatedCaseId} zu unterstützen: ${caseName}.\n\nSie können Slash-Befehle (/) verwenden, um Aktionen auszuführen, oder mir einfach Fragen zur Akte stellen.`,
+    en: `Welcome to the BAMF Case Management System. I am ready to assist you with ${translatedCaseId}: ${caseName}.\n\nYou can use slash commands (/) to perform actions or simply ask me questions about the case.`
+  };
+
+  return [
+    {
+      id: 'msg-1',
+      role: 'assistant',
+      content: messages[language],
+      timestamp: new Date().toISOString(),
+    },
+  ];
+};
+
+// Keep for backwards compatibility, defaulting to German
+export const initialChatMessages: ChatMessage[] = getInitialChatMessages('de');

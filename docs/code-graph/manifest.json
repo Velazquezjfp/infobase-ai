@@ -1,11 +1,11 @@
 {
-  "version": "1.4.0",
-  "lastUpdated": "2024-12-24T14:30:00Z",
+  "version": "1.5.0",
+  "lastUpdated": "2026-01-09T15:45:00Z",
   "lastUpdateBy": "Code Graph Builder Agent",
   "description": "BAMF AI Case Management System - Code Architecture Graph",
   "statistics": {
-    "totalEntities": 127,
-    "totalRelations": 251,
+    "totalEntities": 128,
+    "totalRelations": 267,
     "entitiesByType": {
       "Context": 1,
       "RootComponent": 1,
@@ -24,38 +24,39 @@
       "ReactContext": 1,
       "CustomHook": 3,
       "APIRouter": 3,
-      "Class": 13,
+      "Class": 7,
       "WebSocketEndpoint": 1,
-      "HTTPEndpoint": 6,
+      "HTTPEndpoint": 10,
       "Service": 5,
       "Dataclass": 8,
       "Enum": 1,
-      "Function": 28,
+      "Function": 31,
       "Method": 2,
       "Tool": 2,
-      "Module": 4,
+      "Module": 5,
       "AbstractClass": 1,
       "Package": 2,
       "Script": 1,
       "Interface": 4,
-      "HelperFunction": 8,
+      "HelperFunction": 6,
       "Constant": 1
     },
     "relationsByType": {
-      "imports": 58,
-      "defines": 56,
-      "uses": 19,
+      "imports": 76,
+      "defines": 74,
+      "uses": 22,
       "defines_route": 3,
       "renders": 3,
-      "uses_hook": 13,
+      "uses_hook": 14,
       "exports": 3,
       "defines_method": 2,
-      "registers_route": 7,
-      "calls": 36,
+      "registers_route": 8,
+      "calls": 54,
       "connects_to": 2,
       "used_by": 1,
       "extends": 2,
-      "returns": 2
+      "returns": 2,
+      "uses_indirectly": 1
     }
   },
   "languages": {
@@ -78,6 +79,21 @@
     "S4-002": "File Deletion with confirmation dialog and backend API"
   },
   "updateHistory": [
+    {
+      "date": "2026-01-09",
+      "changes": [
+        "Incremental update: Enhanced observations for S3-001 and S4-001/S4-002 features",
+        "Added 4 new HTTPEndpoint entities for backend/api/files.py",
+        "Added 18 new relationships for file service function calls",
+        "Enhanced AnonymizationService with _extract_base64_data and _apply_black_boxes method details",
+        "Enhanced backend/api/chat.py with global instance and routing observations",
+        "Enhanced src/contexts/AppContext.tsx with localStorage persistence details",
+        "Enhanced src/components/workspace/CaseTreeExplorer.tsx with S4-001/S4-002 upload and delete handlers",
+        "Enhanced src/lib/fileApi.ts with DeleteResult and FileExistsResult interfaces",
+        "Enhanced src/types/file.ts with status and timing observations",
+        "Total observations increased from 891 to 951 (+60)"
+      ]
+    },
     {
       "date": "2024-12-24",
       "changes": [

@@ -58,6 +58,20 @@ export interface FormUpdateMessage extends BaseMessage {
 }
 
 /**
+ * S5-002: Form suggestion message sent from server for non-empty fields
+ * Displays inline suggestions with accept/reject actions
+ */
+export interface FormSuggestionMessage extends BaseMessage {
+  type: 'form_suggestion';
+  suggestions: Record<string, {
+    value: string;
+    confidence: number;
+    current: string;
+  }>;
+  timestamp?: string;
+}
+
+/**
  * System message for connection status and notifications
  */
 export interface SystemMessage extends BaseMessage {
@@ -105,6 +119,7 @@ export type WebSocketMessage =
   | ChatResponse
   | ChatChunkMessage
   | FormUpdateMessage
+  | FormSuggestionMessage
   | SystemMessage
   | ErrorMessage
   | AnonymizationResponse;

@@ -10,7 +10,26 @@
       "Bash(pip install:*)",
       "Bash(source backend/venv/bin/activate)",
       "Bash(git check-ignore:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__knowledge-graph-custom-path__set_graph_path",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion status --porcelain)",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion diff --name-only HEAD~5)",
+      "mcp__knowledge-graph-custom-path__get_statistics",
+      "mcp__knowledge-graph-custom-path__backup_graph",
+      "mcp__knowledge-graph-custom-path__search_nodes",
+      "mcp__knowledge-graph-custom-path__add_observations",
+      "mcp__knowledge-graph-custom-path__create_entities",
+      "mcp__knowledge-graph-custom-path__create_relations",
+      "Bash(find:*)",
+      "WebSearch",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(done)",
+      "Bash(curl:*)",
+      "Bash(xargs kill -9)",
+      "mcp__knowledge-graph-custom-path__read_graph"
     ]
   }
 }

@@ -1,6 +1,7 @@
 import { useApp } from '@/contexts/AppContext';
 import { Shield, LogOut, Settings, User, ToggleLeft, ToggleRight, Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -14,8 +15,9 @@ import CaseSearchDialog from './CaseSearchDialog';
 import NewCaseDialog from './NewCaseDialog';
 
 export default function WorkspaceHeader() {
-  const { user, setUser, isAdminMode, setIsAdminMode, currentCase } = useApp();
+  const { user, setUser, isAdminMode, setIsAdminMode, currentCase, currentLanguage, setLanguage } = useApp();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     setUser(null);
@@ -45,7 +47,7 @@ export default function WorkspaceHeader() {
             trigger={
               <Button variant="outline" size="sm" className="gap-2">
                 <Search className="w-4 h-4" />
-                <span className="hidden sm:inline">Search</span>
+                <span className="hidden sm:inline">{t('workspace.search')}</span>
               </Button>
             }
           />
@@ -53,13 +55,32 @@ export default function WorkspaceHeader() {
             trigger={
               <Button variant="default" size="sm" className="gap-2">
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">New Case</span>
+                <span className="hidden sm:inline">{t('workspace.newCase')}</span>
               </Button>
             }
           />
         </div>
 
         <div className="h-6 w-px bg-border" />
+
+        {/* Language Toggle Button */}
+        <button
+          onClick={() => setLanguage(currentLanguage === 'de' ? 'en' : 'de')}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
+          title={t('language.switchLanguage')}
+        >
+          {currentLanguage === 'de' ? (
+            <>
+              <span>🇬🇧</span>
+              <span>EN</span>
+            </>
+          ) : (
+            <>
+              <span>🇩🇪</span>
+              <span>DE</span>
+            </>
+          )}
+        </button>
 
         {/* Admin Mode Toggle */}
         <button
@@ -76,7 +97,7 @@ export default function WorkspaceHeader() {
           ) : (
             <ToggleLeft className="w-4 h-4" />
           )}
-          {isAdminMode ? 'Admin Mode' : 'User Mode'}
+          {isAdminMode ? t('workspace.adminMode') : t('workspace.userMode')}
         </button>
 
         {/* User Menu */}
@@ -92,16 +113,16 @@ export default function WorkspaceHeader() {
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem>
               <User className="w-4 h-4 mr-2" />
-              Profile
+              {t('workspace.profile')}
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Settings className="w-4 h-4 mr-2" />
-              Settings
+              {t('workspace.settings')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-destructive">
               <LogOut className="w-4 h-4 mr-2" />
-              Logout
+              {t('workspace.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

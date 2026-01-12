@@ -1,0 +1,85 @@
+{
+  "requirement_id": "S5-001",
+  "requirement_title": "Natural Language Form Field Modification with SHACL Validation",
+  "last_updated": "2026-01-09T16:30:00Z",
+  "tests": {
+    "TC-S5-001-01": {
+      "description": "Enter 'Add an email field for contact email', verify field created with type='text', validationPattern includes '@'",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-01.py"
+    },
+    "TC-S5-001-02": {
+      "description": "Verify generated SHACL shape has sh:path='schema:email' and sh:pattern for email validation",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-02.py"
+    },
+    "TC-S5-001-03": {
+      "description": "Enter 'Add a phone number field', verify field has sh:pattern for phone validation",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-03.py"
+    },
+    "TC-S5-001-04": {
+      "description": "Enter 'Add a name field for applicant full name', verify field has alphanumeric-only validation pattern",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-04.py"
+    },
+    "TC-S5-001-05": {
+      "description": "Click 'View SHACL' icon, verify dialog displays complete JSON-LD SHACL shape for all form fields",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-05.py"
+    },
+    "TC-S5-001-06": {
+      "description": "Modify form by adding a field, verify SHACL shape updates automatically in real-time",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-06.py"
+    },
+    "TC-S5-001-07": {
+      "description": "Enter invalid email 'testexample.com' in email field, verify validation error displayed inline",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-07.py"
+    },
+    "TC-S5-001-08": {
+      "description": "Enter name with numbers 'John123', verify validation error 'Name must contain only letters'",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-08.py"
+    },
+    "TC-S5-001-09": {
+      "description": "Enter 'Remove the phone number field', verify field removed and SHACL shape updated",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-09.py"
+    },
+    "TC-S5-001-10": {
+      "description": "Enter ambiguous command 'Add a field', verify clarification request from AI",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-10.py"
+    },
+    "TC-S5-001-11": {
+      "description": "Copy SHACL shape to clipboard, verify valid JSON-LD format",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-11.py"
+    },
+    "TC-S5-001-12": {
+      "description": "Add date field, verify sh:datatype='xsd:date' and sh:pattern for ISO date format",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-001-12.py"
+    }
+  },
+  "summary": {
+    "total": 12,
+    "passed": 0,
+    "failed": 0,
+    "not_run": 12
+  }
+}

@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Case, Document, FormField, ChatMessage } from '@/types/case';
-import { mockCase, initialFormFields, initialChatMessages, sampleCases, sampleCaseFormData, createNewCase } from '@/data/mockData';
+import { Case, Document, FormField, ChatMessage, FormSuggestions, SuggestedValue } from '@/types/case';
+import { mockCase, initialFormFields, initialChatMessages, getInitialChatMessages, sampleCases, sampleCaseFormData, createNewCase } from '@/data/mockData';
 import { WebSocketState, ConnectionStatus, WebSocketMessage, AnonymizationResponse } from '@/types/websocket';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/localStorage';
 import { useToast } from '@/hooks/use-toast';
+import i18n from '@/i18n/config';
 
 interface AppContextType {
   user: string | null;
@@ -51,6 +52,13 @@ interface AppContextType {
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
   toggleFolder: (folderId: string) => void;
+  // S5-002: Form suggestions
+  formSuggestions: FormSuggestions;
+  acceptSuggestion: (fieldId: string) => void;
+  rejectSuggestion: (fieldId: string) => void;
+  // S5-014: Language toggle
+  currentLanguage: 'de' | 'en';
+  setLanguage: (lang: 'de' | 'en') => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -85,7 +93,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return initialFormFields;
   });
 
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialChatMessages);
+  // S5-014: Initialize chat messages with language-aware welcome message
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
+    const storedLanguage = localStorage.getItem('bamf_language');
+    const language = (storedLanguage === 'en' || storedLanguage === 'de') ? storedLanguage : 'de';
+    return getInitialChatMessages(language);
+  });
   const [highlightedFolder, setHighlightedFolder] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -96,6 +109,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isAnonymizing, setIsAnonymizing] = useState(false);
+
+  // S5-002: Form suggestions state
+  const [formSuggestions, setFormSuggestions] = useState<FormSuggestions>({});
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set());
+
+  // S5-014: Language state - load from localStorage, default to 'de'
+  const [currentLanguage, setCurrentLanguage] = useState<'de' | 'en'>(() => {
+    const stored = localStorage.getItem('bamf_language');
+    return (stored === 'en' || stored === 'de') ? stored : 'de';
+  });
+
+  // S5-014: Language setter function
+  const setLanguage = (lang: 'de' | 'en') => {
+    setCurrentLanguage(lang);
+    localStorage.setItem('bamf_language', lang);
+    i18n.changeLanguage(lang);
+
+    // Update the initial welcome message if it exists (first message with id 'msg-1')
+    setChatMessages(messages => {
+      if (messages.length > 0 && messages[0].id === 'msg-1') {
+        const newInitialMessages = getInitialChatMessages(lang, currentCase.id, currentCase.name);
+        return [newInitialMessages[0], ...messages.slice(1)];
+      }
+      return messages;
+    });
+  };
 
   const updateFormField = (id: string, value: string) => {
     setFormFields(fields =>
@@ -110,6 +149,70 @@ export function AppProvider({ children }: { children: ReactNode }) {
         field.id === id ? { ...field, value } : field
       ) || [],
     }));
+
+    // S5-002: Clear suggestion for this field if it exists
+    setFormSuggestions(prev => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+  };
+
+  // S5-002: Accept a suggested value
+  const acceptSuggestion = (fieldId: string) => {
+    const suggestion = formSuggestions[fieldId];
+    if (!suggestion) return;
+
+    // Get field label for chat message
+    const field = formFields.find(f => f.id === fieldId);
+    const fieldLabel = field?.label || fieldId;
+
+    // Update the form field with suggested value
+    updateFormField(fieldId, suggestion.value);
+
+    // Remove suggestion from state
+    setFormSuggestions(prev => {
+      const updated = { ...prev };
+      delete updated[fieldId];
+      return updated;
+    });
+
+    // Add confirmation chat message
+    addChatMessage({
+      role: 'assistant',
+      content: `✅ Updated field '${fieldLabel}' with suggested value: "${suggestion.value}"`,
+    });
+
+    toast({
+      title: 'Suggestion accepted',
+      description: `Field '${fieldLabel}' updated successfully.`,
+    });
+  };
+
+  // S5-002: Reject a suggested value
+  const rejectSuggestion = (fieldId: string) => {
+    const suggestion = formSuggestions[fieldId];
+    if (!suggestion) return;
+
+    // Get field label for chat message
+    const field = formFields.find(f => f.id === fieldId);
+    const fieldLabel = field?.label || fieldId;
+
+    // Add to dismissed set (persists until navigation)
+    setDismissedSuggestions(prev => new Set(prev).add(fieldId));
+
+    // Remove suggestion from state
+    setFormSuggestions(prev => {
+      const updated = { ...prev };
+      delete updated[fieldId];
+      return updated;
+    });
+
+    // Add confirmation chat message
+    addChatMessage({
+      role: 'assistant',
+      content: `❌ Rejected suggestion for field '${fieldLabel}'`,
+    });
   };
 
   const switchCase = (caseId: string) => {
@@ -276,7 +379,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setWsStatus('connecting');
 
     try {
-      const wsUrl = `ws://localhost:8000/ws/chat/${currentCase.id}`;
+      // S5-014: Include language parameter in WebSocket URL
+      const wsUrl = `ws://localhost:8000/ws/chat/${currentCase.id}?language=${currentLanguage}`;
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
@@ -340,6 +444,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
               Object.entries(message.updates).forEach(([fieldId, value]) => {
                 updateFormField(fieldId, value);
               });
+              break;
+
+            case 'form_suggestion':
+              // S5-002: Handle form suggestions for non-empty fields
+              const suggestions = message.suggestions;
+              const newSuggestions: FormSuggestions = {};
+
+              Object.entries(suggestions).forEach(([fieldId, suggestion]) => {
+                // Only add suggestion if not dismissed
+                if (!dismissedSuggestions.has(fieldId)) {
+                  newSuggestions[fieldId] = {
+                    fieldId,
+                    value: suggestion.value,
+                    confidence: suggestion.confidence,
+                    current: suggestion.current
+                  };
+                }
+              });
+
+              setFormSuggestions(newSuggestions);
               break;
 
             case 'system':
@@ -517,6 +641,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     // Send regular chat message via WebSocket
+    // S5-002: Include current form values for suggestion mode
+    const currentFormValues = formFields.reduce((acc, field) => ({
+      ...acc,
+      [field.id]: field.value
+    }), {} as Record<string, string>);
+
     const message = {
       type: 'chat',
       content,
@@ -524,7 +654,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       folderId: selectedDocument?.id || null,
       documentContent,
       formSchema: formFields,
+      currentFormValues,  // S5-002: For comparison with extracted values
       stream: true,  // Enable streaming by default for performance
+      language: currentLanguage,  // S5-014: Include language for AI responses
     };
 
     wsConnection.send(JSON.stringify(message));
@@ -538,7 +670,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setViewMode('form');
   }, [currentCase.id]);
 
-  // Auto-connect when user logs in or case changes
+  // Auto-connect when user logs in, case changes, or language changes (S5-014)
   useEffect(() => {
     if (user && currentCase) {
       connectWebSocket();
@@ -547,7 +679,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       disconnectWebSocket();
     };
-  }, [user, currentCase.id]);
+  }, [user, currentCase.id, currentLanguage]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -644,6 +776,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isSidebarCollapsed,
         setIsSidebarCollapsed,
         toggleFolder,
+        // S5-002: Form suggestions
+        formSuggestions,
+        acceptSuggestion,
+        rejectSuggestion,
+        // S5-014: Language toggle
+        currentLanguage,
+        setLanguage,
       }}
     >
       {children}

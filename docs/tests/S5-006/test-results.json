@@ -1,0 +1,97 @@
+{
+  "requirement_id": "S5-006",
+  "requirement_title": "Document Renders Management System",
+  "last_updated": "2026-01-09T15:29:16Z",
+  "tests": {
+    "TC-S5-006-01": {
+      "description": "Document with only original render, verify displays as normal file (no expansion)",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-01.py"
+    },
+    "TC-S5-006-02": {
+      "description": "Anonymize document, verify document converts to expandable container with 2 renders",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-02.py"
+    },
+    "TC-S5-006-03": {
+      "description": "Click expand chevron, verify renders list shows 'Original' and 'Anonymized'",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-03.py"
+    },
+    "TC-S5-006-04": {
+      "description": "Click 'Anonymized' render, verify DocumentViewer displays anonymized version",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-04.py"
+    },
+    "TC-S5-006-05": {
+      "description": "Translate document to German, verify third render 'German Translation' appears",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-05.py"
+    },
+    "TC-S5-006-06": {
+      "description": "Badge shows '3 renders' when document has 3 renders",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-06.py"
+    },
+    "TC-S5-006-07": {
+      "description": "Click delete icon on anonymized render, verify confirmation dialog appears",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-07.py"
+    },
+    "TC-S5-006-08": {
+      "description": "Confirm delete render, verify render removed from list and file deleted",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-08.py"
+    },
+    "TC-S5-006-09": {
+      "description": "Delete all renders except original, verify document reverts to normal file display",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-09.py"
+    },
+    "TC-S5-006-10": {
+      "description": "Verify original render cannot be deleted (no delete button)",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-10.py"
+    },
+    "TC-S5-006-11": {
+      "description": "Create multiple translations (German, English, French), verify all listed under parent",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-11.py"
+    },
+    "TC-S5-006-12": {
+      "description": "Refresh page, verify render structure persists (loaded from metadata)",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-12.py"
+    },
+    "TC-S5-006-13": {
+      "description": "Render icons display correctly (EyeOff for anonymized, Globe for translated)",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-13.py"
+    },
+    "TC-S5-006-14": {
+      "description": "Collapse expanded document, verify renders hidden but selection maintained",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-006-14.py"
+    }
+  },
+  "summary": {
+    "total": 14,
+    "passed": 0,
+    "failed": 0,
+    "not_run": 14
+  }
+}

@@ -1,0 +1,445 @@
+{
+  "schemaVersion": "2.0",
+  "caseId": "{{CASE_ID}}",
+  "caseType": "asylum_application",
+  "name": "Asylum Application (Asylantrag)",
+  "description": "Asylum application process per German Asylum Act (AsylG) and EU Dublin III Regulation. Includes registration, interview preparation, evidence gathering, and decision processing per BAMF requirements.",
+  "applicant": {
+    "name": "{{APPLICANT_NAME}}",
+    "dateOfBirth": "{{DATE_OF_BIRTH}}",
+    "nationality": "{{NATIONALITY}}",
+    "currentStatus": "{{STATUS}}"
+  },
+  "regulations": [
+    {
+      "id": "Art_16a_GG",
+      "title": "Grundgesetz - Asylrecht",
+      "summary": "Constitutional right to asylum. Politically persecuted persons enjoy right of asylum in Germany. Does not apply if entry from safe third country (EU member or country covered by international agreement).",
+      "url": "https://www.gesetze-im-internet.de/gg/art_16a.html"
+    },
+    {
+      "id": "§3_AsylG",
+      "title": "Asylgesetz - Fl\u00fcchtlingseigenschaft",
+      "summary": "Defines refugee status per Geneva Convention. Recognition requires well-founded fear of persecution based on race, religion, nationality, political opinion, or membership of particular social group. State unable or unwilling to provide protection.",
+      "url": "https://www.gesetze-im-internet.de/asylvfg_1992/__3.html"
+    },
+    {
+      "id": "§4_AsylG",
+      "title": "Asylgesetz - Subsidi\u00e4rer Schutz",
+      "summary": "Subsidiary protection for persons not qualifying as refugees but facing serious harm in country of origin: death penalty, torture, inhuman treatment, or serious threat to life from armed conflict.",
+      "url": "https://www.gesetze-im-internet.de/asylvfg_1992/__4.html"
+    },
+    {
+      "id": "§25_Abs3_AufenthG",
+      "title": "Abschiebungsverbot",
+      "summary": "National deportation ban when deportation violates European Convention on Human Rights or poses concrete danger to life, liberty, or physical integrity. Applies even if asylum and subsidiary protection denied.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__25.html"
+    },
+    {
+      "id": "§13_AsylG",
+      "title": "Asylgesetz - Persönliche Asylantragstellung",
+      "summary": "Asylum application must be made in person at BAMF branch office or arrival center. Written applications not accepted. Applicant must appear for interview and provide personal data.",
+      "url": "https://www.gesetze-im-internet.de/asylvfg_1992/__13.html"
+    },
+    {
+      "id": "§25_AsylG",
+      "title": "Asylgesetz - Pers\u00f6nliche Anh\u00f6rung",
+      "summary": "Personal interview mandatory before decision. Conducted in language applicant understands via interpreter. Interview covers persecution reasons, flight route, identity, and credibility. Applicant has right to legal counsel.",
+      "url": "https://www.gesetze-im-internet.de/asylvfg_1992/__25.html"
+    },
+    {
+      "id": "§29_AsylG",
+      "title": "Asylgesetz - Dublin-Verfahren",
+      "summary": "EU Dublin III Regulation determines responsible member state for asylum application. If another EU country responsible, transfer request made. Applicant has right to information and legal remedy.",
+      "url": "https://www.gesetze-im-internet.de/asylvfg_1992/__29.html"
+    },
+    {
+      "id": "§31_AsylG",
+      "title": "Asylgesetz - Entscheidung des Bundesamtes",
+      "summary": "BAMF decision types: refugee recognition, subsidiary protection, deportation ban, or rejection. Decision in writing with reasoning. Includes legal remedy information and deadline (typically 2 weeks).",
+      "url": "https://www.gesetze-im-internet.de/asylvfg_1992/__31.html"
+    },
+    {
+      "id": "§63_AsylG",
+      "title": "Asylgesetz - Aufenthaltsgestattung",
+      "summary": "Residence permit pending asylum decision (Aufenthaltsgestattung). Authorizes temporary stay during procedure. Initially limited to specific district, may be expanded after 3 months.",
+      "url": "https://www.gesetze-im-internet.de/asylvfg_1992/__63.html"
+    },
+    {
+      "id": "AsylbLG",
+      "title": "Asylbewerberleistungsgesetz",
+      "summary": "Benefits for asylum seekers during application process. Covers basic needs: accommodation, food, hygiene, healthcare. After 18 months, benefits comparable to German social assistance (Sozialhilfe).",
+      "url": "https://www.gesetze-im-internet.de/asylblg/"
+    },
+    {
+      "id": "§16a_AufenthG",
+      "title": "Aufenthaltserlaubnis nach Anerkennung",
+      "summary": "Residence permit after positive asylum decision. Recognized refugees receive 3-year permit (§25 Abs.2), subsidiary protection 1-year renewable (§25 Abs.2). Permanent residence possible after 3-5 years.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__16a.html"
+    }
+  ],
+  "requiredDocuments": [
+    {
+      "name": "Reisepass / Identitätsdokumente",
+      "documentType": "passport",
+      "description": "Valid passport or other identity documents from country of origin",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["identity_verification", "authenticity_check"],
+      "notes": "Passport strongly preferred but not mandatory if unavailable. Alternative documents: national ID card, birth certificate, driver's license, military ID. BAMF examines document authenticity. Failure to present without good reason may negatively affect credibility."
+    },
+    {
+      "name": "Geburtsurkunde",
+      "documentType": "birth_certificate",
+      "description": "Birth certificate from country of origin",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["certified_copy", "certified_translation_if_not_german"],
+      "notes": "Helps establish identity and age if passport unavailable. Translation to German required if in foreign language. Certified copies preferred."
+    },
+    {
+      "name": "Heiratsurkunde / Familiendokumente",
+      "documentType": "marriage_family_certificates",
+      "description": "Marriage certificates and family status documents",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["certified_copy", "certified_translation_if_not_german"],
+      "notes": "Required if claiming family reunification later. Establishes family relationships for dependent applications."
+    },
+    {
+      "name": "Bildungsnachweise",
+      "documentType": "education_certificates",
+      "description": "School certificates, university degrees, vocational training certificates",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["certified_copy"],
+      "notes": "Not required for asylum application but helpful for integration and employment later. Consider apostille or recognition procedures for use in Germany."
+    },
+    {
+      "name": "Berufliche Qualifikationsnachweise",
+      "documentType": "professional_certificates",
+      "description": "Professional licenses, work certificates, employment records",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["authenticated_if_possible"],
+      "notes": "Supports integration and employment prospects. Professional recognition (Anerkennung) may be required for regulated professions."
+    },
+    {
+      "name": "Beweismittel für Verfolgung",
+      "documentType": "persecution_evidence",
+      "description": "Evidence of persecution: arrest warrants, court documents, threat letters, medical reports of injuries",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["authenticity_assessment"],
+      "notes": "CRUCIAL for asylum case. Include: arrest warrants, detention records, court summons, police reports, medical certificates documenting torture/injuries, photos of injuries, threat letters, membership documents of persecuted groups. More evidence strengthens case."
+    },
+    {
+      "name": "Medizinische Atteste",
+      "documentType": "medical_certificates",
+      "description": "Medical documentation of physical or psychological trauma from persecution",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["issued_by_licensed_doctor", "detailed_findings"],
+      "notes": "Essential if claiming persecution through physical violence or torture. German medical examinations preferred. Psychological trauma (PTSD) should be documented by psychologist/psychiatrist. Detailed medical findings strengthen credibility."
+    },
+    {
+      "name": "Mitgliedschaftsnachweise",
+      "documentType": "membership_proof",
+      "description": "Proof of membership in persecuted groups: political parties, religious communities, minorities, LGBTQ+ organizations",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["authenticity_check"],
+      "notes": "Strengthens claim if persecution based on group membership. Include membership cards, certificates, photos from events, witness statements."
+    },
+    {
+      "name": "Zeitungsartikel / Medienberichte",
+      "documentType": "media_reports",
+      "description": "News articles, media reports about persecution of applicant or similar cases",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["source_verification"],
+      "notes": "Country reports, news articles about persecution of similar groups strengthen case. Include source and date. BAMF consults own country reports but applicant evidence supplements."
+    },
+    {
+      "name": "Flugtickets / Reisedokumente",
+      "documentType": "travel_documents",
+      "description": "Flight tickets, travel itinerary, transit documents",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["date_verification"],
+      "notes": "Documents flight route for Dublin procedure assessment. Shows which countries crossed during journey to Germany. Relevant for determining responsible EU member state."
+    },
+    {
+      "name": "Polizeiliche Meldung",
+      "documentType": "police_registration",
+      "description": "Registration confirmation from first contact with German authorities",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["official_stamp"],
+      "notes": "Issued by police or initial reception center upon first registration in Germany. Confirms entry date and initial registration. Required for asylum procedure."
+    },
+    {
+      "name": "BAMF-Anhörungsprotokoll",
+      "documentType": "bamf_interview_protocol",
+      "description": "Protocol of personal hearing at BAMF",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["official_bamf_document", "signed_by_applicant"],
+      "notes": "Created during BAMF interview. Applicant receives copy. Review carefully and request corrections if inaccurate. Signature confirms accuracy. Central document for decision."
+    },
+    {
+      "name": "Rechtsbeistandsvollmacht",
+      "documentType": "legal_representation_authorization",
+      "description": "Power of attorney for legal counsel",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["signed_by_applicant"],
+      "notes": "If represented by lawyer, power of attorney required. Lawyer receives copies of all correspondence. Legal counsel recommended especially for complex cases or if rejection anticipated."
+    },
+    {
+      "name": "Sprachnachweise",
+      "documentType": "language_certificates",
+      "description": "Proof of German language skills if any",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["recognized_certificate"],
+      "notes": "Not required for asylum but demonstrates integration efforts. May positively influence residence permit after recognition."
+    },
+    {
+      "name": "Kindergeburtsurkunden",
+      "documentType": "children_birth_certificates",
+      "description": "Birth certificates of dependent children",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["certified_copy", "certified_translation"],
+      "notes": "Required if children included in application or for family reunification later. Establishes parentage and age of minors."
+    }
+  ],
+  "validationRules": [
+    {
+      "rule_id": "identity_verification",
+      "condition": "Applicant identity must be established",
+      "action": "Check passport, national ID, birth certificate, or other identity documents. Document examination for authenticity. Note: Absence of documents acceptable if reasonable explanation provided."
+    },
+    {
+      "rule_id": "persecution_credibility",
+      "condition": "Persecution claims must be credible and detailed",
+      "action": "Assess consistency of account across interview and written statements. Check evidence against country reports. Evaluate specificity and detail of persecution description."
+    },
+    {
+      "rule_id": "dublin_responsibility",
+      "condition": "Determine EU member state responsible for asylum application",
+      "action": "Check Eurodac database for fingerprints. Review travel route. Determine if other EU country responsible per Dublin III Regulation. If so, initiate transfer procedure."
+    },
+    {
+      "rule_id": "safe_country_check",
+      "condition": "Verify if applicant from safe country of origin",
+      "action": "Check if country of origin on German safe country list. If yes, accelerated procedure applies. Rejection more likely unless individual persecution proven."
+    },
+    {
+      "rule_id": "medical_examination",
+      "condition": "If trauma or torture claimed, medical examination recommended",
+      "action": "Refer to medical examination for documentation of physical injuries or psychological trauma. Medical evidence strengthens credibility."
+    },
+    {
+      "rule_id": "legal_counsel_check",
+      "condition": "Verify if applicant has legal representation",
+      "action": "Check for power of attorney. Ensure lawyer receives copies of all documents and decisions. Note representation in file."
+    },
+    {
+      "rule_id": "minor_protection",
+      "condition": "Unaccompanied minors require special protection",
+      "action": "Assign guardian (Vormund). Ensure minor-appropriate interview conditions. Priority processing. Youth welfare office (Jugendamt) involvement."
+    },
+    {
+      "rule_id": "vulnerable_persons_identification",
+      "condition": "Identify vulnerable persons needing special procedural guarantees",
+      "action": "Screen for: torture victims, trauma, disabilities, serious illness, pregnant women, single parents, LGBTQ+ persons. Ensure appropriate accommodations and support."
+    },
+    {
+      "rule_id": "deadline_tracking",
+      "condition": "Track procedural deadlines for appeals and submissions",
+      "action": "Note decision date. Calculate appeal deadline (typically 2 weeks for regular procedure, 1 week for accelerated). Monitor Dublin transfer deadlines."
+    },
+    {
+      "rule_id": "country_reports_consultation",
+      "condition": "BAMF decision must consider current country situation",
+      "action": "Consult updated BAMF country reports, UNHCR guidelines, and Foreign Office travel advisories. Verify current persecution risk in applicant's region."
+    }
+  ],
+  "commonIssues": [
+    {
+      "issue": "No identity documents provided",
+      "severity": "warning",
+      "category": "documentation",
+      "frequency": "very_common",
+      "suggestion": "While passport preferred, absence acceptable if reasonable explanation given (lost during flight, confiscated, never possessed). Provide alternative identity evidence: birth certificate, driver's license, school certificates. Credibility of explanation assessed."
+    },
+    {
+      "issue": "Inconsistencies in persecution account",
+      "severity": "error",
+      "category": "procedural",
+      "frequency": "common",
+      "suggestion": "Inconsistencies between written statement and interview harm credibility. Prepare thoroughly. Write detailed chronology of events. Review before interview. Minor discrepancies (dates) less critical than core facts. Consider legal counsel."
+    },
+    {
+      "issue": "Dublin transfer to another EU country",
+      "severity": "error",
+      "category": "eligibility",
+      "frequency": "common",
+      "suggestion": "If fingerprints registered in another EU country (Eurodac), Germany may transfer application there. Legal remedies available: emergency relief (Eilrechtsschutz) if transfer poses hardship. Humanitarian reasons may prevent transfer. Seek legal advice immediately."
+    },
+    {
+      "issue": "Country of origin on safe country list",
+      "severity": "warning",
+      "category": "eligibility",
+      "frequency": "occasional",
+      "suggestion": "Safe country of origin list (current: EU member states, Albania, Bosnia-Herzegovina, Ghana, Kosovo, North Macedonia, Montenegro, Senegal, Serbia). Applicants face accelerated procedure and higher burden of proof. Must demonstrate individual persecution despite general safety. Legal counsel strongly recommended."
+    },
+    {
+      "issue": "Insufficient evidence of persecution",
+      "severity": "error",
+      "category": "documentation",
+      "frequency": "very_common",
+      "suggestion": "Verbal testimony alone may be insufficient. Gather corroborating evidence: medical reports, arrest warrants, threat letters, photos, witness statements, media reports. Lack of evidence doesn't automatically mean rejection if explanation plausible, but evidence strengthens case significantly."
+    },
+    {
+      "issue": "Late asylum application after entry",
+      "severity": "warning",
+      "category": "procedural",
+      "frequency": "common",
+      "suggestion": "Asylum should be applied for immediately upon entry. Delay without good reason may harm credibility. If applied late, provide explanation: lack of information, illness, fear. Delay alone doesn't lead to rejection but requires explanation."
+    },
+    {
+      "issue": "Language barriers in interview",
+      "severity": "warning",
+      "category": "procedural",
+      "frequency": "common",
+      "suggestion": "Interpretation provided in language applicant understands best. Request specific language or dialect if needed. If interpreter unsatisfactory, object immediately and request replacement. Check protocol accuracy before signing."
+    },
+    {
+      "issue": "Psychological trauma affecting testimony",
+      "severity": "warning",
+      "category": "health_related",
+      "frequency": "common",
+      "suggestion": "PTSD, trauma, depression can affect ability to testify coherently. Obtain psychological/psychiatric assessment documenting trauma and impact on memory/testimony. BAMF must consider trauma effects on credibility. Request trauma-sensitive interview conditions."
+    },
+    {
+      "issue": "LGBTQ+ persecution evidence challenges",
+      "severity": "warning",
+      "category": "documentation",
+      "frequency": "occasional",
+      "suggestion": "Sexual orientation/gender identity persecution often difficult to prove. Evidence may include: personal testimony, psychological assessment, evidence of hostile laws in origin country, membership in LGBTQ+ organizations, witness statements. BAMF guidelines exist for LGBTQ+ cases."
+    },
+    {
+      "issue": "Political persecution without party membership",
+      "severity": "warning",
+      "category": "eligibility",
+      "frequency": "occasional",
+      "suggestion": "Formal party membership not required. Persecution for political opinion sufficient. Evidence: political activities, demonstration participation, social media posts, witness statements, country reports on repression of dissent."
+    },
+    {
+      "issue": "Religious persecution documentation",
+      "severity": "warning",
+      "category": "documentation",
+      "frequency": "occasional",
+      "suggestion": "Document religious persecution: membership in religious community, evidence of religious practice, country reports on religious freedom, specific incidents of persecution. Conversion to different religion in Germany possible basis but timing scrutinized."
+    },
+    {
+      "issue": "Gender-based persecution claims",
+      "severity": "warning",
+      "category": "eligibility",
+      "frequency": "occasional",
+      "suggestion": "Gender-based persecution (forced marriage, FGM, domestic violence, honor violence) recognized. Evidence: medical reports, psychological assessment, country reports, witness statements. Women-specific persecution covered by 'particular social group' definition."
+    },
+    {
+      "issue": "Family separation fears during procedure",
+      "severity": "info",
+      "category": "family_related",
+      "frequency": "common",
+      "suggestion": "Families generally accommodated together. Family members can be included in application. Separation only in specific circumstances. After recognition, family reunification possible for spouses and minor children."
+    },
+    {
+      "issue": "Inability to pay for legal counsel",
+      "severity": "info",
+      "category": "procedural",
+      "frequency": "very_common",
+      "suggestion": "Legal aid (Prozesskostenhilfe) available if financial need shown and case has prospects of success. Many NGOs and refugee counseling services offer free legal advice. Asylum procedure can be navigated without lawyer but legal counsel recommended for complex cases."
+    },
+    {
+      "issue": "Dublin transfer despite integration in Germany",
+      "severity": "warning",
+      "category": "procedural",
+      "frequency": "occasional",
+      "suggestion": "Integration in Germany (language, employment, social ties) not automatic bar to Dublin transfer. However, long duration in Germany, serious health issues, or family ties may trigger sovereignty clause (Germany voluntarily handles case). File objection citing humanitarian reasons."
+    },
+    {
+      "issue": "Rejection as manifestly unfounded",
+      "severity": "error",
+      "category": "procedural",
+      "frequency": "occasional",
+      "suggestion": "Manifestly unfounded (offensichtlich unbegründet) rejection means accelerated procedure, shorter appeal deadline (1 week), and obligation to leave Germany immediately. Often applies to safe country cases or clearly incredible claims. Emergency legal remedy (Eilantrag) essential. Seek immediate legal counsel."
+    },
+    {
+      "issue": "Medical treatment needs during procedure",
+      "severity": "info",
+      "category": "health_related",
+      "frequency": "common",
+      "suggestion": "Medical care provided under AsylbLG. Emergency treatment and acute illness covered. Chronic conditions treated. Psychological therapy for trauma available but waiting lists. Serious medical conditions may affect deportability if treatment unavailable in origin country."
+    },
+    {
+      "issue": "Children's schooling during asylum procedure",
+      "severity": "info",
+      "category": "family_related",
+      "frequency": "common",
+      "suggestion": "School-age children entitled to education after 3-6 months (varies by federal state). School attendance mandatory. Integration classes (Willkommensklassen) for language learning. Kindergarten/daycare placement often available."
+    },
+    {
+      "issue": "Employment restrictions during procedure",
+      "severity": "info",
+      "category": "procedural",
+      "frequency": "very_common",
+      "suggestion": "Work ban (Arbeitsverbot) for first 3 months. After 3 months: employment allowed if labor office approves (priority check for Germans/EU citizens). After 15 months: unrestricted employment access. Vocational training allowed earlier. Check Aufenthaltsgestattung for work permission."
+    },
+    {
+      "issue": "Housing in initial reception center uncomfortable",
+      "severity": "info",
+      "category": "procedural",
+      "frequency": "very_common",
+      "suggestion": "Initial accommodation in reception center (Erstaufnahmeeinrichtung) mandatory, typically 3-6 months. Shared rooms common. After Dublin/safe country check complete and interview done, transfer to municipal accommodation. Private housing generally not allowed during initial phase."
+    },
+    {
+      "issue": "Communication difficulties with BAMF",
+      "severity": "warning",
+      "category": "procedural",
+      "frequency": "common",
+      "suggestion": "BAMF communication by mail to registered address. Address changes must be reported immediately. Missed interview invitations lead to case closure. Ensure mail forwarding if moved. Check mailbox regularly. Consider registering with refugee counseling service for support."
+    },
+    {
+      "issue": "Long waiting times for decision",
+      "severity": "info",
+      "category": "procedural",
+      "frequency": "very_common",
+      "suggestion": "Processing times vary: fast-track procedures (safe countries, Dublin) weeks to months; regular procedures 6-18 months average; complex cases longer. No fixed deadline. If unreasonably delayed (>3 years), legal options exist (Untätigkeitsklage). Use waiting time for language learning and integration."
+    },
+    {
+      "issue": "Fear of deportation if rejected",
+      "severity": "warning",
+      "category": "procedural",
+      "frequency": "common",
+      "suggestion": "Negative decision includes appeal deadline (typically 2 weeks). Filing appeal within deadline suspends deportation (Abschiebung). If appeal rejected, voluntary departure period granted (usually 30 days). Deportation only after all legal remedies exhausted. Seek immediate legal counsel if rejected."
+    },
+    {
+      "issue": "Social benefits insufficient for needs",
+      "severity": "info",
+      "category": "procedural",
+      "frequency": "common",
+      "suggestion": "AsylbLG provides basic needs coverage. Amount varies by federal state and accommodation type. After 18 months, benefits increased to social assistance level. Special needs (medical, children) covered additionally. Benefit amounts set by law, not negotiable."
+    }
+  ],
+  "processingGuidelines": {
+    "standardProcessingTime": "6-18 months for regular procedure; accelerated procedure 2-6 weeks",
+    "priorityCategories": ["unaccompanied_minors", "families_with_small_children", "vulnerable_persons"],
+    "escalationTriggers": ["dublin_transfer_pending", "medical_emergency", "manifestly_unfounded_decision"]
+  }
+}

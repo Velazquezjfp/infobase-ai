@@ -1,0 +1,331 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bamf-acte-companion.local/schemas/case-context-v2.json",
+  "title": "BAMF Case Context Schema v2.0",
+  "description": "Enhanced case context schema for BAMF immigration cases including integration courses, asylum applications, and family reunification",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "caseId",
+    "caseType",
+    "name",
+    "description",
+    "requiredDocuments",
+    "regulations",
+    "validationRules",
+    "commonIssues"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "2.0",
+      "description": "Schema version identifier - must be 2.0 for enhanced context"
+    },
+    "caseId": {
+      "type": "string",
+      "pattern": "^[A-Z]+-[0-9]{4}-[0-9]{3}$",
+      "description": "Unique case identifier in format ACTE-YYYY-NNN or template placeholder {{CASE_ID}}"
+    },
+    "caseType": {
+      "type": "string",
+      "enum": [
+        "integration_course",
+        "asylum_application",
+        "family_reunification"
+      ],
+      "description": "Type of immigration case"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 5,
+      "description": "Human-readable case name"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20,
+      "description": "Detailed description of the case purpose and process"
+    },
+    "applicant": {
+      "type": "object",
+      "description": "Applicant personal information (may contain template placeholders)",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$|^\\{\\{.*\\}\\}$"
+        },
+        "nationality": {
+          "type": "string"
+        },
+        "currentStatus": {
+          "type": "string"
+        }
+      }
+    },
+    "regulations": {
+      "type": "array",
+      "minItems": 10,
+      "description": "Legal regulations and references - minimum 10 entries required",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "summary",
+          "url"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Regulation identifier (e.g., §43_AufenthG, IntV_§4)"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 5,
+            "description": "Official regulation title"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 20,
+            "description": "Summary of regulation content and relevance"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://",
+            "description": "Direct URL to official regulation text"
+          },
+          "relevance": {
+            "type": "string",
+            "description": "Optional explanation of regulation's relevance to this case type"
+          }
+        }
+      }
+    },
+    "requiredDocuments": {
+      "type": "array",
+      "minItems": 15,
+      "description": "Required documents for case - minimum 15 entries required",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "documentType",
+          "description",
+          "criticality",
+          "validationRules"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "description": "Document name in German"
+          },
+          "documentType": {
+            "type": "string",
+            "minLength": 3,
+            "description": "Technical document type identifier"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Detailed description of document requirements"
+          },
+          "criticality": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "optional"
+            ],
+            "description": "Whether document is mandatory (critical) or optional"
+          },
+          "acceptedFormats": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "pdf",
+                "jpg",
+                "jpeg",
+                "png",
+                "doc",
+                "docx",
+                "eml"
+              ]
+            },
+            "description": "Accepted file formats for this document"
+          },
+          "validationRules": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            },
+            "description": "Validation rules applied to this document"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes about requirements, validity period, translations"
+          }
+        }
+      }
+    },
+    "validationRules": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Case-level validation rules",
+      "items": {
+        "type": "object",
+        "required": [
+          "rule_id",
+          "condition",
+          "action"
+        ],
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "description": "Unique rule identifier"
+          },
+          "condition": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Condition that triggers this validation rule"
+          },
+          "action": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Action to take when condition is met"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ],
+            "description": "Severity level of validation failure"
+          }
+        }
+      }
+    },
+    "commonIssues": {
+      "type": "array",
+      "minItems": 20,
+      "description": "Common issues and solutions - minimum 20 entries required",
+      "items": {
+        "type": "object",
+        "required": [
+          "issue",
+          "severity",
+          "suggestion"
+        ],
+        "properties": {
+          "issue": {
+            "type": "string",
+            "minLength": 10,
+            "description": "Description of the common issue"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ],
+            "description": "Severity level of the issue"
+          },
+          "suggestion": {
+            "type": "string",
+            "minLength": 20,
+            "description": "Specific, actionable solution or guidance"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "documentation",
+              "eligibility",
+              "deadlines",
+              "fees",
+              "language_requirements",
+              "technical_issues",
+              "procedural",
+              "family_related",
+              "health_related",
+              "previous_applications"
+            ],
+            "description": "Category of the issue"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "very_common",
+              "common",
+              "occasional",
+              "rare"
+            ],
+            "description": "How frequently this issue occurs"
+          }
+        }
+      }
+    },
+    "courseTypes": {
+      "type": "array",
+      "description": "Available course types (integration course cases only)",
+      "items": {
+        "type": "object",
+        "required": [
+          "type",
+          "hours",
+          "targetLevel"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "hours": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "languageHours": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "orientationHours": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "targetLevel": {
+            "type": "string",
+            "pattern": "^[ABC][12](-[ABC][12])?$"
+          },
+          "eligibility": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "processingGuidelines": {
+      "type": "object",
+      "description": "Processing guidelines and timelines",
+      "properties": {
+        "standardProcessingTime": {
+          "type": "string"
+        },
+        "priorityCategories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "escalationTriggers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

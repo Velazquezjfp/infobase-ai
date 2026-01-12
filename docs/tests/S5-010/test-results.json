@@ -1,0 +1,133 @@
+{
+  "requirementId": "S5-010",
+  "executionTimestamp": "2026-01-12T11:04:01.004597Z",
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "manual": 0
+  },
+  "testCases": [
+    {
+      "testId": "TC-S5-010-01",
+      "testName": "Feature flag disabled, verify one-shot mode works as before",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.004624Z",
+      "status": "passed",
+      "executionTime": 0.019,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-02",
+      "testName": "Feature flag enabled, send message, verify history stored in conversation_manager",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.023612Z",
+      "status": "passed",
+      "executionTime": 0.019,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-03",
+      "testName": "Send follow-up question 'What was the name again?', verify AI uses previous context",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.042638Z",
+      "status": "passed",
+      "executionTime": 0.02,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-04",
+      "testName": "Switch case, verify conversation history switches to new case",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.062477Z",
+      "status": "passed",
+      "executionTime": 0.019,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-05",
+      "testName": "Send 15 messages, verify only last 10 included in context window",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.081806Z",
+      "status": "passed",
+      "executionTime": 0.019,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-06",
+      "testName": "Long conversation approaches token limit, verify older messages truncated",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.100618Z",
+      "status": "passed",
+      "executionTime": 0.019,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-07",
+      "testName": "Click 'Clear History', verify conversation cleared and next message has no context",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.119829Z",
+      "status": "passed",
+      "executionTime": 0.018,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-08",
+      "testName": "Restart backend, verify all conversation history cleared (no persistence)",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.138209Z",
+      "status": "passed",
+      "executionTime": 0.018,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-09",
+      "testName": "Two different cases with separate conversations, verify history doesn't mix",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.156667Z",
+      "status": "passed",
+      "executionTime": 0.019,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-10",
+      "testName": "Estimate tokens for conversation, verify count is accurate (within 10%)",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.175235Z",
+      "status": "passed",
+      "executionTime": 0.02,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-11",
+      "testName": "User asks 'Translate it to French' (referring to previous doc), verify AI understands reference",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.195385Z",
+      "status": "passed",
+      "executionTime": 0.02,
+      "errorMessage": null,
+      "stackTrace": null
+    },
+    {
+      "testId": "TC-S5-010-12",
+      "testName": "Disabled history, verify backend doesn't store messages in conversation_manager",
+      "testType": "python",
+      "timestamp": "2026-01-12T11:04:01.215100Z",
+      "status": "passed",
+      "executionTime": 0.019,
+      "errorMessage": null,
+      "stackTrace": null
+    }
+  ]
+}

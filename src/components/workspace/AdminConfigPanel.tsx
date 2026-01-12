@@ -5,6 +5,7 @@ import {
   Plus, Trash2, GripVertical, Save, ChevronDown, ChevronRight,
   Sparkles, Loader2, AlertCircle
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { generateField, validatePrompt, suggestFieldType, AdminApiError } from '@/lib/adminApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +51,7 @@ interface MetadataField {
 
 export default function AdminConfigPanel() {
   const { setIsAdminMode, formFields, setFormFields } = useApp();
+  const { t } = useTranslation();
   
   // Folder Templates State
   const [folderTemplates, setFolderTemplates] = useState<FolderTemplate[]>([
@@ -245,8 +247,8 @@ export default function AdminConfigPanel() {
               <Zap className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Admin Configuration</h2>
-              <p className="text-sm text-muted-foreground">Configure templates, document types, and automation</p>
+              <h2 className="text-lg font-semibold text-foreground">{t('admin.adminConfiguration')}</h2>
+              <p className="text-sm text-muted-foreground">{t('admin.configDescription')}</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={() => setIsAdminMode(false)}>
@@ -260,23 +262,23 @@ export default function AdminConfigPanel() {
             <TabsList className="grid w-full grid-cols-5 mb-4">
               <TabsTrigger value="folders" className="text-xs sm:text-sm">
                 <FolderTree className="w-4 h-4 mr-1.5 hidden sm:inline" />
-                Folders
+                {t('admin.folders')}
               </TabsTrigger>
               <TabsTrigger value="doctypes" className="text-xs sm:text-sm">
                 <FileType className="w-4 h-4 mr-1.5 hidden sm:inline" />
-                Doc Types
+                {t('admin.docTypes')}
               </TabsTrigger>
               <TabsTrigger value="macros" className="text-xs sm:text-sm">
                 <Zap className="w-4 h-4 mr-1.5 hidden sm:inline" />
-                Macros
+                {t('admin.macros')}
               </TabsTrigger>
               <TabsTrigger value="forms" className="text-xs sm:text-sm">
                 <FileText className="w-4 h-4 mr-1.5 hidden sm:inline" />
-                Forms
+                {t('admin.forms')}
               </TabsTrigger>
               <TabsTrigger value="metadata" className="text-xs sm:text-sm">
                 <Tags className="w-4 h-4 mr-1.5 hidden sm:inline" />
-                Metadata
+                {t('admin.metadata')}
               </TabsTrigger>
             </TabsList>
 
@@ -284,8 +286,8 @@ export default function AdminConfigPanel() {
             <TabsContent value="folders" className="space-y-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Folder Template Structure</CardTitle>
-                  <CardDescription>Define the folder hierarchy for new cases</CardDescription>
+                  <CardTitle className="text-base">{t('admin.folderTemplateStructure')}</CardTitle>
+                  <CardDescription>{t('admin.defineFolderHierarchy')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {folderTemplates.map((folder) => (
@@ -311,7 +313,7 @@ export default function AdminConfigPanel() {
                         className="flex-1 h-8"
                       />
                       <div className="flex items-center gap-2">
-                        <Label className="text-xs text-muted-foreground">Required</Label>
+                        <Label className="text-xs text-muted-foreground">{t('admin.required')}</Label>
                         <Switch
                           checked={folder.mandatory}
                           onCheckedChange={(checked) => updateFolder(folder.id, { mandatory: checked })}
@@ -329,7 +331,7 @@ export default function AdminConfigPanel() {
                   ))}
                   <Button variant="outline" size="sm" onClick={addFolder} className="w-full">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Folder
+                    {t('admin.addFolder')}
                   </Button>
                 </CardContent>
               </Card>
@@ -337,7 +339,7 @@ export default function AdminConfigPanel() {
               {/* YAML Preview */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Template Preview (YAML)</CardTitle>
+                  <CardTitle className="text-base">{t('admin.templatePreviewYAML')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <pre className="bg-muted p-3 rounded-md text-xs font-mono overflow-auto max-h-40">
@@ -550,12 +552,12 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                       {isGenerating ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Generating...
+                          {t('admin.generating')}
                         </>
                       ) : (
                         <>
                           <Sparkles className="w-4 h-4 mr-2" />
-                          Generate
+                          {t('admin.generate')}
                         </>
                       )}
                     </Button>
@@ -733,15 +735,15 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
         {/* Footer */}
         <div className="flex items-center justify-between p-4 border-t border-border bg-muted/30">
           <p className="text-xs text-muted-foreground">
-            Changes are applied immediately to the current case template
+            {t('admin.changesApplied')}
           </p>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setIsAdminMode(false)}>
-              Cancel
+              {t('admin.cancel')}
             </Button>
             <Button onClick={() => setIsAdminMode(false)}>
               <Save className="w-4 h-4 mr-2" />
-              Save & Close
+              {t('admin.saveAndClose')}
             </Button>
           </div>
         </div>

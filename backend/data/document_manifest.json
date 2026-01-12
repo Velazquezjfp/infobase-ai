@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "schemaVersion": "1.0",
+  "lastUpdated": "2026-01-12T12:00:00Z",
+  "documents": [
+    {
+      "documentId": "doc_001",
+      "caseId": "ACTE-2024-001",
+      "folderId": "personal-data",
+      "fileName": "Birth_Certificate.jpg",
+      "filePath": "public/documents/ACTE-2024-001/personal-data/Birth_Certificate.jpg",
+      "uploadedAt": "2026-01-08T10:00:00Z",
+      "fileHash": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "renders": [
+        {
+          "renderId": "render_001",
+          "type": "anonymized",
+          "filePath": "public/documents/ACTE-2024-001/personal-data/Birth_Certificate_anonymized.jpg",
+          "createdAt": "2026-01-08T10:15:00Z"
+        },
+        {
+          "renderId": "render_002",
+          "type": "translated",
+          "language": "en",
+          "filePath": "public/documents/ACTE-2024-001/personal-data/Birth_Certificate_translated_en.jpg",
+          "createdAt": "2026-01-08T10:20:00Z"
+        }
+      ]
+    },
+    {
+      "documentId": "doc_002",
+      "caseId": "ACTE-2024-001",
+      "folderId": "certificates",
+      "fileName": "Language_Certificate.pdf",
+      "filePath": "public/documents/ACTE-2024-001/certificates/Language_Certificate.pdf",
+      "uploadedAt": "2026-01-09T14:30:00Z",
+      "fileHash": "sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "renders": [
+        {
+          "renderId": "render_003",
+          "type": "translated",
+          "language": "de",
+          "filePath": "public/documents/ACTE-2024-001/certificates/Language_Certificate_translated_de.pdf",
+          "createdAt": "2026-01-09T15:00:00Z"
+        }
+      ]
+    },
+    {
+      "documentId": "doc_003",
+      "caseId": "ACTE-2024-001",
+      "folderId": "emails",
+      "fileName": "BAMF_Confirmation.eml",
+      "filePath": "public/documents/ACTE-2024-001/emails/BAMF_Confirmation.eml",
+      "uploadedAt": "2026-01-10T09:15:00Z",
+      "fileHash": "sha256:fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
+      "renders": []
+    }
+  ]
+}

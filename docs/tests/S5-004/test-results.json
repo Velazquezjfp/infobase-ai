@@ -1,0 +1,97 @@
+{
+  "requirement_id": "S5-004",
+  "requirement_title": "Multi-Format Translation Service",
+  "last_updated": "2026-01-09T15:29:16Z",
+  "tests": {
+    "TC-S5-004-01": {
+      "description": "Click Translate on text document, select German \u2192 English, verify new text file created with English content",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-01.py"
+    },
+    "TC-S5-004-02": {
+      "description": "Translate image with German text to English, verify new image has English text overlaid",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-02.py"
+    },
+    "TC-S5-004-03": {
+      "description": "Verify original text in image is masked/covered before overlay",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-03.py"
+    },
+    "TC-S5-004-04": {
+      "description": "Translate PDF with German text, verify new PDF has English text in same layout positions",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-04.py"
+    },
+    "TC-S5-004-05": {
+      "description": "PDF with images and text, verify only text is translated, images remain unchanged",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-05.py"
+    },
+    "TC-S5-004-06": {
+      "description": "Verify translated document has '_translated' suffix in filename",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-06.py"
+    },
+    "TC-S5-004-07": {
+      "description": "Translate document twice (English \u2192 German \u2192 French), verify multiple renders created",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-07.py"
+    },
+    "TC-S5-004-08": {
+      "description": "Translate Arabic text to German in image, verify RTL text handled correctly",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-08.py"
+    },
+    "TC-S5-004-09": {
+      "description": "Click Translate, verify loading indicator shown during processing",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-09.py"
+    },
+    "TC-S5-004-10": {
+      "description": "Translation completes, verify UI auto-switches to display translated document",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-10.py"
+    },
+    "TC-S5-004-11": {
+      "description": "Multi-paragraph text document, verify all paragraphs translated maintaining structure",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-11.py"
+    },
+    "TC-S5-004-12": {
+      "description": "Image with multiple text regions, verify all regions translated and positioned correctly",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-12.py"
+    },
+    "TC-S5-004-13": {
+      "description": "Large PDF (10+ pages), verify all pages translated successfully",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-13.py"
+    },
+    "TC-S5-004-14": {
+      "description": "Translation fails (network error), verify error message displayed gracefully",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-004-14.py"
+    }
+  },
+  "summary": {
+    "total": 14,
+    "passed": 0,
+    "failed": 0,
+    "not_run": 14
+  }
+}

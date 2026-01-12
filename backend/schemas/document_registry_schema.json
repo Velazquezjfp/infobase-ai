@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bamf-acte.example.com/schemas/document-registry.schema.json",
+  "title": "Document Registry Schema",
+  "description": "Schema for BAMF ACTE Companion document registry that tracks documents, metadata, renders, and folder locations",
+  "type": "object",
+  "required": ["version", "schemaVersion", "lastUpdated", "documents"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Registry format version (e.g., '1.0')"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "JSON Schema version used for validation (e.g., '1.0')"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last registry update (e.g., '2026-01-09T16:00:00Z')"
+    },
+    "documents": {
+      "type": "array",
+      "description": "Array of all registered documents",
+      "items": {
+        "$ref": "#/definitions/DocumentEntry"
+      }
+    }
+  },
+  "definitions": {
+    "DocumentEntry": {
+      "type": "object",
+      "description": "A document entry in the registry with metadata and renders",
+      "required": [
+        "documentId",
+        "caseId",
+        "fileName",
+        "filePath",
+        "uploadedAt",
+        "fileHash",
+        "renders"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "documentId": {
+          "type": "string",
+          "description": "Unique identifier for the document",
+          "minLength": 1
+        },
+        "caseId": {
+          "type": "string",
+          "description": "Case ID this document belongs to (e.g., 'ACTE-2024-001')",
+          "minLength": 1
+        },
+        "folderId": {
+          "type": "string",
+          "description": "Optional folder ID within the case (e.g., 'personal-data')",
+          "minLength": 1
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Original filename of the document",
+          "minLength": 1
+        },
+        "filePath": {
+          "type": "string",
+          "description": "Relative file path from application root (e.g., 'public/documents/ACTE-2024-001/personal-data/Birth_Certificate.jpg')",
+          "minLength": 1
+        },
+        "uploadedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when document was uploaded"
+        },
+        "fileHash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "SHA-256 file integrity hash in format 'sha256:hexdigest'"
+        },
+        "renders": {
+          "type": "array",
+          "description": "Array of rendered versions (anonymized, translated, etc.)",
+          "items": {
+            "$ref": "#/definitions/RenderEntry"
+          }
+        }
+      }
+    },
+    "RenderEntry": {
+      "type": "object",
+      "description": "A rendered version of a document (anonymized or translated)",
+      "required": ["renderId", "type", "filePath", "createdAt"],
+      "additionalProperties": false,
+      "properties": {
+        "renderId": {
+          "type": "string",
+          "description": "Unique identifier for this render",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": ["anonymized", "translated"],
+          "description": "Type of render: 'anonymized' (PII removed) or 'translated' (language converted)"
+        },
+        "filePath": {
+          "type": "string",
+          "description": "Relative file path to the rendered document",
+          "minLength": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when render was created"
+        },
+        "language": {
+          "type": "string",
+          "pattern": "^[a-z]{2}$",
+          "description": "ISO 639-1 language code for translated renders (e.g., 'en', 'de'). Required for type='translated'"
+        }
+      },
+      "if": {
+        "properties": {
+          "type": {
+            "const": "translated"
+          }
+        }
+      },
+      "then": {
+        "required": ["language"]
+      }
+    }
+  }
+}

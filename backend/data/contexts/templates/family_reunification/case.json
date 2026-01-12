@@ -1,0 +1,449 @@
+{
+  "schemaVersion": "2.0",
+  "caseId": "{{CASE_ID}}",
+  "caseType": "family_reunification",
+  "name": "Family Reunification Visa (Familienzusammenführung)",
+  "description": "Family reunification visa application per §§27-36 AufenthG. Process includes eligibility verification, financial capability assessment, language requirements, accommodation proof, and visa application at German embassy. Protects family life per Article 6 GG.",
+  "applicant": {
+    "name": "{{APPLICANT_NAME}}",
+    "dateOfBirth": "{{DATE_OF_BIRTH}}",
+    "nationality": "{{NATIONALITY}}",
+    "currentStatus": "{{STATUS}}"
+  },
+  "regulations": [
+    {
+      "id": "§27_AufenthG",
+      "title": "Aufenthaltsgesetz - Grundsatz des Familiennachzugs",
+      "summary": "Family reunification protects marriage and family per Article 6 Basic Law. Residence permit granted to preserve family unity in Germany. Applies to spouses, minor children, and parents of minors under specific conditions.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__27.html"
+    },
+    {
+      "id": "§28_AufenthG",
+      "title": "Familiennachzug zu Deutschen",
+      "summary": "Family reunification for family members of German citizens. Spouses, minor children, and parents of minor German children entitled to residence permit. No language requirement for spouses of Germans. Simplified requirements compared to third-country nationals.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__28.html"
+    },
+    {
+      "id": "§29_AufenthG",
+      "title": "Familiennachzug zu Ausländern - Ehegatten",
+      "summary": "Spousal reunification with third-country nationals in Germany. Spouse must prove basic German (A1) before visa. Sponsor must have sufficient income and living space. Exceptions for integration hardship cases.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__29.html"
+    },
+    {
+      "id": "§30_AufenthG",
+      "title": "Ehegattennachzug",
+      "summary": "Specific conditions for spouse reunification: marriage must exist before entry, both spouses minimum 18 years old, sponsor has residence permit. Adequate living space required. Income must cover family without public benefits.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__30.html"
+    },
+    {
+      "id": "§32_AufenthG",
+      "title": "Kindernachzug",
+      "summary": "Child reunification regulations. Minor children of foreign parent with residence permit entitled to join parent in Germany. Both parents must reside in Germany or joining parent has sole custody. No language requirement for minors.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__32.html"
+    },
+    {
+      "id": "§36_AufenthG",
+      "title": "Nachzug der Eltern und sonstiger Familienangehöriger",
+      "summary": "Reunification of parents and other family members. Parents of minor foreign children in Germany can receive residence permit to avoid special hardship. Other family members only in exceptional hardship cases.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__36.html"
+    },
+    {
+      "id": "§2_Abs3_AufenthG",
+      "title": "Lebensunterhaltssicherung",
+      "summary": "Securing livelihood without public benefits. Sponsor must prove income sufficient for family support. Calculated based on Hartz IV rates plus housing. Employment, pension, or other reliable income sources acceptable.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__2.html"
+    },
+    {
+      "id": "§5_Abs1_Nr1_AufenthG",
+      "title": "Allgemeine Erteilungsvoraussetzungen",
+      "summary": "General requirements for residence permits: secured livelihood, sufficient living space, passport, no deportation grounds, cooperation with authorities. Identity must be clarified.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__5.html"
+    },
+    {
+      "id": "Art6_GG",
+      "title": "Grundgesetz - Schutz von Ehe und Familie",
+      "summary": "Constitutional protection of marriage and family. Family reunification derives from fundamental right. State must protect and promote family. Basis for family reunification entitlement.",
+      "url": "https://www.gesetze-im-internet.de/gg/art_6.html"
+    },
+    {
+      "id": "§31_AufenthG",
+      "title": "Eigenständiges Aufenthaltsrecht der Ehegatten",
+      "summary": "Independent residence right for spouses after 3 years. Spouse receives independent permit not dependent on continuation of marriage. Protection against domestic violence: immediate independent right if marriage ended due to domestic violence.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__31.html"
+    },
+    {
+      "id": "§29_Abs1a_AufenthG",
+      "title": "Befreiung von Spracherfordernis",
+      "summary": "Exemptions from language requirement (A1): inability to learn due to physical, mental, or psychological illness or disability. Integration course participant exempt if cannot learn due to special circumstances. Burden of proof on applicant.",
+      "url": "https://www.gesetze-im-internet.de/aufenthg_2004/__29.html"
+    }
+  ],
+  "requiredDocuments": [
+    {
+      "name": "Heiratsurkunde / Eheurkunde",
+      "documentType": "marriage_certificate",
+      "description": "Official marriage certificate from country where marriage took place",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["certified_copy", "apostille_required", "certified_german_translation"],
+      "notes": "MUST be certified copy with apostille or legalization from issuing country. Certified German translation by sworn translator required. Marriage must be legally valid in Germany (no polygamy, minimum age requirements met)."
+    },
+    {
+      "name": "Reisepass des Nachziehenden",
+      "documentType": "passport",
+      "description": "Valid passport of family member seeking to join sponsor in Germany",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["valid_minimum_6_months", "biometric_photo"],
+      "notes": "Must be valid for at least 6 months beyond intended entry. Biometric passport preferred for visa processing. All pages must be legible."
+    },
+    {
+      "name": "Aufenthaltstitel des Sponsors",
+      "documentType": "sponsor_residence_permit",
+      "description": "Copy of sponsor's German residence permit or German passport if sponsor is German citizen",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["valid_permit", "sufficient_duration"],
+      "notes": "Sponsor must have valid residence permit with sufficient remaining validity (typically >1 year). German citizens provide passport or ID card. Permit type must allow family reunification."
+    },
+    {
+      "name": "Einkommensnachweis des Sponsors",
+      "documentType": "sponsor_income_proof",
+      "description": "Proof of sponsor's income: employment contract, pay slips (last 3-6 months), tax returns, pension statements",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["sufficient_income", "regular_income", "last_3_months"],
+      "notes": "Income must meet minimum threshold (typically ~Hartz IV rates + housing for family size). Last 3 months of pay slips usually required. Self-employed: tax returns, business income proof. Income must be stable and predictable."
+    },
+    {
+      "name": "Wohnungsgeberbestätigung",
+      "documentType": "accommodation_confirmation",
+      "description": "Accommodation confirmation from landlord showing adequate living space for family",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["sufficient_space", "landlord_signature"],
+      "notes": "Minimum space requirements: typically 12m² per person plus shared spaces. Rental contract and landlord confirmation required. Sufficient for family size."
+    },
+    {
+      "name": "Mietvertrag",
+      "documentType": "rental_contract",
+      "description": "Rental contract for accommodation in Germany",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["current_valid", "adequate_size"],
+      "notes": "Must show adequate living space. Square meters must meet minimum requirements for family size. Cold rent (Kaltmiete) considered for income calculation."
+    },
+    {
+      "name": "Deutschzertifikat A1",
+      "documentType": "german_language_certificate",
+      "description": "German language certificate level A1 from recognized institution for spouse reunification",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["recognized_institution", "level_A1_minimum", "valid_certificate"],
+      "notes": "Required for spouse reunification with third-country nationals (§30 AufenthG). Recognized institutions: Goethe-Institut, telc, ÖSD. NOT required for: spouses of Germans, recognized refugees, highly qualified professionals, or if integration hardship proven."
+    },
+    {
+      "name": "Krankenversicherungsnachweis",
+      "documentType": "health_insurance_proof",
+      "description": "Proof of health insurance coverage for family member joining",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["adequate_coverage", "valid_in_germany"],
+      "notes": "Health insurance mandatory from entry. Can be German statutory (gesetzlich), private (privat), or expat health insurance valid in Germany. Coverage must meet German requirements."
+    },
+    {
+      "name": "Geburtsurkunden der Kinder",
+      "documentType": "children_birth_certificates",
+      "description": "Birth certificates of children for child reunification",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["certified_copy", "apostille", "certified_translation"],
+      "notes": "Required for each child joining parents. Must show parentage. Apostille and certified German translation required. If parents not married, proof of paternity/sole custody may be needed."
+    },
+    {
+      "name": "Sorgerechtsnachweis",
+      "documentType": "custody_proof",
+      "description": "Proof of sole custody or consent of other parent if only one parent in Germany",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["official_document", "certified_translation"],
+      "notes": "Required if only one parent in Germany and child joining. Options: sole custody decree, consent letter from other parent (notarized), or proof other parent deceased/untraceable."
+    },
+    {
+      "name": "Biometrisches Passfoto",
+      "documentType": "passport_photo",
+      "description": "Biometric passport photo meeting visa requirements",
+      "criticality": "critical",
+      "acceptedFormats": ["jpg", "jpeg", "png"],
+      "validationRules": ["biometric_standards", "recent_6_months"],
+      "notes": "Standard biometric photo: 35x45mm, white background, neutral expression, no glasses. Recent (within 6 months). Required for visa application."
+    },
+    {
+      "name": "Visumantragsformular",
+      "documentType": "visa_application_form",
+      "description": "Completed national visa application form for family reunification",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["all_fields_completed", "signed"],
+      "notes": "Application form from German embassy/consulate. Available online or at consular services portal. Must be completed fully and signed. Type of visa: family reunification (Familienzusammenführung)."
+    },
+    {
+      "name": "Einladung / Verpflichtungserklärung",
+      "documentType": "formal_invitation",
+      "description": "Formal obligation of commitment (Verpflichtungserklärung) from sponsor if required",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["issued_by_immigration_office", "signed"],
+      "notes": "May be required if income borderline. Sponsor declares to cover costs. Issued by local Ausländerbehörde. Not always required if income clearly sufficient."
+    },
+    {
+      "name": "Arbeitsvertrag des Sponsors",
+      "documentType": "sponsor_employment_contract",
+      "description": "Employment contract of sponsor in Germany",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["current_valid", "permanent_or_longterm"],
+      "notes": "Shows employment stability. Permanent contracts (unbefristet) preferred. Fixed-term contracts acceptable if sufficient duration. Shows salary, position, working hours."
+    },
+    {
+      "name": "Meldebescheinigung des Sponsors",
+      "documentType": "sponsor_registration_certificate",
+      "description": "Registration certificate of sponsor in Germany",
+      "criticality": "critical",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["issued_within_3_months", "official_stamp"],
+      "notes": "Proves sponsor's registered address in Germany. Issued by local Bürgeramt. Must be recent (within 3 months). Shows living situation."
+    },
+    {
+      "name": "Ärztliches Attest",
+      "documentType": "medical_certificate",
+      "description": "Medical certificate if claiming exemption from language requirement",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf"],
+      "validationRules": ["detailed_diagnosis", "licensed_doctor", "explains_inability_to_learn"],
+      "notes": "Required only if claiming language exemption due to physical, mental, or psychological inability to learn. Must be detailed medical assessment. From licensed doctor. Explains why language learning impossible."
+    },
+    {
+      "name": "Scheidungsurkunden",
+      "documentType": "divorce_certificates",
+      "description": "Divorce certificates from previous marriages of both spouses",
+      "criticality": "optional",
+      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
+      "validationRules": ["certified_copy", "apostille", "certified_translation"],
+      "notes": "Required if either spouse was previously married. Proves marriage legally terminated. Apostille and certified German translation required."
+    }
+  ],
+  "validationRules": [
+    {
+      "rule_id": "marriage_validity",
+      "condition": "Marriage must be legally valid in Germany",
+      "action": "Verify marriage meets German legal requirements: no polygamy, both spouses minimum 18 years, free consent, proper marriage procedure. Forced marriages not recognized."
+    },
+    {
+      "rule_id": "income_sufficiency",
+      "condition": "Sponsor income must cover family without public benefits per §2 Abs.3 AufenthG",
+      "action": "Calculate required income: Hartz IV rates for family size + actual rent. Compare with sponsor's net income. Income must be regular and predictable. Self-employment: average income from tax returns."
+    },
+    {
+      "rule_id": "living_space_adequacy",
+      "condition": "Accommodation must provide adequate living space",
+      "action": "Check minimum space requirements (typically 12m² per person plus shared spaces). Verify from rental contract and Wohnungsgeberbestätigung. Family-appropriate housing."
+    },
+    {
+      "rule_id": "language_requirement_check",
+      "condition": "Spouse must prove A1 German unless exempt",
+      "action": "Verify A1 certificate from recognized institution. Check for exemptions: spouse of German, refugee sponsor, highly qualified, integration hardship, inability to learn."
+    },
+    {
+      "rule_id": "sponsor_permit_validity",
+      "condition": "Sponsor must have valid residence permit allowing family reunification",
+      "action": "Check sponsor's permit type and validity. Permit must have sufficient remaining duration. Some permit types do not allow family reunification (e.g., Duldung, certain temporary permits)."
+    },
+    {
+      "rule_id": "age_verification_spouses",
+      "condition": "Both spouses must be minimum 18 years old",
+      "action": "Verify birth dates. Both must be 18+ at time of visa application. No exceptions."
+    },
+    {
+      "rule_id": "custody_verification",
+      "condition": "For child reunification, verify custody rights",
+      "action": "If both parents in Germany, straightforward. If one parent: check for sole custody, other parent's consent, or proof other parent deceased/untraceable."
+    },
+    {
+      "rule_id": "document_authenticity",
+      "condition": "All foreign documents must be properly legalized",
+      "action": "Verify apostille for countries party to Hague Convention. Otherwise, embassy legalization required. Certified German translations by sworn translators mandatory."
+    },
+    {
+      "rule_id": "health_insurance_verification",
+      "condition": "Adequate health insurance must be secured",
+      "action": "Check health insurance certificate. Coverage must meet German minimum standards. Valid from entry date."
+    },
+    {
+      "rule_id": "visa_appointment_scheduling",
+      "condition": "Visa appointment must be scheduled at competent German embassy",
+      "action": "Family member applies at German embassy/consulate in country of residence. Appointment required. Processing times vary (weeks to months depending on embassy)."
+    }
+  ],
+  "commonIssues": [
+    {
+      "issue": "Insufficient income of sponsor",
+      "severity": "error",
+      "category": "eligibility",
+      "frequency": "very_common",
+      "suggestion": "Income must cover family without public benefits. Required amount: Hartz IV rates for family size + actual rent. Solutions: increase working hours, second job, Verpflichtungserklärung from third party, combine both spouses' incomes if one spouse already in Germany."
+    },
+    {
+      "issue": "Inadequate living space",
+      "severity": "error",
+      "category": "documentation",
+      "frequency": "common",
+      "suggestion": "Minimum typically 12m² per person plus shared spaces. For 2-person household: minimum ~48m² often required. Solution: move to larger apartment before family member arrives, or provide commitment to move to adequate housing upon arrival."
+    },
+    {
+      "issue": "Missing A1 German certificate for spouse",
+      "severity": "error",
+      "category": "language_requirements",
+      "frequency": "very_common",
+      "suggestion": "A1 certificate mandatory for spouse reunification with third-country nationals. Obtain from Goethe-Institut, telc, or ÖSD in home country. Courses available online and at language schools. Exemptions: spouses of Germans, recognized refugees, highly qualified, proven integration hardship."
+    },
+    {
+      "issue": "Marriage certificate lacking apostille",
+      "severity": "error",
+      "category": "documentation",
+      "frequency": "very_common",
+      "suggestion": "Marriage certificate must have apostille (Hague Convention countries) or embassy legalization (non-Hague countries). Obtain from authority that issued certificate or Ministry of Foreign Affairs in home country. Also requires certified German translation."
+    },
+    {
+      "issue": "Long visa processing times",
+      "severity": "warning",
+      "category": "procedural",
+      "frequency": "very_common",
+      "suggestion": "Visa processing varies by embassy: 1-3 months typical, but can be 6+ months at busy embassies. Apply as early as possible. Cannot be accelerated except exceptional hardship. Use waiting time to prepare: learn German, gather documents, plan arrival."
+    },
+    {
+      "issue": "Spouse's age under 18",
+      "severity": "error",
+      "category": "eligibility",
+      "frequency": "occasional",
+      "suggestion": "Both spouses must be 18+ (§30 Abs.1 Nr.1 AufenthG). No exceptions. If spouse under 18, must wait until 18th birthday to apply. Child marriage not recognized in Germany."
+    },
+    {
+      "issue": "Sponsor on temporary residence permit",
+      "severity": "warning",
+      "category": "eligibility",
+      "frequency": "common",
+      "suggestion": "Family reunification possible with most residence permits but not all. Check permit type. Some temporary permits (Duldung, certain §25 permits) may not allow family reunification. Permanent residence (Niederlassungserlaubnis) ideal. Consult Ausländerbehörde."
+    },
+    {
+      "issue": "Previous divorce not properly documented",
+      "severity": "error",
+      "category": "documentation",
+      "frequency": "common",
+      "suggestion": "If either spouse previously married, divorce certificate required. Must prove marriage legally terminated. Obtain from court that granted divorce. Apostille and certified German translation needed. Provide for all previous marriages."
+    },
+    {
+      "issue": "Uncertainty about custody for child reunification",
+      "severity": "error",
+      "category": "eligibility",
+      "frequency": "common",
+      "suggestion": "If one parent in Germany: need sole custody, other parent's notarized consent, or proof other parent deceased/location unknown. Obtain custody decree from family court or notarized consent declaration. Simplified if both parents in Germany or sole custody already established."
+    },
+    {
+      "issue": "Health insurance not meeting German standards",
+      "severity": "error",
+      "category": "documentation",
+      "frequency": "common",
+      "suggestion": "Travel insurance insufficient. Need health insurance meeting German standards. Options: German statutory (after arrival), German private, or expat insurance covering Germany. Some embassies accept coverage commitment; others require proof before visa. Check embassy requirements."
+    },
+    {
+      "issue": "Language exemption claim without proper documentation",
+      "severity": "warning",
+      "category": "language_requirements",
+      "frequency": "occasional",
+      "suggestion": "Claiming inability to learn German due to illness/disability requires comprehensive medical assessment. Detailed diagnosis, explanation why learning impossible, from licensed medical professional. General medical conditions insufficient; must specifically prevent language learning. High burden of proof."
+    },
+    {
+      "issue": "Integration hardship claim for language exemption",
+      "severity": "warning",
+      "category": "language_requirements",
+      "frequency": "occasional",
+      "suggestion": "Integration hardship exemption from A1 rare and difficult to prove. Requires showing A1 requirement would cause exceptional hardship disproportionate to integration purpose. Examples: elderly spouse with no education, learning disability. Requires strong argumentation and evidence. Legal counsel recommended."
+    },
+    {
+      "issue": "Sponsor receiving public benefits",
+      "severity": "error",
+      "category": "eligibility",
+      "frequency": "common",
+      "suggestion": "Receiving Hartz IV, Wohngeld, or other public benefits usually disqualifies from sponsoring family member. Income must be above benefit threshold. Solutions: increase income above benefit level, find employment, or have third party provide Verpflichtungserklärung."
+    },
+    {
+      "issue": "Self-employment income difficult to prove",
+      "severity": "warning",
+      "category": "documentation",
+      "frequency": "common",
+      "suggestion": "Self-employed must prove stable income: tax returns (last 2-3 years), business accounts, contracts with clients. Recent tax return most important. Income must be regular and predictable. Business plan if recently self-employed. May require Verpflichtungserklärung if income uncertain."
+    },
+    {
+      "issue": "Embassy appointment not available for months",
+      "severity": "warning",
+      "category": "procedural",
+      "frequency": "common",
+      "suggestion": "High demand at some embassies leads to long appointment waiting times. Book appointment as soon as preliminary documentation ready. Some embassies allow online booking. Check embassy website regularly for cancellations. Cannot be expedited except emergency (e.g., serious illness of sponsor)."
+    },
+    {
+      "issue": "Doubts about marriage authenticity (sham marriage suspicion)",
+      "severity": "error",
+      "category": "procedural",
+      "frequency": "occasional",
+      "suggestion": "If authorities suspect sham marriage (Scheinehe), visa may be rejected or permit denied. Evidence of genuine relationship helps: photos together over time, communication records, visit receipts, knowledge of each other. Interview may probe relationship depth. Genuine marriages: provide evidence showing relationship history."
+    },
+    {
+      "issue": "Sponsor's permit expiring soon",
+      "severity": "warning",
+      "category": "eligibility",
+      "frequency": "common",
+      "suggestion": "Sponsor's permit should have sufficient remaining validity (typically >1 year) for family reunification. If expiring soon, renew sponsor's permit first. Applying simultaneously for renewal and family reunification possible but complicates process."
+    },
+    {
+      "issue": "Children over 16 (child reunification deadline)",
+      "severity": "error",
+      "category": "eligibility",
+      "frequency": "occasional",
+      "suggestion": "Child reunification straightforward for children under 16. Over 16: must prove German language proficiency or integration expected. Application before 16th birthday ideal. After 16: higher requirements unless joining recognized refugee. Apply before child turns 16 to avoid complications."
+    },
+    {
+      "issue": "Missing birth certificate for child",
+      "severity": "error",
+      "category": "documentation",
+      "frequency": "occasional",
+      "suggestion": "Birth certificate essential for child reunification. Shows parentage. Obtain from civil registry in country where child born. If unavailable, contact embassy for alternative procedures. Apostille and certified German translation required."
+    },
+    {
+      "issue": "Sponsor changed address without notifying authorities",
+      "severity": "warning",
+      "category": "procedural",
+      "frequency": "common",
+      "suggestion": "Address changes must be reported to Ausländerbehörde within 2 weeks. Failure to report can complicate family reunification. Update all documents: Meldebescheinigung, rental contract, Aufenthaltstitel. Ensure consistency across all documents."
+    },
+    {
+      "issue": "Financial situation changed after application",
+      "severity": "warning",
+      "category": "procedural",
+      "frequency": "common",
+      "suggestion": "If income decreased or lost employment after application: notify authorities immediately. May affect decision. Solutions: new employment, Verpflichtungserklärung, partner's income. If improved: provide updated documentation to strengthen case."
+    },
+    {
+      "issue": "Polygamous marriage not recognized",
+      "severity": "error",
+      "category": "eligibility",
+      "frequency": "rare",
+      "suggestion": "Germany does not recognize polygamous marriages. Only first marriage recognized. Second, third, etc. spouses cannot receive residence permits for family reunification. No exceptions."
+    }
+  ],
+  "processingGuidelines": {
+    "standardProcessingTime": "1-3 months at embassy; can extend to 6+ months at busy locations",
+    "priorityCategories": ["minors_joining_parents", "humanitarian_hardship_cases", "highly_qualified_sponsors"],
+    "escalationTriggers": ["sponsor_serious_illness", "extreme_processing_delays", "child_welfare_concerns"]
+  }
+}

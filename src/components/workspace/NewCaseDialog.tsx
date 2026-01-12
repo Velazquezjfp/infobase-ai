@@ -21,36 +21,37 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface NewCaseDialogProps {
   trigger?: React.ReactNode;
 }
 
-const caseTemplates = [
-  { id: 'integration', name: 'German Integration Course Application' },
-  { id: 'asylum', name: 'Asylum Application' },
-  { id: 'family', name: 'Family Reunification' },
-  { id: 'work', name: 'Work Permit Application' },
-  { id: 'custom', name: 'Custom Case' },
-];
+const caseTemplateIds = ['integration', 'asylum', 'family', 'work', 'custom'] as const;
 
 export default function NewCaseDialog({ trigger }: NewCaseDialogProps) {
   const { addNewCase, switchCase } = useApp();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [caseName, setCaseName] = useState('');
   const [template, setTemplate] = useState('integration');
 
+  const caseTemplates = caseTemplateIds.map(id => ({
+    id,
+    name: t(`caseTemplates.${id}`)
+  }));
+
   const handleCreate = () => {
     if (!caseName.trim()) {
-      toast.error('Please enter a case name');
+      toast.error(t('errors.generic'));
       return;
     }
 
     const newCase = addNewCase(caseName.trim());
     switchCase(newCase.id);
-    
-    toast.success(`Case ${newCase.id} created successfully`);
-    
+
+    toast.success(`${t('case.prefix')} ${newCase.id} ${t('success.created')}`);
+
     setOpen(false);
     setCaseName('');
     setTemplate('integration');
@@ -68,13 +69,22 @@ export default function NewCaseDialog({ trigger }: NewCaseDialogProps) {
     }
   };
 
+  const folderNames = [
+    'Personal Data',
+    'Certificates',
+    'Integration Course Documents',
+    'Applications & Forms',
+    'Emails',
+    'Additional Evidence'
+  ];
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="default" size="sm" className="gap-2">
             <Plus className="w-4 h-4" />
-            New Case
+            {t('case.newCase')}
           </Button>
         )}
       </DialogTrigger>
@@ -82,20 +92,20 @@ export default function NewCaseDialog({ trigger }: NewCaseDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FolderPlus className="w-5 h-5 text-primary" />
-            Create New Case
+            {t('caseTemplates.createNewCase')}
           </DialogTitle>
           <DialogDescription>
-            Create a new case with the standard folder structure
+            {t('caseTemplates.createWithFolders')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           {/* Template Selection */}
           <div className="space-y-2">
-            <Label htmlFor="template">Case Template</Label>
+            <Label htmlFor="template">{t('caseTemplates.caseTemplate')}</Label>
             <Select value={template} onValueChange={handleTemplateChange}>
               <SelectTrigger id="template">
-                <SelectValue placeholder="Select a template" />
+                <SelectValue placeholder={t('caseTemplates.selectTemplate')} />
               </SelectTrigger>
               <SelectContent>
                 {caseTemplates.map((t) => (
@@ -109,10 +119,10 @@ export default function NewCaseDialog({ trigger }: NewCaseDialogProps) {
 
           {/* Case Name */}
           <div className="space-y-2">
-            <Label htmlFor="caseName">Case Name</Label>
+            <Label htmlFor="caseName">{t('case.caseName')}</Label>
             <Input
               id="caseName"
-              placeholder="Enter case name..."
+              placeholder={`${t('common.add')} ${t('case.caseName').toLowerCase()}...`}
               value={caseName}
               onChange={(e) => setCaseName(e.target.value)}
             />
@@ -120,12 +130,12 @@ export default function NewCaseDialog({ trigger }: NewCaseDialogProps) {
 
           {/* Folder Preview */}
           <div className="space-y-2">
-            <Label className="text-muted-foreground text-xs">Folders that will be created:</Label>
+            <Label className="text-muted-foreground text-xs">{t('caseTemplates.folderPreview')}</Label>
             <div className="bg-muted/50 rounded-md p-3 space-y-1">
-              {['Personal Data', 'Certificates', 'Integration Course Documents', 'Applications & Forms', 'Emails', 'Additional Evidence'].map((folder) => (
+              {folderNames.map((folder) => (
                 <div key={folder} className="flex items-center gap-2 text-sm">
                   <FileText className="w-3.5 h-3.5 text-primary" />
-                  <span>{folder}</span>
+                  <span>{t(`folders.${folder}`, folder)}</span>
                 </div>
               ))}
             </div>
@@ -134,11 +144,11 @@ export default function NewCaseDialog({ trigger }: NewCaseDialogProps) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleCreate} disabled={!caseName.trim()}>
             <Plus className="w-4 h-4 mr-2" />
-            Create Case
+            {t('case.createCase')}
           </Button>
         </DialogFooter>
       </DialogContent>

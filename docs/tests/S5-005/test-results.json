@@ -1,0 +1,97 @@
+{
+  "requirement_id": "S5-005",
+  "requirement_title": "Case Validation Agent",
+  "last_updated": "2026-01-09T15:29:16Z",
+  "tests": {
+    "TC-S5-005-01": {
+      "description": "Click Validate Case, verify validation report displayed in dialog",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-01.py"
+    },
+    "TC-S5-005-02": {
+      "description": "Case with all required documents present, verify status='complete' and score=1.0",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-02.py"
+    },
+    "TC-S5-005-03": {
+      "description": "Case missing passport, verify missingCriticalDocuments includes 'passport'",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-03.py"
+    },
+    "TC-S5-005-04": {
+      "description": "Document named 'Reisepass.png' matches required 'passport', verify matched correctly",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-04.py"
+    },
+    "TC-S5-005-05": {
+      "description": "Document named 'Personalausweis.png', verify suggested as alternative to passport",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-05.py"
+    },
+    "TC-S5-005-06": {
+      "description": "Validation in German document names, verify English expected types matched correctly",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-06.py"
+    },
+    "TC-S5-005-07": {
+      "description": "Navigate to 'Personal Data' folder, click Validate, verify only folder documents checked",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-07.py"
+    },
+    "TC-S5-005-08": {
+      "description": "Folder validation, verify report says 'Validating Personal Data folder only'",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-08.py"
+    },
+    "TC-S5-005-09": {
+      "description": "Ambiguous document name 'Document1.pdf', verify status='needs_clarification' with recommendation",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-09.py"
+    },
+    "TC-S5-005-10": {
+      "description": "Type /validate-case in chat, verify validation triggered and report shown in chat",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-10.py"
+    },
+    "TC-S5-005-11": {
+      "description": "Validation report, click 'Add Document' for missing passport, verify upload dialog opens",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-11.py"
+    },
+    "TC-S5-005-12": {
+      "description": "Case with no documents, verify all required documents listed as missing",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-12.py"
+    },
+    "TC-S5-005-13": {
+      "description": "Document 'Email.eml' in Emails folder, verify matched to correspondence type",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-13.py"
+    },
+    "TC-S5-005-14": {
+      "description": "Arabic document name '\u062c\u0648\u0627\u0632 \u0633\u0641\u0631' (passport in Arabic), verify matched correctly",
+      "status": "not_run",
+      "last_run": null,
+      "test_file": "TC-S5-005-14.py"
+    }
+  },
+  "summary": {
+    "total": 14,
+    "passed": 0,
+    "failed": 0,
+    "not_run": 14
+  }
+}

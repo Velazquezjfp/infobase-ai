@@ -192,25 +192,115 @@ def validate_form_schema(form_schema: List[Dict[str, Any]]) -> bool:
     return True
 
 
+def compare_values(
+    current_values: Dict[str, str],
+    extracted_values: Dict[str, str],
+    confidence_scores: Dict[str, float]
+) -> Dict[str, Any]:
+    """
+    Compare current form values with extracted values to categorize updates.
+
+    Categorizes extracted values into three groups:
+    - direct_updates: Fields that are empty (fill directly without suggestion)
+    - suggestions: Fields with different values that need user approval
+    - ignored: Fields with identical values (no action needed)
+
+    Args:
+        current_values: Current form field values {"field_id": "value", ...}
+        extracted_values: AI-extracted values {"field_id": "value", ...}
+        confidence_scores: Confidence scores for each extracted value
+
+    Returns:
+        Dict[str, Any]: Categorized results with structure:
+            {
+                "direct_updates": {"field_id": "value", ...},
+                "suggestions": {
+                    "field_id": {
+                        "value": "suggested_value",
+                        "confidence": 0.85,
+                        "current": "current_value"
+                    }, ...
+                },
+                "ignored": ["field_id1", "field_id2"]
+            }
+    """
+    direct_updates = {}
+    suggestions = {}
+    ignored = []
+
+    for field_id, extracted_value in extracted_values.items():
+        current_value = current_values.get(field_id, "").strip()
+        extracted_value_clean = extracted_value.strip()
+        confidence = confidence_scores.get(field_id, 0.85)
+
+        # Case 1: Empty field - fill directly without suggestion
+        if not current_value:
+            direct_updates[field_id] = extracted_value_clean
+            logger.debug(f"Field '{field_id}' is empty, will fill directly")
+
+        # Case 2: Identical values - ignore
+        elif current_value.lower() == extracted_value_clean.lower():
+            ignored.append(field_id)
+            logger.debug(f"Field '{field_id}' has identical value, ignoring")
+
+        # Case 3: Different values - create suggestion
+        else:
+            suggestions[field_id] = {
+                "value": extracted_value_clean,
+                "confidence": confidence,
+                "current": current_value
+            }
+            logger.debug(f"Field '{field_id}' differs, creating suggestion")
+
+    logger.info(
+        f"Value comparison: {len(direct_updates)} direct updates, "
+        f"{len(suggestions)} suggestions, {len(ignored)} ignored"
+    )
+
+    return {
+        "direct_updates": direct_updates,
+        "suggestions": suggestions,
+        "ignored": ignored
+    }
+
+
 def parse_extraction_result(
     ai_response: str,
-    form_schema: List[Dict[str, Any]]
+    form_schema: List[Dict[str, Any]],
+    current_values: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
     """
     Parse the AI's extraction result and format it for frontend consumption.
 
     Converts the AI's JSON response into a standardized format with
     extracted values and confidence scores. Validates data types and formats.
+    When current_values is provided, categorizes results into direct updates
+    vs suggestions based on whether fields are empty or already filled.
 
     Args:
         ai_response: The JSON string from the AI containing extracted values.
         form_schema: The original form schema for validation.
+        current_values: Optional dict of current form values for comparison.
 
     Returns:
         Dict[str, Any]: Formatted result with structure:
+            Without current_values:
             {
                 "updates": {"field_id": "value", ...},
                 "confidence": {"field_id": 0.9, ...}
+            }
+
+            With current_values (S5-002):
+            {
+                "direct_updates": {"field_id": "value", ...},
+                "suggestions": {
+                    "field_id": {
+                        "value": "suggested_value",
+                        "confidence": 0.85,
+                        "current": "current_value"
+                    }, ...
+                },
+                "ignored": ["field_id1", "field_id2"]
             }
     """
     import json
@@ -301,10 +391,18 @@ def parse_extraction_result(
 
         logger.info(f"Successfully parsed {len(updates)} field values")
 
-        return {
-            "updates": updates,
-            "confidence": confidence
-        }
+        # S5-002: If current_values provided, categorize into direct updates vs suggestions
+        if current_values is not None:
+            result = compare_values(current_values, updates, confidence)
+            # Also include the full confidence map for reference
+            result["all_confidence"] = confidence
+            return result
+        else:
+            # Legacy behavior: return all as updates
+            return {
+                "updates": updates,
+                "confidence": confidence
+            }
 
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse AI response as JSON: {str(e)}")
