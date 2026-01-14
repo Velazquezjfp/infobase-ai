@@ -12,7 +12,7 @@ Endpoints:
 """
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional, Any
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
@@ -384,4 +384,95 @@ async def extract_pdf_text(request: PDFTextExtractionRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to extract PDF text: {str(e)}"
+        )
+
+
+# ============================================================================
+# S5-008: Email Parsing Endpoint
+# ============================================================================
+
+class EmailParseRequest(BaseModel):
+    """Request model for email parsing endpoint."""
+    documentPath: str = Field(..., description="Path to .eml file")
+
+
+class EmailParseResponse(BaseModel):
+    """Response model for email parsing endpoint."""
+    from_addr: str = Field(..., description="Sender email and name")
+    to_addr: str = Field(..., description="Recipient email(s)")
+    subject: str = Field(..., description="Email subject")
+    date: str = Field(..., description="Email date")
+    body_text: str = Field(..., description="Plain text body")
+    body_html: Optional[str] = Field(None, description="HTML body if available")
+    attachments: List[Dict[str, Any]] = Field(default_factory=list, description="Attachment metadata")
+
+
+@router.post("/parse-email", response_model=EmailParseResponse)
+async def parse_email(request: EmailParseRequest):
+    """
+    Parse an .eml file and extract email data.
+
+    Supports multiple character encodings including Arabic (ISO-8859-6).
+    Extracts headers, body content (plain text and HTML), and attachment metadata.
+
+    Args:
+        request: Request with document path to .eml file
+
+    Returns:
+        EmailParseResponse: Parsed email data
+
+    Raises:
+        HTTPException 404: If email file not found
+        HTTPException 500: If email parsing fails
+
+    Example:
+        POST /api/documents/parse-email
+        {
+          "documentPath": "public/documents/ACTE-2024-001/emails/Email.eml"
+        }
+    """
+    try:
+        from backend.services.email_service import get_email_service
+
+        email_service = get_email_service()
+
+        # Parse the email file
+        email_data = email_service.parse_eml_file(request.documentPath)
+
+        # Convert attachments to dict format
+        attachments_list = [
+            {
+                "filename": att.filename,
+                "content_type": att.content_type,
+                "size": att.size
+            }
+            for att in email_data.attachments
+        ]
+
+        logger.info(
+            f"Parsed email: {email_data.subject} "
+            f"(body: {len(email_data.body_text)} chars)"
+        )
+
+        return EmailParseResponse(
+            from_addr=email_data.from_addr,
+            to_addr=email_data.to_addr,
+            subject=email_data.subject,
+            date=email_data.date,
+            body_text=email_data.body_text,
+            body_html=email_data.body_html,
+            attachments=attachments_list
+        )
+
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Email file not found: {request.documentPath}"
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to parse email: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to parse email: {str(e)}"
         )

@@ -16,6 +16,8 @@ This document provides detailed information about the BAMF ACTE Companion API en
 - [Authentication](#authentication)
 - [Case Management](#case-management)
 - [Document Operations](#document-operations)
+- [Context API](#context-api)
+- [Search API](#search-api)
 - [File Operations](#file-operations)
 - [AI Operations](#ai-operations)
 - [Form Management](#form-management)
@@ -3007,6 +3009,433 @@ def check_document_service_health():
 
 ---
 
+## Context API
+
+**Current Status:** IMPLEMENTED - Provides document tree views and hierarchical context information.
+
+The Context API (S5-011) provides endpoints for retrieving structured document tree views with hierarchical text representations. These endpoints support frontend debugging, tree visualization, and cascading context features.
+
+### GET /api/context/tree/{case_id}
+
+Get document tree view for a specific case with hierarchical text representation.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/context.py`
+
+**Source:** `backend/api/context.py:35-126`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint returns a hierarchical text representation of the document tree for a case, formatted with ASCII tree characters (├── └──). The tree view includes all folders and documents, showing empty folders and providing folder display names from context files.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+
+**Features:**
+
+- Cached for performance (regenerates on document changes via cache invalidation)
+- Includes folder display names from context files
+- Shows empty folders
+- Lists all documents with their original filenames
+- ASCII tree formatting with proper indentation
+
+**Success Response (200 OK):**
+```json
+{
+  "treeView": "Case ACTE-2024-001:\n├── Personal Data (5 documents)\n│   ├── Passport_Scan.pdf\n│   ├── Birth_Certificate.pdf\n│   └── Address_Proof.pdf\n├── Applications (2 documents)\n│   └── Integration_Application.pdf\n└── Evidence (3 documents)\n    ├── School_Transcripts.pdf\n    └── Language_Certificate.pdf",
+  "folders": [
+    "Personal Data",
+    "Applications",
+    "Evidence"
+  ],
+  "documentCount": 10
+}
+```
+
+**Error Response (404 Not Found - Case Not Found):**
+```json
+{
+  "detail": {
+    "error": "Case not found",
+    "case_id": "ACTE-2024-999"
+  }
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "detail": {
+    "error": "Failed to generate tree view",
+    "detail": "<error details>",
+    "case_id": "ACTE-2024-001"
+  }
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X GET http://localhost:8000/api/context/tree/ACTE-2024-001
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const getTreeView = async (caseId) => {
+  const response = await fetch(
+    `http://localhost:8000/api/context/tree/${caseId}`
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail?.error || 'Failed to get tree view');
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const tree = await getTreeView('ACTE-2024-001');
+  console.log('Tree View:\n' + tree.treeView);
+  console.log(`Folders: ${tree.folders.join(', ')}`);
+  console.log(`Total documents: ${tree.documentCount}`);
+} catch (error) {
+  console.error('Get tree view failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def get_tree_view(case_id: str):
+    response = requests.get(
+        f'http://localhost:8000/api/context/tree/{case_id}'
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Get tree view failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+tree = get_tree_view("ACTE-2024-001")
+print("Tree View:")
+print(tree['treeView'])
+print(f"\nFolders: {', '.join(tree['folders'])}")
+print(f"Total documents: {tree['documentCount']}")
+```
+
+**Caching and Performance:**
+
+The tree view is cached in memory for performance. The cache is automatically invalidated when:
+- A file is uploaded (`POST /api/files/upload`)
+- A file is deleted (`DELETE /api/files/{case_id}/{folder_id}/{filename}`)
+- A render is deleted (`DELETE /api/files/renders/{case_id}/{document_id}/{render_id}`)
+
+Cache invalidation ensures that the tree view always reflects the current state of the document structure.
+
+**Use Cases:**
+
+- **Frontend debugging:** Visualize document structure during development
+- **Tree view display:** Render hierarchical tree in UI components
+- **Manual verification:** Test document tree generation and folder structure
+- **Context display:** Show users the complete document hierarchy for a case
+
+**Performance:**
+
+- First call: 100-300ms (generates and caches tree)
+- Cached calls: < 50ms (returns cached tree)
+- Cache invalidation: Automatic on document changes
+
+---
+
+## Search API
+
+**Current Status:** IMPLEMENTED - Semantic search using natural language queries with Gemini AI.
+
+The Search API (S5-003) provides intelligent document search capabilities using semantic understanding. It supports cross-language search, automatic language detection, PDF text extraction, and text highlighting with position information.
+
+### POST /api/search/semantic
+
+Perform semantic search on document content using natural language queries.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/search.py`
+
+**Source:** `backend/api/search.py:103-266`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint analyzes document content and finds text passages that semantically match the user's natural language query. It uses Google Gemini AI for intelligent semantic matching and supports cross-language search where the query and document can be in different languages.
+
+**Request Body (application/json):**
+
+```json
+{
+  "query": "passport number",
+  "documentContent": "Full text of document (for non-PDF)",
+  "documentType": "pdf",
+  "documentPath": "/path/to/document.pdf",
+  "queryLanguage": "en",
+  "documentLanguage": "de"
+}
+```
+
+**Request Fields:**
+
+- `query` (required): Natural language search query (minimum 1 character)
+- `documentContent` (optional): Full text content of document (required for non-PDF documents)
+- `documentType` (required): Type of document (pdf, txt, etc.)
+- `documentPath` (optional): Path to PDF file (required for PDF documents)
+- `queryLanguage` (optional): Query language ISO 639-1 code (auto-detected if not provided)
+- `documentLanguage` (optional): Document language ISO 639-1 code (auto-detected if not provided)
+
+**Features:**
+
+- **Semantic Search:** Understands meaning, not just keywords
+- **Cross-Language Support:** Search German documents with English queries (and vice versa)
+- **Automatic Language Detection:** Detects query and document languages automatically
+- **PDF Text Extraction:** Automatically extracts text from PDF files
+- **Text Highlighting:** Returns exact character positions for matched text
+- **Relevance Scoring:** Each match includes a relevance score (0.0-1.0)
+- **Context Explanation:** Explains why each passage matched
+
+**Success Response (200 OK):**
+```json
+{
+  "highlights": [
+    {
+      "start": 125,
+      "end": 145,
+      "relevance": 0.95,
+      "matchedText": "Passnummer: 123456789",
+      "context": "Direct match: passport number field"
+    },
+    {
+      "start": 450,
+      "end": 475,
+      "relevance": 0.75,
+      "matchedText": "Reisepass-Nr. A98765432",
+      "context": "Synonym match: travel document number"
+    }
+  ],
+  "count": 2,
+  "matchSummary": "Found 2 relevant passages (cross-language: English → German)",
+  "queryLanguage": "en",
+  "documentLanguage": "de",
+  "isCrossLanguage": true
+}
+```
+
+**Error Response (400 Bad Request - Missing Required Field):**
+```json
+{
+  "detail": "documentPath is required for PDF documents"
+}
+```
+
+**Error Response (404 Not Found - PDF Not Found):**
+```json
+{
+  "detail": "PDF file not found: /path/to/document.pdf"
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "detail": "Search failed: <error details>"
+}
+```
+
+**Example Usage:**
+
+**cURL (Text Document):**
+```bash
+curl -X POST http://localhost:8000/api/search/semantic \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "birth date",
+    "documentContent": "Name: John Doe\nGeburtsdatum: 15.05.1990\nGeburtsort: Berlin",
+    "documentType": "txt",
+    "queryLanguage": "en",
+    "documentLanguage": "de"
+  }'
+```
+
+**cURL (PDF Document):**
+```bash
+curl -X POST http://localhost:8000/api/search/semantic \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "passport number",
+    "documentType": "pdf",
+    "documentPath": "public/documents/ACTE-2024-001/personal-data/Passport.pdf"
+  }'
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const semanticSearch = async (query, documentContent, documentType) => {
+  const response = await fetch(
+    'http://localhost:8000/api/search/semantic',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        documentContent,
+        documentType
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail);
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const results = await semanticSearch(
+    'passport number',
+    documentTextContent,
+    'txt'
+  );
+
+  console.log(`Found ${results.count} matches`);
+  results.highlights.forEach((highlight, index) => {
+    console.log(`${index + 1}. ${highlight.matchedText}`);
+    console.log(`   Relevance: ${highlight.relevance}`);
+    console.log(`   Context: ${highlight.context}`);
+  });
+} catch (error) {
+  console.error('Search failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def semantic_search(query: str, document_content: str = None, document_type: str = "txt", document_path: str = None):
+    payload = {
+        "query": query,
+        "documentType": document_type
+    }
+
+    if document_type == "pdf":
+        payload["documentPath"] = document_path
+    else:
+        payload["documentContent"] = document_content
+
+    response = requests.post(
+        'http://localhost:8000/api/search/semantic',
+        json=payload
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Search failed: {response.json()}")
+
+    return response.json()
+
+# Usage - Text document
+results = semantic_search(
+    query="birth date",
+    document_content="Name: John\nGeburtsdatum: 15.05.1990",
+    document_type="txt"
+)
+
+print(f"Found {results['count']} matches")
+for highlight in results['highlights']:
+    print(f"- {highlight['matchedText']} (relevance: {highlight['relevance']})")
+
+# Usage - PDF document
+pdf_results = semantic_search(
+    query="passport number",
+    document_type="pdf",
+    document_path="public/documents/ACTE-2024-001/personal-data/Passport.pdf"
+)
+```
+
+**Cross-Language Search Examples:**
+
+1. **English query → German document:**
+   - Query: "passport number"
+   - Matches: "Reisepassnummer", "Passnummer", "Pass-Nr."
+
+2. **German query → English document:**
+   - Query: "Geburtsdatum"
+   - Matches: "date of birth", "birth date", "DOB"
+
+3. **Mixed-language documents:**
+   - Automatically detects primary document language
+   - Searches across both languages intelligently
+
+**Language Detection:**
+
+If `queryLanguage` or `documentLanguage` are not provided, the service automatically detects them using linguistic analysis. Supported languages:
+- German (de)
+- English (en)
+
+**Use Cases:**
+
+- **Document search:** Find specific information in documents regardless of language
+- **Data extraction:** Locate and extract specific fields from documents
+- **Cross-language compliance:** Search German documents with English queries
+- **Quality assurance:** Verify document completeness by searching for required fields
+
+**Performance:**
+
+- Text document search: 1-3 seconds
+- PDF document search: 2-5 seconds (includes PDF extraction time)
+- Cross-language search: Same performance (no additional overhead)
+
+---
+
+### GET /api/search/health
+
+Search service health check with capability information.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/search.py`
+
+**Source:** `backend/api/search.py:269-286`
+
+**Authentication:** None (public endpoint)
+
+**Success Response (200 OK):**
+```json
+{
+  "status": "healthy",
+  "service": "semantic_search",
+  "gemini_initialized": true,
+  "pdf_support": true,
+  "cross_language_support": true
+}
+```
+
+**Example:**
+```bash
+curl -X GET http://localhost:8000/api/search/health
+```
+
+**Usage:**
+- Verify search service is initialized and ready
+- Check Gemini AI integration status
+- Confirm PDF extraction capability
+- Validate cross-language search support
+
+---
+
 ## File Operations
 
 ### POST /api/files/upload
@@ -3202,6 +3631,10 @@ The registration process:
 4. Manifest is persisted to disk
 
 If registration fails (e.g., manifest corruption), the file upload still succeeds. The error is logged, and the document will be discovered during the next filesystem reconciliation on application startup.
+
+**Tree Cache Invalidation (S5-011):**
+
+After successful file upload, the endpoint automatically invalidates the document tree cache for the case. This ensures that the `GET /api/context/tree/{case_id}` endpoint returns updated tree views that include the newly uploaded file.
 
 **Duplicate File Handling:**
 
@@ -3404,6 +3837,10 @@ Upon successful file deletion, the endpoint automatically unregisters the docume
 - Document renders (anonymized versions, etc.) are also unregistered
 - Manifest is persisted to disk
 
+**Tree Cache Invalidation (S5-011):**
+
+After successful file deletion, the endpoint automatically invalidates the document tree cache for the case. This ensures that the `GET /api/context/tree/{case_id}` endpoint returns updated tree views without the deleted file.
+
 The unregistration process:
 1. Document is located in manifest by case_id, folder_id, and filename
 2. File is deleted from filesystem
@@ -3582,6 +4019,131 @@ The service preserves the file extension and inserts the suffix before it.
 
 - Typical check time: < 50ms
 - Lightweight operation (only checks file existence, doesn't read content)
+
+---
+
+### DELETE /api/files/renders/{case_id}/{document_id}/{render_id}
+
+Delete a specific document render (anonymized, translated, etc.) from a document (S5-006).
+
+**Current Implementation:** IMPLEMENTED in `backend/api/files.py`
+
+**Source:** `backend/api/files.py:496-565`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint deletes a specific render (alternative version) of a document, such as an anonymized version or translated version. Renders are tracked in the document registry and linked to their parent document. Deleting a render removes both the file and the registry entry.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+- `document_id` (required): Parent document ID (UUID from document registry)
+- `render_id` (required): Render ID to delete (UUID from document registry)
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Render deleted successfully",
+  "render_id": "550e8400-e29b-41d4-a716-446655440002",
+  "document_id": "550e8400-e29b-41d4-a716-446655440001"
+}
+```
+
+**Error Response (404 Not Found - Render Not Found):**
+```json
+{
+  "detail": "Render 550e8400-e29b-41d4-a716-446655440002 not found or could not be deleted"
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "detail": "Failed to delete render: <error details>"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X DELETE \
+  http://localhost:8000/api/files/renders/ACTE-2024-001/550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440002
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const deleteRender = async (caseId, documentId, renderId) => {
+  const response = await fetch(
+    `http://localhost:8000/api/files/renders/${caseId}/${documentId}/${renderId}`,
+    { method: 'DELETE' }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail);
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const result = await deleteRender(
+    'ACTE-2024-001',
+    '550e8400-e29b-41d4-a716-446655440001',
+    '550e8400-e29b-41d4-a716-446655440002'
+  );
+  console.log(result.message);
+} catch (error) {
+  console.error('Delete render failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def delete_render(case_id: str, document_id: str, render_id: str):
+    response = requests.delete(
+        f'http://localhost:8000/api/files/renders/{case_id}/{document_id}/{render_id}'
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Delete render failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = delete_render(
+    "ACTE-2024-001",
+    "550e8400-e29b-41d4-a716-446655440001",
+    "550e8400-e29b-41d4-a716-446655440002"
+)
+print(result['message'])
+```
+
+**Document Registry Integration:**
+
+When a render is deleted:
+1. The render entry is removed from the parent document's `renders` array in the document registry
+2. The render file is deleted from the filesystem
+3. The document registry manifest is persisted to disk
+4. The document tree cache is invalidated to reflect the change
+
+**Tree Cache Invalidation (S5-011):**
+
+After successful render deletion, the endpoint automatically invalidates the document tree cache for the case. This ensures that the `GET /api/context/tree/{case_id}` endpoint returns updated tree views without the deleted render.
+
+**Use Cases:**
+
+- **Remove anonymized versions:** Delete anonymized document renders when no longer needed
+- **Clean up translations:** Remove translated document versions after approval or rejection
+- **Storage management:** Free up storage space by deleting unnecessary renders
+- **Privacy compliance:** Remove renders containing sensitive data
 
 ---
 

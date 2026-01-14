@@ -10,7 +10,7 @@ info:
 
     The API will provide document management, AI-powered case processing, and integration course
     application handling for BAMF (Bundesamt für Migration und Flüchtlinge).
-  version: 1.6.0
+  version: 2.0.0
   contact:
     name: BAMF Development Team
     email: api@bamf.example.de
@@ -32,6 +32,8 @@ tags:
     description: User authentication and authorization
   - name: Cases
     description: Case management operations
+  - name: Context
+    description: Document tree views and hierarchical context information
   - name: Documents
     description: Document upload, conversion, and retrieval
   - name: Files
@@ -41,7 +43,7 @@ tags:
   - name: Forms
     description: Application form management
   - name: Search
-    description: Cross-case and document search capabilities
+    description: Cross-case and document search capabilities with semantic understanding
 
 paths:
   /api/admin/generate-field:
@@ -478,6 +480,353 @@ paths:
                       path:
                         type: string
                         example: /home/ayanm/projects/info-base/infobase-ai/public/documents
+      x-source-file: backend/api/files.py
+
+  /api/context/tree/{case_id}:
+    get:
+      tags:
+        - Context
+      summary: Get document tree view for case
+      description: |
+        Retrieve hierarchical document tree view for a specific case.
+
+        **S5-011: Cascading Context with Document Tree View**
+
+        Returns a hierarchical text representation of all folders and documents
+        in the case, formatted with ASCII tree characters (├── └──).
+
+        **Features:**
+        - Cached for performance (regenerates on document changes)
+        - Includes folder display names from context files
+        - Shows empty folders
+        - Lists all documents with original filenames
+      operationId: getTreeView
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case ID (e.g., ACTE-2024-001)
+          schema:
+            type: string
+            example: ACTE-2024-001
+      responses:
+        '200':
+          description: Tree view retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - treeView
+                  - folders
+                  - documentCount
+                properties:
+                  treeView:
+                    type: string
+                    description: Hierarchical tree representation with ASCII characters
+                    example: "Case ACTE-2024-001:\n├── Personal Data (5 documents)\n│   ├── Passport_Scan.pdf\n│   └── Birth_Certificate.pdf"
+                  folders:
+                    type: array
+                    items:
+                      type: string
+                    description: List of folder display names
+                    example: ["Personal Data", "Applications", "Evidence"]
+                  documentCount:
+                    type: integer
+                    description: Total number of documents in the case
+                    example: 10
+        '404':
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Case not found
+                      case_id:
+                        type: string
+                        example: ACTE-2024-001
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Failed to generate tree view
+                      detail:
+                        type: string
+                      case_id:
+                        type: string
+      x-source-file: backend/api/context.py
+
+  /api/search/semantic:
+    post:
+      tags:
+        - Search
+      summary: Perform semantic search on document
+      description: |
+        Perform semantic search on document content using Gemini AI with natural language queries.
+
+        **S5-003: Semantic Search with Cross-Language Support**
+
+        This endpoint analyzes document content and finds text passages that semantically match
+        the user's natural language query. Supports cross-language search where query and document
+        can be in different languages.
+
+        **Features:**
+        - Semantic understanding (matches meaning, not just keywords)
+        - Cross-language search (German ↔ English)
+        - Automatic language detection
+        - PDF text extraction
+        - Text highlighting with character positions
+        - Relevance scoring (0.0-1.0)
+      operationId: semanticSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+                - documentType
+              properties:
+                query:
+                  type: string
+                  minLength: 1
+                  description: Natural language search query
+                  example: "passport number"
+                documentContent:
+                  type: string
+                  description: Full text content (required for non-PDF documents)
+                  example: "Name: John Doe\nReisepassnummer: 123456789"
+                documentType:
+                  type: string
+                  description: Document type
+                  example: "pdf"
+                documentPath:
+                  type: string
+                  description: Path to PDF file (required for PDF documents)
+                  example: "public/documents/ACTE-2024-001/personal-data/Passport.pdf"
+                queryLanguage:
+                  type: string
+                  description: Query language ISO 639-1 code (auto-detected if not provided)
+                  example: "en"
+                documentLanguage:
+                  type: string
+                  description: Document language ISO 639-1 code (auto-detected if not provided)
+                  example: "de"
+      responses:
+        '200':
+          description: Search completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - highlights
+                  - count
+                  - matchSummary
+                  - queryLanguage
+                  - documentLanguage
+                  - isCrossLanguage
+                properties:
+                  highlights:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        start:
+                          type: integer
+                          description: Starting character position
+                          example: 125
+                        end:
+                          type: integer
+                          description: Ending character position
+                          example: 145
+                        relevance:
+                          type: number
+                          format: float
+                          description: Relevance score (0.0-1.0)
+                          example: 0.95
+                        matchedText:
+                          type: string
+                          description: The exact matched text
+                          example: "Passnummer: 123456789"
+                        context:
+                          type: string
+                          description: Explanation of why this matched
+                          example: "Direct match: passport number field"
+                  count:
+                    type: integer
+                    description: Total number of matches found
+                    example: 2
+                  matchSummary:
+                    type: string
+                    description: Brief summary of search results
+                    example: "Found 2 relevant passages (cross-language: English → German)"
+                  queryLanguage:
+                    type: string
+                    description: Detected or provided query language
+                    example: "en"
+                  documentLanguage:
+                    type: string
+                    description: Detected or provided document language
+                    example: "de"
+                  isCrossLanguage:
+                    type: boolean
+                    description: Whether this is a cross-language search
+                    example: true
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "documentPath is required for PDF documents"
+        '404':
+          description: PDF file not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "PDF file not found: /path/to/document.pdf"
+        '500':
+          description: Search processing failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Search failed: <error details>"
+      x-source-file: backend/api/search.py
+
+  /api/search/health:
+    get:
+      tags:
+        - Search
+      summary: Search service health check
+      description: Check the health status and capabilities of the search service
+      operationId: searchHealthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  service:
+                    type: string
+                    example: semantic_search
+                  gemini_initialized:
+                    type: boolean
+                    example: true
+                  pdf_support:
+                    type: boolean
+                    example: true
+                  cross_language_support:
+                    type: boolean
+                    example: true
+      x-source-file: backend/api/search.py
+
+  /api/files/renders/{case_id}/{document_id}/{render_id}:
+    delete:
+      tags:
+        - Files
+      summary: Delete document render
+      description: |
+        Delete a specific render (anonymized, translated, etc.) from a document.
+
+        **S5-006: Document Render Deletion**
+
+        Deletes a render version of a document and removes it from the document registry.
+        Also invalidates the tree cache to ensure updated tree views.
+      operationId: deleteRender
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case ID
+          schema:
+            type: string
+            example: ACTE-2024-001
+        - name: document_id
+          in: path
+          required: true
+          description: Parent document ID (UUID)
+          schema:
+            type: string
+            example: 550e8400-e29b-41d4-a716-446655440001
+        - name: render_id
+          in: path
+          required: true
+          description: Render ID to delete (UUID)
+          schema:
+            type: string
+            example: 550e8400-e29b-41d4-a716-446655440002
+      responses:
+        '200':
+          description: Render deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Render deleted successfully
+                  render_id:
+                    type: string
+                    example: 550e8400-e29b-41d4-a716-446655440002
+                  document_id:
+                    type: string
+                    example: 550e8400-e29b-41d4-a716-446655440001
+        '404':
+          description: Render not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Render 550e8400-e29b-41d4-a716-446655440002 not found or could not be deleted
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Failed to delete render: <error details>
       x-source-file: backend/api/files.py
 
   /auth/login:

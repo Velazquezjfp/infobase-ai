@@ -1,421 +1,792 @@
-# BAMF ACTE Companion - Project Context
+# BAMF ACTE Companion - Project Context (Updated: 2026-01-14)
 
-## Project Overview
+## Current Session Summary (Sprint 5 Completion)
 
-**BAMF ACTE Companion** is an AI-powered case management system for processing German Integration Course applications. It's a POC that assists BAMF (Bundesamt für Migration und Flüchtlinge) case workers by automating document analysis, form filling, and providing process guidance through AI agents.
+This session focused on completing **S5-006 (Document Renders)** and **S5-003 (Semantic Search)** requirements, fixing critical bugs in the document management and AI context pipeline.
 
-## Main Functionalities
+### Key Issues Resolved
+1. ✅ Render creation not working (missing `documentId` in anonymization request)
+2. ✅ Render display not working (DocumentViewer using wrong file path)
+3. ✅ Delete render button not working (API endpoint implemented)
+4. ✅ AI can't read PDFs (text extraction not updating AppContext)
+5. ✅ Semantic search failing (file path missing `public/` prefix)
+6. ✅ Cascade deletion missing (renders not deleted with parent document)
 
-### 1. Case Management System
-- **Multi-case workspace** where users can manage multiple integration course applications simultaneously
-- Each case (ACTE) represents a single applicant's integration course application
-- Cases have a standardized folder structure:
-  - Personal Data (birth certificates, passports)
-  - Certificates (language proficiency documents)
-  - Integration Course Documents (enrollment confirmations)
-  - Applications & Forms (official application forms)
-  - Emails (correspondence)
-  - Additional Evidence (supporting documents)
+---
 
-### 2. Document Management & Viewer
-- Text-based document system (PDF support planned for future sprints)
-- Documents organized by case and folder with complete isolation
-- Document viewer with multiple format tabs (PDF, XML, JSON, DOCX - currently mocked)
-- Drag-and-drop file upload functionality
+## Document Management System Architecture
 
-### 3. Case-Level Form System
-- **Each case has ONE form template** (not folder-specific)
-- Form persists across folder navigation within the same case
-- Three form templates available:
-  - Integration Course Application (7 fields)
-  - Asylum Application (7 fields)
-  - Family Reunification (7 fields)
-- Form data stored per-case in AppContext with localStorage persistence
+### Core Components
 
-### 4. Admin Configuration Panel
-- Configure folder templates, document types, macros
-- Manage form fields for different case types
-- Metadata field configuration
-- AI-powered field generator (planned for Sprint 1)
+#### 1. **Document Registry Service** (S5-007)
+**File**: `backend/services/document_registry.py`
 
-### 5. Real-time AI Chat Interface
-- Chat interface for interacting with documents
-- Slash commands for document operations
-- Planned WebSocket connection to Python backend
+**Purpose**: Single source of truth for document metadata
 
-## How Cases Are Managed
+**Key Functions**:
+- `load_manifest()` - Load from `backend/data/document_manifest.json`
+- `save_manifest()` - Persist changes to disk
+- `register_document()` - Add new document with original render
+- `unregister_document()` - **CASCADE DELETE** all renders + manifest entry
+- `add_render_to_document()` - Add anonymized/translated renders
+- `remove_render_from_document()` - Remove specific render
+- `reconcile()` - Sync filesystem with manifest, skip render files
 
-### Case Structure (Case-Instance Scoped)
-Each case is **completely isolated** with its own:
-- **Case ID**: Unique identifier (e.g., ACTE-2024-001)
-- **Case Type**: Determines form template (integration_course, asylum_application, family_reunification)
-- **Context Directory**: `backend/data/contexts/cases/{caseId}/`
-  - case.json: Case-level context with regulations, required documents, validation rules
-  - folders/*.json: Folder-specific context with expected documents and validation criteria
-- **Document Directory**: `public/documents/{caseId}/`
-  - Organized by folder structure matching case folders
-  - Complete isolation ensures documents from one case never appear in another
-
-### Case Switching
-When switching between cases:
-1. Context manager loads new case's context files
-2. Document tree updates to show only the new case's documents
-3. Form template switches to the new case's form type
-4. Previous case data is preserved but not visible
-
-### Creating New Cases
-New cases are created from templates:
-1. User selects case type (Integration Course, Asylum Application, etc.)
-2. System copies template from `backend/data/contexts/templates/{caseType}/`
-3. New case directory created at `backend/data/contexts/cases/{newCaseId}/`
-4. Document directory created at `public/documents/{newCaseId}/`
-5. Form initialized with appropriate template for case type
-
-## How Files Are Managed
-
-### Document Storage Architecture (Case-Instance Scoped)
-```
-public/documents/
-├── ACTE-2024-001/              # Integration Course case
-│   ├── personal-data/
-│   │   ├── Birth_Certificate.txt
-│   │   └── Passport_Scan.txt
-│   ├── certificates/
-│   │   └── Language_Certificate_A1.txt
-│   └── (other folders...)
-├── ACTE-2024-002/              # Asylum Application case
-│   └── (different documents)
-└── ACTE-2024-003/              # Family Reunification case
-    └── (different documents)
-```
-
-### File Operations
-- **Loading Documents**: Path construction uses `currentCase.id + folderId + filename`
-- **Document Isolation**: Documents only accessible when their parent case is active
-- **Text File Format**: Currently UTF-8 text files (300-5000 characters)
-- **Future PDF Support**: Planned for Sprint 2
-- **No Database**: All document storage is filesystem-based (NFR-003)
-
-### Document Context
-When a document is selected, the AI receives:
-1. **Document content**: The text file content
-2. **Folder context**: Loaded from `cases/{caseId}/folders/{folderId}.json`
-3. **Case context**: Loaded from `cases/{caseId}/case.json`
-4. **Merged context**: Combined hierarchical context for AI guidance
-
-## The 2 AI Services
-
-### AI Service #1: Document Assistant Agent (F-001)
-
-**Purpose**: Real-time document analysis and form auto-fill
-
-**Implementation**:
-- **Backend**: FastAPI WebSocket at `ws://localhost:8000/ws/chat/{case_id}`
-- **AI Model**: Google Gemini API via Google ADK
-- **Architecture**: Python service with stateless sessions (no memory/persistence)
-
-**Capabilities**:
-1. **Document Q&A**: Answer questions about selected documents
-2. **Translation**: Translate document content between languages
-3. **Summarization**: Summarize document content
-4. **Form Auto-Fill**: Extract data from documents and populate form fields
-   - Uses form_parser.py tool to analyze document text
-   - Receives current FormField[] structure from frontend
-   - Returns JSON mapping of field IDs to extracted values
-   - Sends FormUpdateMessage via WebSocket to update form
-
-**Context Awareness**:
-- Receives hierarchical context (Case → Folder → Document)
-- Case context provides:
-  - Regulations (§43-45 AufenthG, IntV §4-17)
-  - Required documents list
-  - Validation rules
-  - Common issues and suggestions
-- Folder context provides:
-  - Expected document types for current folder
-  - Validation criteria specific to folder purpose
-  - Common mistakes to watch for
-
-**Example Use Case**:
-User selects Birth_Certificate.txt in Personal Data folder and sends "/fillForm"
-→ Agent extracts:
-  - Full Name: "Ahmad Ali"
-  - Date of Birth: "1990-05-15"
-  - Country of Origin: "Afghanistan"
-→ Updates corresponding form fields with confidence scores
-
-### AI Service #2: Form Field Generator (F-004)
-
-**Purpose**: AI-powered admin interface for creating new form fields via natural language
-
-**Implementation**:
-- **Backend**: FastAPI endpoint `POST /api/admin/generate-field`
-- **AI Model**: Google Gemini (via ADK) or simplified LangGraph flow
-- **Architecture**: field_generator.py service with structured output
-
-**Capabilities**:
-1. **Natural Language Field Creation**:
-   - Input: "Add a text field for mother's maiden name"
-   - Output: FormField with type, label, validation rules
-2. **Multi-language Support**: Process requests in German or English
-3. **Semantic Metadata**: Generate JSON-LD @context for field semantics
-4. **Field Type Inference**: Automatically determine text/date/select/textarea types
-5. **Options Generation**: For select fields, generate option arrays from description
-
-**Workflow**:
-1. Admin enters natural language request in AI Fields tab
-2. Request sent to backend LLM service
-3. LLM parses request and generates FormField structure
-4. Frontend displays preview with editable properties
-5. Admin confirms and field added to case's form template
-6. Fields stored in AppContext and persisted to localStorage
-
-**Example Use Case**:
-Admin: "Add dropdown for education level with options: high school, bachelor, master, doctorate"
-→ Agent generates:
+**Data Structure**:
 ```json
 {
-  "id": "educationLevel",
-  "label": "Education Level",
-  "type": "select",
-  "options": ["High School", "Bachelor", "Master", "Doctorate"],
-  "required": false,
-  "metadata": {
-    "@context": "http://schema.org",
-    "@type": "EducationalOccupationalCredential",
-    "semanticType": "education_level"
-  }
+  "documentId": "doc_xxx",
+  "caseId": "ACTE-2024-001",
+  "folderId": "personal-data",
+  "fileName": "Passport.pdf",
+  "filePath": "public/documents/ACTE-2024-001/personal-data/Passport.pdf",
+  "renders": [
+    {
+      "id": "render_original_xxx",
+      "type": "original",
+      "name": "Passport.pdf",
+      "filePath": "public/documents/.../Passport.pdf",
+      "createdAt": "2026-01-14T10:00:00Z"
+    },
+    {
+      "id": "render_anon_xxx",
+      "type": "anonymized",
+      "name": "Passport_anonymized.pdf",
+      "filePath": "public/documents/.../Passport_anonymized.pdf",
+      "createdAt": "2026-01-14T10:05:00Z"
+    }
+  ]
 }
 ```
 
-## Current Implementation Status
+#### 2. **File Service** (S4-001, S4-002, S5-006)
+**File**: `backend/services/file_service.py`
 
-### Implemented Requirements ✅
+**Key Functions**:
+- `delete_file()` - Delete file with security validation
+- `add_document_render()` - Register render in manifest
+- `delete_document_render()` - Delete render file + update manifest
+- `sanitize_filename()` - Security sanitization
+- `validate_case_path()` - Path traversal prevention
 
-#### D-001: Hierarchical Context Data Schema ✅
-**Status**: COMPLETE
-- Case context files created for ACTE-2024-001 (Integration Course)
-- All 6 folder contexts implemented (personal-data, certificates, integration-docs, applications, emails, evidence)
-- Template contexts ready for new case creation
-- Complete with:
-  - 7 regulations (§43-45a AufenthG, IntV §4-17)
-  - 12 required document types with validation rules
-  - 10 validation rules (age verification, residence eligibility, etc.)
-  - 8 common issues with suggestions
-  - 3 course type definitions
-  - Processing guidelines
+**Security Features**:
+- Max file size: 15 MB
+- Filename sanitization (removes `..`, `/`, `\`)
+- Path traversal prevention
+- Cannot delete 'original' render type
 
-**Location**:
-- `backend/data/contexts/cases/ACTE-2024-001/case.json`
-- `backend/data/contexts/cases/ACTE-2024-001/folders/*.json`
-- `backend/data/contexts/templates/integration_course/`
+#### 3. **PDF Service** (S5-003)
+**File**: `backend/services/pdf_service.py`
 
-#### D-002: Case-Type Form Schemas ✅
-**Status**: COMPLETE
-- Integration Course Application form (7 fields)
-- Asylum Application form (7 fields)
-- Family Reunification form (7 fields)
-- caseFormTemplates mapping implemented
-- sampleCaseFormData for multiple cases
-- Form templates properly typed with FormField interface
+**Purpose**: Extract text from PDFs for AI context and search
 
-**Location**: `src/data/mockData.ts`
+**Key Functions**:
+- `extract_text(pdf_path)` - Full text extraction
+- `extract_text_with_positions(pdf_path)` - Text with coordinates
+- `get_page_count(pdf_path)` - Page count
 
-#### D-003: Sample Document Text Content ✅
-**Status**: COMPLETE
-- 6 realistic text files created for ACTE-2024-001
-- UTF-8 encoded with German/English content
-- Documents include:
-  - Birth_Certificate.txt (German certificate with certified translation)
-  - Passport_Scan.txt (passport details)
-  - Language_Certificate_A1.txt (Goethe-Institut certificate)
-  - Integration_Application.txt (application form)
-  - Confirmation_Email.txt (BAMF correspondence)
-  - School_Transcripts.txt (education records)
-- Case-scoped directory structure implemented
+**Dependencies**: `pdfplumber` library
 
-**Location**: `public/documents/ACTE-2024-001/*/`
+---
 
-#### NFR-002: Modular Backend Architecture ✅
-**Status**: COMPLETE
-- Clean directory structure:
-  - `backend/main.py` - FastAPI entry point with CORS, health check
-  - `backend/api/` - API routes (ready for implementation)
-  - `backend/services/` - Business logic layer (ready for implementation)
-  - `backend/tools/` - Reusable functions (ready for implementation)
-  - `backend/data/contexts/` - Context configurations
-  - `backend/tests/` - Testing infrastructure
-- PEP 8 compliant with type hints
-- Comprehensive docstrings
-- FastAPI lifespan management
-- CORS middleware configured for frontend
+## API Endpoints Reference
 
-### Not Yet Implemented (Sprint 1 Remaining) ⚠️
+### Files API (`/api/files`)
+**Router**: `backend/api/files.py`
 
-#### F-001: Document Assistant Agent - Backend WebSocket Service
-**Status**: NOT STARTED
-**Blockers**: None
-**Next Steps**:
-1. Create `backend/services/gemini_service.py`
-2. Create `backend/tools/form_parser.py`
-3. Create `backend/api/chat.py` with WebSocket route
-4. Update frontend AIChatInterface.tsx for WebSocket
+| Endpoint | Method | Purpose | Status |
+|----------|--------|---------|--------|
+| `/api/files/upload` | POST | Upload file with duplicate detection | ✅ S4-001 |
+| `/api/files/{case_id}/{folder_id}/{filename}` | DELETE | Delete file with cascade to renders | ✅ S4-002 |
+| `/api/files/renders/{case_id}/{document_id}/{render_id}` | DELETE | Delete specific render | ✅ S5-006 |
+| `/api/files/{case_id}/{folder_id}/{filename}/exists` | GET | Check file existence | ✅ S4-001 |
+| `/api/files/health` | GET | Health check | ✅ |
 
-#### F-002: Document Context Management System
-**Status**: PARTIALLY COMPLETE (data ready, service not implemented)
-**Progress**: Context JSON files complete (D-001), needs context_manager.py implementation
+**Changes in This Session**:
+- Added DELETE render endpoint (lines 496-565)
+- Added tree cache invalidation to upload/delete endpoints
 
-#### F-003: Form Auto-Fill from Document Content
-**Status**: NOT STARTED
-**Blockers**: Depends on F-001, F-002
+### Documents API (`/api/documents`)
+**Router**: `backend/api/documents.py`
 
-#### F-004: AI-Powered Form Field Generator - Admin Interface
-**Status**: NOT STARTED
-**Next Steps**:
-1. Add AI Fields tab to AdminConfigPanel.tsx
-2. Create `backend/services/field_generator.py`
-3. Create `backend/api/admin.py`
+| Endpoint | Method | Purpose | Status |
+|----------|--------|---------|--------|
+| `/api/documents/tree/{case_id}` | GET | Get document tree | ✅ S5-007 |
+| `/api/documents/extract-pdf-text` | POST | Extract text from PDF | ✅ S5-003 |
+| `/api/documents/all` | GET | Get all documents | ✅ |
+| `/api/documents/health` | GET | Health check | ✅ |
 
-#### F-006: Replace Mock Documents with Text Files
-**Status**: COMPLETE (data created, frontend integration needed)
-**Progress**: Text files ready (D-003), needs document loader implementation
+**Changes in This Session**:
+- Fixed PDF extraction path to include `public/` prefix
 
-#### NFR-001: Real-Time AI Response Performance
-**Status**: NOT STARTED (will be implemented with F-001)
+### Search API (`/api/search`)
+**Router**: `backend/api/search.py`
 
-#### NFR-003: Local Storage Without Database
-**Status**: PARTIALLY COMPLETE
-**Progress**: Backend uses JSON files, frontend needs localStorage utility
+| Endpoint | Method | Purpose | Status |
+|----------|--------|---------|--------|
+| `/api/search/semantic` | POST | Semantic search with Gemini AI | ✅ S5-003 |
+| `/api/search/health` | GET | Health check | ✅ S5-003 |
 
-## Phase 2 Readiness Assessment
+**Features**:
+- Cross-language search (German query → English document)
+- Text highlighting with character positions
+- PDF support via `documentPath` parameter
+- Returns relevance scores (0.0-1.0)
 
-### ✅ On Track for Phase 2
+**Changes in This Session**:
+- Fixed file path to include `public/` prefix in frontend request
 
-**Foundation Complete**:
-- ✅ Backend architecture established (NFR-002)
-- ✅ All context data files created (D-001)
-- ✅ All form schemas defined (D-002)
-- ✅ All sample documents created (D-003)
-- ✅ Frontend UI components fully functional
-- ✅ Case-scoped architecture implemented
+### Context API (`/api/context`)
+**Router**: `backend/api/context.py`
 
-**Remaining Work for Phase 2 Entry**:
-1. **Week 1 Critical Path**:
-   - Implement WebSocket service (F-001) - 2-3 days
-   - Implement context_manager.py (F-002) - 1 day
-   - Connect frontend to backend WebSocket - 1 day
+| Endpoint | Method | Purpose | Status |
+|----------|--------|---------|--------|
+| `/api/context/tree/{case_id}` | GET | Get ASCII tree view | ✅ S5-011 |
 
-2. **Week 1-2 Secondary**:
-   - Implement form auto-fill (F-003) - 2 days
-   - Document loader integration (F-006) - 1 day
+**Features**:
+- Hierarchical ASCII tree (├── └──)
+- Performance caching (100-300ms → <50ms)
+- Auto invalidation on file operations
 
-3. **Week 2 Enhancements**:
-   - AI field generator (F-004) - 2-3 days
-   - LocalStorage persistence (NFR-003) - 1 day
-   - Performance optimization (NFR-001) - ongoing
+---
 
-### Risk Assessment: LOW ⚠️
+## Frontend Architecture
 
-**Strengths**:
-- Strong architectural foundation in place
-- All data requirements satisfied
-- Clear separation of concerns
-- Well-documented requirements with test cases
+### AppContext (State Management)
+**File**: `src/contexts/AppContext.tsx`
 
-**Potential Risks**:
-- Gemini API integration untested (needs GEMINI_API_KEY validation)
-- WebSocket implementation new territory (but well-specified)
-- No automated tests yet (should implement alongside features)
+**Critical State**:
+- `selectedDocument` - Currently selected document
+- `selectedRender` - Currently selected render ID (S5-006)
+- `searchQuery`, `searchHighlights` - Search state (S5-003)
+- `formFields` - Case form data
+- `wsConnection` - WebSocket for chat
 
-## Technical Architecture
+**Key Functions**:
+- `selectDocumentWithRender(doc, renderId)` - Select document and render
+- `updateSelectedDocumentContent(content)` - **NEW**: Store extracted PDF text
+- `performSemanticSearch(query, documentId)` - Semantic search
+- `sendChatMessage(content, documentContent)` - Send to AI with context
+- `refreshDocuments()` - Reload document tree
 
-### Frontend Stack
-- **Framework**: React 18 + TypeScript + Vite
-- **State Management**: AppContext (React Context API)
-- **UI Library**: shadcn/ui + Tailwind CSS
-- **Routing**: React Router v6
-- **HTTP Client**: TanStack Query
+**Changes in This Session**:
+- Added `documentId` to anonymization request (line 766)
+- Added `updateSelectedDocumentContent()` method (lines 331-347)
+- Fixed PDF path in semantic search to include `public/` (line 864)
+- Fixed semantic search to use selected render path (lines 851-858)
+- Exported `updateSelectedDocumentContent` in context value (line 1019)
 
-### Backend Stack
-- **Framework**: FastAPI (Python 3.12)
-- **WebSocket**: FastAPI WebSocket support
-- **AI Integration**: Google Gemini API via google-generativeai
-- **Server**: Uvicorn with hot reload
-- **Storage**: Filesystem JSON (no database)
+### CaseTreeExplorer (Document Tree)
+**File**: `src/components/workspace/CaseTreeExplorer.tsx`
 
-### Key File Locations
+**Features**:
+- Folder/document tree with drag-drop upload
+- RenderContainer for multi-render documents
+- Delete render functionality with confirmation
 
-**Frontend Core**:
-- `src/contexts/AppContext.tsx` - Global state (user, cases, forms, chat)
-- `src/types/case.ts` - Type definitions (Case, Document, FormField, etc.)
-- `src/data/mockData.ts` - Form templates and sample data
+**Components**:
+- `FolderItem` - Folder with upload support
+- `RenderContainer` - Expandable render list (S5-006)
 
-**Frontend Components**:
-- `src/pages/Workspace.tsx` - Main workspace layout
-- `src/components/workspace/CaseTreeExplorer.tsx` - Folder/document tree
-- `src/components/workspace/AIChatInterface.tsx` - Chat UI
-- `src/components/workspace/DocumentViewer.tsx` - Document display
-- `src/components/workspace/FormViewer.tsx` - Form display and editing
-- `src/components/workspace/AdminConfigPanel.tsx` - Admin configuration
+**Changes in This Session**:
+- Implemented `handleDeleteRender()` with API call (lines 241-287)
+- Added `refreshDocuments` to useApp hooks (lines 168, 480)
+- Fixed delete button to call backend and refresh UI
 
-**Backend**:
-- `backend/main.py` - FastAPI app entry point
-- `backend/api/` - API routes (to be implemented)
-- `backend/services/` - Business logic (to be implemented)
-- `backend/tools/` - Utility functions (to be implemented)
-- `backend/data/contexts/` - Context JSON files ✅
+### DocumentViewer (Document Display)
+**File**: `src/components/workspace/DocumentViewer.tsx`
 
-**Data**:
-- `backend/data/contexts/cases/{caseId}/` - Case-specific context
-- `backend/data/contexts/templates/` - Templates for new cases
-- `public/documents/{caseId}/` - Case-specific documents
+**Features**:
+- Visual PDF display
+- Text extraction for AI context
+- Semantic search integration
+- Render selection support
 
-## Environment Configuration
+**Changes in This Session**:
+- Added `selectedRender` from useApp (line 37)
+- Added `updateSelectedDocumentContent` from useApp (line 39)
+- Calculate `activeRender` from selected render ID (lines 65-67)
+- Use render's file path for display (lines 70-84)
+- Store extracted PDF text in AppContext (lines 144-147)
+- Fixed PDF extraction path with `public/` prefix (line 129)
+- Updated useEffect dependencies to trigger on render change (line 102, 170)
 
-**Required Environment Variables**:
+---
+
+## Data Flow: PDF Document Selection → AI Context
+
 ```
-GEMINI_API_KEY=your_gemini_api_key_here
+User Selects PDF: "Notenspiegel.pdf"
+    ↓
+┌─────────────────────────────────────────┐
+│ DocumentViewer Component                │
+│ • Shows visual PDF to user              │
+│ • Calls POST /api/documents/extract-pdf │
+│   with path: public/documents/.../pdf   │
+│ • Receives extracted text               │
+│ • Stores in local state (for display)   │
+│ • Calls updateSelectedDocumentContent() │✅
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ AppContext.updateSelectedDocumentContent│
+│ • Updates selectedDocument.content      │✅
+│ • Updates document in currentCase       │✅
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ Cascading Context Now Available:        │
+│ ✅ Case context: ACTE-2024-001          │
+│ ✅ Folder context: Evidence             │
+│ ✅ Document context: PDF extracted text │
+└─────────────────────────────────────────┘
+    ↓
+    ├──→ AI Chat (reads content) ✅
+    ├──→ /fill form (extracts data) ✅
+    └──→ Semantic search (highlights) ✅
 ```
 
-**Development Setup**:
-- Frontend: `npm run dev` (Vite dev server on port 5173)
-- Backend: `python backend/main.py` (Uvicorn on port 8000)
-- Python virtual environment active at `backend/venv/`
+---
 
-## Next Immediate Steps
+## Data Flow: Anonymization → Render Creation
 
-### Priority 1: Enable AI Chat (Week 1)
-1. Implement GeminiService class in `backend/services/gemini_service.py`
-2. Create WebSocket endpoint at `ws://localhost:8000/ws/chat/{case_id}`
-3. Implement ContextManager in `backend/services/context_manager.py`
-4. Update AIChatInterface.tsx to connect via WebSocket
-5. Test basic chat functionality with document context
+```
+User Clicks "Anonymize" on Passport.pdf
+    ↓
+┌─────────────────────────────────────────┐
+│ AppContext.sendChatMessage()            │
+│ • Sends WebSocket message:              │
+│   type: 'anonymize'                     │
+│   documentId: doc_xxx ✅ (FIXED)        │
+│   filePath: public/documents/.../pdf    │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ Backend: anonymize_document()           │
+│ • Calls AnonymizationService            │
+│ • Saves to Passport_anonymized.pdf      │
+│ • Calls add_document_render() ✅        │
+│   with document_id + render_type        │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ document_registry.add_render()          │
+│ • Adds render to document.renders[]     │
+│ • Saves manifest                        │
+│ • Returns render metadata               │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ WebSocket Response                      │
+│ • type: 'anonymization_complete'        │
+│ • renderMetadata: {...} ✅              │
+│ • documentId: doc_xxx ✅                │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ Frontend: AppContext handles response   │
+│ • Adds render to document.renders[]     │
+│ • Calls loadDocumentsFromBackend()      │
+│ • Document shows "2 renders" badge ✅   │
+└─────────────────────────────────────────┘
+```
 
-### Priority 2: Form Auto-Fill (Week 1-2)
-1. Implement form_parser.py tool
-2. Connect form parsing to WebSocket messages
-3. Handle FormUpdateMessage in frontend
-4. Test end-to-end form filling from documents
+---
 
-### Priority 3: Document Integration (Week 2)
-1. Create documentLoader.ts utility
-2. Update Document interface with case-scoped paths
-3. Connect DocumentViewer to actual text files
-4. Test document loading across case switches
+## Data Flow: Cascade Deletion
 
-### Priority 4: Admin AI Fields (Week 2)
-1. Add AI Fields tab to AdminConfigPanel
-2. Implement field_generator.py service
-3. Create /api/admin/generate-field endpoint
-4. Test field generation with various requests
+```
+User Deletes Document: "Passport.pdf" (has 2 renders)
+    ↓
+┌─────────────────────────────────────────┐
+│ DELETE /api/files/{case}/{folder}/{file}│
+│ • find_document_by_path() gets doc      │
+│ • delete_file() removes original        │
+│ • unregister_document() CASCADE ✅      │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ document_registry.unregister_document() │
+│ • Find document and its renders         │
+│ • Loop through renders array:           │
+│   - Skip 'original' (already deleted)   │
+│   - Delete Passport_anonymized.pdf ✅   │
+│   - Delete Passport_translated.pdf ✅   │
+│ • Remove from manifest                  │
+│ • Save manifest                         │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ Result: ALL files deleted               │
+│ ✅ Passport.pdf (original)              │
+│ ✅ Passport_anonymized.pdf (render)     │
+│ ✅ Passport_translated_de.pdf (render)  │
+│ ✅ Manifest entry removed               │
+│ ✅ No orphaned files                    │
+└─────────────────────────────────────────┘
+```
 
-## Summary
+---
 
-The BAMF ACTE Companion is a well-architected AI case management system with:
-- **Strong foundation**: Modular backend, clean frontend, comprehensive context system
-- **Clear purpose**: Assist case workers with document analysis and form filling
-- **Two AI services**: Document assistant for real-time chat/analysis, field generator for admin tools
-- **Case-scoped design**: Complete isolation between cases for context, documents, and forms
-- **Phase 2 ready**: All data requirements complete, 60% of implementation ready, clear path forward
+## Sprint 5 Requirements Status
 
-The project is **ON TRACK** for Phase 2 with solid progress on foundational requirements and a clear implementation path for the remaining AI services.
+### ✅ Fully Implemented (This Session)
+
+#### S5-006: Document Renders Management System
+**Status**: ✅ COMPLETE
+
+**Implementation**:
+- Documents have `renders[]` array with original + processed versions
+- RenderContainer shows expandable list when multiple renders exist
+- Visual indicators: chevron icon, "X renders" badge
+- Delete render button with confirmation dialog
+- Backend cascade deletion implemented
+
+**Files Modified**:
+- `src/contexts/AppContext.tsx` (lines 766, 331-347, 1019)
+- `src/components/workspace/CaseTreeExplorer.tsx` (lines 168, 241-287, 480)
+- `src/components/workspace/DocumentViewer.tsx` (lines 37, 39, 64-84, 102, 170)
+- `backend/services/document_registry.py` (lines 314-337)
+- `backend/api/files.py` (lines 496-565)
+- `backend/services/file_service.py` (lines 583-650)
+
+**API Endpoints**:
+- `DELETE /api/files/renders/{case_id}/{document_id}/{render_id}` - Delete render
+
+#### S5-003: Semantic Search with Multi-Language Support
+**Status**: ✅ COMPLETE
+
+**Implementation**:
+- Semantic search button in DocumentViewer
+- Cross-language support (German ↔ English)
+- PDF text extraction for AI context
+- Text highlighting with character positions
+- Search navigation (previous/next highlights)
+
+**Files Modified**:
+- `src/contexts/AppContext.tsx` (lines 331-347, 860-868, 1019)
+- `src/components/workspace/DocumentViewer.tsx` (lines 39, 125-129, 144-147)
+- `src/types/search.ts` (line 68 - added `documentPath`)
+- `backend/api/search.py` (existing - no changes needed)
+- `backend/services/pdf_service.py` (existing - no changes needed)
+
+**API Endpoints**:
+- `POST /api/search/semantic` - Semantic search with Gemini
+- `POST /api/documents/extract-pdf-text` - Extract PDF text
+
+**Components**:
+- `src/components/workspace/HighlightedText.tsx` - Highlight rendering
+- `src/components/workspace/PDFViewer.tsx` - PDF display with search
+
+### ✅ Previously Implemented
+
+#### S5-007: Container-Compatible File Persistence
+- Document manifest system (`backend/data/document_manifest.json`)
+- Filesystem reconciliation on startup
+- SHA-256 file integrity verification
+
+#### S5-011: Cascading Context with Document Tree View
+- `GET /api/context/tree/{case_id}` - ASCII tree view
+- Tree caching with automatic invalidation
+- Performance: 100-300ms → <50ms cached
+
+#### S5-014: UI Language Toggle
+- German/English UI translation
+- i18n integration
+
+#### S5-002: AI Form Fill with Suggested Values
+- Inline suggestion UI with accept/reject
+- Confidence scores
+- Form value comparison
+
+#### S5-004: Multi-Format Translation Service
+- Document translation with render creation
+
+### ⏳ Pending Requirements
+
+#### S5-005: Case Validation Agent
+**Status**: NOT STARTED
+
+#### S5-008: Email File Support (.eml)
+**Status**: NOT STARTED
+
+#### S5-012: Document Type Capabilities and Command Availability
+**Status**: NOT STARTED
+
+#### S5-016: Drag-and-Drop Document Management Across Folders
+**Status**: NOT STARTED
+
+---
+
+## Critical File Connections
+
+### Document Management Pipeline
+
+```
+Frontend Upload
+    ↓
+POST /api/files/upload
+    ↓
+backend/api/files.py (lines 83-180)
+    ↓
+backend/services/file_service.py
+    ├─> save_uploaded_file()
+    └─> backend/services/document_registry.py
+        └─> register_document() (creates original render)
+            └─> save_manifest()
+
+Frontend Delete
+    ↓
+DELETE /api/files/{case}/{folder}/{file}
+    ↓
+backend/api/files.py (lines 267-368)
+    ↓
+backend/services/file_service.py
+    ├─> delete_file() (delete original)
+    └─> backend/services/document_registry.py
+        └─> unregister_document() ✅ CASCADE
+            ├─> Delete all render files
+            └─> Remove from manifest
+```
+
+### Anonymization/Processing Pipeline
+
+```
+User Clicks "Anonymize"
+    ↓
+src/contexts/AppContext.tsx::sendChatMessage()
+    ↓
+WebSocket: type='anonymize', documentId=xxx ✅
+    ↓
+backend/api/chat.py::handle_anonymize()
+    ↓
+backend/tools/anonymization_tool.py
+    ├─> AnonymizationService (Gemini API)
+    ├─> Save file: original_anonymized.ext
+    └─> backend/services/file_service.py
+        └─> add_document_render()
+            └─> backend/services/document_registry.py
+                └─> add_render_to_document()
+                    └─> save_manifest()
+    ↓
+WebSocket Response: renderMetadata + documentId
+    ↓
+src/contexts/AppContext.tsx (lines 577-627)
+    └─> Add render to document.renders[]
+    └─> Refresh document tree
+```
+
+### AI Context Pipeline (FIXED THIS SESSION)
+
+```
+User Selects PDF Document
+    ↓
+src/components/workspace/DocumentViewer.tsx
+    ├─> Display visual PDF ✅
+    └─> Extract text (lines 123-147)
+        ↓
+        POST /api/documents/extract-pdf-text
+        path: "public/documents/{case}/{folder}/{file}" ✅
+        ↓
+        backend/services/pdf_service.py
+        └─> extract_text() using pdfplumber
+        ↓
+        Returns: { text: "...", pageCount: 10 }
+        ↓
+        updateSelectedDocumentContent(text) ✅ NEW
+        ↓
+        selectedDocument.content = extracted text ✅
+    ↓
+AI Agent Now Sees:
+    ✅ Case context (regulations, required docs)
+    ✅ Folder context (folder purpose, validation)
+    ✅ Document content (extracted PDF text)
+    ↓
+AI Can Now:
+    ✅ Answer questions about PDF
+    ✅ Extract form data with /fill form
+    ✅ Perform semantic search
+```
+
+### Semantic Search Pipeline (FIXED THIS SESSION)
+
+```
+User Clicks "Search" Button
+    ↓
+Enter query: "course preferences"
+    ↓
+src/contexts/AppContext.tsx::performSemanticSearch()
+    ├─> Get selectedRender (if applicable) ✅
+    ├─> Build file path with public/ prefix ✅
+    └─> POST /api/search/semantic
+        {
+          query: "course preferences",
+          documentPath: "public/documents/{case}/{folder}/{file}",
+          documentType: "pdf"
+        }
+    ↓
+backend/api/search.py::semantic_search()
+    ├─> Extract PDF text via pdf_service
+    ├─> Detect languages (query + document)
+    ├─> Call gemini_service.semantic_search()
+    └─> Returns highlights with positions
+    ↓
+Frontend receives:
+    {
+      highlights: [
+        { start: 245, end: 268, relevance: 0.95,
+          matchedText: "Preferred course: Morning" }
+      ],
+      count: 1,
+      matchSummary: "Found 1 match"
+    }
+    ↓
+src/components/workspace/HighlightedText.tsx
+    └─> Wraps text with <mark> elements
+    └─> Active highlight has amber background
+```
+
+---
+
+## Files Modified This Session
+
+### Backend Files Created (3 new services)
+
+| File | Lines | Purpose | Requirement |
+|------|-------|---------|-------------|
+| `backend/services/email_service.py` | 341 | Email parsing with multi-encoding support | S5-008 |
+| `backend/services/translation_service.py` | 241 | Document translation via Gemini | S5-004 |
+
+### Backend Files Modified (5 files)
+
+| File | Lines | Changes | Requirement |
+|------|-------|---------|-------------|
+| `backend/services/document_registry.py` | 314-337 | Added cascade deletion of render files | S5-003, S5-006 |
+| `backend/api/files.py` | 496-565 | Added DELETE render endpoint | S5-006 |
+| `backend/services/file_service.py` | - | Added `delete_document_render()` | S5-006 |
+| `backend/api/documents.py` | 15, 390-478 | Added `parse-email` endpoint, imports | S5-008 |
+| `backend/api/chat.py` | 11, 196-202, 547-662 | Added translation WebSocket handler | S5-004 |
+| `backend/requirements.txt` | 37-38 | Added `html2text==2024.2.26` | S5-008 |
+
+### Frontend Files Created (1 new component)
+
+| File | Lines | Purpose | Requirement |
+|------|-------|---------|-------------|
+| `src/components/workspace/EmailViewer.tsx` | 154 | Email display with RTL support | S5-008 |
+
+### Frontend Files Modified (5 files)
+
+| File | Lines | Changes | Requirement |
+|------|-------|---------|-------------|
+| `src/contexts/AppContext.tsx` | 31, 50-52, 137, 331-347, 705-763, 766, 860-868, 1019, 1109-1110 | Added translation state, `updateSelectedDocumentContent()`, handlers | S5-003, S5-004, S5-006, S5-008 |
+| `src/components/workspace/CaseTreeExplorer.tsx` | 168, 241-287, 480 | Implemented delete render handler | S5-006 |
+| `src/components/workspace/DocumentViewer.tsx` | 12, 29-30, 37, 39, 63-64, 64-84, 102, 125-129, 144-147, 158-182, 170, 260-298, 413-418, 464-475 | Email viewer, translation, render selection, path fixes | S5-003, S5-004, S5-006, S5-008 |
+| `src/types/search.ts` | 62, 68 | Made `documentContent` optional, added `documentPath` | S5-003 |
+| `src/types/case.ts` | 24 | Added `'eml'` to Document type union | S5-008 |
+| `src/types/websocket.ts` | 118-158 | Added `TranslationRequest`, `TranslationResponse` | S5-004 |
+
+### Total Session Impact
+- **3 new services created** (email, translation)
+- **1 new component created** (EmailViewer)
+- **11 files modified**
+- **4 requirements completed** (S5-003, S5-004 email, S5-006, S5-008)
+- **1,100+ lines of code** added
+
+---
+
+## Key Architectural Decisions
+
+### 1. **Single Source of Truth**: Document Manifest
+- All document metadata in `backend/data/document_manifest.json`
+- Filesystem reconciliation on startup
+- Registry updates trigger tree cache invalidation
+
+### 2. **Render System** (S5-006)
+- Documents can have multiple renders (original, anonymized, translated)
+- Renders stored as array in document entry
+- UI shows expandable container when renders.length > 1
+- Delete button only on non-original renders
+
+### 3. **Cascade Deletion** (S5-003/S5-006)
+- Deleting parent document deletes ALL render files
+- Prevents orphaned anonymized/translated files
+- Implemented in `unregister_document()`
+
+### 4. **PDF Handling** (S5-003)
+- Visual display for user (PDFViewer component)
+- Text extraction for AI (stored in document.content)
+- Single extraction, multiple uses (chat, form fill, search)
+- No OCR needed - pdfplumber extracts native text
+
+### 5. **Path Conventions**
+- **Backend filesystem**: `public/documents/{case}/{folder}/{file}`
+- **Frontend URLs**: `/documents/{case}/{folder}/{file}` (proxy to backend)
+- **Root docs**: `root_docs/{file}` (case-independent)
+
+---
+
+## Testing Verification
+
+### S5-006 Tests ✅
+- TC-S5-006-01: Single render displays as normal file ✅
+- TC-S5-006-02: Anonymize creates expandable container ✅
+- TC-S5-006-03: Expand shows "Original" and "Anonymized" ✅
+- TC-S5-006-04: Click render displays correct version ✅
+- TC-S5-006-09: Delete render removes from UI ✅
+- **Cascade deletion**: Delete parent removes all renders ✅
+
+### S5-003 Tests ✅
+- TC-S5-003-01: Search button opens dialog ✅
+- TC-S5-003-02: Query finds and highlights text ✅
+- TC-S5-003-04: Cross-language German→English ✅
+- TC-S5-003-09: PDF text extracted automatically ✅
+- TC-S5-003-13: Semantic matching works ✅
+- **AI reads PDF**: Context available for chat ✅
+
+#### S5-008: Email File Support (.eml)
+**Status**: ✅ COMPLETE
+
+**Implementation**:
+- Parse .eml files with multi-encoding support (UTF-8, ISO-8859-6 Arabic)
+- Display emails with headers (From, To, Subject, Date)
+- RTL text support for Arabic
+- Extract email body for AI context
+- Attachment metadata display
+
+**Files Created**:
+- `backend/services/email_service.py` (341 lines) - Email parser with encoding support
+- `src/components/workspace/EmailViewer.tsx` (154 lines) - Email display component
+
+**Files Modified**:
+- `backend/requirements.txt` (lines 37-38) - Added `html2text==2024.2.26`
+- `backend/api/documents.py` (lines 15, 390-478) - Added `parse-email` endpoint
+- `src/types/case.ts` (line 24) - Added `'eml'` to Document type union
+- `src/components/workspace/DocumentViewer.tsx` (lines 12, 63-64, 158-182, 464-475) - EmailViewer integration
+
+**API Endpoints**:
+- `POST /api/documents/parse-email` - Parse .eml and extract email data
+
+**Components**:
+- `src/components/workspace/EmailViewer.tsx` - Email display with RTL support
+
+#### S5-004: Multi-Format Translation Service (Email Portion)
+**Status**: ✅ COMPLETE (emails only, PDF/image translation pending)
+
+**Implementation**:
+- Translate emails via Gemini API
+- Create translated renders (not duplicate documents)
+- Preserve email headers (From, To, Date)
+- Translate subject and body to any language
+- WebSocket-based translation with render registration
+
+**Files Created**:
+- `backend/services/translation_service.py` (241 lines) - Translation service with Gemini
+
+**Files Modified**:
+- `backend/api/chat.py` (lines 11, 196-202, 547-662) - Added translation WebSocket handler
+- `src/types/websocket.ts` (lines 118-158) - Added `TranslationRequest`, `TranslationResponse`
+- `src/contexts/AppContext.tsx` (lines 50-52, 137, 705-763, 1109-1110) - Translation state and handler
+- `src/components/workspace/DocumentViewer.tsx` (lines 29-30, 260-298, 413-418) - Translation button
+
+**WebSocket Messages**:
+- Request: `type='translate'` with `documentId`, `targetLanguage`
+- Response: `type='translation_complete'` with `renderMetadata`
+
+---
+
+## Data Flow: Email Parsing → AI Context
+
+```
+User Selects Email.eml
+    ↓
+DocumentViewer.tsx detects type === 'eml'
+    ↓
+POST /api/documents/parse-email
+    {
+      documentPath: "public/documents/ACTE-2024-001/emails/Email.eml"
+    }
+    ↓
+backend/services/email_service.py
+    ├─> Parse with BytesParser
+    ├─> Decode headers (handles ISO-8859-6 Arabic)
+    ├─> Extract body (plain text or HTML→text)
+    └─> Extract attachments metadata
+    ↓
+Returns EmailData:
+    {
+      from_addr: "...",
+      to_addr: "...",
+      subject: "Change in course type preference",
+      date: "Fri, 09 Jan 2026 13:11:48 +0000",
+      body_text: "Arabic text...",
+      attachments: []
+    }
+    ↓
+Frontend:
+    ├─> EmailViewer displays with RTL formatting ✅
+    ├─> updateSelectedDocumentContent(body_text) ✅
+    └─> selectedDocument.content = email body text
+    ↓
+AI Agent Sees:
+    ✅ Case context
+    ✅ Folder context
+    ✅ Email content (Arabic text readable)
+```
+
+## Data Flow: Email Translation → Render Creation
+
+```
+User Clicks "Translate" on Email.eml
+    ↓
+DocumentViewer::handleTranslate('de')
+    ↓
+WebSocket: type='translate', documentId=xxx, targetLanguage='de'
+    ↓
+backend/api/chat.py::handle_translation()
+    ↓
+translation_service.translate_email()
+    ├─> email_service.parse_eml_file()
+    ├─> Gemini translates subject (Arabic → German)
+    ├─> Gemini translates body (Arabic → German)
+    ├─> Create new EmailMessage
+    │   - From/To/Date: PRESERVED
+    │   - Subject: Translated
+    │   - Body: Translated
+    ├─> Save as Email_translated_de.eml
+    └─> add_document_render()
+        └─> Adds render: type='translated', metadata={language:'de'}
+    ↓
+WebSocket Response: renderMetadata + documentId
+    ↓
+AppContext handles 'translation_complete'
+    ├─> Adds render to document.renders[]
+    ├─> Toast: "Translated to DE"
+    └─> Refreshes document tree
+    ↓
+Result:
+    ✅ Email.eml shows "2 renders"
+    ✅ Expand: "Original" (Arabic) + "Translated" (German)
+    ✅ Click "Translated" → Shows German email
+    ✅ No duplicate document created
+```
+
+---
+
+## Next Steps for Remaining Requirements
+
+### Pending: S5-005, S5-012, S5-016
+
+When you reference a requirement:
+1. I'll identify it from `docs/requirements/sprint5_requirements.md`
+2. Check `docs/implementation_plan.md` for planned approach
+3. Provide detailed context and implementation strategy
+4. Track progress in this context document
+5. Update code-graph after completion
+
+**Ready to tackle the remaining requirements!** 🚀
+
+Which requirement would you like to work on next?
+- **S5-005**: Case Validation Agent
+- **S5-008**: Email File Support (.eml)
+- **S5-012**: Document Type Capabilities and Command Availability
+- **S5-016**: Drag-and-Drop Document Management Across Folders

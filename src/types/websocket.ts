@@ -116,6 +116,35 @@ export interface AnonymizationResponse extends BaseMessage {
 }
 
 /**
+ * S5-004/S5-008: Translation request message sent from client to server
+ */
+export interface TranslationRequest extends BaseMessage {
+  type: 'translate';
+  filePath: string;
+  caseId: string;
+  folderId?: string;
+  documentId?: string;
+  targetLanguage?: string; // ISO 639-1 code (de, en, ar, etc.), default: de
+  sourceLanguage?: string; // ISO 639-1 code or 'auto', default: auto
+}
+
+/**
+ * S5-004/S5-008: Translation response message sent from server after translation completes
+ */
+export interface TranslationResponse extends BaseMessage {
+  type: 'translation_complete';
+  originalPath: string;
+  translatedPath: string | null;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+  success: boolean;
+  error?: string;
+  timestamp?: string;
+  renderMetadata?: any; // S5-006: Render metadata from document registry
+  documentId?: string;   // S5-006: Document ID that was translated
+}
+
+/**
  * Union type of all possible WebSocket messages from server
  */
 export type WebSocketMessage =
@@ -125,7 +154,8 @@ export type WebSocketMessage =
   | FormSuggestionMessage
   | SystemMessage
   | ErrorMessage
-  | AnonymizationResponse;
+  | AnonymizationResponse
+  | TranslationResponse;
 
 /**
  * WebSocket connection status

@@ -33,3 +33,6 @@ pdfplumber==0.11.0
 
 # Language Detection (S5-003)
 langdetect==1.0.9
+
+# Email Processing (S5-008)
+html2text==2024.2.26

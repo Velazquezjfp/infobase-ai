@@ -8,6 +8,7 @@ proper context isolation.
 
 import json
 import logging
+from pathlib import Path
 from typing import Dict, Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -188,6 +189,14 @@ async def websocket_chat_endpoint(
                 elif message_type == "anonymize":
                     # Handle anonymization request
                     await handle_anonymization(
+                        websocket,
+                        case_id,
+                        message
+                    )
+
+                elif message_type == "translate":
+                    # S5-004: Handle translation request
+                    await handle_translation(
                         websocket,
                         case_id,
                         message
@@ -532,6 +541,124 @@ async def handle_anonymization(
             "detectionsCount": 0,
             "success": False,
             "error": f"Anonymization failed: {str(e)}",
+            "timestamp": None
+        })
+
+
+async def handle_translation(
+    websocket: WebSocket,
+    case_id: str,
+    message: Dict[str, Any]
+) -> None:
+    """
+    Handle document translation request (S5-004, S5-008).
+
+    Processes the translation request by calling the translation service
+    and returns the result with render metadata for the translated file.
+
+    Args:
+        websocket: The WebSocket connection.
+        case_id: The case ID.
+        message: The translation request message containing filePath, targetLanguage, documentId.
+    """
+    file_path = message.get("filePath")
+    target_lang = message.get("targetLanguage", "de")  # Default to German
+    source_lang = message.get("sourceLanguage", "auto")  # Auto-detect by default
+    document_id = message.get("documentId")  # S5-006: Get documentId for render registration
+
+    logger.info(f"Processing translation request for case {case_id}, file: {file_path}, target: {target_lang}")
+
+    # Validate file path
+    if not file_path:
+        await websocket.send_json({
+            "type": "translation_complete",
+            "originalPath": "",
+            "translatedPath": None,
+            "success": False,
+            "error": "No file path provided",
+            "timestamp": None
+        })
+        return
+
+    try:
+        from backend.services.translation_service import get_translation_service
+        from backend.services.file_service import add_document_render
+
+        translation_service = get_translation_service()
+
+        # Determine file type and route to appropriate translation method
+        file_extension = Path(file_path).suffix.lower()
+
+        if file_extension == '.eml':
+            # S5-008: Translate email
+            result = await translation_service.translate_email(
+                file_path,
+                target_lang=target_lang,
+                source_lang=source_lang
+            )
+        else:
+            # For now, only emails are supported
+            await websocket.send_json({
+                "type": "translation_complete",
+                "originalPath": file_path,
+                "translatedPath": None,
+                "success": False,
+                "error": "Translation currently only supports .eml files. PDF and image translation coming soon.",
+                "timestamp": None
+            })
+            return
+
+        # S5-006: Register as render if document_id provided
+        render_metadata = None
+        if result.success and result.translated_path and document_id:
+            try:
+                render_metadata = add_document_render(
+                    document_id=document_id,
+                    render_type=f'translated',
+                    file_path=result.translated_path,
+                    metadata={"language": target_lang}
+                )
+                logger.info(f"Registered translated render: {render_metadata['id']}")
+            except Exception as e:
+                logger.warning(f"Failed to register translation render: {e}")
+                # Continue even if render registration fails
+
+        # S5-006: Send translation result with render metadata
+        await websocket.send_json({
+            "type": "translation_complete",
+            "originalPath": result.original_path,
+            "translatedPath": result.translated_path,
+            "sourceLanguage": result.source_language,
+            "targetLanguage": result.target_language,
+            "success": result.success,
+            "error": result.error,
+            "timestamp": None,
+            "renderMetadata": render_metadata,  # S5-006: Include render metadata
+            "documentId": document_id  # S5-006: Echo back documentId
+        })
+
+        # Also send a chat message about the result
+        if result.success:
+            await websocket.send_json({
+                "type": "chat_response",
+                "content": f"Document translated successfully to {target_lang.upper()}. The translated version has been saved as a new render.",
+                "timestamp": None
+            })
+        else:
+            await websocket.send_json({
+                "type": "chat_response",
+                "content": f"Translation failed: {result.error}",
+                "timestamp": None
+            })
+
+    except Exception as e:
+        logger.error(f"Error during translation: {str(e)}")
+        await websocket.send_json({
+            "type": "translation_complete",
+            "originalPath": file_path,
+            "translatedPath": None,
+            "success": False,
+            "error": f"Translation failed: {str(e)}",
             "timestamp": None
         })
 

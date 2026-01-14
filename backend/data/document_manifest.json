@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "schemaVersion": "1.0",
-  "lastUpdated": "2026-01-12T21:22:04.111965+00:00",
+  "lastUpdated": "2026-01-14T15:15:06.834155+00:00",
   "documents": [
     {
       "documentId": "doc_8d26a7f6bf5f",
@@ -57,6 +57,14 @@
           "filePath": "public/documents/ACTE-2024-001/personal-data/Geburtsurkunde.jpg",
           "createdAt": "2026-01-12T20:03:32.161982+00:00",
           "metadata": {}
+        },
+        {
+          "id": "render_90c9003b80d2",
+          "type": "anonymized",
+          "name": "Geburtsurkunde_anonymized.jpg",
+          "filePath": "public/documents/ACTE-2024-001/personal-data/Geburtsurkunde_anonymized.jpg",
+          "createdAt": "2026-01-14T15:09:14.034533Z",
+          "metadata": {}
         }
       ]
     },
@@ -95,6 +103,16 @@
           "filePath": "public/documents/ACTE-2024-001/emails/Email.eml",
           "createdAt": "2026-01-12T20:03:32.162021+00:00",
           "metadata": {}
+        },
+        {
+          "id": "render_translated_test001",
+          "type": "translated",
+          "name": "Email_translated_de.eml",
+          "filePath": "public/documents/ACTE-2024-001/emails/Email_translated_de.eml",
+          "createdAt": "2026-01-14T15:18:52.965199+00:00",
+          "metadata": {
+            "language": "de"
+          }
         }
       ]
     },

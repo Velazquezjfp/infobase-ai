@@ -59,10 +59,13 @@ export interface SemanticSearchRequest {
   query: string;
 
   /** The full text content of the document to search */
-  documentContent: string;
+  documentContent?: string;
 
   /** Type of the document (pdf, txt, etc.) */
   documentType: string;
+
+  /** S5-003: Path to PDF file for backend text extraction */
+  documentPath?: string;
 
   /** Language of the search query (ISO 639-1 code: en, de, etc.) */
   queryLanguage?: string;

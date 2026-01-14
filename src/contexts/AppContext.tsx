@@ -27,6 +27,8 @@ interface AppContextType {
   selectedRender: string | null;
   setSelectedRender: (renderId: string | null) => void;
   selectDocumentWithRender: (doc: Document, renderId?: string) => void;
+  // S5-003: Update document content (for PDF text extraction)
+  updateSelectedDocumentContent: (content: string) => void;
   // Form fields per case
   formFields: FormField[];
   setFormFields: (fields: FormField[]) => void;
@@ -45,6 +47,9 @@ interface AppContextType {
   // Anonymization
   isAnonymizing: boolean;
   setIsAnonymizing: (isAnonymizing: boolean) => void;
+  // Translation (S5-004)
+  isTranslating: boolean;
+  setIsTranslating: (isTranslating: boolean) => void;
   // Document management (S4-001, S4-002)
   addDocumentToFolder: (caseId: string, folderId: string, document: Document) => void;
   removeDocumentFromFolder: (caseId: string, folderId: string, documentId: string) => void;
@@ -129,6 +134,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isAnonymizing, setIsAnonymizing] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);  // S5-004: Translation state
 
   // S5-002: Form suggestions state
   const [formSuggestions, setFormSuggestions] = useState<FormSuggestions>({});
@@ -322,6 +328,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSelectedRender(originalRender?.id || null);
     } else {
       setSelectedRender(renderId || null);
+    }
+  };
+
+  // S5-003: Update selected document content (for PDF text extraction)
+  const updateSelectedDocumentContent = (content: string) => {
+    if (selectedDocument) {
+      const updatedDoc = { ...selectedDocument, content };
+      setSelectedDocument(updatedDoc);
+
+      // Also update the document in currentCase to ensure persistence
+      setCurrentCase(prev => ({
+        ...prev,
+        folders: prev.folders.map(folder => ({
+          ...folder,
+          documents: folder.documents.map(doc =>
+            doc.id === selectedDocument.id ? updatedDoc : doc
+          ),
+        })),
+      }));
     }
   };
 
@@ -677,6 +702,66 @@ export function AppProvider({ children }: { children: ReactNode }) {
               }
               break;
 
+            case 'translation_complete':
+              // S5-004/S5-008: Handle translation completion
+              setIsTranslating(false);
+              setIsTyping(false);
+              const translationResponse = message as any;  // TranslationResponse type
+
+              if (translationResponse.success && translationResponse.translatedPath) {
+                // S5-006: Check if render metadata is present
+                if (translationResponse.renderMetadata && translationResponse.documentId) {
+                  // Add render to existing document
+                  const renderData = translationResponse.renderMetadata;
+
+                  setCurrentCase(prev => ({
+                    ...prev,
+                    folders: prev.folders.map(folder => ({
+                      ...folder,
+                      documents: folder.documents.map(doc => {
+                        if (doc.id === translationResponse.documentId) {
+                          const existingRenders = doc.renders || [];
+                          return {
+                            ...doc,
+                            renders: [...existingRenders, renderData],
+                          };
+                        }
+                        return doc;
+                      }),
+                    })),
+                  }));
+
+                  // Update selected document if it's the one that was translated
+                  if (selectedDocument?.id === translationResponse.documentId) {
+                    setSelectedDocument(prev => {
+                      if (!prev) return prev;
+                      const existingRenders = prev.renders || [];
+                      return {
+                        ...prev,
+                        renders: [...existingRenders, renderData],
+                      };
+                    });
+                  }
+
+                  toast({
+                    title: 'Translation Complete',
+                    description: `Translated to ${translationResponse.targetLanguage?.toUpperCase()}. Translated render created.`,
+                  });
+
+                  // Refresh from backend to ensure sync
+                  setTimeout(() => {
+                    loadDocumentsFromBackend(currentCase.id);
+                  }, 500);
+                }
+              } else {
+                toast({
+                  title: 'Translation Failed',
+                  description: translationResponse.error || 'Unknown error occurred',
+                  variant: 'destructive',
+                });
+              }
+              break;
+
             default:
               console.warn('Unknown message type:', message);
           }
@@ -757,11 +842,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const filePath = `public/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`;
 
       // Send anonymize message type
+      // S5-006: Include documentId for render registration
       const anonymizeMessage = {
         type: 'anonymize',
         filePath,
         caseId: currentCase.id,
         folderId: selectedDocument.folderId,
+        documentId: selectedDocument.id,  // S5-006: Required for render system
       };
 
       wsConnection.send(JSON.stringify(anonymizeMessage));
@@ -825,10 +912,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       // For PDFs, provide the document path instead of content
       if (selectedDocument.type === 'pdf') {
-        // Construct path to PDF - handles both root_docs and case folders
+        // S5-006: Use selected render's path if applicable
+        const activeRender = selectedRender
+          ? selectedDocument.renders?.find(r => r.id === selectedRender)
+          : null;
+
+        const documentFileName = activeRender
+          ? activeRender.filePath.split('/').pop() || selectedDocument.name
+          : selectedDocument.name;
+
+        // S5-003: Construct path to PDF - handles both root_docs and case folders
+        // Ensure path includes 'public/' prefix for backend filesystem access
         const documentPath = selectedDocument.metadata?.filePath?.includes('root_docs')
-          ? `root_docs/${selectedDocument.name}`
-          : `documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`;
+          ? `root_docs/${documentFileName}`
+          : `public/documents/${currentCase.id}/${selectedDocument.folderId}/${documentFileName}`;
+
         request.documentPath = documentPath;
         request.documentContent = undefined;
       }
@@ -992,6 +1090,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         selectedRender,
         setSelectedRender,
         selectDocumentWithRender,
+        // S5-003: Update document content
+        updateSelectedDocumentContent,
         formFields,
         setFormFields,
         updateFormField,
@@ -1006,6 +1106,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isTyping,
         isAnonymizing,
         setIsAnonymizing,
+        isTranslating,
+        setIsTranslating,
         addDocumentToFolder,
         removeDocumentFromFolder,
         refreshDocuments,

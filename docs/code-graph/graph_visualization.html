@@ -225,15 +225,15 @@
             <div class="graph-path">/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/code-graph/code-graph.json</div>
             <div class="stats">
                 <div class="stat">
-                    <div class="stat-number">151</div>
+                    <div class="stat-number">216</div>
                     <div class="stat-label">Entities</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">298</div>
+                    <div class="stat-number">356</div>
                     <div class="stat-label">Relations</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">37</div>
+                    <div class="stat-number">43</div>
                     <div class="stat-label">Types</div>
                 </div>
             </div>
@@ -346,7 +346,17 @@
                         "Uses localStorage persistence via saveToLocalStorage and loadFromLocalStorage from @/lib/localStorage",
                         "Sprint 5 update: Added language state management for S5-014",
                         "Sprint 5 update: Updated WebSocket connection to include language parameter",
-                        "Sprint 5 update: Integrated messageFormatter for chat message rendering"
+                        "Sprint 5 update: Integrated messageFormatter for chat message rendering",
+                        "S5-006: Added selectedRender state and setSelectedRender",
+                        "Added selectDocumentWithRender() function for render selection",
+                        "S5-003: Added semantic search state (searchQuery, searchHighlights, activeHighlightIndex, isSearching)",
+                        "Added performSemanticSearch() async function calling /api/search/semantic",
+                        "Added clearSearch() function to reset search state",
+                        "loadDocumentsFromBackend() now includes renders array in document mapping",
+                        "S5-004: Translation state (isTranslating, setIsTranslating)",
+                        "S5-003: updateSelectedDocumentContent() stores extracted text for AI",
+                        "translation_complete WebSocket message handler",
+                        "Creates translated renders in document.renders array"
                 ],
                 "index": 2
         },
@@ -452,7 +462,15 @@
                         "handleUploadToFolder() manages batch uploads with duplicate checking",
                         "handleDuplicateRename() processes renamed file upload",
                         "handleConfirmDelete() executes file deletion via API and updates state",
-                        "FolderItem subcomponent renders individual folders with upload support"
+                        "FolderItem subcomponent renders individual folders with upload support",
+                        "S5-006: Added RenderContainer component for multi-render document display",
+                        "Added getRenderIcon() and getRenderDisplayName() helper functions",
+                        "handleDeleteRender() calls DELETE /api/files/renders endpoint",
+                        "Supports expand/collapse for documents with multiple renders",
+                        "canDeleteFiles restricts deletion to user folders, protects system folders",
+                        "S5-006: Implemented handleDeleteRender() with API call",
+                        "Calls DELETE /api/files/renders endpoint",
+                        "Uses refreshDocuments after render deletion"
                 ],
                 "index": 8
         },
@@ -507,7 +525,11 @@
                         "S3-002: Renders img element with onLoad/onError handlers for image documents",
                         "S3-002: Shows loading spinner (Loader2) during image loading",
                         "S3-002: Shows error state (AlertCircle) when image fails to load",
-                        "S3-002: useEffect resets imageLoading/imageError when document changes"
+                        "S3-002: useEffect resets imageLoading/imageError when document changes",
+                        "S5-008: Email display integration with EmailViewer component",
+                        "S5-004: Translation button with handleTranslate()",
+                        "Parses emails via POST /api/documents/parse-email",
+                        "Email content extracted for AI context"
                 ],
                 "index": 10
         },
@@ -610,7 +632,10 @@
                         "ChatMessage role union: 'user' | 'assistant'",
                         "FormField interface extended with optional shaclMetadata?: SHACLPropertyShape property (Sprint 2)",
                         "Imports SHACLPropertyShape from @/types/shacl for shaclMetadata typing (S2-003)",
-                        "S3-002: Document interface extended with optional caseId and folderId for case-scoped path construction"
+                        "S3-002: Document interface extended with optional caseId and folderId for case-scoped path construction",
+                        "S5-006: Added DocumentRender interface with id, type, name, filePath, createdAt, metadata",
+                        "Document interface now includes optional renders: DocumentRender[] field",
+                        "S5-008: Document type union includes 'eml' for email files"
                 ],
                 "index": 15
         },
@@ -836,7 +861,11 @@
                         "Sprint 5 update: Integrated ConversationManager for chat history (S5-010)",
                         "Sprint 5 update: Added current form values support for suggestion mode (S5-002)",
                         "Sprint 5 update: Updated handle_form_extraction to categorize results into direct_updates and suggestions",
-                        "Sprint 5 update: Translated welcome messages based on language preference"
+                        "Sprint 5 update: Translated welcome messages based on language preference",
+                        "S5-004: Added translation WebSocket handler",
+                        "handle_translation() processes translate message type",
+                        "Supports email translation with render creation",
+                        "Imports translation_service for document translation"
                 ],
                 "index": 30
         },
@@ -920,7 +949,12 @@
                         "S2-004: Defines ContextEntry dataclass for individual context entries with source info",
                         "S2-004: Defines MergedContext dataclass for merged context with source tracking",
                         "S2-004: Exports resolve_conflict() function for precedence-based conflict resolution",
-                        "S2-004: Adds merge_contexts_with_tracking() method for AI transparency"
+                        "S2-004: Adds merge_contexts_with_tracking() method for AI transparency",
+                        "S5-011: Added in-memory cache for document tree views (_tree_view_cache)",
+                        "Added generate_document_tree() function for hierarchical ASCII tree representation",
+                        "Added invalidate_tree_cache() function to invalidate cache on document changes",
+                        "Added get_cached_tree_stats() function for monitoring cache performance",
+                        "Tree view uses ASCII characters (\\u251c\\u2500\\u2500 \\u2514\\u2500\\u2500) for hierarchy visualization"
                 ],
                 "index": 36
         },
@@ -999,7 +1033,12 @@
                         "Sprint 5 update: Added language parameter to generate_response method (S5-014)",
                         "Sprint 5 update: Added format_response method for HTML to markdown conversion (S5-009)",
                         "Sprint 5 update: Updated prompt building with conversation history inclusion",
-                        "Sprint 5 update: Added conversation history saving for user and assistant messages"
+                        "Sprint 5 update: Added conversation history saving for user and assistant messages",
+                        "S5-003: Added semantic_search() async method for AI-powered document search",
+                        "semantic_search() uses lower temperature (0.3) for deterministic results",
+                        "Supports cross-language search with query_lang and doc_lang parameters",
+                        "Returns JSON array of highlights with matched_text, start_position, end_position, relevance_score, context",
+                        "Added is_initialized() method to check if Gemini service is ready"
                 ],
                 "index": 42
         },
@@ -1246,7 +1285,12 @@
                         "Exports WebSocketState interface with connection, status, and error fields",
                         "S3-001: Exports AnonymizationRequest interface for anonymize message type",
                         "S3-001: Exports AnonymizationResponse interface for anonymization_complete message type",
-                        "S3-001: WebSocketMessage union type updated to include AnonymizationResponse"
+                        "S3-001: WebSocketMessage union type updated to include AnonymizationResponse",
+                        "S5-006: AnonymizationResponse now includes renderMetadata and documentId fields",
+                        "Supports new render-based anonymization flow",
+                        "S5-004: Added TranslationRequest interface",
+                        "S5-004: Added TranslationResponse interface",
+                        "Updated WebSocketMessage union type with translation types"
                 ],
                 "index": 59
         },
@@ -1534,7 +1578,11 @@
                         "Defines MIME_TYPES constant mapping extensions to MIME types",
                         "Helper functions: _get_anonymized_filename(), _image_to_base64(), _base64_to_image()",
                         "Integrates with AnonymizationService for actual anonymization",
-                        "Imports AnonymizationService and AnonymizationResult from backend.services.anonymization_service"
+                        "Imports AnonymizationService and AnonymizationResult from backend.services.anonymization_service",
+                        "S5-006: Added render_metadata field to AnonymizationToolResult",
+                        "anonymize_document() now accepts document_id and register_render parameters",
+                        "When register_render=True, registers anonymized file as render via file_service",
+                        "Supports optional render registration for document manifest integration"
                 ],
                 "index": 78
         },
@@ -1734,7 +1782,12 @@
                         "FastAPI router with prefix /api/files",
                         "Defines UploadResponse, ErrorResponse, DeleteResponse, FileExistsResponse Pydantic models",
                         "Maximum file size: 15 MB",
-                        "Uses FormData for multipart upload handling"
+                        "Uses FormData for multipart upload handling",
+                        "S5-006: Added DELETE /api/files/renders/{case_id}/{document_id}/{render_id} endpoint",
+                        "delete_render() function for deleting document renders (anonymized, translated)",
+                        "Invalidates tree cache after render deletion via invalidate_tree_cache()",
+                        "delete_render() function for deleting document renders",
+                        "Includes tree cache invalidation after render deletion"
                 ],
                 "index": 94
         },
@@ -1803,7 +1856,12 @@
                         "Defines UNSAFE_FILENAME_CHARS regex pattern",
                         "S4-001, S4-002: File Management Service with validation and storage utilities",
                         "Security features: size validation, filename sanitization, path traversal prevention",
-                        "Constants: MAX_FILE_SIZE_BYTES (15 MB), MAX_FILENAME_LENGTH (255), UNSAFE_FILENAME_CHARS regex"
+                        "Constants: MAX_FILE_SIZE_BYTES (15 MB), MAX_FILENAME_LENGTH (255), UNSAFE_FILENAME_CHARS regex",
+                        "S5-006: Added add_document_render() function to register renders",
+                        "Added get_document_renders() function wrapping document_registry",
+                        "Added delete_document_render() function for render deletion with filesystem cleanup",
+                        "Validates render_type against {'original', 'anonymized', 'translated', 'annotated'}",
+                        "Prevents deletion of 'original' render type for security"
                 ],
                 "index": 99
         },
@@ -2441,7 +2499,9 @@
                         "Integrates with document registry system",
                         "Response models: DocumentResponse, FolderResponse, DocumentTreeResponse",
                         "Maps internal document registry format to frontend format",
-                        "Related to S5-007: Container-Compatible File Persistence"
+                        "Related to S5-007: Container-Compatible File Persistence",
+                        "S5-008: Added POST /api/documents/parse-email endpoint",
+                        "Imports email_service for email parsing"
                 ],
                 "index": 146
         },
@@ -2476,7 +2536,16 @@
                         "Type definitions: DocumentRender, DocumentRegistryEntry, DocumentRegistry, FileInfo",
                         "Key functions: load_manifest(), save_manifest(), scan_filesystem(), reconcile()",
                         "Stateless functions for testability",
-                        "Container-friendly with configurable DOCUMENTS_BASE_PATH"
+                        "Container-friendly with configurable DOCUMENTS_BASE_PATH",
+                        "S5-006: Added DocumentRender NamedTuple for render management",
+                        "Added add_render_to_document() function for adding renders to documents",
+                        "Added get_document_renders() function for retrieving document renders",
+                        "Added remove_render_from_document() function for deleting renders",
+                        "is_render_file() helper checks for render patterns (_anonymized., _translated., _annotated.)",
+                        "register_document() now creates original render entry automatically",
+                        "S5-003/S5-006: Cascade deletes all render files when document is deleted",
+                        "unregister_document() loops through renders array and deletes files",
+                        "Prevents orphaned anonymized/translated files"
                 ],
                 "index": 148
         },
@@ -2513,6 +2582,686 @@
                         "Enables automatic semantic type inference for SHACL generation"
                 ],
                 "index": 150
+        },
+        {
+                "id": "backend/api/context.py",
+                "type": "file",
+                "observations": [
+                        "S5-011: Context API for BAMF AI Case Management System",
+                        "Provides endpoints for retrieving document tree views and context information",
+                        "Contains GET /api/context/tree/{case_id} endpoint for document tree view",
+                        "Uses FastAPI router with prefix /api/context",
+                        "Imports generate_document_tree from context_manager",
+                        "Imports get_documents_by_case, build_document_tree from document_registry"
+                ],
+                "index": 151
+        },
+        {
+                "id": "backend/api/context.py::TreeViewResponse",
+                "type": "class",
+                "observations": [
+                        "Pydantic BaseModel for tree view endpoint response",
+                        "Attributes: treeView (str), folders (List[str]), documentCount (int)",
+                        "treeView contains hierarchical text representation with ASCII tree characters"
+                ],
+                "index": 152
+        },
+        {
+                "id": "backend/api/context.py::GET_/api/context/tree/{case_id}",
+                "type": "endpoint",
+                "observations": [
+                        "GET endpoint to retrieve document tree view for a case",
+                        "Returns TreeViewResponse with tree structure, folders list, and document count",
+                        "Implements tree caching for performance",
+                        "HTTP 200 on success, 404 if case not found, 500 on error"
+                ],
+                "index": 153
+        },
+        {
+                "id": "backend/api/search.py",
+                "type": "file",
+                "observations": [
+                        "S5-003: Search API providing REST endpoints for semantic search",
+                        "Integrates with Gemini AI service for intelligent document search",
+                        "Features cross-language support (e.g., German query \u2192 English document)",
+                        "Includes PDF text extraction integration via pdf_service",
+                        "Provides text highlighting with position information"
+                ],
+                "index": 154
+        },
+        {
+                "id": "backend/api/search.py::SemanticSearchRequest",
+                "type": "class",
+                "observations": [
+                        "Pydantic request model for semantic search endpoint",
+                        "Fields: query, documentContent, documentType, documentPath, queryLanguage, documentLanguage",
+                        "Supports both PDF paths and direct document content"
+                ],
+                "index": 155
+        },
+        {
+                "id": "backend/api/search.py::SearchHighlight",
+                "type": "class",
+                "observations": [
+                        "Pydantic model for a single search highlight result",
+                        "Fields: start, end, relevance (0.0-1.0), matchedText, context"
+                ],
+                "index": 156
+        },
+        {
+                "id": "backend/api/search.py::SemanticSearchResponse",
+                "type": "class",
+                "observations": [
+                        "Pydantic response model for semantic search endpoint",
+                        "Fields: highlights, count, matchSummary, queryLanguage, documentLanguage, isCrossLanguage"
+                ],
+                "index": 157
+        },
+        {
+                "id": "backend/api/search.py::POST_/api/search/semantic",
+                "type": "endpoint",
+                "observations": [
+                        "POST endpoint to perform semantic search using Gemini AI",
+                        "Supports cross-language search where query and document can be in different languages",
+                        "Extracts text from PDFs via pdf_service when documentType is pdf",
+                        "Returns highlights with character positions for UI rendering"
+                ],
+                "index": 158
+        },
+        {
+                "id": "backend/api/search.py::GET_/api/search/health",
+                "type": "endpoint",
+                "observations": [
+                        "Health check endpoint for search service",
+                        "Returns service status, Gemini initialization state, PDF support and cross-language support flags"
+                ],
+                "index": 159
+        },
+        {
+                "id": "backend/services/pdf_service.py",
+                "type": "file",
+                "observations": [
+                        "S5-003: PDF Service for PDF text extraction for semantic search",
+                        "Uses pdfplumber library for PDF text extraction and layout analysis",
+                        "Supports full text extraction from PDF documents",
+                        "Provides page-by-page text extraction with position data for highlighting",
+                        "Handles multi-page document support",
+                        "Implements singleton pattern via get_pdf_service() function"
+                ],
+                "index": 160
+        },
+        {
+                "id": "backend/services/pdf_service.py::TextBlock",
+                "type": "class",
+                "observations": [
+                        "Dataclass representing a block of text extracted from a PDF",
+                        "Attributes: text, page (1-indexed), position (dict with x,y,width,height), char_start, char_end",
+                        "Used for PDF text extraction with position information"
+                ],
+                "index": 161
+        },
+        {
+                "id": "backend/services/pdf_service.py::PDFService",
+                "type": "class",
+                "observations": [
+                        "Service class for extracting text from PDF documents",
+                        "Methods: extract_text(), extract_text_with_positions(), get_page_count(), extract_page_text()",
+                        "extract_text() returns all text concatenated from all pages",
+                        "extract_text_with_positions() returns List[TextBlock] with character positions"
+                ],
+                "index": 162
+        },
+        {
+                "id": "backend/services/pdf_service.py::get_pdf_service",
+                "type": "function",
+                "observations": [
+                        "Factory function returning singleton instance of PDFService",
+                        "Uses global _pdf_service_instance variable for singleton pattern"
+                ],
+                "index": 163
+        },
+        {
+                "id": "backend/tools/language_detector.py",
+                "type": "file",
+                "observations": [
+                        "S5-003: Language Detector for automatic language detection",
+                        "Uses langdetect library (Python port of Google's language detection)",
+                        "Returns ISO 639-1 language codes (en, de, fr, ar, etc.)",
+                        "Handles short text and mixed-language content",
+                        "Provides fallback to default language on detection failure"
+                ],
+                "index": 164
+        },
+        {
+                "id": "backend/tools/language_detector.py::detect_language",
+                "type": "function",
+                "observations": [
+                        "Detects language of given text, returns ISO 639-1 code",
+                        "Parameters: text, default (fallback language)",
+                        "Handles short text warning (<10 chars)",
+                        "Returns default if detection fails"
+                ],
+                "index": 165
+        },
+        {
+                "id": "backend/tools/language_detector.py::detect_query_and_document_languages",
+                "type": "function",
+                "observations": [
+                        "Convenience function detecting languages for query and document",
+                        "Parameters: query, document, query_default, doc_default",
+                        "Returns tuple[str, str] of (query_language, document_language)",
+                        "Used for cross-language semantic search"
+                ],
+                "index": 166
+        },
+        {
+                "id": "backend/tools/language_detector.py::is_cross_language_search",
+                "type": "function",
+                "observations": [
+                        "Checks if search is cross-language (different languages)",
+                        "Parameters: query_lang, doc_lang",
+                        "Returns bool indicating if languages differ"
+                ],
+                "index": 167
+        },
+        {
+                "id": "backend/tools/language_detector.py::get_language_name",
+                "type": "function",
+                "observations": [
+                        "Gets human-readable name for language code",
+                        "Uses LANGUAGE_NAMES dictionary mapping",
+                        "Returns 'Unknown (code)' for unmapped codes"
+                ],
+                "index": 168
+        },
+        {
+                "id": "src/components/workspace/HighlightedText.tsx",
+                "type": "file",
+                "observations": [
+                        "S5-003: React component for rendering text with search highlights",
+                        "Splits text into segments and wraps highlighted portions in <mark> elements",
+                        "Supports multiple highlights with active highlight indicator",
+                        "Features visual distinction between active and inactive highlights",
+                        "Uses smooth CSS transitions for state changes"
+                ],
+                "index": 169
+        },
+        {
+                "id": "src/components/workspace/HighlightedText.tsx::HighlightedText",
+                "type": "component",
+                "observations": [
+                        "React component for displaying text with search highlight overlays",
+                        "Props: text, highlights (SearchHighlight[]), activeHighlightIndex, onHighlightRef",
+                        "Sorts highlights by start position and creates TextSegment array",
+                        "Active highlight has amber background with ring, inactive has yellow background"
+                ],
+                "index": 170
+        },
+        {
+                "id": "src/components/workspace/PDFViewer.tsx",
+                "type": "file",
+                "observations": [
+                        "S5-003: PDF Viewer Component with Search Highlighting",
+                        "Uses react-pdf library with pdfjs worker",
+                        "Renders PDFs visually with page navigation controls",
+                        "Supports zoom in/out with 0.5-3.0 scale range",
+                        "Shows search result count when highlights are present"
+                ],
+                "index": 171
+        },
+        {
+                "id": "src/components/workspace/PDFViewer.tsx::PDFViewer",
+                "type": "component",
+                "observations": [
+                        "React component for rendering PDF documents",
+                        "Props: file (URL/path), highlights, activeHighlightIndex, onPageChange",
+                        "State: numPages, pageNumber, scale, isLoading, error",
+                        "Features: page navigation, zoom controls, loading indicator, error display"
+                ],
+                "index": 172
+        },
+        {
+                "id": "src/types/context.ts",
+                "type": "file",
+                "observations": [
+                        "S5-011: Type definitions for Case Context and Document Tree View",
+                        "Defines structures for document tree view providing AI agents with global document awareness"
+                ],
+                "index": 173
+        },
+        {
+                "id": "src/types/context.ts::TreeNode",
+                "type": "interface",
+                "observations": [
+                        "Node in document tree structure",
+                        "Fields: name, type ('folder' | 'document'), children (optional), id, isEmpty"
+                ],
+                "index": 174
+        },
+        {
+                "id": "src/types/context.ts::DocumentTreeView",
+                "type": "interface",
+                "observations": [
+                        "Document Tree View structure for AI context awareness",
+                        "Fields: caseId, treeStructure (hierarchical text with ASCII chars), lastUpdated, documentCount, folders"
+                ],
+                "index": 175
+        },
+        {
+                "id": "src/types/context.ts::TreeViewResponse",
+                "type": "interface",
+                "observations": [
+                        "API response type for tree view endpoint",
+                        "Fields: treeView, folders, documentCount"
+                ],
+                "index": 176
+        },
+        {
+                "id": "src/types/search.ts",
+                "type": "file",
+                "observations": [
+                        "S5-003: Search Types for Semantic Search Feature",
+                        "Defines types for search highlights, text blocks, and API request/response",
+                        "Made documentContent optional for semantic search",
+                        "Added documentPath field for PDF text extraction"
+                ],
+                "index": 177
+        },
+        {
+                "id": "src/types/search.ts::SearchHighlight",
+                "type": "interface",
+                "observations": [
+                        "Represents a highlighted text segment in search results",
+                        "Fields: start, end, relevance (0.0-1.0), matchedText, context"
+                ],
+                "index": 178
+        },
+        {
+                "id": "src/types/search.ts::TextBlock",
+                "type": "interface",
+                "observations": [
+                        "Represents text block from PDF with position information",
+                        "Fields: text, page, position (x,y,width,height), charStart, charEnd"
+                ],
+                "index": 179
+        },
+        {
+                "id": "src/types/search.ts::SemanticSearchRequest",
+                "type": "interface",
+                "observations": [
+                        "Request payload for semantic search API",
+                        "Fields: query, documentContent, documentType, queryLanguage, documentLanguage"
+                ],
+                "index": 180
+        },
+        {
+                "id": "src/types/search.ts::SemanticSearchResponse",
+                "type": "interface",
+                "observations": [
+                        "Response from semantic search API",
+                        "Fields: highlights, count, matchSummary"
+                ],
+                "index": 181
+        },
+        {
+                "id": "src/types/search.ts::SearchState",
+                "type": "interface",
+                "observations": [
+                        "Search state maintained in application context",
+                        "Fields: query, highlights, activeIndex, isSearching"
+                ],
+                "index": 182
+        },
+        {
+                "id": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+                "type": "endpoint",
+                "observations": [
+                        "S5-006: DELETE endpoint to remove document render",
+                        "Parameters: case_id, document_id, render_id as path params",
+                        "Calls delete_document_render() from file_service",
+                        "Invalidates tree cache after successful deletion",
+                        "Returns JSON with success, message, render_id, document_id"
+                ],
+                "index": 183
+        },
+        {
+                "id": "backend/services/context_manager.py::generate_document_tree",
+                "type": "function",
+                "observations": [
+                        "S5-011: Generates hierarchical text representation of document tree",
+                        "Uses ASCII tree characters for visualization",
+                        "Implements caching via _tree_view_cache",
+                        "Returns string with case and folder structure"
+                ],
+                "index": 184
+        },
+        {
+                "id": "backend/services/context_manager.py::invalidate_tree_cache",
+                "type": "function",
+                "observations": [
+                        "S5-011: Invalidates cached tree view for a case",
+                        "Called when documents are added, deleted, or moved",
+                        "Removes case_id entry from _tree_view_cache dict"
+                ],
+                "index": 185
+        },
+        {
+                "id": "backend/services/context_manager.py::get_cached_tree_stats",
+                "type": "function",
+                "observations": [
+                        "S5-011: Returns statistics about tree view cache",
+                        "Returns dict with cache_size, cached_cases, cache_timestamps"
+                ],
+                "index": 186
+        },
+        {
+                "id": "backend/services/document_registry.py::add_render_to_document",
+                "type": "function",
+                "observations": [
+                        "S5-006: Adds render entry to document in registry",
+                        "Parameters: document_id, render_data dict",
+                        "Updates document manifest via save_manifest()"
+                ],
+                "index": 187
+        },
+        {
+                "id": "backend/services/document_registry.py::get_document_renders",
+                "type": "function",
+                "observations": [
+                        "S5-006: Gets all renders for a document",
+                        "Parameters: document_id",
+                        "Returns list of render dicts or empty list"
+                ],
+                "index": 188
+        },
+        {
+                "id": "backend/services/document_registry.py::remove_render_from_document",
+                "type": "function",
+                "observations": [
+                        "S5-006: Removes render from document registry",
+                        "Parameters: document_id, render_id",
+                        "Returns bool indicating success"
+                ],
+                "index": 189
+        },
+        {
+                "id": "backend/services/file_service.py::add_document_render",
+                "type": "function",
+                "observations": [
+                        "S5-006: Registers new render in document registry",
+                        "Parameters: document_id, render_type, file_path, metadata",
+                        "Returns render metadata dict with id, type, name, filePath, createdAt"
+                ],
+                "index": 190
+        },
+        {
+                "id": "backend/services/file_service.py::delete_document_render",
+                "type": "function",
+                "observations": [
+                        "S5-006: Deletes render file and registry entry",
+                        "Parameters: document_id, render_id, case_id (optional), folder_id (optional)",
+                        "Prevents deletion of 'original' render type",
+                        "Returns True on success"
+                ],
+                "index": 191
+        },
+        {
+                "id": "backend/services/gemini_service.py::semantic_search",
+                "type": "function",
+                "observations": [
+                        "S5-003: Performs semantic search using Gemini API",
+                        "Parameters: query, document_text, query_lang, doc_lang",
+                        "Returns List[Dict] with highlights including matched_text, positions, relevance",
+                        "Uses temperature 0.3 for deterministic output"
+                ],
+                "index": 192
+        },
+        {
+                "id": "backend/services/email_service.py",
+                "type": "Service",
+                "observations": [
+                        "S5-008: Email parsing service for .eml files",
+                        "Provides email header extraction (From, To, Subject, Date)",
+                        "Supports multiple character encodings (UTF-8, ISO-8859-6 for Arabic)",
+                        "Extracts email body content (plain text and HTML)",
+                        "Extracts attachment metadata",
+                        "Uses html2text for HTML to plain text conversion",
+                        "Implements singleton pattern with get_email_service()"
+                ],
+                "index": 193
+        },
+        {
+                "id": "backend/services/email_service.py::EmailService",
+                "type": "Class",
+                "observations": [
+                        "Main service class for email parsing",
+                        "Uses BytesParser for proper encoding handling",
+                        "Supports Arabic and RTL text",
+                        "Converts HTML emails to plain text when needed",
+                        "Methods: parse_eml_file(), _decode_header(), _extract_body(), _extract_attachments()"
+                ],
+                "index": 194
+        },
+        {
+                "id": "backend/services/email_service.py::EmailAttachment",
+                "type": "Dataclass",
+                "observations": [
+                        "Dataclass representing email attachment metadata",
+                        "Fields: filename (str), content_type (str), size (Optional[int])"
+                ],
+                "index": 195
+        },
+        {
+                "id": "backend/services/email_service.py::EmailData",
+                "type": "Dataclass",
+                "observations": [
+                        "Dataclass for parsed email data structure",
+                        "Fields: from_addr, to_addr, subject, date, body_text",
+                        "Optional fields: body_html, attachments (List[EmailAttachment]), headers (Dict)"
+                ],
+                "index": 196
+        },
+        {
+                "id": "backend/services/email_service.py::parse_eml_file",
+                "type": "Method",
+                "observations": [
+                        "Parses .eml files and extracts all email data",
+                        "Handles multiple character encodings including Arabic",
+                        "Returns EmailData dataclass",
+                        "Raises FileNotFoundError if file doesn't exist",
+                        "Raises ValueError if file is not .eml"
+                ],
+                "index": 197
+        },
+        {
+                "id": "backend/services/email_service.py::get_email_service",
+                "type": "Function",
+                "observations": [
+                        "Singleton factory function for EmailService",
+                        "Returns shared EmailService instance",
+                        "Creates instance on first call"
+                ],
+                "index": 198
+        },
+        {
+                "id": "backend/services/translation_service.py",
+                "type": "Service",
+                "observations": [
+                        "S5-004: Translation service using Gemini AI",
+                        "Supports email translation with header preservation",
+                        "Multi-language support (Arabic, German, English, French, Spanish, etc.)",
+                        "Creates translated renders as new files",
+                        "Implements singleton pattern with get_translation_service()"
+                ],
+                "index": 199
+        },
+        {
+                "id": "backend/services/translation_service.py::TranslationService",
+                "type": "Class",
+                "observations": [
+                        "Main service class for document translation",
+                        "Uses Gemini AI for translation",
+                        "Methods: translate_text(), translate_email(), _get_language_name()",
+                        "Async methods for translation operations"
+                ],
+                "index": 200
+        },
+        {
+                "id": "backend/services/translation_service.py::TranslationResult",
+                "type": "Dataclass",
+                "observations": [
+                        "Dataclass for translation operation results",
+                        "Fields: success (bool), original_path (str)",
+                        "Optional fields: translated_path, source_language, target_language, error"
+                ],
+                "index": 201
+        },
+        {
+                "id": "backend/services/translation_service.py::translate_text",
+                "type": "Method",
+                "observations": [
+                        "Async method to translate text using Gemini API",
+                        "Parameters: text, source_lang ('auto' for detection), target_lang (default: 'de')",
+                        "Returns translated string",
+                        "Uses temperature=0.3 for consistent translations"
+                ],
+                "index": 202
+        },
+        {
+                "id": "backend/services/translation_service.py::translate_email",
+                "type": "Method",
+                "observations": [
+                        "Async method to translate email files",
+                        "Translates subject and body, preserves headers",
+                        "Creates new .eml file with _translated_{lang} suffix",
+                        "Returns TranslationResult dataclass"
+                ],
+                "index": 203
+        },
+        {
+                "id": "backend/services/translation_service.py::get_translation_service",
+                "type": "Function",
+                "observations": [
+                        "Singleton factory function for TranslationService",
+                        "Returns shared TranslationService instance"
+                ],
+                "index": 204
+        },
+        {
+                "id": "src/components/workspace/EmailViewer.tsx",
+                "type": "Component",
+                "observations": [
+                        "S5-008: Email viewer React component",
+                        "Displays parsed email content with proper formatting",
+                        "Supports Arabic and RTL text detection",
+                        "Shows email headers: From, To, Subject, Date",
+                        "Displays attachment list with file sizes",
+                        "Uses Card, CardHeader, CardContent from shadcn/ui",
+                        "Uses lucide-react icons: Mail, User, Calendar, Paperclip"
+                ],
+                "index": 205
+        },
+        {
+                "id": "src/components/workspace/EmailViewer.tsx::EmailData",
+                "type": "Interface",
+                "observations": [
+                        "TypeScript interface for email data",
+                        "Fields: from_addr, to_addr, subject, date, body_text",
+                        "Optional: body_html (string | null), attachments (EmailAttachment[])"
+                ],
+                "index": 206
+        },
+        {
+                "id": "src/components/workspace/EmailViewer.tsx::EmailAttachment",
+                "type": "Interface",
+                "observations": [
+                        "TypeScript interface for email attachment",
+                        "Fields: filename (string), content_type (string), size (number | undefined)"
+                ],
+                "index": 207
+        },
+        {
+                "id": "src/components/workspace/EmailViewer.tsx::isRTLText",
+                "type": "Function",
+                "observations": [
+                        "Helper function to detect RTL text",
+                        "Checks for Arabic Unicode range (0600-06FF)",
+                        "Checks for Hebrew Unicode range (0590-05FF)",
+                        "Returns boolean"
+                ],
+                "index": 208
+        },
+        {
+                "id": "src/components/workspace/EmailViewer.tsx::formatSize",
+                "type": "Function",
+                "observations": [
+                        "Helper function to format file sizes",
+                        "Converts bytes to human-readable format (B, KB, MB)"
+                ],
+                "index": 209
+        },
+        {
+                "id": "backend/api/documents.py::POST_/api/documents/parse-email",
+                "type": "HTTPEndpoint",
+                "observations": [
+                        "S5-008: Parses .eml files and returns email data",
+                        "Request model: EmailParseRequest with file_path field",
+                        "Response model: EmailParseResponse with email data",
+                        "Calls email_service.parse_eml_file()",
+                        "Returns 404 if file not found, 400 if not valid email"
+                ],
+                "index": 210
+        },
+        {
+                "id": "backend/api/documents.py::EmailParseRequest",
+                "type": "Schema",
+                "observations": [
+                        "Pydantic model for email parse request",
+                        "Field: file_path (str) - path to .eml file"
+                ],
+                "index": 211
+        },
+        {
+                "id": "backend/api/documents.py::EmailParseResponse",
+                "type": "Schema",
+                "observations": [
+                        "Pydantic model for email parse response",
+                        "Fields: from_addr, to_addr, subject, date, body_text",
+                        "Optional: body_html, attachments list"
+                ],
+                "index": 212
+        },
+        {
+                "id": "backend/api/chat.py::handle_translation",
+                "type": "Function",
+                "observations": [
+                        "S5-004: WebSocket handler for translation requests",
+                        "Processes message_type='translate' messages",
+                        "Calls translation_service.translate_email()",
+                        "Registers translated render with file_service",
+                        "Sends translation_complete WebSocket response"
+                ],
+                "index": 213
+        },
+        {
+                "id": "src/types/websocket.ts::TranslationRequest",
+                "type": "Interface",
+                "observations": [
+                        "TypeScript interface for translation WebSocket request",
+                        "Fields: type='translate', caseId, documentId, filePath, targetLang"
+                ],
+                "index": 214
+        },
+        {
+                "id": "src/types/websocket.ts::TranslationResponse",
+                "type": "Interface",
+                "observations": [
+                        "TypeScript interface for translation WebSocket response",
+                        "Fields: type='translation_complete', success, caseId, documentId",
+                        "Fields: originalPath, translatedPath, targetLanguage",
+                        "Optional: render object with render details"
+                ],
+                "index": 215
         }
 ];
         const links = [
@@ -4005,6 +4754,296 @@
                 "source": "backend/services/context_manager.py",
                 "target": "backend/models/regulation.py",
                 "type": "imports"
+        },
+        {
+                "source": "backend/api/context.py",
+                "target": "backend/services/context_manager.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/api/context.py",
+                "target": "backend/services/document_registry.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/api/context.py::GET_/api/context/tree/{case_id}",
+                "target": "backend/services/context_manager.py::generate_document_tree",
+                "type": "calls"
+        },
+        {
+                "source": "backend/api/search.py",
+                "target": "backend/services/gemini_service.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/api/search.py",
+                "target": "backend/services/pdf_service.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/api/search.py",
+                "target": "backend/tools/language_detector.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/api/search.py::POST_/api/search/semantic",
+                "target": "backend/services/gemini_service.py::semantic_search",
+                "type": "calls"
+        },
+        {
+                "source": "backend/api/search.py::POST_/api/search/semantic",
+                "target": "backend/tools/language_detector.py::detect_query_and_document_languages",
+                "type": "calls"
+        },
+        {
+                "source": "backend/api/search.py::POST_/api/search/semantic",
+                "target": "backend/tools/language_detector.py::is_cross_language_search",
+                "type": "calls"
+        },
+        {
+                "source": "backend/api/search.py::POST_/api/search/semantic",
+                "target": "backend/tools/language_detector.py::get_language_name",
+                "type": "calls"
+        },
+        {
+                "source": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+                "target": "backend/services/file_service.py::delete_document_render",
+                "type": "calls"
+        },
+        {
+                "source": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+                "target": "backend/services/context_manager.py::invalidate_tree_cache",
+                "type": "calls"
+        },
+        {
+                "source": "backend/services/file_service.py::add_document_render",
+                "target": "backend/services/document_registry.py::add_render_to_document",
+                "type": "calls"
+        },
+        {
+                "source": "backend/services/file_service.py::delete_document_render",
+                "target": "backend/services/document_registry.py::get_document_renders",
+                "type": "calls"
+        },
+        {
+                "source": "backend/services/file_service.py::delete_document_render",
+                "target": "backend/services/document_registry.py::remove_render_from_document",
+                "type": "calls"
+        },
+        {
+                "source": "backend/services/context_manager.py::generate_document_tree",
+                "target": "backend/services/document_registry.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/tools/anonymization_tool.py",
+                "target": "backend/services/file_service.py::add_document_render",
+                "type": "calls"
+        },
+        {
+                "source": "src/components/workspace/HighlightedText.tsx",
+                "target": "src/types/search.ts::SearchHighlight",
+                "type": "imports"
+        },
+        {
+                "source": "src/components/workspace/PDFViewer.tsx",
+                "target": "src/types/search.ts::SearchHighlight",
+                "type": "imports"
+        },
+        {
+                "source": "src/contexts/AppContext.tsx",
+                "target": "src/types/search.ts",
+                "type": "imports"
+        },
+        {
+                "source": "src/components/workspace/CaseTreeExplorer.tsx",
+                "target": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+                "type": "calls"
+        },
+        {
+                "source": "src/contexts/AppContext.tsx",
+                "target": "backend/api/search.py::POST_/api/search/semantic",
+                "type": "calls"
+        },
+        {
+                "source": "src/components/workspace/HighlightedText.tsx::HighlightedText",
+                "target": "src/types/search.ts::SearchHighlight",
+                "type": "references"
+        },
+        {
+                "source": "src/components/workspace/PDFViewer.tsx::PDFViewer",
+                "target": "src/types/search.ts::SearchHighlight",
+                "type": "references"
+        },
+        {
+                "source": "backend/services/pdf_service.py::PDFService",
+                "target": "backend/services/pdf_service.py::TextBlock",
+                "type": "references"
+        },
+        {
+                "source": "backend/api/search.py::SemanticSearchResponse",
+                "target": "backend/api/search.py::SearchHighlight",
+                "type": "references"
+        },
+        {
+                "source": "src/types/search.ts::SemanticSearchResponse",
+                "target": "src/types/search.ts::SearchHighlight",
+                "type": "references"
+        },
+        {
+                "source": "backend/services/gemini_service.py::semantic_search",
+                "target": "backend/services/gemini_service.py",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/documents.py",
+                "target": "backend/services/email_service.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/api/chat.py",
+                "target": "backend/services/translation_service.py",
+                "type": "imports"
+        },
+        {
+                "source": "backend/api/documents.py::POST_/api/documents/parse-email",
+                "target": "backend/services/email_service.py::parse_eml_file",
+                "type": "calls"
+        },
+        {
+                "source": "backend/api/chat.py::handle_translation",
+                "target": "backend/services/translation_service.py::translate_email",
+                "type": "calls"
+        },
+        {
+                "source": "backend/services/translation_service.py::translate_text",
+                "target": "backend/services/gemini_service.py",
+                "type": "calls"
+        },
+        {
+                "source": "backend/services/translation_service.py::translate_email",
+                "target": "backend/services/email_service.py::get_email_service",
+                "type": "calls"
+        },
+        {
+                "source": "src/components/workspace/DocumentViewer.tsx",
+                "target": "src/components/workspace/EmailViewer.tsx",
+                "type": "imports"
+        },
+        {
+                "source": "src/contexts/AppContext.tsx",
+                "target": "src/types/websocket.ts::TranslationResponse",
+                "type": "uses"
+        },
+        {
+                "source": "src/components/workspace/DocumentViewer.tsx",
+                "target": "backend/api/documents.py::POST_/api/documents/parse-email",
+                "type": "calls"
+        },
+        {
+                "source": "backend/services/email_service.py",
+                "target": "backend/services/email_service.py::EmailService",
+                "type": "defines"
+        },
+        {
+                "source": "backend/services/email_service.py",
+                "target": "backend/services/email_service.py::EmailData",
+                "type": "defines"
+        },
+        {
+                "source": "backend/services/email_service.py",
+                "target": "backend/services/email_service.py::EmailAttachment",
+                "type": "defines"
+        },
+        {
+                "source": "backend/services/email_service.py",
+                "target": "backend/services/email_service.py::get_email_service",
+                "type": "defines"
+        },
+        {
+                "source": "backend/services/translation_service.py",
+                "target": "backend/services/translation_service.py::TranslationService",
+                "type": "defines"
+        },
+        {
+                "source": "backend/services/translation_service.py",
+                "target": "backend/services/translation_service.py::TranslationResult",
+                "type": "defines"
+        },
+        {
+                "source": "backend/services/translation_service.py",
+                "target": "backend/services/translation_service.py::get_translation_service",
+                "type": "defines"
+        },
+        {
+                "source": "src/components/workspace/EmailViewer.tsx",
+                "target": "src/components/workspace/EmailViewer.tsx::EmailData",
+                "type": "defines"
+        },
+        {
+                "source": "src/components/workspace/EmailViewer.tsx",
+                "target": "src/components/workspace/EmailViewer.tsx::EmailAttachment",
+                "type": "defines"
+        },
+        {
+                "source": "src/components/workspace/EmailViewer.tsx",
+                "target": "src/components/workspace/EmailViewer.tsx::isRTLText",
+                "type": "defines"
+        },
+        {
+                "source": "src/components/workspace/EmailViewer.tsx",
+                "target": "src/components/workspace/EmailViewer.tsx::formatSize",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/documents.py",
+                "target": "backend/api/documents.py::POST_/api/documents/parse-email",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/documents.py",
+                "target": "backend/api/documents.py::EmailParseRequest",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/documents.py",
+                "target": "backend/api/documents.py::EmailParseResponse",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/chat.py",
+                "target": "backend/api/chat.py::handle_translation",
+                "type": "defines"
+        },
+        {
+                "source": "backend/api/files.py",
+                "target": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+                "type": "defines"
+        },
+        {
+                "source": "src/types/websocket.ts",
+                "target": "src/types/websocket.ts::TranslationRequest",
+                "type": "defines"
+        },
+        {
+                "source": "src/types/websocket.ts",
+                "target": "src/types/websocket.ts::TranslationResponse",
+                "type": "defines"
+        },
+        {
+                "source": "backend/services/email_service.py::EmailService",
+                "target": "backend/services/email_service.py::parse_eml_file",
+                "type": "defines_method"
+        },
+        {
+                "source": "backend/services/translation_service.py::TranslationService",
+                "target": "backend/services/translation_service.py::translate_text",
+                "type": "defines_method"
+        },
+        {
+                "source": "backend/services/translation_service.py::TranslationService",
+                "target": "backend/services/translation_service.py::translate_email",
+                "type": "defines_method"
         }
 ];
 

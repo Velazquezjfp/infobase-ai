@@ -50,7 +50,13 @@
       "mcp__playwright__browser_press_key",
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_hover",
-      "mcp__playwright__browser_handle_dialog"
+      "mcp__playwright__browser_handle_dialog",
+      "Bash(sudo lsof:*)",
+      "Bash(ss:*)",
+      "Bash(timeout 10 curl:*)",
+      "Bash(source:*)",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_run_code"
     ]
   }
 }

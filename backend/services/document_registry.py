@@ -291,9 +291,10 @@ def register_document(
 
 def unregister_document(document_id: str) -> bool:
     """
-    Unregister a document from the manifest.
+    Unregister a document from the manifest with cascade deletion.
 
     Removes the document entry from the manifest and saves the changes.
+    S5-003/S5-006: Also deletes all associated render files from filesystem.
 
     Args:
         document_id: The unique document ID to unregister.
@@ -309,6 +310,31 @@ def unregister_document(document_id: str) -> bool:
     try:
         # Load current manifest
         registry = load_manifest()
+
+        # S5-003/S5-006: Find the document to get its renders before deletion
+        document_to_delete = None
+        for doc in registry.documents:
+            if doc.get('documentId') == document_id:
+                document_to_delete = doc
+                break
+
+        # S5-003/S5-006: Cascade delete all render files (except original)
+        if document_to_delete and document_to_delete.get('renders'):
+            from pathlib import Path
+            for render in document_to_delete['renders']:
+                # Skip 'original' render (it's the main file, deleted separately)
+                if render.get('type') == 'original':
+                    continue
+
+                # Delete render file from filesystem
+                render_file_path = Path(render.get('filePath', ''))
+                if render_file_path.exists():
+                    try:
+                        render_file_path.unlink()
+                        logger.info(f"Cascade deleted render file: {render_file_path}")
+                    except Exception as e:
+                        logger.warning(f"Failed to delete render file {render_file_path}: {e}")
+                        # Continue with other renders even if one fails
 
         # Find and remove the document
         original_count = len(registry.documents)
@@ -496,7 +522,8 @@ def reconcile(registry: DocumentRegistry, filesystem_files: List[FileInfo]) -> R
     # S5-006: Helper function to check if a file is a render file (not a top-level document)
     def is_render_file(filename: str) -> bool:
         """Check if a filename matches render file patterns (anonymized, translated, etc.)"""
-        render_patterns = ['_anonymized.', '_translated.', '_annotated.']
+        # S5-004/S5-008: Updated patterns to match _translated_de, _translated_en, etc.
+        render_patterns = ['_anonymized.', '_translated_', '_translated.', '_annotated.']
         return any(pattern in filename for pattern in render_patterns)
 
     # Find orphaned files (on disk but not in manifest)

@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { AnonymizationRequest } from '@/types/websocket';
 import HighlightedText from '@/components/workspace/HighlightedText';
 import PDFViewer from '@/components/workspace/PDFViewer';
+import EmailViewer from '@/components/workspace/EmailViewer';
 
 type DocumentTab = 'pdf' | 'xml' | 'json' | 'docx';
 
@@ -25,6 +26,8 @@ export default function DocumentViewer() {
     currentCase,
     isAnonymizing,
     setIsAnonymizing,
+    isTranslating,
+    setIsTranslating,
     // S5-003: Search state
     searchQuery,
     searchHighlights,
@@ -33,6 +36,10 @@ export default function DocumentViewer() {
     isSearching,
     performSemanticSearch,
     clearSearch,
+    // S5-006: Render selection
+    selectedRender,
+    // S5-003: Update document content
+    updateSelectedDocumentContent,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<DocumentTab>('pdf');
@@ -54,37 +61,63 @@ export default function DocumentViewer() {
   // PDF view mode: 'visual' shows the PDF, 'text' shows extracted text with highlights
   const [pdfViewMode, setPdfViewMode] = useState<'visual' | 'text'>('visual');
 
+  // S5-008: Email data state
+  const [emailData, setEmailData] = useState<any>(null);
+  const [isLoadingEmail, setIsLoadingEmail] = useState(false);
+
+  // S5-006: Clear cached data when render selection changes
+  useEffect(() => {
+    console.log('Render changed:', {
+      selectedRender,
+      documentId: selectedDocument?.id,
+      documentName: selectedDocument?.name,
+    });
+    setEmailData(null);
+    setDocumentContent('');
+    setImageLoading(true);
+    setImageError(false);
+  }, [selectedRender, selectedDocument?.id]);
+
   // Check if document is an image
   const isImage = selectedDocument
     ? IMAGE_EXTENSIONS.includes(selectedDocument.type?.toLowerCase() || '')
     : false;
 
+  // S5-006: Get the active render (if one is selected)
+  const activeRender = selectedDocument && selectedRender
+    ? selectedDocument.renders?.find(r => r.id === selectedRender)
+    : null;
+
+  // S5-006: Use render's filePath if a render is selected, otherwise use document name
+  const documentFileName = activeRender
+    ? activeRender.filePath.split('/').pop() || selectedDocument?.name || ''
+    : selectedDocument?.name || '';
+
   // Construct image path for display
   const imagePath = selectedDocument
-    ? `/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`
+    ? `/documents/${currentCase.id}/${selectedDocument.folderId}/${documentFileName}`
     : '';
 
   // Construct PDF path - handles both root_docs and case folders
   const pdfPath = selectedDocument
     ? selectedDocument.metadata?.filePath?.includes('root_docs')
-      ? `http://localhost:8000/root_docs/${selectedDocument.name}`
-      : `http://localhost:8000/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`
+      ? `http://localhost:8000/root_docs/${documentFileName}`
+      : `http://localhost:8000/documents/${currentCase.id}/${selectedDocument.folderId}/${documentFileName}`
     : '';
 
-  // Reset image state when document changes
+  // Reset image state when document changes or render selection changes
   useEffect(() => {
     if (selectedDocument && isImage) {
       setImageLoading(true);
       setImageError(false);
-      // Debug: Log image path for troubleshooting
+      // S5-006: Debug log with render information
       console.log('Loading image:', {
         name: selectedDocument.name,
-        caseId: currentCase.id,
-        folderId: selectedDocument.folderId,
-        fullPath: `/documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`,
+        selectedRender: selectedRender,
+        imagePath: imagePath,
       });
     }
-  }, [selectedDocument?.id, isImage, currentCase.id]);
+  }, [selectedDocument, selectedRender, isImage, currentCase.id, imagePath]);
 
   // Fetch content for PDFs and .eml files
   useEffect(() => {
@@ -94,10 +127,27 @@ export default function DocumentViewer() {
         return;
       }
 
+      // S5-006: Recalculate active render and filename inside effect
+      const activeRender = selectedRender
+        ? selectedDocument.renders?.find(r => r.id === selectedRender)
+        : null;
+
+      const documentFileName = activeRender
+        ? activeRender.filePath.split('/').pop() || selectedDocument.name
+        : selectedDocument.name;
+
+      console.log('Fetching content for render:', {
+        selectedRender,
+        activeRender: activeRender?.type,
+        documentFileName,
+        originalName: selectedDocument.name
+      });
+
       const docType = selectedDocument.type.toLowerCase();
 
-      // Only fetch for PDFs and .eml files that don't have content
-      if ((docType === 'pdf' || docType === 'eml') && !selectedDocument.content) {
+      // S5-006: Always fetch for PDFs and .eml files when render changes (ignore cached content)
+      // This ensures switching between renders (original/translated) fetches fresh data
+      if (docType === 'pdf' || docType === 'eml') {
         setIsLoadingContent(true);
         setContentError(null);
 
@@ -105,10 +155,11 @@ export default function DocumentViewer() {
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
           if (docType === 'pdf') {
-            // Construct the correct document path
+            // S5-006: Construct the correct document path using selected render if available
+            // S5-003: Ensure path includes 'public/' prefix for backend filesystem access
             const documentPath = selectedDocument.metadata?.filePath?.includes('root_docs')
-              ? `root_docs/${selectedDocument.name}`
-              : `documents/${currentCase.id}/${selectedDocument.folderId}/${selectedDocument.name}`;
+              ? `root_docs/${documentFileName}`
+              : `public/documents/${currentCase.id}/${selectedDocument.folderId}/${documentFileName}`;
 
             // For PDFs, extract text using our PDF service
             const pdfResponse = await fetch(`${API_BASE_URL}/api/documents/extract-pdf-text`, {
@@ -121,15 +172,48 @@ export default function DocumentViewer() {
 
             if (pdfResponse && pdfResponse.ok) {
               const data = await pdfResponse.json();
-              setDocumentContent(data.text || 'Could not extract text from PDF');
+              const extractedText = data.text || 'Could not extract text from PDF';
+              setDocumentContent(extractedText);
+
+              // S5-003: Store extracted text in AppContext for AI/form fill/search
+              if (extractedText && extractedText !== 'Could not extract text from PDF') {
+                updateSelectedDocumentContent(extractedText);
+              }
             } else {
               // Fallback: show message that PDF needs to be rendered
               setDocumentContent('PDF document selected. Click "Search" to search within this PDF using semantic search.');
             }
           } else if (docType === 'eml') {
-            // For .eml files, we need an email parsing endpoint
-            // For now, show a placeholder
-            setDocumentContent('Email (.eml) document selected. Email parsing support coming soon.');
+            // S5-008: Parse .eml files
+            const documentPath = `public/documents/${currentCase.id}/${selectedDocument.folderId}/${documentFileName}`;
+
+            console.log('Fetching email:', {
+              documentPath,
+              documentFileName,
+              selectedRender,
+              activeRender: activeRender?.type
+            });
+
+            setIsLoadingEmail(true);
+            const emailResponse = await fetch(`${API_BASE_URL}/api/documents/parse-email`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                documentPath: documentPath,
+              }),
+            }).catch(() => null);
+
+            if (emailResponse && emailResponse.ok) {
+              const data = await emailResponse.json();
+              setEmailData(data);
+              // Also store email body as content for AI context
+              updateSelectedDocumentContent(data.body_text);
+              setDocumentContent(data.body_text);
+            } else {
+              setDocumentContent('Failed to parse email file.');
+              setEmailData(null);
+            }
+            setIsLoadingEmail(false);
           }
         } catch (error) {
           console.error('Error fetching document content:', error);
@@ -152,7 +236,7 @@ export default function DocumentViewer() {
     };
 
     fetchDocumentContent();
-  }, [selectedDocument?.id, selectedDocument?.name, selectedDocument?.type]);
+  }, [selectedDocument, selectedRender, currentCase.id, updateSelectedDocumentContent]);
 
   const tabs: { id: DocumentTab; label: string; icon: React.ReactNode }[] = [
     { id: 'pdf', label: 'PDF', icon: <FileText className="w-4 h-4" /> },
@@ -201,6 +285,46 @@ export default function DocumentViewer() {
       caseId: currentCase.id,
       folderId: selectedDocument.folderId || 'uploads',
       documentId: selectedDocument.id, // S5-006: Include documentId for render registration
+    };
+
+    wsConnection.send(JSON.stringify(request));
+  };
+
+  // S5-004/S5-008: Handle translation request
+  const handleTranslate = (targetLang: string = 'de') => {
+    if (!selectedDocument) {
+      toast({ title: 'No document selected', variant: 'destructive' });
+      return;
+    }
+
+    if (!wsConnection || wsStatus !== 'connected') {
+      toast({ title: 'Not connected', description: 'Please wait for connection to be established', variant: 'destructive' });
+      return;
+    }
+
+    // Build file path - use selected render's path if applicable
+    const activeRender = selectedRender
+      ? selectedDocument.renders?.find(r => r.id === selectedRender)
+      : null;
+
+    const documentFileName = activeRender
+      ? activeRender.filePath.split('/').pop() || selectedDocument.name
+      : selectedDocument.name;
+
+    const filePath = `public/documents/${currentCase.id}/${selectedDocument.folderId}/${documentFileName}`;
+
+    setIsTranslating(true);
+    toast({ title: 'Translating document...', description: `Translating to ${targetLang.toUpperCase()}` });
+
+    // S5-004/S5-006: Send translation request via WebSocket with documentId for render registration
+    const request = {
+      type: 'translate',
+      filePath,
+      caseId: currentCase.id,
+      folderId: selectedDocument.folderId,
+      documentId: selectedDocument.id,
+      targetLanguage: targetLang,
+      sourceLanguage: 'auto',
     };
 
     wsConnection.send(JSON.stringify(request));
@@ -318,7 +442,13 @@ export default function DocumentViewer() {
       action: () => setPdfViewMode(prev => prev === 'visual' ? 'text' : 'visual')
     }] : []),
     { label: 'Convert PDF', icon: <FileOutput className="w-4 h-4" />, action: () => toast({ title: 'Converting to PDF...' }) },
-    { label: 'Translate', icon: <Languages className="w-4 h-4" />, action: () => toast({ title: 'Translating to German...' }) },
+    // S5-004/S5-008: Translation button
+    {
+      label: isTranslating ? 'Translating...' : 'Translate',
+      icon: isTranslating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Languages className="w-4 h-4" />,
+      action: () => handleTranslate('de'),
+      disabled: isTranslating
+    },
     {
       label: isAnonymizing ? 'Anonymizing...' : 'Anonymize',
       icon: isAnonymizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <EyeOff className="w-4 h-4" />,
@@ -412,9 +542,27 @@ export default function DocumentViewer() {
 
       {/* Document Preview */}
       <div className="flex-1 overflow-auto">
-        {isPdf && pdfViewMode === 'visual' && searchHighlights.length === 0 ? (
+        {selectedDocument.type === 'eml' && emailData ? (
+          // S5-008: Email display
+          // S5-006: Key forces re-render when switching between renders
+          <EmailViewer
+            key={`${selectedDocument.id}-${selectedRender || 'original'}`}
+            emailData={emailData}
+          />
+        ) : selectedDocument.type === 'eml' && isLoadingEmail ? (
+          // Loading email
+          <div className="bg-muted/50 rounded-lg p-6 min-h-[300px] flex items-center justify-center border border-border h-full">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 mx-auto mb-3 text-primary animate-spin" />
+              <p className="font-medium text-foreground mb-1">Loading Email</p>
+              <p className="text-sm text-muted-foreground">Parsing email content...</p>
+            </div>
+          </div>
+        ) : isPdf && pdfViewMode === 'visual' && searchHighlights.length === 0 ? (
           // PDF Visual View (when no search active)
+          // S5-006: Key forces re-render when switching between renders
           <PDFViewer
+            key={`${selectedDocument.id}-${selectedRender || 'original'}`}
             file={pdfPath}
             highlights={searchHighlights}
             activeHighlightIndex={activeHighlightIndex}
@@ -439,6 +587,7 @@ export default function DocumentViewer() {
               </div>
             ) : (
               <img
+                key={`${selectedDocument.id}-${selectedRender || 'original'}`}
                 src={imagePath}
                 alt={selectedDocument.name}
                 className="max-w-full max-h-full object-contain rounded-lg shadow-md"

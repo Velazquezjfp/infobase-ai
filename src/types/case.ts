@@ -21,7 +21,7 @@ export interface DocumentRender {
 export interface Document {
   id: string;
   name: string;
-  type: 'pdf' | 'xml' | 'json' | 'docx' | 'txt' | 'jpg' | 'jpeg' | 'png' | 'gif' | 'webp' | 'bmp';
+  type: 'pdf' | 'xml' | 'json' | 'docx' | 'txt' | 'jpg' | 'jpeg' | 'png' | 'gif' | 'webp' | 'bmp' | 'eml';
   size: string;
   uploadedAt: string;
   metadata: Record<string, string>;
