@@ -121,6 +121,9 @@ export default function DocumentViewer() {
 
   // Fetch content for PDFs and .eml files
   useEffect(() => {
+    // S5-006: AbortController to cancel previous fetches when render changes
+    const abortController = new AbortController();
+
     const fetchDocumentContent = async () => {
       if (!selectedDocument) {
         setDocumentContent('');
@@ -168,7 +171,15 @@ export default function DocumentViewer() {
               body: JSON.stringify({
                 documentPath: documentPath,
               }),
-            }).catch(() => null);
+              signal: abortController.signal  // S5-006: Cancel if render changes
+            }).catch((err) => {
+              if (err.name === 'AbortError') {
+                console.log('PDF fetch aborted (render changed)');
+                return null;
+              }
+              console.error('PDF fetch error:', err);
+              return null;
+            });
 
             if (pdfResponse && pdfResponse.ok) {
               const data = await pdfResponse.json();
@@ -201,7 +212,15 @@ export default function DocumentViewer() {
               body: JSON.stringify({
                 documentPath: documentPath,
               }),
-            }).catch(() => null);
+              signal: abortController.signal  // S5-006: Cancel if render changes
+            }).catch((err) => {
+              if (err.name === 'AbortError') {
+                console.log('Email fetch aborted (render changed)');
+                return null;
+              }
+              console.error('Email fetch error:', err);
+              return null;
+            });
 
             if (emailResponse && emailResponse.ok) {
               const data = await emailResponse.json();
@@ -235,8 +254,20 @@ export default function DocumentViewer() {
       }
     };
 
-    fetchDocumentContent();
-  }, [selectedDocument, selectedRender, currentCase.id, updateSelectedDocumentContent]);
+    fetchDocumentContent().catch((err) => {
+      // Ignore abort errors (expected when render changes)
+      if (err?.name !== 'AbortError') {
+        console.error('fetchDocumentContent error:', err);
+      }
+    });
+
+    // S5-006: Cleanup function to abort fetch if render changes
+    return () => {
+      abortController.abort();
+    };
+  }, [selectedDocument?.id, selectedDocument?.type, selectedRender, currentCase.id]);
+  // Note: Using selectedDocument.id instead of full object to prevent infinite loop
+  // updateSelectedDocumentContent modifies selectedDocument, so we can't depend on it
 
   const tabs: { id: DocumentTab; label: string; icon: React.ReactNode }[] = [
     { id: 'pdf', label: 'PDF', icon: <FileText className="w-4 h-4" /> },
