@@ -6,10 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { AnonymizationRequest } from '@/types/websocket';
+import { AnonymizationRequest, DetectionInfo } from '@/types/websocket';
 import HighlightedText from '@/components/workspace/HighlightedText';
 import PDFViewer from '@/components/workspace/PDFViewer';
 import EmailViewer from '@/components/workspace/EmailViewer';
+import { useTranslation } from 'react-i18next';
+
+// Interface for detection overlay data
+interface DetectionOverlay {
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 type DocumentTab = 'pdf' | 'xml' | 'json' | 'docx';
 
@@ -36,15 +46,24 @@ export default function DocumentViewer() {
     isSearching,
     performSemanticSearch,
     clearSearch,
+    // S5-014: Language
+    currentLanguage,
     // S5-006: Render selection
     selectedRender,
     // S5-003: Update document content
     updateSelectedDocumentContent,
   } = useApp();
 
+  // S5-014: i18n for button labels
+  const { t } = useTranslation();
+
   const [activeTab, setActiveTab] = useState<DocumentTab>('pdf');
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+
+  // State for anonymization label overlays
+  const [imageDimensions, setImageDimensions] = useState<{ natural: { width: number; height: number }; displayed: { width: number; height: number } } | null>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   // S5-003: Search dialog state
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
@@ -76,7 +95,33 @@ export default function DocumentViewer() {
     setDocumentContent('');
     setImageLoading(true);
     setImageError(false);
+    setImageDimensions(null); // Reset dimensions for overlay recalculation
   }, [selectedRender, selectedDocument?.id]);
+
+  // Update image dimensions when container resizes (for label overlay positioning)
+  useEffect(() => {
+    if (!imageRef.current) return;
+
+    const updateDimensions = () => {
+      if (imageRef.current) {
+        setImageDimensions({
+          natural: {
+            width: imageRef.current.naturalWidth,
+            height: imageRef.current.naturalHeight,
+          },
+          displayed: {
+            width: imageRef.current.clientWidth,
+            height: imageRef.current.clientHeight,
+          },
+        });
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(imageRef.current);
+
+    return () => resizeObserver.disconnect();
+  }, [imageLoading]); // Re-attach when image loads
 
   // Check if document is an image
   const isImage = selectedDocument
@@ -310,12 +355,14 @@ export default function DocumentViewer() {
     toast({ title: 'Anonymizing document...', description: 'This may take a moment' });
 
     // S5-006: Send anonymization request via WebSocket with documentId for render registration
+    // S5-014: Include language for localized response messages
     const request: AnonymizationRequest = {
       type: 'anonymize',
       filePath,
       caseId: currentCase.id,
       folderId: selectedDocument.folderId || 'uploads',
       documentId: selectedDocument.id, // S5-006: Include documentId for render registration
+      language: currentLanguage,       // S5-014: Include language for response messages
     };
 
     wsConnection.send(JSON.stringify(request));
@@ -394,11 +441,59 @@ export default function DocumentViewer() {
     }
   };
 
-  // Reset image state when document changes
+  // Reset image state when document changes and capture dimensions for overlay scaling
   const handleImageLoad = () => {
     setImageLoading(false);
     setImageError(false);
+
+    // Capture image dimensions for label overlay scaling
+    if (imageRef.current) {
+      setImageDimensions({
+        natural: {
+          width: imageRef.current.naturalWidth,
+          height: imageRef.current.naturalHeight,
+        },
+        displayed: {
+          width: imageRef.current.clientWidth,
+          height: imageRef.current.clientHeight,
+        },
+      });
+    }
   };
+
+  // Get detection overlays for anonymized render
+  const getDetectionOverlays = (): DetectionOverlay[] => {
+    if (!activeRender || activeRender.type !== 'anonymized') return [];
+
+    // Debug: log render metadata to verify detections are present
+    console.log('Anonymized render metadata:', activeRender.metadata);
+
+    const detections = activeRender.metadata?.detections as Record<string, DetectionInfo[]> | undefined;
+    if (!detections || !imageDimensions) {
+      console.log('No detections or dimensions:', { detections, imageDimensions });
+      return [];
+    }
+
+    const overlays: DetectionOverlay[] = [];
+    const scaleX = imageDimensions.displayed.width / imageDimensions.natural.width;
+    const scaleY = imageDimensions.displayed.height / imageDimensions.natural.height;
+
+    for (const [label, detectionList] of Object.entries(detections)) {
+      for (const detection of detectionList) {
+        overlays.push({
+          label,
+          x: detection.x * scaleX,
+          y: detection.y * scaleY,
+          width: detection.width * scaleX,
+          height: detection.height * scaleY,
+        });
+      }
+    }
+
+    return overlays;
+  };
+
+  const detectionOverlays = getDetectionOverlays();
 
   const handleImageError = () => {
     setImageLoading(false);
@@ -462,32 +557,54 @@ export default function DocumentViewer() {
   }, [selectedDocument]);
 
   const isPdf = selectedDocument?.type.toLowerCase() === 'pdf';
+  const isEmail = selectedDocument?.type.toLowerCase() === 'eml';
+  const docType = selectedDocument?.type.toLowerCase() || '';
 
+  // S5-012: Document capability rules for Document Viewer
+  // Images: Hide Translate, Hide Search
+  // PDF: Hide Translate
+  // Email: Hide Anonymize
+  const showSearch = !isImage; // Hide search for images
+  const showTranslate = isEmail; // Only show translate for emails
+  const showAnonymize = isImage; // Only show anonymize for images
+
+  // Build document actions dynamically - only include visible buttons
   const documentActions = [
-    // S5-003: Search button
-    { label: 'Search', icon: <Search className="w-4 h-4" />, action: () => setSearchDialogOpen(true) },
-    // PDF view toggle
+    // S5-003: Search button - hidden for images
+    ...(showSearch ? [{
+      label: t('documentViewer.search'),
+      icon: <Search className="w-4 h-4" />,
+      action: () => setSearchDialogOpen(true),
+    }] : []),
+    // PDF view toggle - only for PDFs
     ...(isPdf ? [{
-      label: pdfViewMode === 'visual' ? 'Text View' : 'PDF View',
+      label: pdfViewMode === 'visual' ? t('documentViewer.textView') : t('documentViewer.pdfView'),
       icon: <Eye className="w-4 h-4" />,
       action: () => setPdfViewMode(prev => prev === 'visual' ? 'text' : 'visual')
     }] : []),
-    { label: 'Convert PDF', icon: <FileOutput className="w-4 h-4" />, action: () => toast({ title: 'Converting to PDF...' }) },
-    // S5-004/S5-008: Translation button
-    {
-      label: isTranslating ? 'Translating...' : 'Translate',
+    // Convert PDF button - not for PDFs (can convert images and other types)
+    ...(!isPdf ? [{
+      label: t('documentViewer.convertPdf'),
+      icon: <FileOutput className="w-4 h-4" />,
+      action: () => toast({ title: 'Converting to PDF...' }),
+    }] : []),
+    // S5-004/S5-008: Translation button - only for emails (hidden for images and PDFs)
+    ...(showTranslate ? [{
+      label: isTranslating ? t('documentViewer.translating') : t('documentViewer.translate'),
       icon: isTranslating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Languages className="w-4 h-4" />,
       action: () => handleTranslate('de'),
-      disabled: isTranslating
-    },
-    {
-      label: isAnonymizing ? 'Anonymizing...' : 'Anonymize',
+      disabled: isTranslating,
+    }] : []),
+    // S5-012: Anonymize button - only for images (hidden for PDF and email)
+    ...(showAnonymize ? [{
+      label: isAnonymizing ? t('documentViewer.anonymizing') : t('documentViewer.anonymize'),
       icon: isAnonymizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <EyeOff className="w-4 h-4" />,
       action: handleAnonymize,
-      disabled: isAnonymizing
-    },
-    { label: 'Download', icon: <Download className="w-4 h-4" />, action: isImage ? handleDownloadImage : () => toast({ title: 'Downloading...' }) },
-    { label: 'Metadata', icon: <Database className="w-4 h-4" />, action: () => setViewMode('metadata') },
+      disabled: isAnonymizing,
+    }] : []),
+    // Download and Metadata - always shown
+    { label: t('documentViewer.download'), icon: <Download className="w-4 h-4" />, action: isImage ? handleDownloadImage : () => toast({ title: 'Downloading...' }) },
+    { label: t('documentViewer.metadata'), icon: <Database className="w-4 h-4" />, action: () => setViewMode('metadata') },
   ];
 
   if (!selectedDocument) {
@@ -617,14 +734,38 @@ export default function DocumentViewer() {
                 <p className="text-xs text-muted-foreground">The image could not be loaded. Check if the file exists.</p>
               </div>
             ) : (
-              <img
-                key={`${selectedDocument.id}-${selectedRender || 'original'}`}
-                src={imagePath}
-                alt={selectedDocument.name}
-                className="max-w-full max-h-full object-contain rounded-lg shadow-md"
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-              />
+              <div className="relative inline-block">
+                <img
+                  ref={imageRef}
+                  key={`${selectedDocument.id}-${selectedRender || 'original'}`}
+                  src={imagePath}
+                  alt={selectedDocument.name}
+                  className="max-w-full max-h-full object-contain rounded-lg shadow-md"
+                  onLoad={handleImageLoad}
+                  onError={handleImageError}
+                />
+                {/* Anonymization label overlays */}
+                {detectionOverlays.map((overlay, index) => (
+                  <div
+                    key={`overlay-${index}`}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${overlay.x}px`,
+                      top: `${overlay.y - 18}px`, // Position label above the box
+                    }}
+                  >
+                    <span
+                      className="px-1.5 py-0.5 text-xs font-medium text-white bg-black rounded-sm whitespace-nowrap"
+                      style={{
+                        fontSize: '10px',
+                        lineHeight: '14px',
+                      }}
+                    >
+                      {overlay.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         ) : isLoadingContent ? (

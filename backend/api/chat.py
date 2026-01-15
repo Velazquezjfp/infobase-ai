@@ -468,8 +468,9 @@ async def handle_anonymization(
     file_path = message.get("filePath")
     folder_id = message.get("folderId")
     document_id = message.get("documentId")  # S5-006: Get documentId for render registration
+    language = message.get("language", "de")  # S5-014: Get language for response messages
 
-    logger.info(f"Processing anonymization request for case {case_id}, file: {file_path}, documentId: {document_id}")
+    logger.info(f"Processing anonymization request for case {case_id}, file: {file_path}, documentId: {document_id}, language: {language}")
 
     # Validate file path
     if not file_path:
@@ -506,11 +507,14 @@ async def handle_anonymization(
         )
 
         # S5-006: Send anonymization result with render metadata
+        # Include detection labels and coordinates for frontend display
         await websocket.send_json({
             "type": "anonymization_complete",
             "originalPath": result.original_path,
             "anonymizedPath": result.anonymized_path,
             "detectionsCount": result.detections_count,
+            "detectionLabels": result.detection_labels or [],  # List of field names
+            "detections": result.detections or {},  # Full detection data with coordinates
             "success": result.success,
             "error": result.error,
             "timestamp": None,
@@ -518,17 +522,44 @@ async def handle_anonymization(
             "documentId": document_id  # S5-006: Echo back documentId
         })
 
-        # Also send a chat message about the result
+        # Also send a chat message about the result with labels list
+        # S5-014: Use language-specific messages
         if result.success:
+            labels = result.detection_labels or []
+            count = result.detections_count
+
+            if language == 'de':
+                # German messages
+                labels_header = "**Anonymisierte Felder:**"
+                if count == 1:
+                    main_msg = f"Dokument erfolgreich anonymisiert. {count} personenbezogenes Feld gefunden und maskiert."
+                else:
+                    main_msg = f"Dokument erfolgreich anonymisiert. {count} personenbezogene Felder gefunden und maskiert."
+                saved_msg = "Die anonymisierte Version wurde gespeichert."
+            else:
+                # English messages (default)
+                labels_header = "**Anonymized fields:**"
+                main_msg = f"Document anonymized successfully. Found and masked {count} PII field{'s' if count != 1 else ''}."
+                saved_msg = "The anonymized version has been saved."
+
+            labels_text = ""
+            if labels:
+                labels_text = f"\n\n{labels_header}\n" + "\n".join(f"• {label}" for label in labels)
+
             await websocket.send_json({
                 "type": "chat_response",
-                "content": f"Document anonymized successfully. Found and masked {result.detections_count} PII field{'s' if result.detections_count != 1 else ''}. The anonymized version has been saved.",
+                "content": f"{main_msg}{labels_text}\n\n{saved_msg}",
                 "timestamp": None
             })
         else:
+            if language == 'de':
+                error_msg = f"Anonymisierung fehlgeschlagen: {result.error}"
+            else:
+                error_msg = f"Anonymization failed: {result.error}"
+
             await websocket.send_json({
                 "type": "chat_response",
-                "content": f"Anonymization failed: {result.error}",
+                "content": error_msg,
                 "timestamp": None
             })
 

@@ -56,7 +56,10 @@
       "Bash(timeout 10 curl:*)",
       "Bash(source:*)",
       "mcp__playwright__browser_fill_form",
-      "mcp__playwright__browser_run_code"
+      "mcp__playwright__browser_run_code",
+      "Bash(__NEW_LINE_ded5ba2c09052fb0__ sleep 2)",
+      "Bash(sleep 3 curl -s -X POST http://localhost:8000/api/validation/case/ACTE-2024-001 -H \"Content-Type: application/json\" -d '{\"\"\"\"formData\"\"\"\": {}, \"\"\"\"language\"\"\"\": \"\"\"\"de\"\"\"\"}')",
+      "Bash(pgrep:*)"
     ]
   }
 }

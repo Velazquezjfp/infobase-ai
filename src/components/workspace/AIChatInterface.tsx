@@ -21,14 +21,45 @@ const quickActionIcons: Record<string, React.ReactNode> = {
 };
 
 // Quick actions config with translation keys
-const quickActionsConfig = [
+// S5-012: Buttons are dynamically filtered based on selected document type
+const allQuickActions = [
   { command: '/fillForm', labelKey: 'chat.fillForm' },
   { command: '/search', labelKey: 'chat.search' },
   { command: '/translate', labelKey: 'chat.translate' },
   { command: '/anonymize', labelKey: 'chat.anonymize' },
-  { command: '/validateCase', labelKey: 'chat.validate' },
-  { command: '/extractMetadata', labelKey: 'chat.metadata' },
 ];
+
+// S5-012: Image extensions for capability filtering
+const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+
+// S5-012: Get visible quick actions based on document type
+// Images: Hide Translate, Fill Form, and Search
+// PDF: Hide Anonymize
+// Email: Hide Anonymize
+const getVisibleQuickActions = (docType: string | undefined) => {
+  if (!docType) {
+    // No document selected - show all actions
+    return allQuickActions;
+  }
+
+  const type = docType.toLowerCase();
+  const isImage = IMAGE_EXTENSIONS.includes(type);
+  const isPdf = type === 'pdf';
+  const isEmail = type === 'eml';
+
+  return allQuickActions.filter(action => {
+    if (isImage) {
+      // Images: Hide Translate, Fill Form, and Search - only show Anonymize
+      return action.command === '/anonymize';
+    }
+    if (isPdf || isEmail) {
+      // PDF and Email: Hide Anonymize
+      return action.command !== '/anonymize';
+    }
+    // Other types: show all
+    return true;
+  });
+};
 
 export default function AIChatInterface() {
   const {
@@ -260,10 +291,10 @@ export default function AIChatInterface() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - S5-012: Dynamically filtered based on document type */}
       <div className="px-4 py-2 border-t border-pane-border bg-pane-header/30">
         <div className="flex flex-wrap gap-2">
-          {quickActionsConfig.map(({ command, labelKey }) => (
+          {getVisibleQuickActions(selectedDocument?.type).map(({ command, labelKey }) => (
             <button
               key={command}
               onClick={() => insertCommand(command)}

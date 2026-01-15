@@ -29,11 +29,15 @@ class AnonymizationResult:
         success: Whether the anonymization was successful.
         anonymized_image: Base64-encoded anonymized image with data URI prefix.
         detections_count: Number of PII detections found and masked.
+        detection_labels: List of field names (labels) that were detected and masked.
+        detections: Full detection data with field names and coordinates for overlay display.
         error: Error message if anonymization failed.
     """
     success: bool
     anonymized_image: Optional[str] = None
     detections_count: int = 0
+    detection_labels: Optional[list] = None
+    detections: Optional[dict] = None
     error: Optional[str] = None
 
 
@@ -87,7 +91,7 @@ class AnonymizationService:
         self,
         base64_image: str,
         detections: dict
-    ) -> tuple[Optional[str], int]:
+    ) -> tuple[Optional[str], int, list, dict]:
         """
         Apply black boxes over detected PII areas in the image.
 
@@ -97,7 +101,7 @@ class AnonymizationService:
                        each detection has 'coordinate': [x, y, width, height].
 
         Returns:
-            tuple: (masked_image_base64, detections_count)
+            tuple: (masked_image_base64, detections_count, detection_labels, detections_with_coords)
         """
         try:
             # Extract base64 data
@@ -113,9 +117,15 @@ class AnonymizationService:
 
             draw = ImageDraw.Draw(image)
             detections_count = 0
+            detection_labels = []
+            detections_with_coords = {}
 
             # Draw black boxes over each detection
             for field_name, field_detections in detections.items():
+                if field_name not in detection_labels:
+                    detection_labels.append(field_name)
+                detections_with_coords[field_name] = []
+
                 for detection in field_detections:
                     coord = detection.get('coordinate', [])
                     if len(coord) >= 4:
@@ -126,6 +136,14 @@ class AnonymizationService:
                             fill='black'
                         )
                         detections_count += 1
+                        # Store detection info for frontend overlay
+                        detections_with_coords[field_name].append({
+                            'x': x,
+                            'y': y,
+                            'width': width,
+                            'height': height,
+                            'confidence': detection.get('confidence', 0)
+                        })
                         logger.debug(
                             f"Masked {field_name} at ({x}, {y}, {width}, {height})"
                         )
@@ -139,12 +157,12 @@ class AnonymizationService:
             masked_base64 = base64.b64encode(output_buffer.getvalue()).decode('utf-8')
             masked_with_prefix = f"data:{mime_type};base64,{masked_base64}"
 
-            logger.info(f"Applied {detections_count} black boxes to image")
-            return masked_with_prefix, detections_count
+            logger.info(f"Applied {detections_count} black boxes to image, labels: {detection_labels}")
+            return masked_with_prefix, detections_count, detection_labels, detections_with_coords
 
         except Exception as e:
             logger.error(f"Error applying black boxes: {str(e)}")
-            return None, 0
+            return None, 0, [], {}
 
     async def anonymize_image(self, base64_image: str) -> AnonymizationResult:
         """
@@ -213,11 +231,13 @@ class AnonymizationService:
                             return AnonymizationResult(
                                 success=True,
                                 anonymized_image=base64_image,
-                                detections_count=0
+                                detections_count=0,
+                                detection_labels=[],
+                                detections={}
                             )
 
                         # Apply black boxes to the original image
-                        masked_image, detections_count = self._apply_black_boxes(
+                        masked_image, detections_count, detection_labels, detections_with_coords = self._apply_black_boxes(
                             base64_image,
                             detections
                         )
@@ -225,12 +245,14 @@ class AnonymizationService:
                         if masked_image:
                             logger.info(
                                 f"Anonymization successful - "
-                                f"detections: {detections_count}"
+                                f"detections: {detections_count}, labels: {detection_labels}"
                             )
                             return AnonymizationResult(
                                 success=True,
                                 anonymized_image=masked_image,
-                                detections_count=detections_count
+                                detections_count=detections_count,
+                                detection_labels=detection_labels,
+                                detections=detections_with_coords
                             )
                         else:
                             logger.error("Failed to apply masking to image")

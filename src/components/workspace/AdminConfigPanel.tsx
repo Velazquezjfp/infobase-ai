@@ -54,8 +54,24 @@ interface MetadataField {
 
 export default function AdminConfigPanel() {
   const { setIsAdminMode, formFields, setFormFields } = useApp();
-  const { t } = useTranslation();
-  
+  const { t, i18n } = useTranslation();
+
+  // Translation helper function for content
+  const tc = (key: string, fallback: string) => {
+    const translated = t(`admin.content.${key}`, { defaultValue: '__NOT_FOUND__' });
+    return translated === '__NOT_FOUND__' ? fallback : translated;
+  };
+
+  // Translation helpers for different content types
+  const translateFolderName = (name: string) => tc(`folderNames.${name.replace(/\s+/g, '_')}`, name);
+  const translateDocTypeName = (name: string) => tc(`docTypeNames.${name.replace(/\s+/g, '_')}`, name);
+  const translateMacroName = (name: string) => tc(`macroNames.${name.replace(/\s+/g, '_')}`, name);
+  const translateMetadataFieldName = (name: string) => tc(`metadataFieldNames.${name.replace(/\s+/g, '_')}`, name);
+  const translateOption = (option: string) => tc(`options.${option.replace(/\s+/g, '_')}`, option);
+  const translateAction = (action: string) => tc(`actions.${action}`, action);
+  const translateTrigger = (trigger: string) => tc(`triggers.${trigger}`, trigger);
+  const translateFieldType = (type: string) => tc(`fieldTypes.${type}`, type);
+
   // Folder Templates State
   const [folderTemplates, setFolderTemplates] = useState<FolderTemplate[]>([
     { id: '1', name: 'Personal Data', mandatory: true, children: [] },
@@ -268,14 +284,17 @@ export default function AdminConfigPanel() {
     if (currentShaclShape) {
       navigator.clipboard.writeText(JSON.stringify(currentShaclShape, null, 2));
       toast({
-        title: 'Copied to clipboard',
-        description: 'SHACL shape copied successfully',
+        title: tc('copiedToClipboard', 'Copied to clipboard'),
+        description: tc('shaclCopiedSuccess', 'SHACL shape copied successfully'),
       });
     }
   };
 
+  // Get current language for re-rendering
+  const currentLanguage = i18n.language;
+
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" key={`admin-panel-${currentLanguage}`}>
       <div className="bg-card border border-border rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
@@ -393,8 +412,8 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
             <TabsContent value="doctypes" className="space-y-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Document Type Definitions</CardTitle>
-                  <CardDescription>Configure mandatory document types and their properties</CardDescription>
+                  <CardTitle className="text-base">{t('admin.documentTypeDefinitions')}</CardTitle>
+                  <CardDescription>{t('admin.configureMandatoryDocTypes')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {documentTypes.map((docType) => (
@@ -405,13 +424,13 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                       <div className="flex items-center gap-2">
                         <FileType className="w-4 h-4 text-primary" />
                         <Input
-                          value={docType.name}
+                          value={translateDocTypeName(docType.name)}
                           onChange={(e) => updateDocumentType(docType.id, { name: e.target.value })}
                           className="flex-1 h-8"
                         />
                         <div className="flex items-center gap-2">
                           <Badge variant={docType.mandatory ? "default" : "secondary"}>
-                            {docType.mandatory ? 'Required' : 'Optional'}
+                            {docType.mandatory ? t('admin.required') : t('admin.optional')}
                           </Badge>
                           <Switch
                             checked={docType.mandatory}
@@ -429,10 +448,10 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                       </div>
                       <div className="flex gap-4 pl-6">
                         <div className="flex-1">
-                          <Label className="text-xs text-muted-foreground">Allowed Formats</Label>
+                          <Label className="text-xs text-muted-foreground">{t('admin.allowedFormats')}</Label>
                           <Input
                             value={docType.allowedFormats.join(', ')}
-                            onChange={(e) => updateDocumentType(docType.id, { 
+                            onChange={(e) => updateDocumentType(docType.id, {
                               allowedFormats: e.target.value.split(',').map(s => s.trim())
                             })}
                             placeholder="pdf, jpg, png"
@@ -440,17 +459,17 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                           />
                         </div>
                         <div className="flex-1">
-                          <Label className="text-xs text-muted-foreground">Target Folder</Label>
+                          <Label className="text-xs text-muted-foreground">{t('admin.targetFolder')}</Label>
                           <Select
                             value={docType.targetFolder}
                             onValueChange={(value) => updateDocumentType(docType.id, { targetFolder: value })}
                           >
                             <SelectTrigger className="h-8 mt-1">
-                              <SelectValue />
+                              <SelectValue>{translateFolderName(docType.targetFolder)}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {folderTemplates.map(f => (
-                                <SelectItem key={f.id} value={f.name}>{f.name}</SelectItem>
+                                <SelectItem key={f.id} value={f.name}>{translateFolderName(f.name)}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -460,7 +479,7 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                   ))}
                   <Button variant="outline" size="sm" onClick={addDocumentType} className="w-full">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Document Type
+                    {t('admin.addDocumentType')}
                   </Button>
                 </CardContent>
               </Card>
@@ -470,8 +489,8 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
             <TabsContent value="macros" className="space-y-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Automation Macros</CardTitle>
-                  <CardDescription>Configure automatic actions on document upload</CardDescription>
+                  <CardTitle className="text-base">{t('admin.automationMacros')}</CardTitle>
+                  <CardDescription>{t('admin.configureAutomaticActions')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {macros.map((macro) => (
@@ -485,12 +504,12 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                       <div className="flex items-center gap-2">
                         <Zap className={cn("w-4 h-4", macro.enabled ? "text-primary" : "text-muted-foreground")} />
                         <Input
-                          value={macro.name}
+                          value={translateMacroName(macro.name)}
                           onChange={(e) => updateMacro(macro.id, { name: e.target.value })}
                           className="flex-1 h-8"
                         />
                         <div className="flex items-center gap-2">
-                          <Label className="text-xs text-muted-foreground">Enabled</Label>
+                          <Label className="text-xs text-muted-foreground">{t('admin.enabled')}</Label>
                           <Switch
                             checked={macro.enabled}
                             onCheckedChange={(checked) => updateMacro(macro.id, { enabled: checked })}
@@ -507,37 +526,37 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                       </div>
                       <div className="flex gap-4 pl-6">
                         <div className="w-40">
-                          <Label className="text-xs text-muted-foreground">Trigger</Label>
+                          <Label className="text-xs text-muted-foreground">{t('admin.trigger')}</Label>
                           <Select
                             value={macro.trigger}
                             onValueChange={(value: 'upload' | 'manual') => updateMacro(macro.id, { trigger: value })}
                           >
                             <SelectTrigger className="h-8 mt-1">
-                              <SelectValue />
+                              <SelectValue>{translateTrigger(macro.trigger)}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="upload">On Upload</SelectItem>
-                              <SelectItem value="manual">Manual</SelectItem>
+                              <SelectItem value="upload">{t('admin.onUpload')}</SelectItem>
+                              <SelectItem value="manual">{t('admin.manual')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="flex-1">
-                          <Label className="text-xs text-muted-foreground">Action</Label>
+                          <Label className="text-xs text-muted-foreground">{t('admin.action')}</Label>
                           <Select
                             value={macro.action}
                             onValueChange={(value) => updateMacro(macro.id, { action: value })}
                           >
                             <SelectTrigger className="h-8 mt-1">
-                              <SelectValue />
+                              <SelectValue>{translateAction(macro.action)}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="convert_pdf">Convert to PDF</SelectItem>
-                              <SelectItem value="translate_de">Translate to German</SelectItem>
-                              <SelectItem value="extract_metadata">Extract Metadata</SelectItem>
-                              <SelectItem value="anonymize">Anonymize PII</SelectItem>
-                              <SelectItem value="ocr">Run OCR</SelectItem>
-                              <SelectItem value="validate">Validate Document</SelectItem>
-                              <SelectItem value="custom">Custom Script</SelectItem>
+                              <SelectItem value="convert_pdf">{t('admin.convertToPDF')}</SelectItem>
+                              <SelectItem value="translate_de">{t('admin.translateToGerman')}</SelectItem>
+                              <SelectItem value="extract_metadata">{t('admin.extractMetadata')}</SelectItem>
+                              <SelectItem value="anonymize">{t('admin.anonymizePII')}</SelectItem>
+                              <SelectItem value="ocr">{t('admin.runOCR')}</SelectItem>
+                              <SelectItem value="validate">{t('admin.validateDocument')}</SelectItem>
+                              <SelectItem value="custom">{t('admin.customScript')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -546,7 +565,7 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                   ))}
                   <Button variant="outline" size="sm" onClick={addMacro} className="w-full">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Macro
+                    {t('admin.addMacro')}
                   </Button>
                 </CardContent>
               </Card>
@@ -559,10 +578,10 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    AI Field Generator
+                    {t('admin.aiFieldGenerator')}
                   </CardTitle>
                   <CardDescription>
-                    Describe the field you need in natural language
+                    {t('admin.describeFieldNaturalLanguage')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -577,7 +596,7 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                       />
                       {suggestedType && (
                         <p className="text-xs text-muted-foreground">
-                          Detected type: <Badge variant="secondary" className="text-xs">{suggestedType}</Badge>
+                          {t('admin.detectedType')}: <Badge variant="secondary" className="text-xs">{translateFieldType(suggestedType)}</Badge>
                         </p>
                       )}
                     </div>
@@ -604,11 +623,11 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                         variant="outline"
                         onClick={handleViewShacl}
                         disabled={formFields.length === 0}
-                        title="View SHACL Shape"
+                        title={tc('viewShaclShape', 'View SHACL Shape')}
                         size="sm"
                       >
                         <FileCode className="w-4 h-4 mr-1" />
-                        View SHACL
+                        {tc('viewShacl', 'View SHACL')}
                       </Button>
                     </div>
                   </div>
@@ -619,12 +638,12 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                     </div>
                   )}
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p className="font-medium">Example prompts:</p>
+                    <p className="font-medium">{t('admin.examplePrompts')}</p>
                     <ul className="list-disc list-inside space-y-0.5 pl-1">
-                      <li>"Add a required text field for passport number"</li>
-                      <li>"Create a date field for visa expiry date"</li>
-                      <li>"Add dropdown for education level with options high school, bachelor, master, phd"</li>
-                      <li>"I need a textarea for additional notes"</li>
+                      <li>{tc('examplePrompt1', '"Add a required text field for passport number"')}</li>
+                      <li>{tc('examplePrompt2', '"Create a date field for visa expiry date"')}</li>
+                      <li>{tc('examplePrompt3', '"Add dropdown for education level with options high school, bachelor, master, phd"')}</li>
+                      <li>{tc('examplePrompt4', '"I need a textarea for additional notes"')}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -633,8 +652,8 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
               {/* Existing Form Fields Card */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Form Field Definitions</CardTitle>
-                  <CardDescription>Configure the form fields for case applications</CardDescription>
+                  <CardTitle className="text-base">{t('admin.formFieldDefinitions')}</CardTitle>
+                  <CardDescription>{t('admin.configureFormFields')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {formFields.map((field) => (
@@ -667,17 +686,17 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                         }}
                       >
                         <SelectTrigger className="w-28 h-8">
-                          <SelectValue />
+                          <SelectValue>{translateFieldType(field.type)}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="text">Text</SelectItem>
-                          <SelectItem value="textarea">Textarea</SelectItem>
-                          <SelectItem value="select">Select</SelectItem>
-                          <SelectItem value="date">Date</SelectItem>
+                          <SelectItem value="text">{translateFieldType('text')}</SelectItem>
+                          <SelectItem value="textarea">{translateFieldType('textarea')}</SelectItem>
+                          <SelectItem value="select">{translateFieldType('select')}</SelectItem>
+                          <SelectItem value="date">{translateFieldType('date')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <div className="flex items-center gap-2">
-                        <Label className="text-xs text-muted-foreground">Required</Label>
+                        <Label className="text-xs text-muted-foreground">{t('admin.required')}</Label>
                         <Switch
                           checked={field.required}
                           onCheckedChange={(checked) => {
@@ -699,7 +718,7 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                   ))}
                   <Button variant="outline" size="sm" onClick={addFormField} className="w-full">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Field Manually
+                    {t('admin.addFieldManually')}
                   </Button>
                 </CardContent>
               </Card>
@@ -709,8 +728,8 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
             <TabsContent value="metadata" className="space-y-4">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Metadata Field Definitions</CardTitle>
-                  <CardDescription>Configure custom metadata fields for documents</CardDescription>
+                  <CardTitle className="text-base">{t('admin.metadataFieldDefinitions')}</CardTitle>
+                  <CardDescription>{t('admin.configureCustomMetadataFields')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {metadataFields.map((field) => (
@@ -721,28 +740,28 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                       <div className="flex items-center gap-2">
                         <Tags className="w-4 h-4 text-primary" />
                         <Input
-                          value={field.name}
+                          value={translateMetadataFieldName(field.name)}
                           onChange={(e) => updateMetadataField(field.id, { name: e.target.value })}
                           className="flex-1 h-8"
                         />
                         <Select
                           value={field.type}
-                          onValueChange={(value: 'text' | 'date' | 'select' | 'number') => 
+                          onValueChange={(value: 'text' | 'date' | 'select' | 'number') =>
                             updateMetadataField(field.id, { type: value })
                           }
                         >
                           <SelectTrigger className="w-28 h-8">
-                            <SelectValue />
+                            <SelectValue>{translateFieldType(field.type)}</SelectValue>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="text">Text</SelectItem>
-                            <SelectItem value="date">Date</SelectItem>
-                            <SelectItem value="select">Select</SelectItem>
-                            <SelectItem value="number">Number</SelectItem>
+                            <SelectItem value="text">{translateFieldType('text')}</SelectItem>
+                            <SelectItem value="date">{translateFieldType('date')}</SelectItem>
+                            <SelectItem value="select">{translateFieldType('select')}</SelectItem>
+                            <SelectItem value="number">{translateFieldType('number')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <div className="flex items-center gap-2">
-                          <Label className="text-xs text-muted-foreground">Required</Label>
+                          <Label className="text-xs text-muted-foreground">{t('admin.required')}</Label>
                           <Switch
                             checked={field.required}
                             onCheckedChange={(checked) => updateMetadataField(field.id, { required: checked })}
@@ -759,13 +778,13 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                       </div>
                       {field.type === 'select' && (
                         <div className="pl-6">
-                          <Label className="text-xs text-muted-foreground">Options (comma-separated)</Label>
+                          <Label className="text-xs text-muted-foreground">{t('admin.optionsCommaSeparated')}</Label>
                           <Input
-                            value={field.options?.join(', ') || ''}
+                            value={field.options?.map(opt => translateOption(opt)).join(', ') || ''}
                             onChange={(e) => updateMetadataField(field.id, {
                               options: e.target.value.split(',').map(s => s.trim())
                             })}
-                            placeholder="Option 1, Option 2, Option 3"
+                            placeholder={tc('optionsPlaceholder', 'Option 1, Option 2, Option 3')}
                             className="h-8 mt-1"
                           />
                         </div>
@@ -774,7 +793,7 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                   ))}
                   <Button variant="outline" size="sm" onClick={addMetadataField} className="w-full">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Metadata Field
+                    {t('admin.addMetadataField')}
                   </Button>
                 </CardContent>
               </Card>
@@ -803,9 +822,9 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
       <Dialog open={showShaclDialog} onOpenChange={setShowShaclDialog}>
         <DialogContent className="max-w-4xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>SHACL Shape - Form Configuration</DialogTitle>
+            <DialogTitle>{tc('shaclDialogTitle', 'SHACL Shape - Form Configuration')}</DialogTitle>
             <DialogDescription>
-              JSON-LD representation of the form's SHACL shape with semantic validation
+              {tc('shaclDialogDescription', "JSON-LD representation of the form's SHACL shape with semantic validation")}
             </DialogDescription>
           </DialogHeader>
 
@@ -821,13 +840,13 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
                 onClick={handleCopyShacl}
               >
                 <Copy className="w-4 h-4 mr-1" />
-                Copy
+                {t('common.copy', 'Copy')}
               </Button>
             </div>
           </div>
 
           <DialogFooter>
-            <Button onClick={() => setShowShaclDialog(false)}>Close</Button>
+            <Button onClick={() => setShowShaclDialog(false)}>{t('common.close')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

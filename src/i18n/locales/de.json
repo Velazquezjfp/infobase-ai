@@ -18,7 +18,9 @@
     "yes": "Ja",
     "no": "Nein",
     "required": "Erforderlich",
-    "optional": "Optional"
+    "optional": "Optional",
+    "copy": "Kopieren",
+    "tryAgain": "Erneut versuchen"
   },
   "workspace": {
     "title": "BAMF Acte Companion",
@@ -94,6 +96,24 @@
     "viewDocument": "Dokument anzeigen",
     "deleteFile": "Datei löschen"
   },
+  "documentViewer": {
+    "search": "Suchen",
+    "textView": "Textansicht",
+    "pdfView": "PDF-Ansicht",
+    "convertPdf": "PDF konvertieren",
+    "translate": "Übersetzen",
+    "translating": "Übersetzung läuft...",
+    "anonymize": "Anonymisieren",
+    "anonymizing": "Anonymisierung läuft...",
+    "download": "Herunterladen",
+    "metadata": "Metadaten",
+    "tooltips": {
+      "searchDisabled": "Suche wird für diesen Dokumenttyp nicht unterstützt",
+      "translateDisabled": "Übersetzung wird für diesen Dokumenttyp nicht unterstützt",
+      "anonymizeDisabled": "Anonymisierung wird nur für Bilddateien (JPG, PNG, etc.) unterstützt",
+      "convertDisabled": "PDF-Konvertierung wird für diesen Dokumenttyp nicht unterstützt"
+    }
+  },
   "folders": {
     "Personal Data": "Persönliche Daten",
     "Certificates": "Zertifikate",
@@ -159,6 +179,31 @@
     "invalidFields": "Ungültige Felder",
     "suggestions": "Vorschläge"
   },
+  "submitCase": {
+    "title": "Akte einreichen",
+    "confirmMessage": "Sie sind dabei, diese Akte einzureichen.",
+    "askValidation": "Möchten Sie vorher eine Validierungsprüfung durchführen?",
+    "validationDescription": "Die KI-gestützte Validierung analysiert Ihre Formulardaten und Dokumente auf Vollständigkeit.",
+    "runValidation": "Validierung starten",
+    "submitWithoutCheck": "Ohne Prüfung einreichen",
+    "validating": "Akte wird validiert...",
+    "validatingDescription": "Formulardaten und Dokumente werden analysiert",
+    "score": "Bewertung",
+    "scoreExcellent": "Ausgezeichnet",
+    "scoreGood": "Gut",
+    "scoreFair": "Ausreichend",
+    "scorePoor": "Mangelhaft",
+    "summary": "Zusammenfassung",
+    "criticalIssues": "Kritische Probleme",
+    "highPriority": "Hohe Priorität",
+    "mediumPriority": "Mittlere Priorität",
+    "lowPriority": "Niedrige Priorität",
+    "recommendations": "Empfehlungen",
+    "closeAndContinue": "Schließen & weiterarbeiten",
+    "submitAnyway": "Trotzdem einreichen",
+    "submissionSuccess": "Akte erfolgreich eingereicht",
+    "validationFailed": "Validierung fehlgeschlagen"
+  },
   "admin": {
     "title": "Admin-Panel",
     "configuration": "Konfiguration",
@@ -219,7 +264,78 @@
     "metadataFieldDefinitions": "Metadatenfelddefinitionen",
     "configureCustomMetadataFields": "Konfigurieren Sie benutzerdefinierte Metadatenfelder für Dokumente",
     "optionsCommaSeparated": "Optionen (durch Kommas getrennt)",
-    "addMetadataField": "Metadatenfeld hinzufügen"
+    "addMetadataField": "Metadatenfeld hinzufügen",
+    "content": {
+      "folderNames": {
+        "Personal_Data": "Persönliche Daten",
+        "Certificates": "Zertifikate",
+        "Integration_Course_Documents": "Integrationskurs-Dokumente",
+        "Applications_&_Forms": "Anträge & Formulare",
+        "Additional_Evidence": "Zusätzliche Nachweise",
+        "New_Folder": "Neuer Ordner"
+      },
+      "docTypeNames": {
+        "Birth_Certificate": "Geburtsurkunde",
+        "Language_Certificate": "Sprachzertifikat",
+        "Course_Completion": "Kursabschluss",
+        "Application_Form": "Antragsformular",
+        "New_Document_Type": "Neuer Dokumenttyp"
+      },
+      "macroNames": {
+        "Convert_to_PDF": "In PDF konvertieren",
+        "Translate_to_German": "Ins Deutsche übersetzen",
+        "Extract_Metadata": "Metadaten extrahieren",
+        "Anonymize_PII": "PII anonymisieren",
+        "New_Macro": "Neues Makro"
+      },
+      "metadataFieldNames": {
+        "Document_Date": "Dokumentdatum",
+        "Source": "Quelle",
+        "Classification": "Klassifizierung",
+        "Notes": "Notizen",
+        "New_Field": "Neues Feld"
+      },
+      "options": {
+        "Upload": "Hochladen",
+        "Email": "E-Mail",
+        "Scan": "Scan",
+        "External_System": "Externes System",
+        "Public": "Öffentlich",
+        "Internal": "Intern",
+        "Confidential": "Vertraulich"
+      },
+      "actions": {
+        "convert_pdf": "In PDF konvertieren",
+        "translate_de": "Ins Deutsche übersetzen",
+        "extract_metadata": "Metadaten extrahieren",
+        "anonymize": "PII anonymisieren",
+        "ocr": "OCR ausführen",
+        "validate": "Dokument validieren",
+        "custom": "Benutzerdefiniertes Skript"
+      },
+      "triggers": {
+        "upload": "Beim Hochladen",
+        "manual": "Manuell"
+      },
+      "fieldTypes": {
+        "text": "Text",
+        "textarea": "Textbereich",
+        "select": "Auswahl",
+        "date": "Datum",
+        "number": "Zahl"
+      },
+      "viewShacl": "SHACL anzeigen",
+      "viewShaclShape": "SHACL-Form anzeigen",
+      "shaclDialogTitle": "SHACL-Form - Formularkonfiguration",
+      "shaclDialogDescription": "JSON-LD-Darstellung der SHACL-Form mit semantischer Validierung",
+      "optionsPlaceholder": "Option 1, Option 2, Option 3",
+      "examplePrompt1": "\"Füge ein erforderliches Textfeld für die Passnummer hinzu\"",
+      "examplePrompt2": "\"Erstelle ein Datumsfeld für das Visum-Ablaufdatum\"",
+      "examplePrompt3": "\"Füge ein Dropdown für Bildungsniveau mit Optionen Abitur, Bachelor, Master, Promotion hinzu\"",
+      "examplePrompt4": "\"Ich brauche ein Textbereich für zusätzliche Notizen\"",
+      "copiedToClipboard": "In Zwischenablage kopiert",
+      "shaclCopiedSuccess": "SHACL-Form erfolgreich kopiert"
+    }
   },
   "case": {
     "title": "Fall",
@@ -316,5 +432,547 @@
     "Relationship to Sponsor": "Beziehung zum Sponsor",
     "Sponsor Full Name": "Vollständiger Name des Sponsors",
     "Reason for Family Reunification": "Grund für die Familienzusammenführung"
+  },
+  "caseContext": {
+    "title": "Aktenkontext",
+    "description": "KI-Agenten-Kontextinformationen für diese Akte. Zeigt, welche Informationen dem KI-Assistenten zur Verfügung stehen.",
+    "loading": "Kontext wird geladen...",
+    "tabs": {
+      "overview": "Übersicht",
+      "regulations": "Vorschriften",
+      "documents": "Dokumente",
+      "folders": "Ordner",
+      "issues": "Häufige Probleme"
+    },
+    "caseInfo": "Akteninformationen",
+    "caseId": "Akten-ID",
+    "caseType": "Aktentyp",
+    "caseName": "Name",
+    "caseDescription": "Beschreibung",
+    "applicantInfo": "Antragstellerinformationen",
+    "applicantName": "Name",
+    "dateOfBirth": "Geburtsdatum",
+    "nationality": "Staatsangehörigkeit",
+    "currentStatus": "Aktueller Status",
+    "validationRules": "Validierungsregeln",
+    "moreRules": "weitere Regeln",
+    "showLess": "Weniger anzeigen",
+    "regulationsDescription": "Deutsche Gesetze und Vorschriften für diesen Aktentyp.",
+    "viewLaw": "Anzeigen",
+    "documentsDescription": "Erforderliche Dokumente für diesen Aktentyp mit Validierungsanforderungen.",
+    "formats": "Formate",
+    "foldersDescription": "Ordnerstruktur und erwartete Inhalte für diese Akte.",
+    "expectedDocs": "Erwartete Dokumente",
+    "validationCriteria": "Validierungskriterien",
+    "issuesDescription": "Häufige Probleme bei diesem Aktentyp und empfohlene Lösungen.",
+    "suggestion": "Empfehlung",
+    "critical": "Kritisch",
+    "optional": "Optional",
+    "content": {
+      "caseTypes": {
+        "integration_course": "Integrationskurs",
+        "asylum_application": "Asylantrag",
+        "family_reunification": "Familienzusammenführung"
+      },
+      "caseNames": {
+        "German_Integration_Course_Application": "Antrag auf Integrationskurs"
+      },
+      "descriptions": {
+        "integration_course": "Antrag auf Teilnahme an einem Integrationskurs gemäß §43 AufenthG. Dies umfasst den Sprachkurs (600 Stunden) und den Orientierungskurs (100 Stunden)."
+      },
+      "statuses": {
+        "Refugee_with_residence_permit": "Flüchtling mit Aufenthaltserlaubnis",
+        "Asylum_seeker": "Asylbewerber",
+        "Family_member": "Familienangehöriger"
+      },
+      "nationalities": {
+        "Syrian": "Syrisch",
+        "Afghan": "Afghanisch",
+        "Afghanistan": "Afghanistan",
+        "Iraqi": "Irakisch",
+        "Turkish": "Türkisch",
+        "German": "Deutsch"
+      },
+      "ruleNames": {
+        "age_verification": "Altersüberprüfung",
+        "residence_status_check": "Aufenthaltsstatusprüfung",
+        "residence_eligibility_integration": "Aufenthaltsberechtigung für Integration",
+        "document_validity": "Dokumentengültigkeit",
+        "address_consistency": "Adresskonsistenz",
+        "name_consistency": "Namenskonsistenz",
+        "language_level_assessment": "Sprachniveauprüfung",
+        "language_level_assessment_integration": "Sprachniveauprüfung für Integration",
+        "course_eligibility": "Kursberechtigung",
+        "course_history_check": "Kurshistorie-Prüfung",
+        "obligation_verification_integration": "Verpflichtungsprüfung",
+        "translation_requirement": "Übersetzungsanforderung",
+        "photo_compliance": "Foto-Konformität"
+      },
+      "validationRules": {
+        "age_verification": "Antragsteller muss mindestens 18 Jahre alt sein oder bei Minderjährigkeit elterliche Einwilligung haben",
+        "residence_status_check": "Gültige Aufenthaltserlaubnis oder laufendes Asylverfahren erforderlich",
+        "residence_eligibility_integration": "Antragsteller muss Aufenthaltstitel besitzen, der zum Integrationskurs berechtigt (§43 AufenthG)",
+        "document_validity": "Alle Ausweisdokumente müssen gültig und nicht abgelaufen sein",
+        "address_consistency": "Adresse muss über alle Dokumente konsistent sein",
+        "name_consistency": "Namensschreibweise muss über alle Dokumente übereinstimmen",
+        "language_level_assessment": "Aktuelles Sprachniveau muss dokumentiert sein",
+        "language_level_assessment_integration": "Bei vorhandenem Sprachzertifikat GER-Niveau für Integrationskurs-Einstufung prüfen",
+        "course_eligibility": "Berechtigung für Integrationskurs muss erfüllt sein",
+        "course_history_check": "Frühere Integrationskurs-Teilnahme muss dokumentiert sein falls zutreffend",
+        "obligation_verification_integration": "Bei Verpflichtung zum Integrationskurs (§44 AufenthG) Überweisungsdokumentation prüfen",
+        "translation_requirement": "Fremdsprachige Dokumente erfordern beglaubigte deutsche Übersetzung",
+        "photo_compliance": "Passfoto muss biometrische Standards erfüllen"
+      },
+      "regulations": {
+        "§43_AufenthG": {
+          "title": "Anspruch auf Integrationskurs",
+          "summary": "Definiert, wer Anspruch auf Teilnahme an einem Integrationskurs hat und die grundlegenden Anforderungen."
+        },
+        "§44_AufenthG": {
+          "title": "Verpflichtung zum Integrationskurs",
+          "summary": "Definiert, wann die Teilnahme an einem Integrationskurs verpflichtend sein kann."
+        },
+        "§44a_AufenthG": {
+          "title": "Integrationskursverfahren",
+          "summary": "Regelt das Verfahren zur Zulassung zum Integrationskurs."
+        },
+        "§45_AufenthG": {
+          "title": "Integrationsprogramm",
+          "summary": "Rahmen für Integrationsprogramme über Sprachkurse hinaus."
+        },
+        "§45a_AufenthG": {
+          "title": "Berufsbezogene Sprachkurse",
+          "summary": "Regelt berufsbezogene Deutschkurse (DeuFöV)."
+        },
+        "IntV_§4": {
+          "title": "Kursstruktur",
+          "summary": "Definiert die Struktur und den Inhalt von Integrationskursen."
+        },
+        "IntV_§5": {
+          "title": "Sprachkurs",
+          "summary": "600 Unterrichtseinheiten Deutschunterricht."
+        },
+        "IntV_§6": {
+          "title": "Orientierungskurs",
+          "summary": "100 Unterrichtseinheiten zum deutschen Rechtssystem, Geschichte und Kultur."
+        },
+        "IntV_§17": {
+          "title": "Abschlusstest",
+          "summary": "Anforderungen für den Deutsch-Test für Zuwanderer (DTZ)."
+        },
+        "IntV_§11": {
+          "title": "Kostenbefreiung",
+          "summary": "Regelt die Kostenbefreiung für Integrationskurs-Teilnehmer mit Leistungsbezug."
+        },
+        "IntV_§13": {
+          "title": "Spezialkurse",
+          "summary": "Regelt spezielle Integrationskurse einschließlich Jugend-, Eltern-/Frauen- und Intensivkurse."
+        },
+        "SGB_II_§3": {
+          "title": "Sozialversicherungsintegration",
+          "summary": "Integrationsmaßnahmen im Rahmen der Grundsicherung."
+        },
+        "SGB_II_§44a": {
+          "title": "Integrationskursverpflichtung (SGB II)",
+          "summary": "Sozialgesetzbuch-Bestimmungen zur Integrationskurs-Verpflichtung für Arbeitslosengeld-Empfänger."
+        },
+        "SGB_III_§45": {
+          "title": "Unterstützung durch die Arbeitsagentur",
+          "summary": "Fördermaßnahmen durch die Bundesagentur für Arbeit."
+        }
+      },
+      "documents": {
+        "birth_certificate": {
+          "name": "Geburtsurkunde",
+          "description": "Amtliche Geburtsurkunde zur Identitätsprüfung.",
+          "notes": "Übersetzung erforderlich, wenn nicht auf Deutsch."
+        },
+        "passport": {
+          "name": "Reisepass",
+          "description": "Gültiger Reisepass oder Reisedokument.",
+          "notes": "Kopie aller relevanten Seiten erforderlich."
+        },
+        "residence_permit": {
+          "name": "Aufenthaltserlaubnis",
+          "description": "Aktuelle Aufenthaltserlaubnis oder Nachweis des Aufenthaltsstatus.",
+          "notes": "Muss für die Dauer des Kurses gültig sein."
+        },
+        "registration_certificate": {
+          "name": "Meldebescheinigung",
+          "description": "Amtliche Anmeldung am aktuellen Wohnort.",
+          "notes": "Muss aktuell sein (nicht älter als 3 Monate)."
+        },
+        "language_certificate": {
+          "name": "Sprachzertifikat",
+          "description": "Bescheinigung über aktuelles Deutschniveau.",
+          "notes": "A1/A2-Zertifikate werden akzeptiert."
+        },
+        "application_form": {
+          "name": "Antragsformular",
+          "description": "Ausgefülltes Integrationskurs-Antragsformular.",
+          "notes": "Alle Felder müssen ausgefüllt sein."
+        },
+        "passport_photo": {
+          "name": "Passfoto",
+          "description": "Aktuelles biometrisches Passfoto.",
+          "notes": "Standard-Biometrie-Anforderungen gelten."
+        },
+        "health_insurance": {
+          "name": "Krankenversicherung",
+          "description": "Nachweis über Krankenversicherungsschutz.",
+          "notes": "Gesetzliche oder private Versicherung akzeptiert."
+        },
+        "employment_status": {
+          "name": "Beschäftigungsstatus",
+          "description": "Dokumentation des aktuellen Beschäftigungs- oder Arbeitssuchstatus.",
+          "notes": "Jobcenter-Bestätigung wenn zutreffend."
+        },
+        "education_certificates": {
+          "name": "Bildungszertifikate",
+          "description": "Bildungsabschlüsse aus dem Heimatland.",
+          "notes": "Beglaubigte Übersetzungen erforderlich."
+        },
+        "marriage_certificate": {
+          "name": "Heiratsurkunde",
+          "description": "Heiratsurkunde wenn zutreffend.",
+          "notes": "Für familienbezogene Anträge."
+        },
+        "income_proof": {
+          "name": "Einkommensnachweis",
+          "description": "Nachweis über Einkommen oder finanzielle Unterstützung.",
+          "notes": "Gehaltsabrechnungen oder Leistungsbescheide der letzten 3 Monate."
+        },
+        "motivation_letter": {
+          "name": "Motivationsschreiben",
+          "description": "Persönliche Erklärung zu Integrationszielen.",
+          "notes": "Optional aber empfohlen."
+        },
+        "medical_certificate": {
+          "name": "Ärztliches Attest",
+          "description": "Ärztliche Bescheinigung wenn erforderlich.",
+          "notes": "Für besondere Kurseinstufungen."
+        },
+        "childcare_confirmation": {
+          "name": "Kinderbetreuungsbestätigung",
+          "description": "Bestätigung über Kinderbetreuungsregelung.",
+          "notes": "Für Eltern mit kleinen Kindern."
+        },
+        "previous_course_certificate": {
+          "name": "Vorheriges Kurszertifikat",
+          "description": "Bescheinigung über frühere Integrationskursteilnahme.",
+          "notes": "Bei Kurswechsel."
+        },
+        "exemption_request": {
+          "name": "Befreiungsantrag",
+          "description": "Antrag auf Befreiung von Kursgebühren.",
+          "notes": "Einkommensnachweise erforderlich."
+        },
+        "employment_certificate": {
+          "name": "Arbeitsbescheinigung",
+          "description": "Arbeitsbescheinigung des aktuellen Arbeitgebers mit Angaben zu Beschäftigungsstatus, Arbeitszeiten und Position.",
+          "notes": "Erforderlich bei Beschäftigung und Wunsch nach Teilzeit- oder Abendkurs."
+        },
+        "social_benefits_notice": {
+          "name": "Leistungsbescheid (ALG II / Sozialhilfe)",
+          "description": "Aktueller Leistungsbescheid vom Jobcenter oder Sozialamt mit Angabe der Leistungsart und -höhe.",
+          "notes": "Erforderlich für Kostenbefreiung."
+        },
+        "health_insurance_card": {
+          "name": "Krankenversicherungskarte",
+          "description": "Gültige deutsche Krankenversicherungskarte.",
+          "notes": "Sowohl gesetzliche als auch private Krankenversicherung akzeptiert."
+        },
+        "integration_course_application_form": {
+          "name": "Antrag auf Zulassung zum Integrationskurs",
+          "description": "Ausgefülltes BAMF-Antragsformular für die Integrationskurs-Zulassung (Formular 630.007w).",
+          "notes": "Alle Abschnitte müssen mit Unterschrift ausgefüllt sein."
+        },
+        "previous_course_certificates": {
+          "name": "Teilnahmebescheinigungen früherer Kurse",
+          "description": "Bescheinigungen über frühere Deutsch- oder Integrationskurse.",
+          "notes": "Muss Kursanbieter, besuchte Stunden und Abschlussstatus zeigen."
+        },
+        "referral_letter": {
+          "name": "Verpflichtung / Überweisung",
+          "description": "Offizielles Überweisungs- oder Verpflichtungsschreiben der Ausländerbehörde oder des Jobcenters.",
+          "notes": "Nur erforderlich bei Verpflichtung nach §44 AufenthG."
+        },
+        "children_birth_certificates": {
+          "name": "Geburtsurkunden der Kinder",
+          "description": "Geburtsurkunden unterhaltsberechtigter Kinder für Kinderbetreuungs-Überlegungen.",
+          "notes": "Erforderlich für Eltern-/Frauenkurse mit Kinderbetreuung."
+        },
+        "childcare_proof": {
+          "name": "Nachweis Kinderbetreuung",
+          "description": "Nachweis über Kinderbetreuungsregelung während der Kurszeiten.",
+          "notes": "Wichtig für die Kursplanung."
+        }
+      },
+      "docTypes": {
+        "birth_certificate": "Geburtsurkunde",
+        "passport": "Reisepass",
+        "national_id": "Personalausweis",
+        "residence_permit": "Aufenthaltserlaubnis",
+        "registration_certificate": "Meldebescheinigung",
+        "passport_photo": "Passfoto",
+        "language_certificate": "Sprachzertifikat",
+        "educational_certificate": "Bildungszertifikat",
+        "education_certificates": "Bildungszertifikate",
+        "integration_course_certificate": "Integrationskurszertifikat",
+        "application_form": "Antragsformular",
+        "integration_course_application_form": "Integrationskurs-Antragsformular",
+        "confirmation_letter": "Bestätigungsschreiben",
+        "fee_receipt": "Gebührenquittung",
+        "employment_certificate": "Beschäftigungsnachweis",
+        "benefit_statement": "Leistungsbescheid",
+        "social_benefits_notice": "Leistungsbescheid",
+        "health_insurance_card": "Krankenversicherungskarte",
+        "previous_course_certificates": "Frühere Kurszertifikate",
+        "referral_letter": "Überweisungsschreiben",
+        "marriage_certificate": "Heiratsurkunde",
+        "children_birth_certificates": "Geburtsurkunden der Kinder",
+        "medical_certificate": "Ärztliches Attest",
+        "childcare_proof": "Kinderbetreuungsnachweis",
+        "supporting_document": "Unterstützendes Dokument"
+      },
+      "folders": {
+        "personal-data": {
+          "name": "Persönliche Daten",
+          "purpose": "Identitätsprüfung und persönliche Informationsdokumente für Ahmad Alis Integrationskurs-Antrag."
+        },
+        "certificates": {
+          "name": "Zertifikate",
+          "purpose": "Bildungs- und Sprachzertifikate einschließlich Diplome, Qualifikationen und Sprachnachweis-Dokumentation."
+        },
+        "integration-docs": {
+          "name": "Integrationsdokumente",
+          "purpose": "Integrationskurs-spezifische Dokumentation einschließlich Anmeldung, Teilnahme und Kursfortschritt-Dateien."
+        },
+        "applications": {
+          "name": "Anträge & Formulare",
+          "purpose": "Offizielle Antragsformulare, BAMF-Einreichungen und formelle Korrespondenzdokumente."
+        },
+        "emails": {
+          "name": "E-Mails",
+          "purpose": "E-Mail-Korrespondenz im Zusammenhang mit dem Integrationskurs-Antrag und der Fallbearbeitung."
+        },
+        "evidence": {
+          "name": "Zusätzliche Nachweise",
+          "purpose": "Unterstützende Dokumente und zusätzliche Nachweise für den Integrationskurs-Antrag."
+        }
+      },
+      "criteria": {
+        "identity_verification": "Identität durch amtliche Dokumente überprüfen",
+        "document_authenticity": "Unterstützende Dokumente müssen authentisch sein",
+        "completeness_check": "Sicherstellen, dass alle erforderlichen Informationen vorhanden sind",
+        "language_requirements": "Sprachanforderungen überprüfen",
+        "eligibility_verification": "Berechtigung bestätigen",
+        "name_consistency": "Vollständiger Name muss über alle Ausweisdokumente konsistent sein",
+        "valid_dates": "Alle Datumsfelder müssen gültig und logisch konsistent sein",
+        "certified_translations": "Afghanische Dokumente erfordern beglaubigte deutsche Übersetzungen",
+        "nationality_verification": "Afghanische Staatsangehörigkeit und Flüchtlingsstatus-Dokumentation überprüfen",
+        "cefr_level_verified": "Sprachkenntnisse müssen mit GER-Stufen-Zertifikat nachgewiesen werden",
+        "issuing_institution": "Zertifikat muss von einer BAMF-anerkannten Institution stammen",
+        "test_date_validity": "Prüfungsdatum muss innerhalb des akzeptierten Gültigkeitszeitraums liegen",
+        "form_completeness": "Alle erforderlichen Formularfelder müssen ordnungsgemäß ausgefüllt sein",
+        "signature_verification": "Alle Unterschriften müssen vorhanden und gültig sein",
+        "fee_verification": "Kursgebühren oder Befreiungsdokumentation müssen vorgelegt werden",
+        "recognized_institution": "Sprachzertifikate müssen von BAMF-anerkannten Institutionen stammen",
+        "cefr_level_valid": "Sprachzertifikate müssen das erreichte GER-Niveau klar angeben",
+        "within_validity_period": "Zertifikate sollten aktuell und gültig sein",
+        "accredited_provider": "Kursdokumente müssen von BAMF-akkreditierten Anbietern stammen",
+        "minimum_hours": "Anwesenheitsnachweise müssen ausreichende Kursstunden belegen",
+        "completion_status": "Kursfortschritt bis zum Abschluss verfolgen",
+        "all_required_fields": "Antragsformulare müssen alle Pflichtfelder ausgefüllt haben",
+        "valid_signature": "Alle Formulare müssen vom Antragsteller ordnungsgemäß unterschrieben sein",
+        "course_preference": "Antrag sollte Kurspräferenz angeben",
+        "official_sender": "Kommunikation muss von offiziellen Quellen stammen",
+        "relevant_to_case": "Korrespondenz muss sich auf den Fall des Antragstellers beziehen",
+        "date_and_timeline": "Kommunikationsdaten für Zeitverlauf verfolgen",
+        "relevant_to_application": "Nachweise müssen den Integrationskurs-Antrag unterstützen",
+        "properly_translated": "Afghanische Dokumente erfordern beglaubigte Übersetzung"
+      },
+      "categories": {
+        "document": "Dokument",
+        "form": "Formular",
+        "eligibility": "Berechtigung",
+        "process": "Verfahren",
+        "communication": "Kommunikation"
+      },
+      "frequencies": {
+        "very_common": "Sehr häufig",
+        "common": "Häufig",
+        "occasional": "Gelegentlich",
+        "rare": "Selten"
+      },
+      "issues": {
+        "Missing_certified_translation": {
+          "issue": "Fehlende beglaubigte Übersetzung",
+          "suggestion": "Alle nicht-deutschen Dokumente benötigen eine beglaubigte Übersetzung durch einen vereidigten Übersetzer (beeidigter Übersetzer). Übersetzer-Name, Zertifizierungsnummer und Stempel erforderlich. Kosten typischerweise 10-50 EUR pro Seite."
+        },
+        "Expired_residence_permit": {
+          "issue": "Abgelaufener Aufenthaltstitel",
+          "suggestion": "Aufenthaltstitel muss gültig sein. Bei baldigem Ablauf sollte der Antragsteller vor Kursbeginn eine Verlängerung bei der Ausländerbehörde beantragen. Bearbeitungszeit 4-8 Wochen."
+        },
+        "Incomplete_integration_course_application_form": {
+          "issue": "Unvollständiger Integrationskurs-Antrag",
+          "suggestion": "Alle Pflichtfelder müssen ausgefüllt werden, einschließlich persönlicher Daten, Kontaktinformationen, Kurspräferenzen und Unterschrift. Offizielles BAMF-Formular 630.007w unter www.bamf.de verwenden."
+        },
+        "Address_mismatch_between_documents": {
+          "issue": "Adressabweichung zwischen Dokumenten",
+          "suggestion": "Adresse auf der Meldebescheinigung muss mit dem aktuellen Wohnort übereinstimmen. Bei kürzlichem Umzug benötigt der Antragsteller eine neue Meldebescheinigung vom Bürgeramt. Bearbeitungszeit 1-2 Wochen."
+        },
+        "Name_spelling_variations": {
+          "issue": "Unterschiedliche Namensschreibweisen",
+          "suggestion": "Verschiedene Transliterationen nicht-lateinischer Namen sind üblich. Variationen dokumentieren, aber sicherstellen, dass die Hauptschreibweise mit dem Aufenthaltstitel übereinstimmt. Ggf. 'auch bekannt als' Vermerk hinzufügen."
+        },
+        "Unrecognized_language_certificate_issuer": {
+          "issue": "Nicht anerkannter Sprachzertifikat-Aussteller",
+          "suggestion": "Nur vom BAMF anerkannte Institutionen für die Integrationskurs-Einstufung akzeptiert: Goethe-Institut, telc, TestDaF, ÖSD. Andere Zertifikate werden möglicherweise nicht zur Einstufung akzeptiert."
+        },
+        "Previous_integration_course_discontinuati": {
+          "issue": "Früherer Integrationskurs-Abbruch",
+          "suggestion": "Bei früherem Kursabbruch ist eine Dokumentation des Grundes erforderlich. Bei medizinischen Gründen ärztliches Attest, bei persönlichen Gründen Erklärungsschreiben. Kann die Förderungsberechtigung beeinflussen."
+        },
+        "Missing_course_preference_indication": {
+          "issue": "Fehlende Kurspräferenz-Angabe",
+          "suggestion": "Die Angabe des bevorzugten Kurstyps (Intensiv-, Teilzeit-, Abendkurs) und Standorts hilft bei schnellerer Platzvergabe. Arbeitszeiten, Kinderbetreuungsbedarf und Anfahrtszeit berücksichtigen."
+        },
+        "Passport_expiring_during_course_period": {
+          "issue": "Reisepass läuft während Kurszeitraum ab",
+          "suggestion": "Bei Ablauf des Reisepasses während des 6-12-monatigen Kurszeitraums vor Kursbeginn bei Botschaft/Konsulat erneuern. Integrationskurs-Zertifikat (DTZ/LiD) erfordert gültigen Ausweis bei Prüfung."
+        },
+        "Missing_proof_for_cost_exemption": {
+          "issue": "Fehlender Nachweis für Kostenbefreiung",
+          "suggestion": "Für Kostenbefreiung (Kostenbeitragsbefreiung) aktueller Leistungsbescheid erforderlich (ALG II, Sozialhilfe, AsylbLG). Standardgebühr 2,29 EUR pro Unterrichtsstunde (gesamt ~1600 EUR für 700-Stunden-Kurs)."
+        },
+        "Photo_does_not_meet_biometric_standards": {
+          "issue": "Foto entspricht nicht biometrischen Standards",
+          "suggestion": "Biometrische Foto-Anforderungen: 35x45mm, innerhalb der letzten 6 Monate aufgenommen, neutraler Gesichtsausdruck, weißer/hellgrauer Hintergrund, keine Sonnenbrille, Frontalansicht. Fotoautomaten in Postämtern, Bahnhöfen und Fotostudios liefern konforme Fotos."
+        },
+        "Registration_certificate_older_than_3_mont": {
+          "issue": "Meldebescheinigung älter als 3 Monate",
+          "suggestion": "Meldebescheinigung muss aktuell sein (ausgestellt innerhalb von 3 Monaten). Neue Bescheinigung beim Bürgeramt/Einwohnermeldeamt beantragen. Meist am selben Tag oder innerhalb einer Woche erhältlich."
+        },
+        "Health_insurance_card_not_valid": {
+          "issue": "Krankenversicherungskarte ungültig",
+          "suggestion": "Krankenversicherungsschutz ist für die Kursanmeldung obligatorisch. Bei abgelaufener oder ungültiger Karte sofort Krankenkasse kontaktieren für Ersatz. Kursstart ohne gültige Versicherung nicht möglich."
+        },
+        "Wrong_residence_permit_type_for_entitleme": {
+          "issue": "Falscher Aufenthaltstitel-Typ für Berechtigung",
+          "suggestion": "Nicht alle Aufenthaltstitel-Typen gewähren automatische Berechtigung zum Integrationskurs. §43 AufenthG-Berechtigung prüfen. Wenn nicht berechtigt, kann trotzdem Zulassung nach §44 AufenthG beantragt werden, wenn Plätze verfügbar."
+        },
+        "Application_submitted_to_wrong_BAMF_region": {
+          "issue": "Antrag bei falscher BAMF-Außenstelle eingereicht",
+          "suggestion": "Anträge müssen bei der für den Wohnort zuständigen BAMF-Außenstelle eingereicht werden. BAMF-NAvI-Tool auf www.bamf.de zur Ermittlung der zuständigen Stelle nutzen. Falsche Stelle sendet Antrag zurück, was Verzögerungen verursacht."
+        },
+        "Missing_official_stamp_on_registration_cer": {
+          "issue": "Fehlender Dienstsiegel auf Meldebescheinigung",
+          "suggestion": "Meldebescheinigung muss Dienstsiegel des ausstellenden Bürgeramts/Einwohnermeldeamts tragen. Einfache Adressbestätigungen reichen nicht aus. Offizielle gestempelte Bescheinigung anfordern."
+        },
+        "Course_obligation_deadline_passed": {
+          "issue": "Frist für Kursverpflichtung verstrichen",
+          "suggestion": "Bei Verpflichtung nach §44 AufenthG gibt das Überweisungsschreiben eine Anmeldefrist vor. Fristversäumnis kann zu Problemen mit Aufenthaltstitel oder Leistungskürzungen nach §44a SGB II führen. Sofort zuständige Behörde kontaktieren, wenn Frist naht."
+        },
+        "Childcare_needs_not_addressed": {
+          "issue": "Kinderbetreuungsbedarf nicht geklärt",
+          "suggestion": "Eltern mit kleinen Kindern sollten sich über Elternkurse oder Frauenkurse mit Kinderbetreuung informieren. Alternativ vor Kursbeginn externe Kinderbetreuung organisieren, um regelmäßige Teilnahme zu gewährleisten."
+        },
+        "Literacy_level_unclear": {
+          "issue": "Alphabetisierungsstand unklar",
+          "suggestion": "Wenn Antragsteller nicht in lateinischer Schrift oder Muttersprache alphabetisiert ist, ist ein Alphabetisierungskurs nach IntV §6 erforderlich. Diese Kurse umfassen 1000 statt der üblichen 700 Stunden. Bildungsnachweise zur Einschätzung vorlegen."
+        },
+        "Special_accommodation_needs_not_documented": {
+          "issue": "Besonderer Unterstützungsbedarf nicht dokumentiert",
+          "suggestion": "Antragsteller mit Behinderungen, chronischen Erkrankungen oder besonderen Bedürfnissen sollten ärztliches Attest mit erforderlichen Anpassungen vorlegen (Rollstuhlzugang, Hörhilfe, Sehhilfen, zusätzliche Zeit). Kursanbieter können bei rechtzeitiger Information Vorkehrungen treffen."
+        },
+        "Employment_schedule_conflicts_with_course_": {
+          "issue": "Arbeitszeiten kollidieren mit Kurszeiten",
+          "suggestion": "Berufstätige Antragsteller sollten Arbeitszeiten angeben, um passenden Kurs zu finden (Teilzeit, Abend, Wochenende). Einige Kursanbieter bieten flexible Zeitpläne. Mit Arbeitgeber Möglichkeit von bezahltem Bildungsurlaub besprechen."
+        },
+        "Digital_application_issues_(online_portal_": {
+          "issue": "Probleme mit digitaler Antragstellung (Online-Portal)",
+          "suggestion": "Bei Problemen mit dem Online-Portal Papierformular 630.007w nutzen und per Post an BAMF-Außenstelle senden. Alle erforderlichen Dokumente als beglaubigte Kopien beilegen. Versandnachweis aufbewahren (Einschreiben empfohlen)."
+        },
+        "Translator_credentials_missing_on_translat": {
+          "issue": "Übersetzer-Angaben fehlen auf Übersetzung",
+          "suggestion": "Beglaubigte Übersetzungen müssen enthalten: vollständiger Name des Übersetzers, Zertifizierungsnummer, offizieller Stempel, Unterschrift und Datum. Übersetzungen durch Freunde/Familie nicht akzeptiert. Vereidigte Übersetzer beim Landgericht oder über BDÜ finden."
+        },
+        "Course_waiting_list_(no_immediate_placemen": {
+          "issue": "Kurs-Warteliste (keine sofortige Platzvergabe)",
+          "suggestion": "Hohe Nachfrage kann zu Wartelisten führen. So früh wie möglich bewerben. Bei Verpflichtung nach §44 AufenthG ist die Verpflichtung durch rechtzeitige Bewerbung erfüllt. Während der Wartezeit freiwillige Deutschkurse bei VHS oder Gemeindeorganisationen erwägen."
+        }
+      },
+      "categories": {
+        "documentation": "Dokumentation",
+        "language_requirements": "Sprachanforderungen",
+        "previous_applications": "Frühere Anträge",
+        "procedural": "Verfahrenstechnisch",
+        "fees": "Gebühren",
+        "eligibility": "Berechtigung",
+        "deadlines": "Fristen",
+        "family_related": "Familienbezogen",
+        "health_related": "Gesundheitsbezogen",
+        "technical_issues": "Technische Probleme"
+      },
+      "frequencies": {
+        "very_common": "Sehr häufig",
+        "common": "Häufig",
+        "occasional": "Gelegentlich",
+        "rare": "Selten"
+      },
+      "checkPoints": {
+        "First_name_spelling_Ahmad": "Vorname Schreibweise (Ahmad)",
+        "Last_name_spelling_Ali": "Nachname Schreibweise (Ali)",
+        "Name_order_consistency": "Namensreihenfolge-Konsistenz",
+        "Birth_date_15051990": "Geburtsdatum: 15.05.1990",
+        "Document_issue_dates": "Dokumentenausstellungsdaten",
+        "Document_expiry_dates": "Dokumentenablaufdaten",
+        "Translator_certification_present": "Übersetzer-Zertifizierung vorhanden",
+        "Translation_completeness": "Übersetzungsvollständigkeit",
+        "DariPashto_documents_translated": "Dari/Paschtu-Dokumente übersetzt",
+        "Nationality_stated_as_Afghanistan": "Staatsangehörigkeit als Afghanistan angegeben",
+        "Refugee_status_confirmed": "Flüchtlingsstatus bestätigt",
+        "Residence_permit_type_appropriate": "Aufenthaltstitel-Typ angemessen",
+        "Institution_name_verified": "Institutionsname verifiziert",
+        "BAMF_accreditation_confirmed": "BAMF-Akkreditierung bestätigt",
+        "CEFR_level_explicitly_stated": "GER-Niveau ausdrücklich angegeben",
+        "Current_level_A1_based_on_existing_certificate": "Aktuelles Niveau: A1 (basierend auf vorhandenem Zertifikat)",
+        "Test_date_documented": "Prüfungsdatum dokumentiert",
+        "Issue_date_visible": "Ausstellungsdatum sichtbar",
+        "Within_25_year_validity": "Innerhalb 2-5 Jahre Gültigkeit",
+        "Provider_name_and_accreditation_number": "Anbietername und Akkreditierungsnummer",
+        "BAMF_certification_reference": "BAMF-Zertifizierungsreferenz",
+        "Total_hours_attended": "Gesamtstunden anwesend",
+        "Minimum_50_attendance_required": "Mindestens 50% Anwesenheit erforderlich",
+        "Module_completion": "Modulabschluss",
+        "DTZ_test_preparation": "DTZ-Prüfungsvorbereitung",
+        "LiD_test_preparation": "LiD-Prüfungsvorbereitung",
+        "Personal_information_Ahmad_Ali": "Persönliche Informationen: Ahmad Ali",
+        "Date_of_birth_15051990": "Geburtsdatum: 15.05.1990",
+        "Nationality_Afghanistan": "Staatsangehörigkeit: Afghanistan",
+        "Contact_details": "Kontaktdaten",
+        "Course_preference": "Kurspräferenz",
+        "Signature_present": "Unterschrift vorhanden",
+        "Date_accompanies_signature": "Datum begleitet Unterschrift",
+        "Signature_consistent": "Unterschrift konsistent",
+        "Course_type_selected": "Kurstyp ausgewählt",
+        "Preferred_schedule": "Bevorzugter Zeitplan",
+        "Location_preference_if_any": "Standortpräferenz falls vorhanden",
+        "Sender_email_domain_is_official": "Absender-E-Mail-Domain ist offiziell",
+        "Reference_numbers_included": "Referenznummern enthalten",
+        "Case_reference_ACTE2024001": "Aktenzeichen: ACTE-2024-001",
+        "Applicant_name_Ahmad_Ali": "Antragstellername: Ahmad Ali",
+        "Subject_relates_to_integration_course": "Betreff bezieht sich auf Integrationskurs",
+        "Send_date_visible": "Sendedatum sichtbar",
+        "Response_deadlines_noted": "Antwortfristen vermerkt",
+        "Connection_to_eligibility_criteria": "Verbindung zu Berechtigungskriterien",
+        "Supports_claims_in_application": "Unterstützt Angaben im Antrag",
+        "Official_source_identifiable": "Offizielle Quelle identifizierbar",
+        "Document_not_altered": "Dokument nicht verändert",
+        "Translation_attached_for_nonGerman_documents": "Übersetzung für nicht-deutsche Dokumente beigefügt",
+        "Translator_credentials_present": "Übersetzer-Qualifikationen vorhanden"
+      }
+    }
   }
 }

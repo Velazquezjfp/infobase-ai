@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Folder, Document, DocumentRender } from '@/types/case';
-import { ChevronRight, ChevronDown, Folder as FolderIcon, FolderOpen, FileText, FileJson, FileCode, File, Upload, Plus, MoreVertical, Loader2, Trash2, EyeOff, Globe, Edit, Badge } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder as FolderIcon, FolderOpen, FileText, FileJson, FileCode, File, Upload, Plus, MoreVertical, Loader2, Trash2, EyeOff, Globe, Edit, Badge, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,6 +18,7 @@ import type { UploadProgress } from '@/types/file';
 import { UploadProgress as UploadProgressComponent } from '@/components/ui/UploadProgress';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { DuplicateFileDialog, DuplicateFileInfo } from '@/components/ui/DuplicateFileDialog';
+import { CaseContextDialog } from '@/components/workspace/CaseContextDialog';
 
 const getFileIcon = (type: Document['type']) => {
   switch (type) {
@@ -493,6 +494,9 @@ export default function CaseTreeExplorer() {
   const [duplicateFileInfo, setDuplicateFileInfo] = useState<DuplicateFileInfo | null>(null);
   const [pendingUploads, setPendingUploads] = useState<{ folderId: string; files: File[] }[]>([]);
 
+  // Case context dialog state
+  const [contextDialogOpen, setContextDialogOpen] = useState(false);
+
   /**
    * Perform the actual upload of a single file (internal helper)
    */
@@ -843,18 +847,27 @@ export default function CaseTreeExplorer() {
 
       <div className="p-2 border-b border-pane-border bg-pane-header/50">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="font-medium text-xs">{currentCase.id.replace(/^ACTE-/, `${t('case.prefix')}-`)}</p>
             <p className="text-xs text-muted-foreground truncate">{t(`caseTemplates.integration`, currentCase.name)}</p>
           </div>
-          <span className={cn(
-            'px-1.5 py-0.5 text-xs rounded-full',
-            currentCase.status === 'open' && 'bg-success/10 text-success',
-            currentCase.status === 'pending' && 'bg-warning/10 text-warning',
-            currentCase.status === 'completed' && 'bg-primary/10 text-primary'
-          )}>
-            {currentCase.status}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setContextDialogOpen(true)}
+              className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+              title={t('caseContext.title', 'Case Context')}
+            >
+              <Info className="w-4 h-4" />
+            </button>
+            <span className={cn(
+              'px-1.5 py-0.5 text-xs rounded-full',
+              currentCase.status === 'open' && 'bg-success/10 text-success',
+              currentCase.status === 'pending' && 'bg-warning/10 text-warning',
+              currentCase.status === 'completed' && 'bg-primary/10 text-primary'
+            )}>
+              {currentCase.status}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -926,6 +939,13 @@ export default function CaseTreeExplorer() {
         fileInfo={duplicateFileInfo}
         onRename={handleDuplicateRename}
         onCancel={handleDuplicateCancel}
+      />
+
+      {/* Case Context Dialog */}
+      <CaseContextDialog
+        isOpen={contextDialogOpen}
+        onClose={() => setContextDialogOpen(false)}
+        caseId={currentCase.id}
       />
     </div>
   );

@@ -18,7 +18,9 @@
     "yes": "Yes",
     "no": "No",
     "required": "Required",
-    "optional": "Optional"
+    "optional": "Optional",
+    "copy": "Copy",
+    "tryAgain": "Try Again"
   },
   "workspace": {
     "title": "BAMF Acte Companion",
@@ -94,6 +96,24 @@
     "viewDocument": "View Document",
     "deleteFile": "Delete File"
   },
+  "documentViewer": {
+    "search": "Search",
+    "textView": "Text View",
+    "pdfView": "PDF View",
+    "convertPdf": "Convert PDF",
+    "translate": "Translate",
+    "translating": "Translating...",
+    "anonymize": "Anonymize",
+    "anonymizing": "Anonymizing...",
+    "download": "Download",
+    "metadata": "Metadata",
+    "tooltips": {
+      "searchDisabled": "Search is not supported for this document type",
+      "translateDisabled": "Translation is not supported for this document type",
+      "anonymizeDisabled": "Anonymization is only supported for image files (JPG, PNG, etc.)",
+      "convertDisabled": "PDF conversion is not supported for this document type"
+    }
+  },
   "folders": {
     "Personal Data": "Personal Data",
     "Certificates": "Certificates",
@@ -159,6 +179,31 @@
     "invalidFields": "Invalid Fields",
     "suggestions": "Suggestions"
   },
+  "submitCase": {
+    "title": "Submit Case",
+    "confirmMessage": "You are about to submit this case.",
+    "askValidation": "Would you like to run a validation check first?",
+    "validationDescription": "AI-powered validation will analyze your form data and documents for completeness.",
+    "runValidation": "Run Validation",
+    "submitWithoutCheck": "Submit Without Check",
+    "validating": "Validating case...",
+    "validatingDescription": "Analyzing form data and documents",
+    "score": "Score",
+    "scoreExcellent": "Excellent",
+    "scoreGood": "Good",
+    "scoreFair": "Fair",
+    "scorePoor": "Poor",
+    "summary": "Summary",
+    "criticalIssues": "Critical Issues",
+    "highPriority": "High Priority",
+    "mediumPriority": "Medium Priority",
+    "lowPriority": "Low Priority",
+    "recommendations": "Recommendations",
+    "closeAndContinue": "Close & Continue Working",
+    "submitAnyway": "Submit Anyway",
+    "submissionSuccess": "Case submitted successfully",
+    "validationFailed": "Validation Failed"
+  },
   "admin": {
     "title": "Admin Panel",
     "configuration": "Configuration",
@@ -219,7 +264,78 @@
     "metadataFieldDefinitions": "Metadata Field Definitions",
     "configureCustomMetadataFields": "Configure custom metadata fields for documents",
     "optionsCommaSeparated": "Options (comma-separated)",
-    "addMetadataField": "Add Metadata Field"
+    "addMetadataField": "Add Metadata Field",
+    "content": {
+      "folderNames": {
+        "Personal_Data": "Personal Data",
+        "Certificates": "Certificates",
+        "Integration_Course_Documents": "Integration Course Documents",
+        "Applications_&_Forms": "Applications & Forms",
+        "Additional_Evidence": "Additional Evidence",
+        "New_Folder": "New Folder"
+      },
+      "docTypeNames": {
+        "Birth_Certificate": "Birth Certificate",
+        "Language_Certificate": "Language Certificate",
+        "Course_Completion": "Course Completion",
+        "Application_Form": "Application Form",
+        "New_Document_Type": "New Document Type"
+      },
+      "macroNames": {
+        "Convert_to_PDF": "Convert to PDF",
+        "Translate_to_German": "Translate to German",
+        "Extract_Metadata": "Extract Metadata",
+        "Anonymize_PII": "Anonymize PII",
+        "New_Macro": "New Macro"
+      },
+      "metadataFieldNames": {
+        "Document_Date": "Document Date",
+        "Source": "Source",
+        "Classification": "Classification",
+        "Notes": "Notes",
+        "New_Field": "New Field"
+      },
+      "options": {
+        "Upload": "Upload",
+        "Email": "Email",
+        "Scan": "Scan",
+        "External_System": "External System",
+        "Public": "Public",
+        "Internal": "Internal",
+        "Confidential": "Confidential"
+      },
+      "actions": {
+        "convert_pdf": "Convert to PDF",
+        "translate_de": "Translate to German",
+        "extract_metadata": "Extract Metadata",
+        "anonymize": "Anonymize PII",
+        "ocr": "Run OCR",
+        "validate": "Validate Document",
+        "custom": "Custom Script"
+      },
+      "triggers": {
+        "upload": "On Upload",
+        "manual": "Manual"
+      },
+      "fieldTypes": {
+        "text": "Text",
+        "textarea": "Textarea",
+        "select": "Select",
+        "date": "Date",
+        "number": "Number"
+      },
+      "viewShacl": "View SHACL",
+      "viewShaclShape": "View SHACL Shape",
+      "shaclDialogTitle": "SHACL Shape - Form Configuration",
+      "shaclDialogDescription": "JSON-LD representation of the form's SHACL shape with semantic validation",
+      "optionsPlaceholder": "Option 1, Option 2, Option 3",
+      "examplePrompt1": "\"Add a required text field for passport number\"",
+      "examplePrompt2": "\"Create a date field for visa expiry date\"",
+      "examplePrompt3": "\"Add dropdown for education level with options high school, bachelor, master, phd\"",
+      "examplePrompt4": "\"I need a textarea for additional notes\"",
+      "copiedToClipboard": "Copied to clipboard",
+      "shaclCopiedSuccess": "SHACL shape copied successfully"
+    }
   },
   "case": {
     "title": "Case",
@@ -316,5 +432,547 @@
     "Relationship to Sponsor": "Relationship to Sponsor",
     "Sponsor Full Name": "Sponsor Full Name",
     "Reason for Family Reunification": "Reason for Family Reunification"
+  },
+  "caseContext": {
+    "title": "Case Context",
+    "description": "AI agent context information for this case. This shows what information is available to the AI assistant.",
+    "loading": "Loading context...",
+    "tabs": {
+      "overview": "Overview",
+      "regulations": "Regulations",
+      "documents": "Documents",
+      "folders": "Folders",
+      "issues": "Common Issues"
+    },
+    "caseInfo": "Case Information",
+    "caseId": "Case ID",
+    "caseType": "Case Type",
+    "caseName": "Name",
+    "caseDescription": "Description",
+    "applicantInfo": "Applicant Information",
+    "applicantName": "Name",
+    "dateOfBirth": "Date of Birth",
+    "nationality": "Nationality",
+    "currentStatus": "Current Status",
+    "validationRules": "Validation Rules",
+    "moreRules": "more rules",
+    "showLess": "Show less",
+    "regulationsDescription": "German laws and regulations applicable to this case type.",
+    "viewLaw": "View",
+    "documentsDescription": "Documents required for this case type with their validation requirements.",
+    "formats": "Formats",
+    "foldersDescription": "Folder structure and their expected contents for this case.",
+    "expectedDocs": "Expected Documents",
+    "validationCriteria": "Validation Criteria",
+    "issuesDescription": "Common issues encountered in this case type and recommended solutions.",
+    "suggestion": "Suggestion",
+    "critical": "Critical",
+    "optional": "Optional",
+    "content": {
+      "caseTypes": {
+        "integration_course": "Integration Course",
+        "asylum_application": "Asylum Application",
+        "family_reunification": "Family Reunification"
+      },
+      "caseNames": {
+        "German_Integration_Course_Application": "German Integration Course Application"
+      },
+      "descriptions": {
+        "integration_course": "Application for participation in an integration course according to §43 AufenthG. This includes the language course (600 hours) and the orientation course (100 hours)."
+      },
+      "statuses": {
+        "Refugee_with_residence_permit": "Refugee with residence permit",
+        "Asylum_seeker": "Asylum seeker",
+        "Family_member": "Family member"
+      },
+      "nationalities": {
+        "Syrian": "Syrian",
+        "Afghan": "Afghan",
+        "Afghanistan": "Afghanistan",
+        "Iraqi": "Iraqi",
+        "Turkish": "Turkish",
+        "German": "German"
+      },
+      "ruleNames": {
+        "age_verification": "Age Verification",
+        "residence_status_check": "Residence Status Check",
+        "residence_eligibility_integration": "Residence Eligibility for Integration",
+        "document_validity": "Document Validity",
+        "address_consistency": "Address Consistency",
+        "name_consistency": "Name Consistency",
+        "language_level_assessment": "Language Level Assessment",
+        "language_level_assessment_integration": "Language Level Assessment for Integration",
+        "course_eligibility": "Course Eligibility",
+        "course_history_check": "Course History Check",
+        "obligation_verification_integration": "Obligation Verification",
+        "translation_requirement": "Translation Requirement",
+        "photo_compliance": "Photo Compliance"
+      },
+      "validationRules": {
+        "age_verification": "Applicant must be at least 18 years old or have parental consent if minor",
+        "residence_status_check": "Valid residence permit or ongoing asylum procedure required",
+        "residence_eligibility_integration": "Applicant must hold residence permit type eligible for integration course (§43 AufenthG)",
+        "document_validity": "All identity documents must be valid and not expired",
+        "address_consistency": "Address must be consistent across all documents",
+        "name_consistency": "Name spelling must match across all documents",
+        "language_level_assessment": "Current language level must be documented",
+        "language_level_assessment_integration": "If language certificate provided, verify CEFR level for integration course placement",
+        "course_eligibility": "Must meet eligibility criteria for integration course",
+        "course_history_check": "Previous integration course participation must be documented if applicable",
+        "obligation_verification_integration": "If obligated to attend integration course (§44 AufenthG), verify referral documentation",
+        "translation_requirement": "Foreign language documents require certified German translation",
+        "photo_compliance": "Passport photo must meet biometric standards"
+      },
+      "regulations": {
+        "§43_AufenthG": {
+          "title": "Integration Course Entitlement",
+          "summary": "Defines who is entitled to participate in an integration course and the basic requirements."
+        },
+        "§44_AufenthG": {
+          "title": "Integration Course Obligation",
+          "summary": "Defines when participation in an integration course can be mandatory."
+        },
+        "§44a_AufenthG": {
+          "title": "Integration Course Procedure",
+          "summary": "Regulates the procedure for admission to the integration course."
+        },
+        "§45_AufenthG": {
+          "title": "Integration Program",
+          "summary": "Framework for integration programs beyond language courses."
+        },
+        "§45a_AufenthG": {
+          "title": "Vocational Language Courses",
+          "summary": "Regulates job-related German language courses (DeuFöV)."
+        },
+        "IntV_§4": {
+          "title": "Course Structure",
+          "summary": "Defines the structure and content of integration courses."
+        },
+        "IntV_§5": {
+          "title": "Language Course",
+          "summary": "600 teaching units of German language instruction."
+        },
+        "IntV_§6": {
+          "title": "Orientation Course",
+          "summary": "100 teaching units covering German legal system, history, and culture."
+        },
+        "IntV_§17": {
+          "title": "Final Test",
+          "summary": "Requirements for the German Test for Immigrants (DTZ)."
+        },
+        "IntV_§11": {
+          "title": "Cost Exemption",
+          "summary": "Regulates cost exemption for integration course participants receiving benefits."
+        },
+        "IntV_§13": {
+          "title": "Special Courses",
+          "summary": "Establishes specialized integration courses including youth, parent/women, and intensive courses."
+        },
+        "SGB_II_§3": {
+          "title": "Social Security Integration",
+          "summary": "Integration measures in the context of basic security benefits."
+        },
+        "SGB_II_§44a": {
+          "title": "Integration Course Obligation (SGB II)",
+          "summary": "Social Code provisions regarding integration course obligations for unemployment benefit recipients."
+        },
+        "SGB_III_§45": {
+          "title": "Employment Agency Support",
+          "summary": "Support measures through the Federal Employment Agency."
+        }
+      },
+      "documents": {
+        "birth_certificate": {
+          "name": "Birth Certificate",
+          "description": "Official birth certificate for identity verification.",
+          "notes": "Translation required if not in German."
+        },
+        "passport": {
+          "name": "Passport",
+          "description": "Valid passport or travel document.",
+          "notes": "Copy of all relevant pages required."
+        },
+        "residence_permit": {
+          "name": "Residence Permit",
+          "description": "Current residence permit or proof of residence status.",
+          "notes": "Must be valid for the duration of the course."
+        },
+        "registration_certificate": {
+          "name": "Registration Certificate",
+          "description": "Official registration at current place of residence.",
+          "notes": "Must be current (not older than 3 months)."
+        },
+        "language_certificate": {
+          "name": "Language Certificate",
+          "description": "Certificate of current German language level.",
+          "notes": "A1/A2 certificates accepted."
+        },
+        "application_form": {
+          "name": "Application Form",
+          "description": "Completed integration course application form.",
+          "notes": "All fields must be filled in."
+        },
+        "passport_photo": {
+          "name": "Passport Photo",
+          "description": "Recent biometric passport photo.",
+          "notes": "Standard biometric requirements apply."
+        },
+        "health_insurance": {
+          "name": "Health Insurance",
+          "description": "Proof of health insurance coverage.",
+          "notes": "Public or private insurance accepted."
+        },
+        "employment_status": {
+          "name": "Employment Status",
+          "description": "Documentation of current employment or job-seeking status.",
+          "notes": "Jobcenter confirmation if applicable."
+        },
+        "education_certificates": {
+          "name": "Education Certificates",
+          "description": "Educational qualifications from home country.",
+          "notes": "Certified translations required."
+        },
+        "marriage_certificate": {
+          "name": "Marriage Certificate",
+          "description": "Marriage certificate if applicable.",
+          "notes": "For family-related applications."
+        },
+        "income_proof": {
+          "name": "Income Proof",
+          "description": "Proof of income or financial support.",
+          "notes": "Last 3 months of payslips or benefit statements."
+        },
+        "motivation_letter": {
+          "name": "Motivation Letter",
+          "description": "Personal statement about integration goals.",
+          "notes": "Optional but recommended."
+        },
+        "medical_certificate": {
+          "name": "Medical Certificate",
+          "description": "Medical fitness certificate if required.",
+          "notes": "For special course placements."
+        },
+        "childcare_confirmation": {
+          "name": "Childcare Confirmation",
+          "description": "Confirmation of childcare arrangements.",
+          "notes": "For parents with young children."
+        },
+        "previous_course_certificate": {
+          "name": "Previous Course Certificate",
+          "description": "Certificate of any previous integration course attendance.",
+          "notes": "If switching courses."
+        },
+        "exemption_request": {
+          "name": "Exemption Request",
+          "description": "Request for exemption from course fees.",
+          "notes": "Income documentation required."
+        },
+        "employment_certificate": {
+          "name": "Employment Certificate",
+          "description": "Employment certificate from current employer showing employment status, working hours, and position.",
+          "notes": "Required if employed and seeking part-time or evening course."
+        },
+        "social_benefits_notice": {
+          "name": "Social Benefits Notice (ALG II / Social Assistance)",
+          "description": "Current benefits notice from Jobcenter or Social Services showing benefit type and amount.",
+          "notes": "Required for cost exemption."
+        },
+        "health_insurance_card": {
+          "name": "Health Insurance Card",
+          "description": "Valid German health insurance card.",
+          "notes": "Both statutory and private health insurance accepted."
+        },
+        "integration_course_application_form": {
+          "name": "Integration Course Application Form",
+          "description": "Completed BAMF application form for integration course admission (Form 630.007w).",
+          "notes": "All sections must be completed with signature."
+        },
+        "previous_course_certificates": {
+          "name": "Previous Course Certificates",
+          "description": "Certificates from any previously attended German language or integration courses.",
+          "notes": "Must show course provider, hours attended, and completion status."
+        },
+        "referral_letter": {
+          "name": "Referral/Obligation Letter",
+          "description": "Official referral or obligation letter from immigration office or Jobcenter.",
+          "notes": "Required only if obligated to attend per §44 AufenthG."
+        },
+        "children_birth_certificates": {
+          "name": "Children's Birth Certificates",
+          "description": "Birth certificates of dependent children if relevant for childcare considerations.",
+          "notes": "Required for parent/women courses with childcare component."
+        },
+        "childcare_proof": {
+          "name": "Childcare Proof",
+          "description": "Proof of childcare arrangements during course hours.",
+          "notes": "Important for scheduling course attendance."
+        }
+      },
+      "docTypes": {
+        "birth_certificate": "Birth Certificate",
+        "passport": "Passport",
+        "national_id": "National ID",
+        "residence_permit": "Residence Permit",
+        "registration_certificate": "Registration Certificate",
+        "passport_photo": "Passport Photo",
+        "language_certificate": "Language Certificate",
+        "educational_certificate": "Educational Certificate",
+        "education_certificates": "Education Certificates",
+        "integration_course_certificate": "Integration Course Certificate",
+        "application_form": "Application Form",
+        "integration_course_application_form": "Integration Course Application Form",
+        "confirmation_letter": "Confirmation Letter",
+        "fee_receipt": "Fee Receipt",
+        "employment_certificate": "Employment Certificate",
+        "benefit_statement": "Benefit Statement",
+        "social_benefits_notice": "Social Benefits Notice",
+        "health_insurance_card": "Health Insurance Card",
+        "previous_course_certificates": "Previous Course Certificates",
+        "referral_letter": "Referral Letter",
+        "marriage_certificate": "Marriage Certificate",
+        "children_birth_certificates": "Children's Birth Certificates",
+        "medical_certificate": "Medical Certificate",
+        "childcare_proof": "Childcare Proof",
+        "supporting_document": "Supporting Document"
+      },
+      "folders": {
+        "personal-data": {
+          "name": "Personal Data",
+          "purpose": "Identity verification and personal information documents for Ahmad Ali's integration course application."
+        },
+        "certificates": {
+          "name": "Certificates",
+          "purpose": "Educational and language certificates including diplomas, qualifications, and language proficiency documentation."
+        },
+        "integration-docs": {
+          "name": "Integration Documents",
+          "purpose": "Integration course specific documentation including enrollment, attendance, and course progress files."
+        },
+        "applications": {
+          "name": "Applications & Forms",
+          "purpose": "Official application forms, BAMF submissions, and formal correspondence documents."
+        },
+        "emails": {
+          "name": "Emails",
+          "purpose": "Email correspondence related to the integration course application and case processing."
+        },
+        "evidence": {
+          "name": "Additional Evidence",
+          "purpose": "Supporting documents and additional evidence required for the integration course application."
+        }
+      },
+      "criteria": {
+        "identity_verification": "Verify identity through official government-issued documents",
+        "document_authenticity": "Supporting documents must be authentic",
+        "completeness_check": "Ensure all required information is present",
+        "language_requirements": "Verify language requirements are met",
+        "eligibility_verification": "Confirm eligibility criteria are satisfied",
+        "name_consistency": "Full name must be consistent across all identity documents",
+        "valid_dates": "All date fields must be valid and logically consistent",
+        "certified_translations": "Afghan documents require certified German translations",
+        "nationality_verification": "Verify Afghan nationality and refugee status documentation",
+        "cefr_level_verified": "Language proficiency must be verified with CEFR level certificate",
+        "issuing_institution": "Certificate must be from BAMF-recognized institution",
+        "test_date_validity": "Test date must be within the accepted validity period",
+        "form_completeness": "All required form fields must be properly filled",
+        "signature_verification": "All signatures must be present and valid",
+        "fee_verification": "Course fees or exemption documentation must be provided",
+        "recognized_institution": "Language certificates must be from BAMF-recognized institutions",
+        "cefr_level_valid": "Language certificates must clearly state CEFR level achieved",
+        "within_validity_period": "Certificates should be current and valid",
+        "accredited_provider": "Course documents must be from BAMF-accredited providers",
+        "minimum_hours": "Attendance records must show sufficient course hours",
+        "completion_status": "Track course progress toward completion",
+        "all_required_fields": "Application forms must have all mandatory fields completed",
+        "valid_signature": "All forms must be properly signed by the applicant",
+        "course_preference": "Application should indicate course preference",
+        "official_sender": "Verify communications are from official sources",
+        "relevant_to_case": "Correspondence must relate to the applicant's case",
+        "date_and_timeline": "Track communication dates for timeline",
+        "relevant_to_application": "Evidence must support the integration course application",
+        "properly_translated": "Afghan documents require certified translation"
+      },
+      "categories": {
+        "document": "Document",
+        "form": "Form",
+        "eligibility": "Eligibility",
+        "process": "Process",
+        "communication": "Communication"
+      },
+      "frequencies": {
+        "very_common": "Very Common",
+        "common": "Common",
+        "occasional": "Occasional",
+        "rare": "Rare"
+      },
+      "issues": {
+        "Missing_certified_translation": {
+          "issue": "Missing certified translation",
+          "suggestion": "All non-German documents require certified translation by a sworn translator (beeidigter Übersetzer). Provide translator name, certification number, and stamp. Cost typically 10-50 EUR per page."
+        },
+        "Expired_residence_permit": {
+          "issue": "Expired residence permit",
+          "suggestion": "Residence permit must be valid. If permit is expiring soon, advise applicant to apply for extension at Ausländerbehörde before integration course begins. Processing takes 4-8 weeks."
+        },
+        "Incomplete_integration_course_application_form": {
+          "issue": "Incomplete integration course application form",
+          "suggestion": "All mandatory fields must be completed including personal details, contact information, course preferences, and signature. Use official BAMF form 630.007w available at www.bamf.de"
+        },
+        "Address_mismatch_between_documents": {
+          "issue": "Address mismatch between documents",
+          "suggestion": "Registration certificate address must match current residence. If recently moved, applicant needs new Meldebescheinigung from local Bürgeramt. Process takes 1-2 weeks."
+        },
+        "Name_spelling_variations": {
+          "issue": "Name spelling variations",
+          "suggestion": "Different transliterations of non-Latin names are common. Document variations but ensure primary spelling matches official residence permit. Consider adding 'auch bekannt als' (also known as) note."
+        },
+        "Unrecognized_language_certificate_issuer": {
+          "issue": "Unrecognized language certificate issuer",
+          "suggestion": "Only BAMF-recognized institutions accepted for integration course placement: Goethe-Institut, telc, TestDaF, ÖSD. Other certificates may not be accepted for placement assessment."
+        },
+        "Previous_integration_course_discontinuati": {
+          "issue": "Previous integration course discontinuation",
+          "suggestion": "If applicant previously discontinued an integration course, documentation of reason required. Medical reasons need doctor's certificate. Personal reasons need explanation letter. May affect funding eligibility."
+        },
+        "Missing_course_preference_indication": {
+          "issue": "Missing course preference indication",
+          "suggestion": "Indicating preferred course type (intensive, part-time, evening) and location helps with faster placement in integration courses. Consider work schedule, childcare needs, and travel time."
+        },
+        "Passport_expiring_during_course_period": {
+          "issue": "Passport expiring during course period",
+          "suggestion": "If passport expires during 6-12 month course period, advise renewal at embassy/consulate before course start. Integration course certificate (DTZ/LiD) requires valid ID at examination."
+        },
+        "Missing_proof_for_cost_exemption": {
+          "issue": "Missing proof for cost exemption",
+          "suggestion": "To receive cost exemption (Kostenbeitragsbefreiung), must provide current benefits notice (ALG II, Sozialhilfe, AsylbLG). Standard fee is 2.29 EUR per teaching hour (total ~1600 EUR for 700-hour course)."
+        },
+        "Photo_does_not_meet_biometric_standards": {
+          "issue": "Photo does not meet biometric standards",
+          "suggestion": "Biometric photo requirements: 35x45mm, taken within 6 months, neutral expression, white/light gray background, no sunglasses, facing forward. Photo booths at post offices, train stations, and photo studios provide compliant photos."
+        },
+        "Registration_certificate_older_than_3_mont": {
+          "issue": "Registration certificate older than 3 months",
+          "suggestion": "Meldebescheinigung must be current (issued within 3 months). Obtain new certificate from local Bürgeramt/Einwohnermeldeamt. Usually available same day or within 1 week."
+        },
+        "Health_insurance_card_not_valid": {
+          "issue": "Health insurance card not valid",
+          "suggestion": "Health insurance coverage is mandatory for course enrollment. If card expired or invalid, contact health insurance provider (gesetzliche Krankenkasse) immediately for replacement. Cannot start course without valid insurance."
+        },
+        "Wrong_residence_permit_type_for_entitleme": {
+          "issue": "Wrong residence permit type for entitlement",
+          "suggestion": "Not all residence permit types grant automatic entitlement to integration course. Check §43 AufenthG eligibility. If not entitled, can still apply for admission per §44 AufenthG if places available."
+        },
+        "Application_submitted_to_wrong_BAMF_region": {
+          "issue": "Application submitted to wrong BAMF regional office",
+          "suggestion": "Applications must be submitted to BAMF regional office responsible for applicant's place of residence. Use BAMF-NAvI tool on www.bamf.de to find correct office. Wrong office will return application causing delays."
+        },
+        "Missing_official_stamp_on_registration_cer": {
+          "issue": "Missing official stamp on registration certificate",
+          "suggestion": "Meldebescheinigung must bear official stamp (Dienstsiegel) of issuing Bürgeramt/Einwohnermeldeamt. Simple address confirmation letters are not sufficient. Request official stamped certificate."
+        },
+        "Course_obligation_deadline_passed": {
+          "issue": "Course obligation deadline passed",
+          "suggestion": "If obligated to attend per §44 AufenthG, referral letter specifies enrollment deadline. Missing deadline can result in residence permit issues or benefit sanctions per §44a SGB II. Contact issuing authority immediately if deadline approaching."
+        },
+        "Childcare_needs_not_addressed": {
+          "issue": "Childcare needs not addressed",
+          "suggestion": "Parents with young children should inquire about Elternkurse (parent courses) or Frauenkurse (women's courses) that include childcare. Alternatively, arrange external childcare before course start to ensure regular attendance."
+        },
+        "Literacy_level_unclear": {
+          "issue": "Literacy level unclear",
+          "suggestion": "If applicant not literate in Latin script or native language, requires Alphabetisierungskurs (literacy course) per IntV §6. These courses have 1000 hours instead of standard 700. Provide education certificates to help assessment."
+        },
+        "Special_accommodation_needs_not_documented": {
+          "issue": "Special accommodation needs not documented",
+          "suggestion": "Applicants with disabilities, chronic illnesses, or special needs should provide medical certificate detailing required accommodations (wheelchair access, hearing loop, visual aids, extra time). Course providers can make arrangements if informed in advance."
+        },
+        "Employment_schedule_conflicts_with_course_": {
+          "issue": "Employment schedule conflicts with course times",
+          "suggestion": "Employed applicants should provide work schedule to find compatible course (part-time, evening, weekend). Some course providers offer flexible schedules. Discuss with employer possibility of paid educational leave (Bildungsurlaub)."
+        },
+        "Digital_application_issues_(online_portal_": {
+          "issue": "Digital application issues (online portal problems)",
+          "suggestion": "If experiencing issues with online application portal, use paper form 630.007w and submit by mail to BAMF regional office. Include all required documents as certified copies. Keep proof of mailing (Einschreiben recommended)."
+        },
+        "Translator_credentials_missing_on_translat": {
+          "issue": "Translator credentials missing on translation",
+          "suggestion": "Certified translations must include: translator's full name, certification number, official stamp, signature, and date. Translation by friend/family member not accepted. Find sworn translators at local court (Landgericht) or via Bundesverband der Dolmetscher und Übersetzer (BDÜ)."
+        },
+        "Course_waiting_list_(no_immediate_placemen": {
+          "issue": "Course waiting list (no immediate placement)",
+          "suggestion": "High demand may result in waiting lists. Apply as early as possible. If obligated per §44 AufenthG, obligation is fulfilled by timely application. While waiting, consider voluntary German courses at Volkshochschule (VHS) or community organizations."
+        }
+      },
+      "categories": {
+        "documentation": "Documentation",
+        "language_requirements": "Language Requirements",
+        "previous_applications": "Previous Applications",
+        "procedural": "Procedural",
+        "fees": "Fees",
+        "eligibility": "Eligibility",
+        "deadlines": "Deadlines",
+        "family_related": "Family Related",
+        "health_related": "Health Related",
+        "technical_issues": "Technical Issues"
+      },
+      "frequencies": {
+        "very_common": "Very Common",
+        "common": "Common",
+        "occasional": "Occasional",
+        "rare": "Rare"
+      },
+      "checkPoints": {
+        "First_name_spelling_Ahmad": "First name spelling (Ahmad)",
+        "Last_name_spelling_Ali": "Last name spelling (Ali)",
+        "Name_order_consistency": "Name order consistency",
+        "Birth_date_15051990": "Birth date: 15.05.1990",
+        "Document_issue_dates": "Document issue dates",
+        "Document_expiry_dates": "Document expiry dates",
+        "Translator_certification_present": "Translator certification present",
+        "Translation_completeness": "Translation completeness",
+        "DariPashto_documents_translated": "Dari/Pashto documents translated",
+        "Nationality_stated_as_Afghanistan": "Nationality stated as Afghanistan",
+        "Refugee_status_confirmed": "Refugee status confirmed",
+        "Residence_permit_type_appropriate": "Residence permit type appropriate",
+        "Institution_name_verified": "Institution name verified",
+        "BAMF_accreditation_confirmed": "BAMF accreditation confirmed",
+        "CEFR_level_explicitly_stated": "CEFR level explicitly stated",
+        "Current_level_A1_based_on_existing_certificate": "Current level: A1 (based on existing certificate)",
+        "Test_date_documented": "Test date documented",
+        "Issue_date_visible": "Issue date visible",
+        "Within_25_year_validity": "Within 2-5 year validity",
+        "Provider_name_and_accreditation_number": "Provider name and accreditation number",
+        "BAMF_certification_reference": "BAMF certification reference",
+        "Total_hours_attended": "Total hours attended",
+        "Minimum_50_attendance_required": "Minimum 50% attendance required",
+        "Module_completion": "Module completion",
+        "DTZ_test_preparation": "DTZ test preparation",
+        "LiD_test_preparation": "LiD test preparation",
+        "Personal_information_Ahmad_Ali": "Personal information: Ahmad Ali",
+        "Date_of_birth_15051990": "Date of birth: 15.05.1990",
+        "Nationality_Afghanistan": "Nationality: Afghanistan",
+        "Contact_details": "Contact details",
+        "Course_preference": "Course preference",
+        "Signature_present": "Signature present",
+        "Date_accompanies_signature": "Date accompanies signature",
+        "Signature_consistent": "Signature consistent",
+        "Course_type_selected": "Course type selected",
+        "Preferred_schedule": "Preferred schedule",
+        "Location_preference_if_any": "Location preference if any",
+        "Sender_email_domain_is_official": "Sender email domain is official",
+        "Reference_numbers_included": "Reference numbers included",
+        "Case_reference_ACTE2024001": "Case reference: ACTE-2024-001",
+        "Applicant_name_Ahmad_Ali": "Applicant name: Ahmad Ali",
+        "Subject_relates_to_integration_course": "Subject relates to integration course",
+        "Send_date_visible": "Send date visible",
+        "Response_deadlines_noted": "Response deadlines noted",
+        "Connection_to_eligibility_criteria": "Connection to eligibility criteria",
+        "Supports_claims_in_application": "Supports claims in application",
+        "Official_source_identifiable": "Official source identifiable",
+        "Document_not_altered": "Document not altered",
+        "Translation_attached_for_nonGerman_documents": "Translation attached for non-German documents",
+        "Translator_credentials_present": "Translator credentials present"
+      }
+    }
   }
 }

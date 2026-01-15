@@ -43,6 +43,8 @@ class AnonymizationToolResult:
         original_path: Path to the original document.
         anonymized_path: Path to the saved anonymized document.
         detections_count: Number of PII fields detected and masked.
+        detection_labels: List of field names (labels) that were detected and masked.
+        detections: Full detection data with field names and coordinates for overlay display.
         error: Error message if operation failed.
         render_metadata: S5-006: Render metadata for document registry (optional)
     """
@@ -50,6 +52,8 @@ class AnonymizationToolResult:
     original_path: str
     anonymized_path: Optional[str] = None
     detections_count: int = 0
+    detection_labels: Optional[list] = None
+    detections: Optional[dict] = None
     error: Optional[str] = None
     render_metadata: Optional[dict] = None
 
@@ -239,6 +243,7 @@ async def anonymize_document(
     logger.info(
         f"Anonymization complete - "
         f"detections: {result.detections_count}, "
+        f"labels: {result.detection_labels}, "
         f"output: {anonymized_path}"
     )
 
@@ -247,10 +252,16 @@ async def anonymize_document(
     if register_render and document_id:
         try:
             from backend.services.file_service import add_document_render
+            # Include detection data in render metadata for label overlay display
+            render_extra_metadata = {
+                'detections': result.detections or {},
+                'detectionLabels': result.detection_labels or [],
+            }
             render_metadata = add_document_render(
                 document_id=document_id,
                 render_type='anonymized',
-                file_path=anonymized_path
+                file_path=anonymized_path,
+                metadata=render_extra_metadata
             )
             logger.info(f"Registered anonymized render: {render_metadata['id']}")
         except Exception as e:
@@ -262,6 +273,8 @@ async def anonymize_document(
         original_path=file_path,
         anonymized_path=anonymized_path,
         detections_count=result.detections_count,
+        detection_labels=result.detection_labels or [],
+        detections=result.detections or {},
         render_metadata=render_metadata
     )
 

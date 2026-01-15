@@ -609,6 +609,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 // S5-006: Check if render metadata is present (new render system)
                 if (anonResponse.renderMetadata && anonResponse.documentId) {
                   // New behavior: Add render to existing document
+                  // Detection data is already included in renderMetadata.metadata from backend
                   const renderData = anonResponse.renderMetadata;
 
                   setCurrentCase(prev => ({
@@ -843,12 +844,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       // Send anonymize message type
       // S5-006: Include documentId for render registration
+      // S5-014: Include language for localized response messages
       const anonymizeMessage = {
         type: 'anonymize',
         filePath,
         caseId: currentCase.id,
         folderId: selectedDocument.folderId,
         documentId: selectedDocument.id,  // S5-006: Required for render system
+        language: currentLanguage,        // S5-014: Include language for response messages
       };
 
       wsConnection.send(JSON.stringify(anonymizeMessage));

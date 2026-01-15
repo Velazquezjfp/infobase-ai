@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { FormModificationResponse, SHACLNodeShape, validateValue } from '@/types/shacl';
+import SubmitCaseDialog from './SubmitCaseDialog';
 
 interface FormViewerProps {
   showMetadata?: boolean;
@@ -91,6 +92,9 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
 
   // S5-001: Validation state
   const [fieldValidationErrors, setFieldValidationErrors] = useState<Record<string, string>>({});
+
+  // Case submission dialog state
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
 
   // S5-001: Form modification handler
   const handleModifyForm = async () => {
@@ -245,6 +249,12 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
 
   // S5-001: Validate all fields on form submission
   const handleFormSubmit = () => {
+    // Open submit dialog instead of directly submitting
+    setShowSubmitDialog(true);
+  };
+
+  // Actual form submission after validation dialog
+  const handleConfirmedSubmit = () => {
     const errors: Record<string, string> = {};
     let isFormValid = true;
 
@@ -580,6 +590,13 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Case Submission Validation Dialog */}
+      <SubmitCaseDialog
+        open={showSubmitDialog}
+        onOpenChange={setShowSubmitDialog}
+        onSubmit={handleConfirmedSubmit}
+      />
     </div>
   );
 }

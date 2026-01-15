@@ -98,6 +98,18 @@ export interface AnonymizationRequest extends BaseMessage {
   caseId: string;
   folderId?: string;
   documentId?: string; // S5-006: Document ID for render registration
+  language?: string;   // S5-014: Language for response messages (de/en)
+}
+
+/**
+ * Detection info for a single anonymized field
+ */
+export interface DetectionInfo {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  confidence: number;
 }
 
 /**
@@ -108,6 +120,8 @@ export interface AnonymizationResponse extends BaseMessage {
   originalPath: string;
   anonymizedPath: string | null;
   detectionsCount: number;
+  detectionLabels?: string[];  // List of field names that were anonymized
+  detections?: Record<string, DetectionInfo[]>;  // Full detection data with coordinates
   success: boolean;
   error?: string;
   timestamp?: string;
