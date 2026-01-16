@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "BAMF ACTE Companion API",
-    "description": "API specification for the BAMF ACTE (Automated Case and Task Environment) Companion application.\n\n**Current Status:** This is a PLANNED API specification. The application currently operates as a\nfrontend-only prototype with simulated operations. This specification documents the target\narchitecture for future backend implementation.\n\nThe API will provide document management, AI-powered case processing, and integration course\napplication handling for BAMF (Bundesamt f\u00fcr Migration und Fl\u00fcchtlinge).\n",
-    "version": "2.1.0",
+    "description": "API specification for the BAMF ACTE (Automated Case and Task Environment) Companion application.\n\n**Current Status:** This is a PLANNED API specification. The application currently operates as a\nfrontend-only prototype with simulated operations. This specification documents the target\narchitecture for future backend implementation.\n\nThe API will provide document management, AI-powered case processing, and integration course\napplication handling for BAMF (Bundesamt für Migration und Flüchtlinge).\n",
+    "version": "2.2.0",
     "contact": {
       "name": "BAMF Development Team",
       "email": "api@bamf.example.de"
@@ -38,6 +38,10 @@
     {
       "name": "Cases",
       "description": "Case management operations"
+    },
+    {
+      "name": "Custom Context",
+      "description": "User-defined validation rules and required documents for case context"
     },
     {
       "name": "Documents",
@@ -2061,6 +2065,337 @@
         },
         "x-source-file": "src/components/workspace/FormViewer.tsx (simulated)"
       }
+    },
+    "/api/custom-context/{case_id}": {
+      "get": {
+        "tags": [
+          "Custom Context"
+        ],
+        "summary": "Get custom context rules for a case",
+        "description": "Retrieve all custom validation rules and required documents for a case.\n\n**S5-017: Custom Context Rules API**\n\nUsers can add custom validation rules and document requirements through the /Aktenkontext slash command.",
+        "operationId": "getCustomRules",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID (e.g., ACTE-2024-001)",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Custom rules retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message",
+                    "rules"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Found 2 custom rule(s)"
+                    },
+                    "rules": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CustomContextRule"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Case not found"
+                        },
+                        "case_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/custom_context.py"
+      }
+    },
+    "/api/custom-context/{case_id}/rule": {
+      "post": {
+        "tags": [
+          "Custom Context"
+        ],
+        "summary": "Add a validation rule",
+        "description": "Add a custom validation rule to the case context.\n\n**S5-017: Custom Context Rules API**",
+        "operationId": "addValidationRule",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID (e.g., ACTE-2024-001)",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "ruleType",
+                  "rule"
+                ],
+                "properties": {
+                  "targetFolder": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Target folder for the rule (optional)",
+                    "example": "Evidence"
+                  },
+                  "ruleType": {
+                    "type": "string",
+                    "description": "Type of rule",
+                    "enum": [
+                      "file_type",
+                      "content",
+                      "metadata",
+                      "completeness"
+                    ],
+                    "example": "file_type"
+                  },
+                  "rule": {
+                    "type": "string",
+                    "description": "The rule description/text",
+                    "example": "Only PDFs should be allowed in here"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation rule added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message",
+                    "rule"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Validation rule added successfully"
+                    },
+                    "rule": {
+                      "$ref": "#/components/schemas/CustomContextRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found"
+          },
+          "500": {
+            "description": "Failed to save rule"
+          }
+        },
+        "x-source-file": "backend/api/custom_context.py"
+      }
+    },
+    "/api/custom-context/{case_id}/document": {
+      "post": {
+        "tags": [
+          "Custom Context"
+        ],
+        "summary": "Add a required document",
+        "description": "Add a custom required document to the case context.\n\n**S5-017: Custom Context Rules API**",
+        "operationId": "addRequiredDocument",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID (e.g., ACTE-2024-001)",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "description"
+                ],
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the required document",
+                    "example": "Proof of German language proficiency (B1 certificate)"
+                  },
+                  "targetFolder": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Target folder for the document (optional)",
+                    "example": "Language Certificates"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Required document added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message",
+                    "rule"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Required document added successfully"
+                    },
+                    "rule": {
+                      "$ref": "#/components/schemas/CustomContextRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found"
+          },
+          "500": {
+            "description": "Failed to save document requirement"
+          }
+        },
+        "x-source-file": "backend/api/custom_context.py"
+      }
+    },
+    "/api/custom-context/{case_id}/{rule_id}": {
+      "delete": {
+        "tags": [
+          "Custom Context"
+        ],
+        "summary": "Remove a custom rule",
+        "description": "Remove a custom validation rule or required document from the case.\n\n**S5-017: Custom Context Rules API**",
+        "operationId": "removeCustomRule",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID (e.g., ACTE-2024-001)",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          },
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "description": "Rule ID to delete",
+            "schema": {
+              "type": "string",
+              "example": "custom-rule-abc12345"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message",
+                    "rule"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Rule removed successfully"
+                    },
+                    "rule": {
+                      "$ref": "#/components/schemas/CustomContextRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case or rule not found"
+          },
+          "500": {
+            "description": "Failed to save rules"
+          }
+        },
+        "x-source-file": "backend/api/custom_context.py"
+      }
     }
   },
   "components": {
@@ -2478,6 +2813,62 @@
             "type": "string",
             "description": "Name of the file involved in the error",
             "example": "document.pdf"
+          }
+        }
+      },
+      "CustomContextRule": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "createdAt",
+          "rule"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique rule identifier",
+            "example": "custom-rule-abc12345"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "validation_rule",
+              "required_document"
+            ],
+            "description": "Rule type",
+            "example": "validation_rule"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of rule creation",
+            "example": "2026-01-16T14:30:00Z"
+          },
+          "targetFolder": {
+            "type": "string",
+            "nullable": true,
+            "description": "Target folder for the rule (optional)",
+            "example": "Evidence"
+          },
+          "rule": {
+            "type": "string",
+            "description": "Rule description or document requirement text",
+            "example": "Only PDFs should be allowed in here"
+          },
+          "ruleType": {
+            "type": "string",
+            "nullable": true,
+            "description": "Classification of the rule",
+            "enum": [
+              "file_type",
+              "content",
+              "metadata",
+              "completeness",
+              "document_requirement",
+              "folder_rule"
+            ],
+            "example": "file_type"
           }
         }
       }

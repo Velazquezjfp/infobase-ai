@@ -17,6 +17,7 @@ This document provides detailed information about the BAMF ACTE Companion API en
 - [Case Management](#case-management)
 - [Document Operations](#document-operations)
 - [Context API](#context-api)
+- [Custom Context API](#custom-context-api)
 - [Search API](#search-api)
 - [File Operations](#file-operations)
 - [Validation API](#validation-api)
@@ -3403,6 +3404,583 @@ Cache invalidation ensures that the tree view always reflects the current state 
 - First call: 100-300ms (generates and caches tree)
 - Cached calls: < 50ms (returns cached tree)
 - Cache invalidation: Automatic on document changes
+
+---
+
+## Custom Context API
+
+**Current Status:** IMPLEMENTED - User-defined validation rules and required documents for case context.
+
+The Custom Context API (S5-017) provides endpoints for managing custom validation rules and required documents that users can add through the /Aktenkontext slash command. These rules are stored per-case in JSON format and can be used to define case-specific validation requirements and document expectations.
+
+### GET /api/custom-context/{case_id}
+
+Get all custom context rules for a case.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/custom_context.py`
+
+**Source:** `backend/api/custom_context.py:105-129`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Retrieves all custom validation rules and required documents for a specific case. Rules are returned in chronological order (newest first). Each rule includes a unique ID, type, creation timestamp, optional target folder, and rule text.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+
+**Rule Types:**
+
+- `validation_rule`: Custom validation rules for folders or files
+- `required_document`: Custom required document definitions
+
+**Features:**
+
+- Case-scoped custom rules
+- Target folder specification (optional)
+- Chronological ordering (newest first)
+- Persistent storage in `backend/data/contexts/cases/{caseId}/custom_rules.json`
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Found 2 custom rule(s)",
+  "rules": [
+    {
+      "id": "custom-rule-abc12345",
+      "type": "validation_rule",
+      "createdAt": "2026-01-16T14:30:00Z",
+      "targetFolder": "Evidence",
+      "rule": "Only PDFs should be allowed in here",
+      "ruleType": "file_type"
+    },
+    {
+      "id": "custom-doc-def67890",
+      "type": "required_document",
+      "createdAt": "2026-01-16T14:25:00Z",
+      "targetFolder": "Language Certificates",
+      "rule": "Proof of German language proficiency (B1 certificate)",
+      "ruleType": "document_requirement"
+    }
+  ]
+}
+```
+
+**Error Response (404 Not Found - Case Not Found):**
+```json
+{
+  "detail": {
+    "error": "Case not found",
+    "case_id": "ACTE-2024-999"
+  }
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X GET http://localhost:8000/api/custom-context/ACTE-2024-001
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const getCustomRules = async (caseId) => {
+  const response = await fetch(
+    `http://localhost:8000/api/custom-context/${caseId}`
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail?.error || 'Failed to get custom rules');
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const result = await getCustomRules('ACTE-2024-001');
+  console.log(`Found ${result.rules.length} custom rule(s)`);
+  result.rules.forEach(rule => {
+    console.log(`- [${rule.type}] ${rule.rule}`);
+    if (rule.targetFolder) {
+      console.log(`  Target folder: ${rule.targetFolder}`);
+    }
+  });
+} catch (error) {
+  console.error('Get custom rules failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def get_custom_rules(case_id: str):
+    response = requests.get(
+        f'http://localhost:8000/api/custom-context/{case_id}'
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Get custom rules failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = get_custom_rules("ACTE-2024-001")
+print(f"Found {len(result['rules'])} custom rule(s)")
+for rule in result['rules']:
+    print(f"- [{rule['type']}] {rule['rule']}")
+    if rule.get('targetFolder'):
+        print(f"  Target folder: {rule['targetFolder']}")
+```
+
+---
+
+### POST /api/custom-context/{case_id}/rule
+
+Add a custom validation rule to the case context.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/custom_context.py`
+
+**Source:** `backend/api/custom_context.py:132-177`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Creates a new validation rule for the case. The rule is assigned a unique ID (format: `custom-rule-{8-char-hex}`) and a creation timestamp. Validation rules define custom checks for documents or folders.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+
+**Request Body:**
+
+```json
+{
+  "targetFolder": "Evidence",
+  "ruleType": "file_type",
+  "rule": "Only PDFs should be allowed in here"
+}
+```
+
+**Request Body Fields:**
+
+- `targetFolder` (optional): Target folder for the rule (e.g., "Evidence", "Personal Data")
+- `ruleType` (required): Type of rule
+  - `file_type`: File type restrictions
+  - `content`: Content validation rules
+  - `metadata`: Metadata requirements
+  - `completeness`: Completeness checks
+- `rule` (required): The rule description/text
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Validation rule added successfully",
+  "rule": {
+    "id": "custom-rule-abc12345",
+    "type": "validation_rule",
+    "createdAt": "2026-01-16T14:30:00Z",
+    "targetFolder": "Evidence",
+    "rule": "Only PDFs should be allowed in here",
+    "ruleType": "file_type"
+  }
+}
+```
+
+**Error Response (404 Not Found - Case Not Found):**
+```json
+{
+  "detail": {
+    "error": "Case not found",
+    "case_id": "ACTE-2024-999"
+  }
+}
+```
+
+**Error Response (500 Internal Server Error - Save Failed):**
+```json
+{
+  "detail": {
+    "error": "Failed to save rule",
+    "case_id": "ACTE-2024-001"
+  }
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X POST http://localhost:8000/api/custom-context/ACTE-2024-001/rule \
+  -H "Content-Type: application/json" \
+  -d '{
+    "targetFolder": "Evidence",
+    "ruleType": "file_type",
+    "rule": "Only PDFs should be allowed in here"
+  }'
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const addValidationRule = async (caseId, targetFolder, ruleType, rule) => {
+  const response = await fetch(
+    `http://localhost:8000/api/custom-context/${caseId}/rule`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetFolder, ruleType, rule })
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail?.error || 'Failed to add validation rule');
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const result = await addValidationRule(
+    'ACTE-2024-001',
+    'Evidence',
+    'file_type',
+    'Only PDFs should be allowed in here'
+  );
+  console.log('Rule added:', result.rule.id);
+} catch (error) {
+  console.error('Add validation rule failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def add_validation_rule(case_id: str, target_folder: str, rule_type: str, rule: str):
+    response = requests.post(
+        f'http://localhost:8000/api/custom-context/{case_id}/rule',
+        json={
+            'targetFolder': target_folder,
+            'ruleType': rule_type,
+            'rule': rule
+        }
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Add validation rule failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = add_validation_rule(
+    "ACTE-2024-001",
+    "Evidence",
+    "file_type",
+    "Only PDFs should be allowed in here"
+)
+print(f"Rule added: {result['rule']['id']}")
+```
+
+---
+
+### POST /api/custom-context/{case_id}/document
+
+Add a custom required document to the case context.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/custom_context.py`
+
+**Source:** `backend/api/custom_context.py:180-225`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Creates a new required document definition for the case. The document requirement is assigned a unique ID (format: `custom-doc-{8-char-hex}`) and a creation timestamp. The `ruleType` is automatically set to `document_requirement`.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+
+**Request Body:**
+
+```json
+{
+  "description": "Proof of German language proficiency (B1 certificate)",
+  "targetFolder": "Language Certificates"
+}
+```
+
+**Request Body Fields:**
+
+- `description` (required): Description of the required document
+- `targetFolder` (optional): Target folder for the document (e.g., "Language Certificates")
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Required document added successfully",
+  "rule": {
+    "id": "custom-doc-def67890",
+    "type": "required_document",
+    "createdAt": "2026-01-16T14:25:00Z",
+    "targetFolder": "Language Certificates",
+    "rule": "Proof of German language proficiency (B1 certificate)",
+    "ruleType": "document_requirement"
+  }
+}
+```
+
+**Error Response (404 Not Found - Case Not Found):**
+```json
+{
+  "detail": {
+    "error": "Case not found",
+    "case_id": "ACTE-2024-999"
+  }
+}
+```
+
+**Error Response (500 Internal Server Error - Save Failed):**
+```json
+{
+  "detail": {
+    "error": "Failed to save document requirement",
+    "case_id": "ACTE-2024-001"
+  }
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X POST http://localhost:8000/api/custom-context/ACTE-2024-001/document \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Proof of German language proficiency (B1 certificate)",
+    "targetFolder": "Language Certificates"
+  }'
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const addRequiredDocument = async (caseId, description, targetFolder = null) => {
+  const response = await fetch(
+    `http://localhost:8000/api/custom-context/${caseId}/document`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description, targetFolder })
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail?.error || 'Failed to add required document');
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const result = await addRequiredDocument(
+    'ACTE-2024-001',
+    'Proof of German language proficiency (B1 certificate)',
+    'Language Certificates'
+  );
+  console.log('Document requirement added:', result.rule.id);
+} catch (error) {
+  console.error('Add required document failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def add_required_document(case_id: str, description: str, target_folder: str = None):
+    response = requests.post(
+        f'http://localhost:8000/api/custom-context/{case_id}/document',
+        json={
+            'description': description,
+            'targetFolder': target_folder
+        }
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Add required document failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = add_required_document(
+    "ACTE-2024-001",
+    "Proof of German language proficiency (B1 certificate)",
+    "Language Certificates"
+)
+print(f"Document requirement added: {result['rule']['id']}")
+```
+
+---
+
+### DELETE /api/custom-context/{case_id}/{rule_id}
+
+Remove a custom rule from the case.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/custom_context.py`
+
+**Source:** `backend/api/custom_context.py:228-277`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Deletes a rule by its ID and saves the updated rule set. Works for both `validation_rule` and `required_document` types. The deleted rule is returned in the response.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+- `rule_id` (required): Rule ID to delete (e.g., "custom-rule-abc12345" or "custom-doc-def67890")
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Rule removed successfully",
+  "rule": {
+    "id": "custom-rule-abc12345",
+    "type": "validation_rule",
+    "createdAt": "2026-01-16T14:30:00Z",
+    "targetFolder": "Evidence",
+    "rule": "Only PDFs should be allowed in here",
+    "ruleType": "file_type"
+  }
+}
+```
+
+**Error Response (404 Not Found - Case Not Found):**
+```json
+{
+  "detail": {
+    "error": "Case not found",
+    "case_id": "ACTE-2024-999"
+  }
+}
+```
+
+**Error Response (404 Not Found - Rule Not Found):**
+```json
+{
+  "detail": {
+    "error": "Rule not found",
+    "rule_id": "custom-rule-nonexistent"
+  }
+}
+```
+
+**Error Response (500 Internal Server Error - Save Failed):**
+```json
+{
+  "detail": {
+    "error": "Failed to save rules",
+    "case_id": "ACTE-2024-001"
+  }
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X DELETE http://localhost:8000/api/custom-context/ACTE-2024-001/custom-rule-abc12345
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const removeCustomRule = async (caseId, ruleId) => {
+  const response = await fetch(
+    `http://localhost:8000/api/custom-context/${caseId}/${ruleId}`,
+    { method: 'DELETE' }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail?.error || 'Failed to remove custom rule');
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const result = await removeCustomRule('ACTE-2024-001', 'custom-rule-abc12345');
+  console.log('Rule removed:', result.rule.id);
+} catch (error) {
+  console.error('Remove custom rule failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def remove_custom_rule(case_id: str, rule_id: str):
+    response = requests.delete(
+        f'http://localhost:8000/api/custom-context/{case_id}/{rule_id}'
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Remove custom rule failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+result = remove_custom_rule("ACTE-2024-001", "custom-rule-abc12345")
+print(f"Rule removed: {result['rule']['id']}")
+```
+
+---
+
+**Storage Format:**
+
+Custom rules are stored in `backend/data/contexts/cases/{caseId}/custom_rules.json`:
+
+```json
+{
+  "caseId": "ACTE-2024-001",
+  "lastModified": "2026-01-16T14:30:00Z",
+  "rules": [
+    {
+      "id": "custom-rule-abc12345",
+      "type": "validation_rule",
+      "createdAt": "2026-01-16T14:30:00Z",
+      "targetFolder": "Evidence",
+      "rule": "Only PDFs should be allowed in here",
+      "ruleType": "file_type"
+    }
+  ]
+}
+```
+
+**Use Cases:**
+
+- **Custom validation rules:** Define folder-specific file type restrictions
+- **Required documents:** Specify additional documents needed for submission
+- **Case-specific requirements:** Add rules tailored to individual case needs
+- **Dynamic context:** Update case requirements as they evolve
+- **/Aktenkontext integration:** Rules created via slash command are managed through this API
 
 ---
 

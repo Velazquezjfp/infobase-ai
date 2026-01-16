@@ -23,7 +23,7 @@
     "tryAgain": "Erneut versuchen"
   },
   "workspace": {
-    "title": "BAMF Acte Companion",
+    "title": "BAMF Akte Companion",
     "search": "Suchen",
     "newCase": "Neuer Fall",
     "adminMode": "Admin-Modus",
@@ -273,6 +273,10 @@
     "configureCustomMetadataFields": "Konfigurieren Sie benutzerdefinierte Metadatenfelder für Dokumente",
     "optionsCommaSeparated": "Optionen (durch Kommas getrennt)",
     "addMetadataField": "Metadatenfeld hinzufügen",
+    "foldersSaved": "Ordner gespeichert",
+    "foldersSavedDescription": "Ordnerkonfiguration wurde erfolgreich gespeichert.",
+    "foldersSaveError": "Fehler beim Speichern",
+    "foldersSaveErrorDescription": "Ordnerkonfiguration konnte nicht gespeichert werden.",
     "content": {
       "folderNames": {
         "Personal_Data": "Persönliche Daten",

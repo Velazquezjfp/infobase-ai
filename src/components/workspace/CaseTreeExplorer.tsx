@@ -175,27 +175,9 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
   const isHighlighted = highlightedFolder === folder.id;
 
   // Check if this folder allows file deletion
-  // Allow deletion from common user folders, but protect system folders
-  const canDeleteFiles = [
-    'uploads',
-    'personal-data',
-    'certificates',
-    'emails',
-    'documents',
-    'attachments',
-    'evidence',
-    'applications'
-  ].includes(folder.id.toLowerCase()) ||
-  [
-    'uploads',
-    'personal data',
-    'certificates',
-    'emails',
-    'documents',
-    'attachments',
-    'evidence',
-    'applications'
-  ].includes(folder.name.toLowerCase());
+  // All user-configured folders allow deletion. Only protect reserved system folders.
+  const protectedFolders = ['system', 'readonly'];
+  const canDeleteFiles = !protectedFolders.includes(folder.id.toLowerCase());
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -330,7 +312,7 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
               <FolderIcon className="w-4 h-4 text-warning" />
             )}
             <span className="flex-1 truncate">
-              {isDragOver ? t('documents.dropHere') : (t(`folders.${folder.name}`, folder.name))}
+              {isDragOver ? t('documents.dropHere') : folder.name}
             </span>
             <span className="text-xs text-muted-foreground">
               {folder.documents.length}

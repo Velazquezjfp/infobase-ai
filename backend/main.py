@@ -31,6 +31,7 @@ from backend.api.context import router as context_router  # S5-011
 from backend.api.search import router as search_router  # S5-003
 from backend.api.validation import router as validation_router  # Case validation
 from backend.api.custom_context import router as custom_context_router  # S5-017
+from backend.api.folders import router as folders_router  # Folder management
 
 # Configure logging
 logging.basicConfig(
@@ -59,32 +60,38 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Starting BAMF AI Case Management Backend...")
 
     # S5-015: Initialize test documents for ACTE-2024-001
-    try:
-        from backend.scripts.initialize_test_documents import (
-            initialize_test_documents,
-            cleanup_old_test_documents
-        )
-
-        logger.info("Running test document initialization...")
-
-        # Clean up old .txt test files first
-        deleted_count = cleanup_old_test_documents()
-        if deleted_count > 0:
-            logger.info(f"Removed {deleted_count} old test documents")
-
-        # Copy new sample documents from root_docs
-        stats = initialize_test_documents()
-        if stats["copied"] > 0:
-            logger.info(
-                f"Initialized {stats['copied']} test documents "
-                f"(skipped {stats['skipped']}, failed {stats['failed']})"
+    # DISABLED: Auto-initialization is disabled to allow starting with empty folders
+    # Set INIT_TEST_DOCS=true to re-enable auto-initialization of test documents
+    import os
+    if os.getenv("INIT_TEST_DOCS", "false").lower() == "true":
+        try:
+            from backend.scripts.initialize_test_documents import (
+                initialize_test_documents,
+                cleanup_old_test_documents
             )
-        elif stats["skipped"] > 0:
-            logger.debug(f"Test documents already initialized ({stats['skipped']} files exist)")
 
-    except Exception as e:
-        logger.warning(f"Test document initialization failed: {e}", exc_info=True)
-        logger.info("Application will continue normally")
+            logger.info("Running test document initialization...")
+
+            # Clean up old .txt test files first
+            deleted_count = cleanup_old_test_documents()
+            if deleted_count > 0:
+                logger.info(f"Removed {deleted_count} old test documents")
+
+            # Copy new sample documents from root_docs
+            stats = initialize_test_documents()
+            if stats["copied"] > 0:
+                logger.info(
+                    f"Initialized {stats['copied']} test documents "
+                    f"(skipped {stats['skipped']}, failed {stats['failed']})"
+                )
+            elif stats["skipped"] > 0:
+                logger.debug(f"Test documents already initialized ({stats['skipped']} files exist)")
+
+        except Exception as e:
+            logger.warning(f"Test document initialization failed: {e}", exc_info=True)
+            logger.info("Application will continue normally")
+    else:
+        logger.info("Test document auto-initialization is disabled (set INIT_TEST_DOCS=true to enable)")
 
     # S5-007: Document registry reconciliation on startup
     try:
@@ -180,6 +187,7 @@ app.include_router(context_router, tags=["context"])  # S5-011
 app.include_router(search_router, prefix="/api/search", tags=["search"])  # S5-003
 app.include_router(validation_router, prefix="/api/validation", tags=["validation"])  # Case validation
 app.include_router(custom_context_router, tags=["custom-context"])  # S5-017
+app.include_router(folders_router, tags=["folders"])  # Folder management
 
 
 @app.get("/health")

@@ -46,13 +46,23 @@ class DocumentResponse(BaseModel):
     renders: List[Dict] = Field(default_factory=list, description="S5-006: Document renders (original, anonymized, translated, etc.)")
 
 
+class LocalizedName(BaseModel):
+    """Localized folder name."""
+    de: str = Field(..., description="German name")
+    en: str = Field(..., description="English name")
+
+
 class FolderResponse(BaseModel):
     """Response model for a folder containing documents."""
     id: str = Field(..., description="Folder ID")
-    name: str = Field(..., description="Folder display name")
+    name: str = Field(..., description="Folder display name (localized)")
+    nameKey: str = Field(default="", description="Translation key for folder name")
+    localizedName: Optional[LocalizedName] = Field(None, description="All localized names")
     documents: List[DocumentResponse] = Field(default_factory=list, description="Documents in folder")
     subfolders: List["FolderResponse"] = Field(default_factory=list, description="Nested subfolders")
     isExpanded: bool = Field(default=True, description="Whether folder is expanded in UI")
+    mandatory: bool = Field(default=False, description="Whether folder is required")
+    order: int = Field(default=999, description="Display order")
 
 
 class DocumentTreeResponse(BaseModel):
@@ -91,12 +101,13 @@ class DocumentTreeResponse(BaseModel):
     - Document metadata including upload time, file type, etc.
     """,
 )
-async def get_document_tree(case_id: str) -> DocumentTreeResponse:
+async def get_document_tree(case_id: str, language: str = 'de') -> DocumentTreeResponse:
     """
     Get the complete document tree for a case.
 
     Args:
         case_id: The case ID (e.g., "ACTE-2024-001")
+        language: Language code for folder names ('de' or 'en'). Defaults to 'de'.
 
     Returns:
         DocumentTreeResponse: The document tree with folders and documents.
@@ -104,13 +115,13 @@ async def get_document_tree(case_id: str) -> DocumentTreeResponse:
     Raises:
         HTTPException: If retrieval fails.
     """
-    logger.info(f"Retrieving document tree for case {case_id}")
+    logger.info(f"Retrieving document tree for case {case_id} (language={language})")
 
     try:
         from backend.services.document_registry import build_document_tree
 
-        # Build the document tree from the registry
-        tree = build_document_tree(case_id)
+        # Build the document tree from the registry with language support
+        tree = build_document_tree(case_id, language)
 
         # Transform registry format to frontend format
         folders = []
@@ -120,12 +131,24 @@ async def get_document_tree(case_id: str) -> DocumentTreeResponse:
                 _transform_document(doc) for doc in folder.get('documents', [])
             ]
 
+            # Build localized name object if available
+            localized_name = None
+            if folder.get('localizedName'):
+                localized_name = LocalizedName(
+                    de=folder['localizedName'].get('de', folder['name']),
+                    en=folder['localizedName'].get('en', folder['name'])
+                )
+
             folders.append(FolderResponse(
                 id=folder['id'],
                 name=folder['name'],
+                nameKey=folder.get('nameKey', folder['id']),
+                localizedName=localized_name,
                 documents=documents,
                 subfolders=folder.get('subfolders', []),
-                isExpanded=folder.get('isExpanded', True)
+                isExpanded=folder.get('isExpanded', True),
+                mandatory=folder.get('mandatory', False),
+                order=folder.get('order', 999)
             ))
 
         # Transform root documents

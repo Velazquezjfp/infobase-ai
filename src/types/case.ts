@@ -32,12 +32,21 @@ export interface Document {
   renders?: DocumentRender[];
 }
 
+export interface LocalizedFolderName {
+  de: string;
+  en: string;
+}
+
 export interface Folder {
   id: string;
   name: string;
+  nameKey?: string;
+  localizedName?: LocalizedFolderName;
   documents: Document[];
   subfolders: Folder[];
   isExpanded?: boolean;
+  mandatory?: boolean;
+  order?: number;
 }
 
 export interface Case {

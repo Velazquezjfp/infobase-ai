@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { Case, Document, FormField, ChatMessage, FormSuggestions, SuggestedValue } from '@/types/case';
 import { mockCase, initialFormFields, initialChatMessages, getInitialChatMessages, sampleCases, sampleCaseFormData, createNewCase } from '@/data/mockData';
 import { WebSocketState, ConnectionStatus, WebSocketMessage, AnonymizationResponse } from '@/types/websocket';
@@ -89,7 +89,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   // Initialize state with localStorage data (with fallback to defaults)
-  const [user, setUser] = useState<string | null>(null);
+  const [user, setUserState] = useState<string | null>(() => {
+    const stored = loadFromLocalStorage<string>('bamf_user');
+    if (stored) {
+      console.log('Loaded user from localStorage:', stored);
+      return stored;
+    }
+    return null;
+  });
+
+  // Wrapper to persist user to localStorage
+  const setUser = (newUser: string | null) => {
+    setUserState(newUser);
+    if (newUser) {
+      saveToLocalStorage('bamf_user', newUser);
+    } else {
+      localStorage.removeItem('bamf_user');
+    }
+  };
   const [cases, setCases] = useState<Case[]>(sampleCases);
   const [currentCase, setCurrentCase] = useState<Case>(mockCase);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
@@ -132,6 +149,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
   const [wsStatus, setWsStatus] = useState<ConnectionStatus>('disconnected');
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  const isStreamingRef = useRef(false);  // Ref to track streaming state (avoids closure issues)
   const [isTyping, setIsTyping] = useState(false);
   const [isAnonymizing, setIsAnonymizing] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);  // S5-004: Translation state
@@ -442,7 +460,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       console.log(`Loading documents from backend for case: ${caseId}`);
 
-      const response = await fetch(`http://localhost:8000/api/documents/tree/${caseId}`);
+      // Pass current language for localized folder names
+      const language = i18n.language || 'de';
+      const response = await fetch(`http://localhost:8000/api/documents/tree/${caseId}?language=${language}`);
 
       if (!response.ok) {
         console.error(`Failed to load documents: ${response.status} ${response.statusText}`);
@@ -458,6 +478,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         folders: data.folders.map((folder: any) => ({
           id: folder.id,
           name: folder.name,
+          nameKey: folder.nameKey,
+          localizedName: folder.localizedName,
           documents: folder.documents.map((doc: any) => ({
             id: doc.id,
             name: doc.name,
@@ -471,6 +493,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           })),
           subfolders: folder.subfolders || [],
           isExpanded: folder.isExpanded !== false,
+          mandatory: folder.mandatory || false,
+          order: folder.order || 999,
         })),
       }));
 
@@ -528,13 +552,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
               // Streaming response chunk
               if (!message.is_complete) {
                 // Stop typing indicator on first chunk
-                if (isTyping) {
-                  setIsTyping(false);
-                }
+                setIsTyping(false);
 
-                // Accumulate streaming chunks
-                if (!streamingMessageId) {
+                // Accumulate streaming chunks using ref to avoid closure issues
+                if (!isStreamingRef.current) {
                   // Create new streaming message
+                  isStreamingRef.current = true;
                   const newMessageId = `msg-${Date.now()}`;
                   setStreamingMessageId(newMessageId);
                   addChatMessage({
@@ -556,6 +579,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 }
               } else {
                 // Streaming complete
+                isStreamingRef.current = false;
                 setStreamingMessageId(null);
                 setIsTyping(false);
               }
@@ -810,6 +834,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
+
+    // Reset streaming state for new message
+    isStreamingRef.current = false;
+    setStreamingMessageId(null);
 
     // Set typing indicator immediately (before async operations)
     setIsTyping(true);

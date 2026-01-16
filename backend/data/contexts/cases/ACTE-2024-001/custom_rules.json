@@ -1,22 +1,5 @@
 {
   "caseId": "ACTE-2024-001",
-  "lastModified": "2026-01-16T16:15:31.707373+00:00",
-  "rules": [
-    {
-      "id": "custom-rule-80d3a23a",
-      "type": "validation_rule",
-      "createdAt": "2026-01-16T16:14:14.114985+00:00",
-      "targetFolder": "Evidence",
-      "rule": "nur PDFs erlaubt",
-      "ruleType": "folder_rule"
-    },
-    {
-      "id": "custom-doc-9b743d7b",
-      "type": "required_document",
-      "createdAt": "2026-01-16T16:15:31.707216+00:00",
-      "targetFolder": null,
-      "rule": "ein Anonzmisiert Reisepass ist benötig",
-      "ruleType": "document_requirement"
-    }
-  ]
+  "lastModified": "2026-01-16T17:12:52.268107+00:00",
+  "rules": []
 }

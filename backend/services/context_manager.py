@@ -1018,16 +1018,38 @@ def generate_document_tree(case_id: str) -> str:
 
         # Load folder metadata to get display names
         folder_names = {}
-        context_base = Path("backend/data/contexts/cases") / case_id / "folders"
+        context_base = Path("backend/data/contexts/cases") / case_id
 
-        if context_base.exists():
-            for folder_file in context_base.glob("*.json"):
+        # First, load from folder_config.json (new format with localized names)
+        folder_config_path = context_base / "folder_config.json"
+        if folder_config_path.exists():
+            try:
+                with open(folder_config_path, 'r', encoding='utf-8') as f:
+                    folder_config = json.load(f)
+                    for folder in folder_config.get('folders', []):
+                        folder_id = folder.get('id')
+                        # Get name - prefer German, then English, then id
+                        name_obj = folder.get('name', {})
+                        if isinstance(name_obj, dict):
+                            folder_name = name_obj.get('de') or name_obj.get('en') or folder_id
+                        else:
+                            folder_name = str(name_obj) or folder_id
+                        if folder_id:
+                            folder_names[folder_id] = folder_name
+            except Exception as e:
+                logger.warning(f"Could not load folder_config.json: {e}")
+
+        # Also load from individual folder/*.json files (legacy format)
+        folders_dir = context_base / "folders"
+        if folders_dir.exists():
+            for folder_file in folders_dir.glob("*.json"):
                 try:
                     with open(folder_file, 'r', encoding='utf-8') as f:
                         folder_ctx = json.load(f)
                         folder_id = folder_ctx.get('folderId')
                         folder_name = folder_ctx.get('folderName', folder_id)
-                        if folder_id:
+                        # Only add if not already in folder_names (folder_config takes precedence)
+                        if folder_id and folder_id not in folder_names:
                             folder_names[folder_id] = folder_name
                 except Exception as e:
                     logger.warning(f"Could not load folder name from {folder_file}: {e}")

@@ -10,7 +10,7 @@ info:
 
     The API will provide document management, AI-powered case processing, and integration course
     application handling for BAMF (Bundesamt für Migration und Flüchtlinge).
-  version: 2.1.0
+  version: 2.2.0
   contact:
     name: BAMF Development Team
     email: api@bamf.example.de
@@ -34,6 +34,8 @@ tags:
     description: Case management operations
   - name: Context
     description: Document tree views and hierarchical context information
+  - name: Custom Context
+    description: User-defined validation rules and required documents for case context
   - name: Documents
     description: Document upload, conversion, and retrieval
   - name: Files
@@ -571,6 +573,385 @@ paths:
                       case_id:
                         type: string
       x-source-file: backend/api/context.py
+
+  /api/custom-context/{case_id}:
+    get:
+      tags:
+        - Custom Context
+      summary: Get custom context rules for a case
+      description: |
+        Retrieve all custom validation rules and required documents for a case.
+
+        **S5-017: Custom Context Rules API**
+
+        Users can add custom validation rules and document requirements through the
+        /Aktenkontext slash command. These rules are stored per-case and can be
+        managed through this API.
+
+        **Rule Types:**
+        - validation_rule: Custom validation rules for folders or files
+        - required_document: Custom required document definitions
+
+        **Features:**
+        - Case-scoped custom rules
+        - Target folder specification
+        - Chronological ordering (newest first)
+        - Persistent storage in JSON format
+      operationId: getCustomRules
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case ID (e.g., ACTE-2024-001)
+          schema:
+            type: string
+            example: ACTE-2024-001
+      responses:
+        '200':
+          description: Custom rules retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                  - rules
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Found 2 custom rule(s)"
+                  rules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CustomContextRule'
+        '404':
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Case not found
+                      case_id:
+                        type: string
+                        example: ACTE-2024-001
+      x-source-file: backend/api/custom_context.py
+
+  /api/custom-context/{case_id}/rule:
+    post:
+      tags:
+        - Custom Context
+      summary: Add a validation rule
+      description: |
+        Add a custom validation rule to the case context.
+
+        **S5-017: Custom Context Rules API**
+
+        Validation rules define custom checks for documents or folders.
+        Each rule is assigned a unique ID and timestamp.
+
+        **Rule Types:**
+        - file_type: File type restrictions
+        - content: Content validation rules
+        - metadata: Metadata requirements
+        - completeness: Completeness checks
+      operationId: addValidationRule
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case ID (e.g., ACTE-2024-001)
+          schema:
+            type: string
+            example: ACTE-2024-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleType
+                - rule
+              properties:
+                targetFolder:
+                  type: string
+                  nullable: true
+                  description: Target folder for the rule (optional)
+                  example: Evidence
+                ruleType:
+                  type: string
+                  description: Type of rule
+                  enum: [file_type, content, metadata, completeness]
+                  example: file_type
+                rule:
+                  type: string
+                  description: The rule description/text
+                  example: Only PDFs should be allowed in here
+            examples:
+              folderRule:
+                summary: Folder-specific rule
+                value:
+                  targetFolder: Evidence
+                  ruleType: file_type
+                  rule: Only PDFs should be allowed in here
+              globalRule:
+                summary: Global validation rule
+                value:
+                  ruleType: completeness
+                  rule: All documents must have clear scans with no blurred text
+      responses:
+        '200':
+          description: Validation rule added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                  - rule
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Validation rule added successfully
+                  rule:
+                    $ref: '#/components/schemas/CustomContextRule'
+        '404':
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Case not found
+                      case_id:
+                        type: string
+        '500':
+          description: Failed to save rule
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Failed to save rule
+                      case_id:
+                        type: string
+      x-source-file: backend/api/custom_context.py
+
+  /api/custom-context/{case_id}/document:
+    post:
+      tags:
+        - Custom Context
+      summary: Add a required document
+      description: |
+        Add a custom required document to the case context.
+
+        **S5-017: Custom Context Rules API**
+
+        Required documents define what additional documents are expected
+        for the case. Each document requirement is assigned a unique ID and timestamp.
+
+        **Features:**
+        - Target folder specification (optional)
+        - Automatic ruleType: document_requirement
+        - Persistent storage
+      operationId: addRequiredDocument
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case ID (e.g., ACTE-2024-001)
+          schema:
+            type: string
+            example: ACTE-2024-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - description
+              properties:
+                description:
+                  type: string
+                  description: Description of the required document
+                  example: Proof of German language proficiency (B1 certificate)
+                targetFolder:
+                  type: string
+                  nullable: true
+                  description: Target folder for the document (optional)
+                  example: Language Certificates
+            examples:
+              withFolder:
+                summary: Required document with target folder
+                value:
+                  description: Proof of German language proficiency (B1 certificate)
+                  targetFolder: Language Certificates
+              withoutFolder:
+                summary: Required document without folder
+                value:
+                  description: Recent passport photo
+      responses:
+        '200':
+          description: Required document added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                  - rule
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Required document added successfully
+                  rule:
+                    $ref: '#/components/schemas/CustomContextRule'
+        '404':
+          description: Case not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Case not found
+                      case_id:
+                        type: string
+        '500':
+          description: Failed to save document requirement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Failed to save document requirement
+                      case_id:
+                        type: string
+      x-source-file: backend/api/custom_context.py
+
+  /api/custom-context/{case_id}/{rule_id}:
+    delete:
+      tags:
+        - Custom Context
+      summary: Remove a custom rule
+      description: |
+        Remove a custom validation rule or required document from the case.
+
+        **S5-017: Custom Context Rules API**
+
+        Deletes a rule by its ID and saves the updated rule set.
+        Works for both validation_rule and required_document types.
+
+        **Features:**
+        - Removes rule by ID
+        - Returns the deleted rule in response
+        - Updates persistent storage
+      operationId: removeCustomRule
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case ID (e.g., ACTE-2024-001)
+          schema:
+            type: string
+            example: ACTE-2024-001
+        - name: rule_id
+          in: path
+          required: true
+          description: Rule ID to delete
+          schema:
+            type: string
+            example: custom-rule-abc12345
+      responses:
+        '200':
+          description: Rule removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - message
+                  - rule
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Rule removed successfully
+                  rule:
+                    $ref: '#/components/schemas/CustomContextRule'
+        '404':
+          description: Case or rule not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Rule not found
+                      rule_id:
+                        type: string
+                        example: custom-rule-abc12345
+        '500':
+          description: Failed to save rules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: Failed to save rules
+                      case_id:
+                        type: string
+      x-source-file: backend/api/custom_context.py
 
   /api/search/semantic:
     post:
@@ -2048,3 +2429,41 @@ components:
           type: string
           description: Name of the file involved in the error
           example: document.pdf
+
+    CustomContextRule:
+      type: object
+      required:
+        - id
+        - type
+        - createdAt
+        - rule
+      properties:
+        id:
+          type: string
+          description: Unique rule identifier
+          example: custom-rule-abc12345
+        type:
+          type: string
+          enum: [validation_rule, required_document]
+          description: Rule type
+          example: validation_rule
+        createdAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of rule creation
+          example: "2026-01-16T14:30:00Z"
+        targetFolder:
+          type: string
+          nullable: true
+          description: Target folder for the rule (optional)
+          example: Evidence
+        rule:
+          type: string
+          description: Rule description or document requirement text
+          example: Only PDFs should be allowed in here
+        ruleType:
+          type: string
+          nullable: true
+          description: Classification of the rule (for validation_rule) or document_requirement (for required_document)
+          enum: [file_type, content, metadata, completeness, document_requirement, folder_rule]
+          example: file_type

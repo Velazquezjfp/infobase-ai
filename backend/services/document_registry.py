@@ -634,15 +634,41 @@ def get_documents_by_case(case_id: str) -> List[Dict]:
     ]
 
 
-def build_document_tree(case_id: str) -> Dict:
+def load_folder_config(case_id: str) -> Dict:
+    """
+    Load folder configuration for a case.
+
+    Args:
+        case_id: The case ID.
+
+    Returns:
+        dict: Folder configuration or empty config if not found.
+    """
+    config_path = Path("backend/data/contexts/cases") / case_id / "folder_config.json"
+
+    if not config_path.exists():
+        logger.debug(f"No folder config found for case {case_id}")
+        return {"folders": []}
+
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.warning(f"Failed to load folder config for {case_id}: {e}")
+        return {"folders": []}
+
+
+def build_document_tree(case_id: str, language: str = 'de') -> Dict:
     """
     Build a document tree for a specific case.
 
     Groups documents by folder and returns a structured tree that can be
-    consumed by the frontend.
+    consumed by the frontend. Includes ALL configured folders, even empty ones,
+    to ensure folder persistence.
 
     Args:
         case_id: The case ID to build the tree for.
+        language: Language code for folder names ('de' or 'en'). Defaults to 'de'.
 
     Returns:
         dict: Document tree with folders and documents.
@@ -651,18 +677,26 @@ def build_document_tree(case_id: str) -> Dict:
                     {
                         "id": "folder-id",
                         "name": "Folder Name",
+                        "nameKey": "folder-id",
+                        "localizedName": {"de": "...", "en": "..."},
                         "documents": [...],
-                        "subfolders": []
+                        "subfolders": [],
+                        "mandatory": true/false,
+                        "order": 1
                     }
                 ],
                 "rootDocuments": [...]  # Documents not in any folder
             }
 
     Example:
-        >>> tree = build_document_tree("ACTE-2024-001")
+        >>> tree = build_document_tree("ACTE-2024-001", "de")
         >>> print(f"Found {len(tree['folders'])} folders")
     """
     documents = get_documents_by_case(case_id)
+
+    # Load folder configuration
+    folder_config = load_folder_config(case_id)
+    configured_folders = {f["id"]: f for f in folder_config.get("folders", [])}
 
     # Group documents by folder
     folders_dict: Dict[str, List[Dict]] = {}
@@ -677,18 +711,54 @@ def build_document_tree(case_id: str) -> Dict:
         else:
             root_documents.append(doc)
 
-    # Build folder structures
+    # Build folder structures from configuration (includes empty folders)
     folders = []
+
+    # First, add all configured folders in order
+    sorted_config_folders = sorted(
+        configured_folders.values(),
+        key=lambda f: f.get("order", 999)
+    )
+
+    for config_folder in sorted_config_folders:
+        folder_id = config_folder["id"]
+        folder_docs = folders_dict.pop(folder_id, [])
+
+        # Get localized name
+        name_config = config_folder.get("name", {})
+        if isinstance(name_config, dict):
+            folder_name = name_config.get(language, name_config.get("en", folder_id))
+            localized_name = name_config
+        else:
+            folder_name = name_config
+            localized_name = {"de": name_config, "en": name_config}
+
+        folders.append({
+            "id": folder_id,
+            "name": folder_name,
+            "nameKey": config_folder.get("nameKey", folder_id),
+            "localizedName": localized_name,
+            "documents": folder_docs,
+            "subfolders": [],
+            "isExpanded": True,
+            "mandatory": config_folder.get("mandatory", False),
+            "order": config_folder.get("order", 999)
+        })
+
+    # Add any remaining folders not in config (orphaned folders with documents)
     for folder_id, folder_docs in folders_dict.items():
-        # Convert folder_id to readable name (e.g., "personal-data" -> "Personal Data")
         folder_name = folder_id.replace('-', ' ').replace('_', ' ').title()
 
         folders.append({
             "id": folder_id,
             "name": folder_name,
+            "nameKey": folder_id,
+            "localizedName": {"de": folder_name, "en": folder_name},
             "documents": folder_docs,
-            "subfolders": [],  # For now, no nested folders
-            "isExpanded": True
+            "subfolders": [],
+            "isExpanded": True,
+            "mandatory": False,
+            "order": 999
         })
 
     return {

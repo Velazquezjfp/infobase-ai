@@ -38,6 +38,165 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [2.2.0] - 2026-01-16
+
+### Added - Custom Context Rules API (S5-017)
+
+This release adds the Custom Context Rules API, enabling users to define custom validation rules and required documents for cases through the /Aktenkontext slash command. Rules are stored per-case and can be managed programmatically through REST endpoints.
+
+#### New API Module: backend/api/custom_context.py
+
+**Endpoint: GET /api/custom-context/{case_id}**
+
+**Location:** `backend/api/custom_context.py:105-129`
+
+Retrieve all custom validation rules and required documents for a case.
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "message": "Found 2 custom rule(s)",
+  "rules": [
+    {
+      "id": "custom-rule-abc12345",
+      "type": "validation_rule",
+      "createdAt": "2026-01-16T14:30:00Z",
+      "targetFolder": "Evidence",
+      "rule": "Only PDFs should be allowed in here",
+      "ruleType": "file_type"
+    }
+  ]
+}
+```
+
+**Endpoint: POST /api/custom-context/{case_id}/rule**
+
+**Location:** `backend/api/custom_context.py:132-177`
+
+Add a custom validation rule to the case context.
+
+**Request Format:**
+```json
+{
+  "targetFolder": "Evidence",
+  "ruleType": "file_type",
+  "rule": "Only PDFs should be allowed in here"
+}
+```
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "message": "Validation rule added successfully",
+  "rule": {
+    "id": "custom-rule-abc12345",
+    "type": "validation_rule",
+    "createdAt": "2026-01-16T14:30:00Z",
+    "targetFolder": "Evidence",
+    "rule": "Only PDFs should be allowed in here",
+    "ruleType": "file_type"
+  }
+}
+```
+
+**Endpoint: POST /api/custom-context/{case_id}/document**
+
+**Location:** `backend/api/custom_context.py:180-225`
+
+Add a custom required document to the case context.
+
+**Request Format:**
+```json
+{
+  "description": "Proof of German language proficiency (B1 certificate)",
+  "targetFolder": "Language Certificates"
+}
+```
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "message": "Required document added successfully",
+  "rule": {
+    "id": "custom-doc-def67890",
+    "type": "required_document",
+    "createdAt": "2026-01-16T14:25:00Z",
+    "targetFolder": "Language Certificates",
+    "rule": "Proof of German language proficiency (B1 certificate)",
+    "ruleType": "document_requirement"
+  }
+}
+```
+
+**Endpoint: DELETE /api/custom-context/{case_id}/{rule_id}**
+
+**Location:** `backend/api/custom_context.py:228-277`
+
+Remove a custom validation rule or required document from the case.
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "message": "Rule removed successfully",
+  "rule": {
+    "id": "custom-rule-abc12345",
+    "type": "validation_rule",
+    "createdAt": "2026-01-16T14:30:00Z",
+    "targetFolder": "Evidence",
+    "rule": "Only PDFs should be allowed in here",
+    "ruleType": "file_type"
+  }
+}
+```
+
+**Key Features:**
+- **Case-Scoped Rules:** Each case has its own set of custom rules
+- **Two Rule Types:**
+  - `validation_rule`: Custom validation rules for folders/files
+  - `required_document`: Custom required document definitions
+- **Target Folder Support:** Rules can be applied to specific folders
+- **Persistent Storage:** Rules stored in `backend/data/contexts/cases/{caseId}/custom_rules.json`
+- **Unique IDs:** Each rule gets a unique ID (format: `custom-rule-{hex}` or `custom-doc-{hex}`)
+- **Timestamps:** ISO 8601 creation timestamps for chronological ordering
+- **Rule Types:** Support for file_type, content, metadata, completeness, and document_requirement classifications
+- **CRUD Operations:** Full create, read, and delete support (update via delete + create)
+
+**Rule Storage Format:**
+```json
+{
+  "caseId": "ACTE-2024-001",
+  "lastModified": "2026-01-16T14:30:00Z",
+  "rules": [
+    {
+      "id": "custom-rule-abc12345",
+      "type": "validation_rule",
+      "createdAt": "2026-01-16T14:30:00Z",
+      "targetFolder": "Evidence",
+      "rule": "Only PDFs should be allowed in here",
+      "ruleType": "file_type"
+    }
+  ]
+}
+```
+
+**Integration:**
+- Works seamlessly with /Aktenkontext slash command in the AI chat interface
+- Rules can be created via chat or REST API
+- Supports dynamic case-specific requirements
+- Enables user-driven validation and document management
+
+**Use Cases:**
+- Define folder-specific file type restrictions
+- Specify additional required documents for submission
+- Create custom validation checks for special cases
+- Document case-specific requirements that aren't in the default context
+
+---
+
 ## [2.1.0] - 2026-01-16
 
 ### Added - Case Validation API (S5-005)

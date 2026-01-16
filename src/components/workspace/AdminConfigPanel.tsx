@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import {
   X, FolderTree, FileType, Zap, FileText, Tags,
@@ -21,10 +21,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
+interface LocalizedName {
+  de: string;
+  en: string;
+}
+
 interface FolderTemplate {
   id: string;
-  name: string;
+  nameKey: string;
+  name: LocalizedName;
   mandatory: boolean;
+  order: number;
   children: FolderTemplate[];
 }
 
@@ -52,8 +59,10 @@ interface MetadataField {
   options?: string[];
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export default function AdminConfigPanel() {
-  const { setIsAdminMode, formFields, setFormFields } = useApp();
+  const { setIsAdminMode, formFields, setFormFields, currentCase, refreshDocuments } = useApp();
   const { t, i18n } = useTranslation();
 
   // Translation helper function for content
@@ -63,7 +72,19 @@ export default function AdminConfigPanel() {
   };
 
   // Translation helpers for different content types
-  const translateFolderName = (name: string) => tc(`folderNames.${name.replace(/\s+/g, '_')}`, name);
+  const translateFolderName = (folder: FolderTemplate) => {
+    // Handle various folder.name formats safely
+    if (!folder || !folder.name) {
+      return folder?.nameKey || folder?.id || 'Unknown';
+    }
+    // If name is a string (old format), return it directly
+    if (typeof folder.name === 'string') {
+      return folder.name;
+    }
+    // If name is an object with localized strings
+    const lang = i18n.language as 'de' | 'en';
+    return folder.name[lang] || folder.name.en || folder.name.de || folder.nameKey || folder.id;
+  };
   const translateDocTypeName = (name: string) => tc(`docTypeNames.${name.replace(/\s+/g, '_')}`, name);
   const translateMacroName = (name: string) => tc(`macroNames.${name.replace(/\s+/g, '_')}`, name);
   const translateMetadataFieldName = (name: string) => tc(`metadataFieldNames.${name.replace(/\s+/g, '_')}`, name);
@@ -72,14 +93,95 @@ export default function AdminConfigPanel() {
   const translateTrigger = (trigger: string) => tc(`triggers.${trigger}`, trigger);
   const translateFieldType = (type: string) => tc(`fieldTypes.${type}`, type);
 
-  // Folder Templates State
-  const [folderTemplates, setFolderTemplates] = useState<FolderTemplate[]>([
-    { id: '1', name: 'Personal Data', mandatory: true, children: [] },
-    { id: '2', name: 'Certificates', mandatory: true, children: [] },
-    { id: '3', name: 'Integration Course Documents', mandatory: true, children: [] },
-    { id: '4', name: 'Applications & Forms', mandatory: true, children: [] },
-    { id: '5', name: 'Additional Evidence', mandatory: false, children: [] },
-  ]);
+  // Folder Templates State - now loaded from backend
+  const [folderTemplates, setFolderTemplates] = useState<FolderTemplate[]>([]);
+  const [isLoadingFolders, setIsLoadingFolders] = useState(true);  // Start with loading state
+  const [isSavingFolders, setIsSavingFolders] = useState(false);
+
+  // Fetch folders from backend
+  const fetchFolders = useCallback(async () => {
+    if (!currentCase?.id) return;
+
+    setIsLoadingFolders(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/folders/${currentCase.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Transform backend format to frontend format
+        const folders: FolderTemplate[] = data.folders.map((f: any) => ({
+          id: f.id,
+          nameKey: f.nameKey || f.id,
+          name: f.name,
+          mandatory: f.mandatory,
+          order: f.order,
+          children: []
+        }));
+        setFolderTemplates(folders);
+      } else {
+        console.error('Failed to fetch folders:', response.statusText);
+        // Set default folders if fetch fails
+        setFolderTemplates([
+          { id: 'personal-data', nameKey: 'personal-data', name: { de: 'Persönliche Daten', en: 'Personal Data' }, mandatory: true, order: 1, children: [] },
+          { id: 'evidence', nameKey: 'evidence', name: { de: 'Evidence', en: 'Evidence' }, mandatory: true, order: 2, children: [] },
+          { id: 'emails', nameKey: 'emails', name: { de: 'E-mails', en: 'Emails' }, mandatory: true, order: 3, children: [] },
+          { id: 'certificates', nameKey: 'certificates', name: { de: 'Zertifikate', en: 'Certificates' }, mandatory: true, order: 4, children: [] },
+          { id: 'applications', nameKey: 'applications', name: { de: 'Anträge', en: 'Applications' }, mandatory: true, order: 5, children: [] },
+        ]);
+      }
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+    } finally {
+      setIsLoadingFolders(false);
+    }
+  }, [currentCase?.id]);
+
+  // Save folders to backend
+  const saveFolders = useCallback(async () => {
+    if (!currentCase?.id) return;
+
+    setIsSavingFolders(true);
+    try {
+      // Transform to backend format
+      const backendFolders = folderTemplates.map((f, index) => ({
+        id: f.id,
+        nameKey: f.nameKey || f.id,
+        name: f.name,
+        mandatory: f.mandatory,
+        order: f.order || index + 1
+      }));
+
+      const response = await fetch(`${API_BASE_URL}/api/folders/${currentCase.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folders: backendFolders })
+      });
+
+      if (response.ok) {
+        toast({
+          title: t('admin.foldersSaved', 'Folders saved'),
+          description: t('admin.foldersSavedDescription', 'Folder configuration has been saved successfully.'),
+        });
+        // Refresh document explorer to show updated folders
+        await refreshDocuments();
+      } else {
+        throw new Error('Failed to save folders');
+      }
+    } catch (error) {
+      console.error('Error saving folders:', error);
+      toast({
+        title: t('admin.foldersSaveError', 'Error saving folders'),
+        description: t('admin.foldersSaveErrorDescription', 'Failed to save folder configuration.'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingFolders(false);
+    }
+  }, [currentCase?.id, folderTemplates, t, refreshDocuments]);
+
+  // Fetch folders on mount
+  useEffect(() => {
+    fetchFolders();
+  }, [fetchFolders]);
 
   // Document Types State
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([
@@ -127,10 +229,14 @@ export default function AdminConfigPanel() {
   };
 
   const addFolder = () => {
+    const newId = `folder-${Date.now()}`;
+    const maxOrder = Math.max(...folderTemplates.map(f => f.order), 0);
     const newFolder: FolderTemplate = {
-      id: `folder-${Date.now()}`,
-      name: 'New Folder',
+      id: newId,
+      nameKey: newId,
+      name: { de: 'Neuer Ordner', en: 'New Folder' },
       mandatory: false,
+      order: maxOrder + 1,
       children: [],
     };
     setFolderTemplates([...folderTemplates, newFolder]);
@@ -141,9 +247,26 @@ export default function AdminConfigPanel() {
   };
 
   const updateFolder = (id: string, updates: Partial<FolderTemplate>) => {
-    setFolderTemplates(folderTemplates.map(f => 
+    setFolderTemplates(folderTemplates.map(f =>
       f.id === id ? { ...f, ...updates } : f
     ));
+  };
+
+  const updateFolderName = (id: string, value: string) => {
+    const lang = i18n.language as 'de' | 'en';
+    setFolderTemplates(folderTemplates.map(f => {
+      if (f.id === id) {
+        // Ensure name is an object before spreading
+        const currentName = typeof f.name === 'object' && f.name !== null
+          ? f.name
+          : { de: String(f.name || ''), en: String(f.name || '') };
+        return {
+          ...f,
+          name: { ...currentName, [lang]: value }
+        };
+      }
+      return f;
+    }));
   };
 
   const addDocumentType = () => {
@@ -346,49 +469,58 @@ export default function AdminConfigPanel() {
                   <CardDescription>{t('admin.defineFolderHierarchy')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {folderTemplates.map((folder) => (
-                    <div
-                      key={folder.id}
-                      className="flex items-center gap-2 p-2 rounded-md border border-border bg-background group"
-                    >
-                      <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                      <button 
-                        onClick={() => toggleFolderExpand(folder.id)}
-                        className="p-0.5"
-                      >
-                        {expandedFolders.has(folder.id) ? (
-                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                        )}
-                      </button>
-                      <FolderTree className="w-4 h-4 text-primary" />
-                      <Input
-                        value={folder.name}
-                        onChange={(e) => updateFolder(folder.id, { name: e.target.value })}
-                        className="flex-1 h-8"
-                      />
-                      <div className="flex items-center gap-2">
-                        <Label className="text-xs text-muted-foreground">{t('admin.required')}</Label>
-                        <Switch
-                          checked={folder.mandatory}
-                          onCheckedChange={(checked) => updateFolder(folder.id, { mandatory: checked })}
-                        />
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removeFolder(folder.id)}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                  {isLoadingFolders ? (
+                    <div className="flex items-center justify-center p-4">
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                      <span className="ml-2 text-sm text-muted-foreground">{t('common.loading')}</span>
                     </div>
-                  ))}
-                  <Button variant="outline" size="sm" onClick={addFolder} className="w-full">
-                    <Plus className="w-4 h-4 mr-2" />
-                    {t('admin.addFolder')}
-                  </Button>
+                  ) : (
+                    <>
+                      {folderTemplates.map((folder) => (
+                        <div
+                          key={folder.id}
+                          className="flex items-center gap-2 p-2 rounded-md border border-border bg-background group"
+                        >
+                          <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                          <button
+                            onClick={() => toggleFolderExpand(folder.id)}
+                            className="p-0.5"
+                          >
+                            {expandedFolders.has(folder.id) ? (
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </button>
+                          <FolderTree className="w-4 h-4 text-primary" />
+                          <Input
+                            value={translateFolderName(folder)}
+                            onChange={(e) => updateFolderName(folder.id, e.target.value)}
+                            className="flex-1 h-8"
+                          />
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs text-muted-foreground">{t('admin.required')}</Label>
+                            <Switch
+                              checked={folder.mandatory}
+                              onCheckedChange={(checked) => updateFolder(folder.id, { mandatory: checked })}
+                            />
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeFolder(folder.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button variant="outline" size="sm" onClick={addFolder} className="w-full">
+                        <Plus className="w-4 h-4 mr-2" />
+                        {t('admin.addFolder')}
+                      </Button>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
@@ -400,9 +532,12 @@ export default function AdminConfigPanel() {
                 <CardContent>
                   <pre className="bg-muted p-3 rounded-md text-xs font-mono overflow-auto max-h-40">
 {`folders:
-${folderTemplates.map(f => `  - name: "${f.name}"
+${folderTemplates.map(f => `  - id: "${f.id}"
+    name:
+      de: "${f.name.de}"
+      en: "${f.name.en}"
     mandatory: ${f.mandatory}
-    children: []`).join('\n')}`}
+    order: ${f.order}`).join('\n')}`}
                   </pre>
                 </CardContent>
               </Card>
@@ -810,8 +945,18 @@ ${folderTemplates.map(f => `  - name: "${f.name}"
             <Button variant="outline" onClick={() => setIsAdminMode(false)}>
               {t('admin.cancel')}
             </Button>
-            <Button onClick={() => setIsAdminMode(false)}>
-              <Save className="w-4 h-4 mr-2" />
+            <Button
+              onClick={async () => {
+                await saveFolders();
+                setIsAdminMode(false);
+              }}
+              disabled={isSavingFolders}
+            >
+              {isSavingFolders ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
               {t('admin.saveAndClose')}
             </Button>
           </div>

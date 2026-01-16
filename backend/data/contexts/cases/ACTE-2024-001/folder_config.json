@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "1.0",
+  "caseId": "ACTE-2024-001",
+  "lastUpdated": "2026-01-16T17:09:53.673084+00:00",
+  "folders": [
+    {
+      "id": "personal-data",
+      "nameKey": "personal-data",
+      "name": {
+        "de": "Persönliche Daten",
+        "en": "Personal Data"
+      },
+      "mandatory": true,
+      "order": 1
+    },
+    {
+      "id": "evidence",
+      "nameKey": "evidence",
+      "name": {
+        "de": "Evidence",
+        "en": "Evidence"
+      },
+      "mandatory": true,
+      "order": 2
+    },
+    {
+      "id": "emails",
+      "nameKey": "emails",
+      "name": {
+        "de": "E-mails",
+        "en": "Emails"
+      },
+      "mandatory": true,
+      "order": 3
+    },
+    {
+      "id": "certificates",
+      "nameKey": "certificates",
+      "name": {
+        "de": "Zertifikate",
+        "en": "Certificates"
+      },
+      "mandatory": true,
+      "order": 4
+    },
+    {
+      "id": "applications",
+      "nameKey": "applications",
+      "name": {
+        "de": "Anträge",
+        "en": "Applications"
+      },
+      "mandatory": true,
+      "order": 5
+    }
+  ]
+}
