@@ -38,6 +38,146 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [2.3.0] - 2026-01-16
+
+### Added - Folder Management API
+
+This release introduces a complete Folder Management API that provides full CRUD operations for managing case folder configurations. Folders are persisted in `folder_config.json` files per case and synchronized with the document explorer and admin panel.
+
+#### New API Module: backend/api/folders.py
+
+**Endpoint: GET /api/folders/{case_id}**
+
+**Location:** `backend/api/folders.py:206-220`
+
+Get folder configuration for a case including all folder metadata, localized names, and ordering information.
+
+**Response Format:**
+```json
+{
+  "schemaVersion": "1.0",
+  "caseId": "ACTE-2024-001",
+  "lastUpdated": "2026-01-16T10:30:00Z",
+  "folders": [
+    {
+      "id": "personal-data",
+      "nameKey": "personal-data",
+      "name": {
+        "de": "Persönliche Daten",
+        "en": "Personal Data"
+      },
+      "mandatory": true,
+      "order": 1
+    }
+  ]
+}
+```
+
+**Endpoint: POST /api/folders/{case_id}**
+
+**Location:** `backend/api/folders.py:223-262`
+
+Create a new folder. Creates both the physical directory and configuration entry.
+
+**Request Format:**
+```json
+{
+  "id": "my-custom-folder",
+  "name": {
+    "de": "Mein Ordner",
+    "en": "My Folder"
+  },
+  "mandatory": false
+}
+```
+
+**Endpoint: PUT /api/folders/{case_id}/{folder_id}**
+
+**Location:** `backend/api/folders.py:265-297`
+
+Update folder properties (name, mandatory status, or display order).
+
+**Request Format:**
+```json
+{
+  "name": {
+    "de": "Neuer Name",
+    "en": "New Name"
+  },
+  "mandatory": true,
+  "order": 3
+}
+```
+
+**Endpoint: DELETE /api/folders/{case_id}/{folder_id}**
+
+**Location:** `backend/api/folders.py:300-365`
+
+Delete a folder. Only allows deletion of empty folders by default. Use `force=true` query parameter to delete folders with contents (documents will be moved to uploads).
+
+**Query Parameters:**
+- `force` (boolean, default: false): Force deletion of non-empty folder
+
+**Endpoint: PUT /api/folders/{case_id}**
+
+**Location:** `backend/api/folders.py:368-407`
+
+Bulk update all folders at once (used by admin panel save operation). Replaces entire folder configuration and manages physical directories accordingly.
+
+**Request Format:**
+```json
+{
+  "folders": [
+    {
+      "id": "personal-data",
+      "nameKey": "personal-data",
+      "name": {"de": "Persönliche Daten", "en": "Personal Data"},
+      "mandatory": true,
+      "order": 1
+    },
+    {
+      "id": "evidence",
+      "nameKey": "evidence",
+      "name": {"de": "Beweismittel", "en": "Evidence"},
+      "mandatory": true,
+      "order": 2
+    }
+  ]
+}
+```
+
+**Endpoint: POST /api/folders/{case_id}/reorder**
+
+**Location:** `backend/api/folders.py:410-434`
+
+Reorder folders by providing a list of folder IDs in the desired order.
+
+**Request Format:**
+```json
+["personal-data", "evidence", "emails", "certificates"]
+```
+
+#### Features
+- Full CRUD operations for folder management
+- Localized folder names (German/English)
+- Physical directory synchronization
+- Mandatory folder marking
+- Custom ordering with automatic reordering
+- Tree cache invalidation on folder changes
+- Empty folder validation before deletion
+- Bulk update support for admin panel
+
+#### Integration with Existing APIs
+
+**Modified: GET /api/context/tree/{case_id}**
+
+The document tree endpoint now accepts a `language` query parameter:
+- `language` (optional, default: 'de'): Returns folder names in the specified language ('de' or 'en')
+
+This enables localized tree views for multilingual support.
+
+---
+
 ## [2.2.0] - 2026-01-16
 
 ### Added - Custom Context Rules API (S5-017)

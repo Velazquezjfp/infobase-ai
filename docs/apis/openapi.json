@@ -3,7 +3,7 @@
   "info": {
     "title": "BAMF ACTE Companion API",
     "description": "API specification for the BAMF ACTE (Automated Case and Task Environment) Companion application.\n\n**Current Status:** This is a PLANNED API specification. The application currently operates as a\nfrontend-only prototype with simulated operations. This specification documents the target\narchitecture for future backend implementation.\n\nThe API will provide document management, AI-powered case processing, and integration course\napplication handling for BAMF (Bundesamt für Migration und Flüchtlinge).\n",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "contact": {
       "name": "BAMF Development Team",
       "email": "api@bamf.example.de"
@@ -50,6 +50,10 @@
     {
       "name": "Files",
       "description": "File upload, deletion, and management operations"
+    },
+    {
+      "name": "Folders",
+      "description": "Folder configuration and management for case organization"
     },
     {
       "name": "AI Operations",
@@ -2869,6 +2873,150 @@
               "folder_rule"
             ],
             "example": "file_type"
+          }
+        }
+      },
+      "FolderName": {
+        "type": "object",
+        "required": [
+          "de",
+          "en"
+        ],
+        "properties": {
+          "de": {
+            "type": "string",
+            "description": "German folder name",
+            "example": "Persönliche Daten"
+          },
+          "en": {
+            "type": "string",
+            "description": "English folder name",
+            "example": "Personal Data"
+          }
+        }
+      },
+      "FolderConfig": {
+        "type": "object",
+        "required": [
+          "id",
+          "nameKey",
+          "name",
+          "mandatory",
+          "order"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Folder ID (kebab-case)",
+            "example": "personal-data"
+          },
+          "nameKey": {
+            "type": "string",
+            "description": "Translation key (same as ID)",
+            "example": "personal-data"
+          },
+          "name": {
+            "$ref": "#/components/schemas/FolderName"
+          },
+          "mandatory": {
+            "type": "boolean",
+            "description": "Whether folder is required",
+            "example": true
+          },
+          "order": {
+            "type": "integer",
+            "description": "Display order position",
+            "example": 1
+          }
+        }
+      },
+      "FolderConfigResponse": {
+        "type": "object",
+        "required": [
+          "schemaVersion",
+          "caseId",
+          "lastUpdated",
+          "folders"
+        ],
+        "properties": {
+          "schemaVersion": {
+            "type": "string",
+            "description": "Configuration schema version",
+            "example": "1.0"
+          },
+          "caseId": {
+            "type": "string",
+            "description": "Case identifier",
+            "example": "ACTE-2024-001"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of last update",
+            "example": "2026-01-16T10:30:00.123456Z"
+          },
+          "folders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FolderConfig"
+            }
+          }
+        }
+      },
+      "CreateFolderRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Folder ID in kebab-case",
+            "pattern": "^[a-z0-9-_]+$",
+            "example": "my-custom-folder"
+          },
+          "name": {
+            "$ref": "#/components/schemas/FolderName"
+          },
+          "mandatory": {
+            "type": "boolean",
+            "description": "Whether folder is required",
+            "default": false,
+            "example": false
+          }
+        }
+      },
+      "UpdateFolderRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/FolderName"
+          },
+          "mandatory": {
+            "type": "boolean",
+            "description": "Whether folder is required",
+            "example": true
+          },
+          "order": {
+            "type": "integer",
+            "description": "Display order position",
+            "example": 3
+          }
+        }
+      },
+      "BulkUpdateFoldersRequest": {
+        "type": "object",
+        "required": [
+          "folders"
+        ],
+        "properties": {
+          "folders": {
+            "type": "array",
+            "description": "Complete list of folders to configure",
+            "items": {
+              "$ref": "#/components/schemas/FolderConfig"
+            }
           }
         }
       }

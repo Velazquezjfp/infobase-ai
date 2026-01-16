@@ -18,6 +18,7 @@ This document provides detailed information about the BAMF ACTE Companion API en
 - [Document Operations](#document-operations)
 - [Context API](#context-api)
 - [Custom Context API](#custom-context-api)
+- [Folder Management](#folder-management)
 - [Search API](#search-api)
 - [File Operations](#file-operations)
 - [Validation API](#validation-api)
@@ -3286,10 +3287,14 @@ This endpoint returns a hierarchical text representation of the document tree fo
 
 - `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
 
+**Query Parameters:**
+
+- `language` (optional, default: 'de'): Language for folder names ('de' for German, 'en' for English)
+
 **Features:**
 
 - Cached for performance (regenerates on document changes via cache invalidation)
-- Includes folder display names from context files
+- Localized folder names based on language parameter
 - Shows empty folders
 - Lists all documents with their original filenames
 - ASCII tree formatting with proper indentation
@@ -3332,7 +3337,11 @@ This endpoint returns a hierarchical text representation of the document tree fo
 
 **cURL:**
 ```bash
+# Get tree with German folder names (default)
 curl -X GET http://localhost:8000/api/context/tree/ACTE-2024-001
+
+# Get tree with English folder names
+curl -X GET "http://localhost:8000/api/context/tree/ACTE-2024-001?language=en"
 ```
 
 **JavaScript/TypeScript:**
@@ -3981,6 +3990,740 @@ Custom rules are stored in `backend/data/contexts/cases/{caseId}/custom_rules.js
 - **Case-specific requirements:** Add rules tailored to individual case needs
 - **Dynamic context:** Update case requirements as they evolve
 - **/Aktenkontext integration:** Rules created via slash command are managed through this API
+
+---
+
+## Folder Management
+
+**Current Status:** IMPLEMENTED - Full CRUD operations for managing case folder configurations.
+
+The Folder Management API provides comprehensive endpoints for managing folder structures within cases. Folders are persisted in `folder_config.json` files per case and synchronized with physical directories and the document tree cache.
+
+**Features:**
+- Create, read, update, and delete folders
+- Localized folder names (German/English)
+- Custom ordering with drag-and-drop support
+- Mandatory folder marking
+- Physical directory synchronization
+- Empty folder validation
+- Bulk update for admin panel operations
+- Automatic tree cache invalidation
+
+### GET /api/folders/{case_id}
+
+Get folder configuration for a case.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/folders.py`
+
+**Source:** `backend/api/folders.py:206-220`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Returns all configured folders with their localized names, display order, and mandatory status. Automatically ensures all physical directories exist.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+
+**Success Response (200 OK):**
+```json
+{
+  "schemaVersion": "1.0",
+  "caseId": "ACTE-2024-001",
+  "lastUpdated": "2026-01-16T10:30:00.123456Z",
+  "folders": [
+    {
+      "id": "personal-data",
+      "nameKey": "personal-data",
+      "name": {
+        "de": "Persönliche Daten",
+        "en": "Personal Data"
+      },
+      "mandatory": true,
+      "order": 1
+    },
+    {
+      "id": "evidence",
+      "nameKey": "evidence",
+      "name": {
+        "de": "Beweismittel",
+        "en": "Evidence"
+      },
+      "mandatory": true,
+      "order": 2
+    },
+    {
+      "id": "emails",
+      "nameKey": "emails",
+      "name": {
+        "de": "E-Mails",
+        "en": "Emails"
+      },
+      "mandatory": true,
+      "order": 3
+    }
+  ]
+}
+```
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "detail": "Failed to load folder config: <error details>"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X GET http://localhost:8000/api/folders/ACTE-2024-001
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const getFolders = async (caseId) => {
+  const response = await fetch(
+    `http://localhost:8000/api/folders/${caseId}`
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to get folders');
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const config = await getFolders('ACTE-2024-001');
+  console.log(`Case ${config.caseId} has ${config.folders.length} folders`);
+  config.folders.forEach(folder => {
+    console.log(`- ${folder.name.en} (${folder.mandatory ? 'mandatory' : 'optional'})`);
+  });
+} catch (error) {
+  console.error('Get folders failed:', error.message);
+}
+```
+
+**Python:**
+```python
+import requests
+
+def get_folders(case_id: str):
+    response = requests.get(
+        f'http://localhost:8000/api/folders/{case_id}'
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"Get folders failed: {response.json()}")
+
+    return response.json()
+
+# Usage
+config = get_folders("ACTE-2024-001")
+print(f"Case {config['caseId']} has {len(config['folders'])} folders")
+for folder in config['folders']:
+    status = 'mandatory' if folder['mandatory'] else 'optional'
+    print(f"- {folder['name']['en']} ({status})")
+```
+
+**Notes:**
+- Creates default folder configuration if not exists
+- Ensures all physical directories exist
+- Default folders: personal-data, evidence, emails, certificates, applications
+
+---
+
+### POST /api/folders/{case_id}
+
+Create a new folder for a case.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/folders.py`
+
+**Source:** `backend/api/folders.py:223-262`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Creates a new folder with both a configuration entry and physical directory. The folder ID must be unique and follow kebab-case naming conventions.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+
+**Request Body:**
+```json
+{
+  "id": "my-custom-folder",
+  "name": {
+    "de": "Mein Ordner",
+    "en": "My Folder"
+  },
+  "mandatory": false
+}
+```
+
+**Request Fields:**
+- `id` (string, required): Folder ID in kebab-case (alphanumeric with hyphens/underscores)
+- `name` (object, required): Localized folder names
+  - `de` (string, required): German name
+  - `en` (string, required): English name
+- `mandatory` (boolean, optional, default: false): Whether folder is required
+
+**Success Response (200 OK):**
+```json
+{
+  "id": "my-custom-folder",
+  "nameKey": "my-custom-folder",
+  "name": {
+    "de": "Mein Ordner",
+    "en": "My Folder"
+  },
+  "mandatory": false,
+  "order": 6
+}
+```
+
+**Error Response (400 Bad Request - Duplicate ID):**
+```json
+{
+  "detail": "Folder 'my-custom-folder' already exists"
+}
+```
+
+**Error Response (400 Bad Request - Invalid ID):**
+```json
+{
+  "detail": "Folder ID must be alphanumeric with hyphens/underscores only"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X POST http://localhost:8000/api/folders/ACTE-2024-001 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "medical-records",
+    "name": {
+      "de": "Medizinische Unterlagen",
+      "en": "Medical Records"
+    },
+    "mandatory": true
+  }'
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const createFolder = async (caseId, folderId, names, mandatory = false) => {
+  const response = await fetch(
+    `http://localhost:8000/api/folders/${caseId}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: folderId,
+        name: names,
+        mandatory: mandatory
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to create folder');
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  const folder = await createFolder(
+    'ACTE-2024-001',
+    'medical-records',
+    { de: 'Medizinische Unterlagen', en: 'Medical Records' },
+    true
+  );
+  console.log(`Created folder: ${folder.name.en} (order: ${folder.order})`);
+} catch (error) {
+  console.error('Create folder failed:', error.message);
+}
+```
+
+**Notes:**
+- Creates physical directory at `public/documents/{case_id}/{folder_id}`
+- Assigns next available order number automatically
+- nameKey is set to the folder ID
+- Invalidates tree cache for the case
+
+---
+
+### PUT /api/folders/{case_id}/{folder_id}
+
+Update folder properties.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/folders.py`
+
+**Source:** `backend/api/folders.py:265-297`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Updates folder properties including name, mandatory status, and display order. All fields are optional - only provided fields will be updated.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+- `folder_id` (required): Folder identifier (e.g., "personal-data")
+
+**Request Body:**
+```json
+{
+  "name": {
+    "de": "Neuer Name",
+    "en": "New Name"
+  },
+  "mandatory": true,
+  "order": 3
+}
+```
+
+**Request Fields (all optional):**
+- `name` (object, optional): Updated localized names
+  - `de` (string, required if name provided): German name
+  - `en` (string, required if name provided): English name
+- `mandatory` (boolean, optional): Whether folder is required
+- `order` (integer, optional): Display order position
+
+**Success Response (200 OK):**
+```json
+{
+  "id": "personal-data",
+  "nameKey": "personal-data",
+  "name": {
+    "de": "Neuer Name",
+    "en": "New Name"
+  },
+  "mandatory": true,
+  "order": 3
+}
+```
+
+**Error Response (404 Not Found):**
+```json
+{
+  "detail": "Folder 'unknown-folder' not found"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+# Update folder name only
+curl -X PUT http://localhost:8000/api/folders/ACTE-2024-001/personal-data \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": {
+      "de": "Persönliche Dokumente",
+      "en": "Personal Documents"
+    }
+  }'
+
+# Update mandatory status only
+curl -X PUT http://localhost:8000/api/folders/ACTE-2024-001/evidence \
+  -H "Content-Type: application/json" \
+  -d '{"mandatory": false}'
+
+# Update display order only
+curl -X PUT http://localhost:8000/api/folders/ACTE-2024-001/emails \
+  -H "Content-Type: application/json" \
+  -d '{"order": 1}'
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const updateFolder = async (caseId, folderId, updates) => {
+  const response = await fetch(
+    `http://localhost:8000/api/folders/${caseId}/${folderId}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to update folder');
+  }
+
+  return await response.json();
+};
+
+// Usage examples
+// Update name only
+await updateFolder('ACTE-2024-001', 'personal-data', {
+  name: { de: 'Persönliche Dokumente', en: 'Personal Documents' }
+});
+
+// Make folder mandatory
+await updateFolder('ACTE-2024-001', 'evidence', { mandatory: true });
+
+// Change order
+await updateFolder('ACTE-2024-001', 'emails', { order: 1 });
+```
+
+**Notes:**
+- Does not rename physical directory (only updates metadata)
+- Invalidates tree cache for the case
+- Order changes do not automatically reorder other folders
+
+---
+
+### DELETE /api/folders/{case_id}/{folder_id}
+
+Delete a folder.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/folders.py`
+
+**Source:** `backend/api/folders.py:300-365`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Deletes a folder from the configuration. By default, only allows deletion of empty folders. Use the `force` query parameter to delete folders with contents (documents will be moved to the uploads folder).
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+- `folder_id` (required): Folder identifier (e.g., "personal-data")
+
+**Query Parameters:**
+
+- `force` (boolean, optional, default: false): Force deletion of non-empty folder
+
+**Success Response (200 OK):**
+```json
+{
+  "message": "Folder 'custom-folder' deleted successfully"
+}
+```
+
+**Error Response (404 Not Found):**
+```json
+{
+  "detail": "Folder 'unknown-folder' not found"
+}
+```
+
+**Error Response (400 Bad Request - Not Empty):**
+```json
+{
+  "detail": "Folder 'personal-data' is not empty. Use force=true to delete and move contents to uploads."
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+# Delete empty folder
+curl -X DELETE http://localhost:8000/api/folders/ACTE-2024-001/custom-folder
+
+# Force delete folder with contents
+curl -X DELETE "http://localhost:8000/api/folders/ACTE-2024-001/old-folder?force=true"
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const deleteFolder = async (caseId, folderId, force = false) => {
+  const url = `http://localhost:8000/api/folders/${caseId}/${folderId}${force ? '?force=true' : ''}`;
+  const response = await fetch(url, { method: 'DELETE' });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to delete folder');
+  }
+
+  return await response.json();
+};
+
+// Usage
+try {
+  // Safe delete (only if empty)
+  const result = await deleteFolder('ACTE-2024-001', 'old-folder');
+  console.log(result.message);
+} catch (error) {
+  if (error.message.includes('not empty')) {
+    // Confirm with user before force delete
+    const confirmed = confirm('Folder is not empty. Move contents to uploads and delete?');
+    if (confirmed) {
+      const result = await deleteFolder('ACTE-2024-001', 'old-folder', true);
+      console.log(result.message);
+    }
+  }
+}
+```
+
+**Notes:**
+- Empty check excludes hidden files (starting with '.')
+- Force deletion moves files to `uploads` folder with conflict resolution
+- Removes physical directory if empty after deletion
+- Automatically reorders remaining folders
+- Invalidates tree cache for the case
+
+---
+
+### PUT /api/folders/{case_id}
+
+Bulk update all folders at once (admin panel save).
+
+**Current Implementation:** IMPLEMENTED in `backend/api/folders.py`
+
+**Source:** `backend/api/folders.py:368-407`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Replaces the entire folder configuration. Used by the admin panel when saving all folder changes at once. Creates new folders and removes deleted ones (only if empty).
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+
+**Request Body:**
+```json
+{
+  "folders": [
+    {
+      "id": "personal-data",
+      "nameKey": "personal-data",
+      "name": {
+        "de": "Persönliche Daten",
+        "en": "Personal Data"
+      },
+      "mandatory": true,
+      "order": 1
+    },
+    {
+      "id": "evidence",
+      "nameKey": "evidence",
+      "name": {
+        "de": "Beweismittel",
+        "en": "Evidence"
+      },
+      "mandatory": true,
+      "order": 2
+    }
+  ]
+}
+```
+
+**Request Fields:**
+- `folders` (array, required): Complete list of folders to configure
+
+**Success Response (200 OK):**
+```json
+{
+  "schemaVersion": "1.0",
+  "caseId": "ACTE-2024-001",
+  "lastUpdated": "2026-01-16T11:00:00.123456Z",
+  "folders": [
+    {
+      "id": "personal-data",
+      "nameKey": "personal-data",
+      "name": {
+        "de": "Persönliche Daten",
+        "en": "Personal Data"
+      },
+      "mandatory": true,
+      "order": 1
+    }
+  ]
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X PUT http://localhost:8000/api/folders/ACTE-2024-001 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "folders": [
+      {
+        "id": "personal-data",
+        "nameKey": "personal-data",
+        "name": {"de": "Persönliche Daten", "en": "Personal Data"},
+        "mandatory": true,
+        "order": 1
+      },
+      {
+        "id": "evidence",
+        "nameKey": "evidence",
+        "name": {"de": "Beweismittel", "en": "Evidence"},
+        "mandatory": true,
+        "order": 2
+      }
+    ]
+  }'
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const bulkUpdateFolders = async (caseId, folders) => {
+  const response = await fetch(
+    `http://localhost:8000/api/folders/${caseId}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folders })
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to update folders');
+  }
+
+  return await response.json();
+};
+
+// Usage (admin panel save)
+const updatedConfig = await bulkUpdateFolders('ACTE-2024-001', [
+  { id: 'personal-data', nameKey: 'personal-data',
+    name: { de: 'Persönliche Daten', en: 'Personal Data' },
+    mandatory: true, order: 1 },
+  { id: 'evidence', nameKey: 'evidence',
+    name: { de: 'Beweismittel', en: 'Evidence' },
+    mandatory: true, order: 2 }
+]);
+```
+
+**Notes:**
+- Replaces entire folder configuration atomically
+- Creates physical directories for new folders
+- Deletes directories only if empty (logs warning if not empty)
+- Invalidates tree cache for the case
+- Use for admin panel "Save All" operations
+
+---
+
+### POST /api/folders/{case_id}/reorder
+
+Reorder folders by providing list of folder IDs.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/folders.py`
+
+**Source:** `backend/api/folders.py:410-434`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+Updates the display order of all folders by accepting a list of folder IDs in the desired order. All existing folder IDs must be included.
+
+**Path Parameters:**
+
+- `case_id` (required): Case identifier (e.g., "ACTE-2024-001")
+
+**Request Body:**
+```json
+["personal-data", "evidence", "emails", "certificates", "applications"]
+```
+
+**Request Format:**
+- Array of folder ID strings in desired order
+
+**Success Response (200 OK):**
+```json
+{
+  "schemaVersion": "1.0",
+  "caseId": "ACTE-2024-001",
+  "lastUpdated": "2026-01-16T11:15:00.123456Z",
+  "folders": [
+    {
+      "id": "personal-data",
+      "nameKey": "personal-data",
+      "name": {
+        "de": "Persönliche Daten",
+        "en": "Personal Data"
+      },
+      "mandatory": true,
+      "order": 1
+    },
+    {
+      "id": "evidence",
+      "nameKey": "evidence",
+      "name": {
+        "de": "Beweismittel",
+        "en": "Evidence"
+      },
+      "mandatory": true,
+      "order": 2
+    }
+  ]
+}
+```
+
+**Error Response (400 Bad Request - Missing IDs):**
+```json
+{
+  "detail": "Folder order must contain exactly all existing folder IDs"
+}
+```
+
+**Example Usage:**
+
+**cURL:**
+```bash
+curl -X POST http://localhost:8000/api/folders/ACTE-2024-001/reorder \
+  -H "Content-Type: application/json" \
+  -d '["personal-data", "evidence", "emails", "certificates"]'
+```
+
+**JavaScript/TypeScript:**
+```javascript
+const reorderFolders = async (caseId, folderIds) => {
+  const response = await fetch(
+    `http://localhost:8000/api/folders/${caseId}/reorder`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(folderIds)
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to reorder folders');
+  }
+
+  return await response.json();
+};
+
+// Usage (drag-and-drop reorder)
+const newOrder = ['evidence', 'personal-data', 'emails', 'certificates'];
+const updatedConfig = await reorderFolders('ACTE-2024-001', newOrder);
+console.log('Folders reordered successfully');
+```
+
+**Notes:**
+- All existing folder IDs must be present in the request
+- Order numbers are automatically assigned (1, 2, 3, ...)
+- Invalidates tree cache for the case
+- Use for drag-and-drop reordering UI
 
 ---
 

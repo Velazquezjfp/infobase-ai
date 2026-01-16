@@ -344,7 +344,7 @@ export default function FormViewer({ showMetadata = false }: FormViewerProps) {
             <div className="flex items-center gap-2">
               <div>
                 <h3 className="font-semibold text-foreground text-sm">{currentCase.name}</h3>
-                <p className="text-xs text-muted-foreground">{currentCase.id}</p>
+                <p className="text-xs text-muted-foreground">{currentCase.id.replace(/^ACTE-/, `${t('case.prefix')}-`)}</p>
               </div>
               {/* S5-001: Admin mode buttons */}
               {isAdminMode && (

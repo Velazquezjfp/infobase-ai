@@ -10,7 +10,7 @@ info:
 
     The API will provide document management, AI-powered case processing, and integration course
     application handling for BAMF (Bundesamt für Migration und Flüchtlinge).
-  version: 2.2.0
+  version: 2.3.0
   contact:
     name: BAMF Development Team
     email: api@bamf.example.de
@@ -40,6 +40,8 @@ tags:
     description: Document upload, conversion, and retrieval
   - name: Files
     description: File upload, deletion, and management operations
+  - name: Folders
+    description: Folder configuration and management for case organization
   - name: AI Operations
     description: AI-powered document processing and analysis
   - name: Forms
@@ -501,7 +503,7 @@ paths:
 
         **Features:**
         - Cached for performance (regenerates on document changes)
-        - Includes folder display names from context files
+        - Localized folder names based on language parameter
         - Shows empty folders
         - Lists all documents with original filenames
       operationId: getTreeView
@@ -513,6 +515,15 @@ paths:
           schema:
             type: string
             example: ACTE-2024-001
+        - name: language
+          in: query
+          required: false
+          description: Language for folder names ('de' for German, 'en' for English)
+          schema:
+            type: string
+            enum: [de, en]
+            default: de
+            example: de
       responses:
         '200':
           description: Tree view retrieved successfully
@@ -952,6 +963,271 @@ paths:
                       case_id:
                         type: string
       x-source-file: backend/api/custom_context.py
+
+  /api/folders/{case_id}:
+    get:
+      tags:
+        - Folders
+      summary: Get folder configuration for a case
+      description: |
+        Retrieve all configured folders with their localized names, display order, and mandatory status.
+        Automatically ensures all physical directories exist.
+      operationId: getFolders
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case identifier
+          schema:
+            type: string
+            example: ACTE-2024-001
+      responses:
+        '200':
+          description: Folder configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderConfigResponse'
+        '500':
+          description: Failed to load folder configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Failed to load folder config
+      x-source-file: backend/api/folders.py
+
+    post:
+      tags:
+        - Folders
+      summary: Create a new folder
+      description: |
+        Create a new folder with both a configuration entry and physical directory.
+        The folder ID must be unique and follow kebab-case naming conventions.
+      operationId: createFolder
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case identifier
+          schema:
+            type: string
+            example: ACTE-2024-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFolderRequest'
+      responses:
+        '200':
+          description: Folder created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderConfig'
+        '400':
+          description: Invalid request (duplicate ID or invalid format)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Folder 'my-folder' already exists
+      x-source-file: backend/api/folders.py
+
+    put:
+      tags:
+        - Folders
+      summary: Bulk update all folders
+      description: |
+        Replace the entire folder configuration. Used by the admin panel when saving all folder changes.
+        Creates new folders and removes deleted ones (only if empty).
+      operationId: bulkUpdateFolders
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case identifier
+          schema:
+            type: string
+            example: ACTE-2024-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkUpdateFoldersRequest'
+      responses:
+        '200':
+          description: Folders updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderConfigResponse'
+      x-source-file: backend/api/folders.py
+
+  /api/folders/{case_id}/{folder_id}:
+    put:
+      tags:
+        - Folders
+      summary: Update folder properties
+      description: |
+        Update folder properties including name, mandatory status, and display order.
+        All fields are optional - only provided fields will be updated.
+      operationId: updateFolder
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case identifier
+          schema:
+            type: string
+            example: ACTE-2024-001
+        - name: folder_id
+          in: path
+          required: true
+          description: Folder identifier
+          schema:
+            type: string
+            example: personal-data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFolderRequest'
+      responses:
+        '200':
+          description: Folder updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderConfig'
+        '404':
+          description: Folder not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Folder 'unknown' not found
+      x-source-file: backend/api/folders.py
+
+    delete:
+      tags:
+        - Folders
+      summary: Delete a folder
+      description: |
+        Delete a folder from the configuration. By default, only allows deletion of empty folders.
+        Use force=true to delete folders with contents (documents will be moved to uploads).
+      operationId: deleteFolder
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case identifier
+          schema:
+            type: string
+            example: ACTE-2024-001
+        - name: folder_id
+          in: path
+          required: true
+          description: Folder identifier
+          schema:
+            type: string
+            example: custom-folder
+        - name: force
+          in: query
+          required: false
+          description: Force deletion of non-empty folder
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Folder deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Folder 'custom-folder' deleted successfully
+        '404':
+          description: Folder not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Folder 'unknown' not found
+        '400':
+          description: Folder is not empty (force=false)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Folder 'personal-data' is not empty. Use force=true to delete.
+      x-source-file: backend/api/folders.py
+
+  /api/folders/{case_id}/reorder:
+    post:
+      tags:
+        - Folders
+      summary: Reorder folders
+      description: |
+        Update the display order of all folders by accepting a list of folder IDs in desired order.
+        All existing folder IDs must be included.
+      operationId: reorderFolders
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case identifier
+          schema:
+            type: string
+            example: ACTE-2024-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              example: ["personal-data", "evidence", "emails", "certificates"]
+      responses:
+        '200':
+          description: Folders reordered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderConfigResponse'
+        '400':
+          description: Invalid folder order (missing IDs)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Folder order must contain exactly all existing folder IDs
+      x-source-file: backend/api/folders.py
 
   /api/search/semantic:
     post:
@@ -2467,3 +2743,116 @@ components:
           description: Classification of the rule (for validation_rule) or document_requirement (for required_document)
           enum: [file_type, content, metadata, completeness, document_requirement, folder_rule]
           example: file_type
+
+    FolderName:
+      type: object
+      required:
+        - de
+        - en
+      properties:
+        de:
+          type: string
+          description: German folder name
+          example: Persönliche Daten
+        en:
+          type: string
+          description: English folder name
+          example: Personal Data
+
+    FolderConfig:
+      type: object
+      required:
+        - id
+        - nameKey
+        - name
+        - mandatory
+        - order
+      properties:
+        id:
+          type: string
+          description: Folder ID (kebab-case)
+          example: personal-data
+        nameKey:
+          type: string
+          description: Translation key (same as ID)
+          example: personal-data
+        name:
+          $ref: '#/components/schemas/FolderName'
+        mandatory:
+          type: boolean
+          description: Whether folder is required
+          example: true
+        order:
+          type: integer
+          description: Display order position
+          example: 1
+
+    FolderConfigResponse:
+      type: object
+      required:
+        - schemaVersion
+        - caseId
+        - lastUpdated
+        - folders
+      properties:
+        schemaVersion:
+          type: string
+          description: Configuration schema version
+          example: "1.0"
+        caseId:
+          type: string
+          description: Case identifier
+          example: ACTE-2024-001
+        lastUpdated:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of last update
+          example: "2026-01-16T10:30:00.123456Z"
+        folders:
+          type: array
+          items:
+            $ref: '#/components/schemas/FolderConfig'
+
+    CreateFolderRequest:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: Folder ID in kebab-case
+          pattern: '^[a-z0-9-_]+$'
+          example: my-custom-folder
+        name:
+          $ref: '#/components/schemas/FolderName'
+        mandatory:
+          type: boolean
+          description: Whether folder is required
+          default: false
+          example: false
+
+    UpdateFolderRequest:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/FolderName'
+        mandatory:
+          type: boolean
+          description: Whether folder is required
+          example: true
+        order:
+          type: integer
+          description: Display order position
+          example: 3
+
+    BulkUpdateFoldersRequest:
+      type: object
+      required:
+        - folders
+      properties:
+        folders:
+          type: array
+          description: Complete list of folders to configure
+          items:
+            $ref: '#/components/schemas/FolderConfig'

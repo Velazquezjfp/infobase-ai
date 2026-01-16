@@ -36,7 +36,7 @@ export default function WorkspaceHeader() {
         <div className="h-6 w-px bg-border" />
         <div>
           <p className="text-sm font-medium text-foreground">{currentCase.name}</p>
-          <p className="text-xs text-muted-foreground">{currentCase.id}</p>
+          <p className="text-xs text-muted-foreground">{currentCase.id.replace(/^ACTE-/, `${t('case.prefix')}-`)}</p>
         </div>
       </div>
 

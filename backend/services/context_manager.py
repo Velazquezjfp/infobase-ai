@@ -1084,16 +1084,34 @@ def generate_document_tree(case_id: str) -> str:
                 for doc_idx, doc in enumerate(folder_docs):
                     is_last_doc = (doc_idx == len(folder_docs) - 1)
                     doc_name = doc.get('fileName', 'Unknown')
+                    renders = doc.get('renders', [])
+
+                    # Filter renders to only show non-original (anonymized, translated, etc.)
+                    additional_renders = [r for r in renders if r.get('type') != 'original']
+                    has_additional_renders = len(additional_renders) > 0
 
                     # Determine the prefix for the document
                     if is_last_item:
                         # Last folder, use spaces
                         doc_prefix = "    └──" if is_last_doc else "    ├──"
+                        render_continuation = "    " if is_last_doc else "    │"
                     else:
                         # Not last folder, use vertical bar continuation
                         doc_prefix = "│   └──" if is_last_doc else "│   ├──"
+                        render_continuation = "│   " if is_last_doc else "│   │"
 
-                    tree_lines.append(f"{doc_prefix} {doc_name}")
+                    # Show document with render count if has additional renders
+                    if has_additional_renders:
+                        tree_lines.append(f"{doc_prefix} {doc_name} [+{len(additional_renders)} render(s)]")
+                        # Add each render under the document
+                        for render_idx, render in enumerate(additional_renders):
+                            is_last_render = (render_idx == len(additional_renders) - 1)
+                            render_type = render.get('type', 'unknown')
+                            render_name = render.get('name', 'Unknown')
+                            render_prefix = f"{render_continuation}   └──" if is_last_render else f"{render_continuation}   ├──"
+                            tree_lines.append(f"{render_prefix} [{render_type}] {render_name}")
+                    else:
+                        tree_lines.append(f"{doc_prefix} {doc_name}")
 
         # Add root documents (documents not in any folder)
         for root_doc in root_documents:

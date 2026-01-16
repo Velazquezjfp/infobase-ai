@@ -585,7 +585,7 @@ export default function AIChatInterface() {
     // Case context is always active
     sources.push({
       type: 'Case',
-      name: currentCase.id,
+      name: currentCase.id.replace(/^ACTE-/, `${t('case.prefix')}-`),
       icon: <Briefcase className="w-3 h-3" />
     });
 

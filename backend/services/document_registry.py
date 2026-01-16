@@ -871,9 +871,11 @@ def add_render_to_document(document_id: str, render_data: Dict) -> None:
 
     # Find the document
     document_found = False
+    case_id = None
     for doc_entry in registry.documents:
         if doc_entry.get('documentId') == document_id:
             document_found = True
+            case_id = doc_entry.get('caseId')
 
             # Ensure renders array exists
             if 'renders' not in doc_entry:
@@ -890,6 +892,13 @@ def add_render_to_document(document_id: str, render_data: Dict) -> None:
 
     # Save updated manifest
     save_manifest(registry)
+
+    # Invalidate tree cache so AI context includes new renders
+    if case_id:
+        # Import here to avoid circular imports
+        from backend.services.context_manager import invalidate_tree_cache
+        invalidate_tree_cache(case_id)
+        logger.info(f"Invalidated tree cache for case {case_id} after adding render")
 
 
 def get_document_renders(document_id: str) -> List[Dict]:

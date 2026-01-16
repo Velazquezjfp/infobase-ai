@@ -61,6 +61,12 @@ This directory contains API documentation for the BAMF ACTE Companion applicatio
 | `POST` | `/api/custom-context/{case_id}/rule` | Add a validation rule (S5-017) |
 | `POST` | `/api/custom-context/{case_id}/document` | Add a required document (S5-017) |
 | `DELETE` | `/api/custom-context/{case_id}/{rule_id}` | Remove a custom rule (S5-017) |
+| `GET` | `/api/folders/{case_id}` | Get folder configuration for a case |
+| `POST` | `/api/folders/{case_id}` | Create a new folder |
+| `PUT` | `/api/folders/{case_id}/{folder_id}` | Update folder properties |
+| `DELETE` | `/api/folders/{case_id}/{folder_id}` | Delete a folder |
+| `PUT` | `/api/folders/{case_id}` | Bulk update all folders (admin panel) |
+| `POST` | `/api/folders/{case_id}/reorder` | Reorder folders |
 | `POST` | `/api/validation/case/{case_id}` | AI-powered case validation for submission (S5-005) |
 | `GET` | `/api/validation/health` | Validation service health |
 
@@ -178,5 +184,5 @@ Internal tracking file for documentation synchronization with codebase changes.
 ---
 
 **Last Updated:** 2026-01-16
-**Documentation Version:** 2.2.0
+**Documentation Version:** 2.3.0
 **Application Version:** 0.0.0
