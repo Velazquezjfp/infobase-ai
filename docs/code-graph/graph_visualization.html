@@ -225,15 +225,15 @@
             <div class="graph-path">/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/code-graph/code-graph.json</div>
             <div class="stats">
                 <div class="stat">
-                    <div class="stat-number">216</div>
+                    <div class="stat-number">222</div>
                     <div class="stat-label">Entities</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">356</div>
+                    <div class="stat-number">368</div>
                     <div class="stat-label">Relations</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number">43</div>
+                    <div class="stat-number">45</div>
                     <div class="stat-label">Types</div>
                 </div>
             </div>
@@ -496,7 +496,12 @@
                         "S2-004: Uses Info icon and Badge components for context source display",
                         "Sprint 5 update: Integrated messageFormatter for rendering chat messages (S5-009)",
                         "Sprint 5 update: Added CodeBlock and DataTable rendering support",
-                        "Sprint 5 update: Updated form extraction to send current form values (S5-002)"
+                        "Sprint 5 update: Updated form extraction to send current form values (S5-002)",
+                        "Added ContextHierarchyDialog integration for viewing AI context hierarchy",
+                        "Context indicator now always visible showing Case, Folder (if applicable), and Document badges",
+                        "Info icon is clickable to open ContextHierarchyDialog",
+                        "getActiveContextSources() updated to always include case context",
+                        "showContextHierarchy state controls dialog visibility"
                 ],
                 "index": 9
         },
@@ -558,7 +563,11 @@
                         "S5-001: Added SHACL visualization dialog showing current NodeShape",
                         "S5-001: Field validation using validateValue() from SHACL types",
                         "S5-001: Tracks field validation errors in fieldValidationErrors state",
-                        "S5-001: Integrates Edit3, FileCode, Send, Loader2 icons for NL UI"
+                        "S5-001: Integrates Edit3, FileCode, Send, Loader2 icons for NL UI",
+                        "Imports and uses SubmitCaseDialog component",
+                        "handleFormSubmit() opens SubmitCaseDialog instead of direct submission",
+                        "showSubmitDialog state for dialog visibility",
+                        "handleConfirmedSubmit() for actual submission after dialog"
                 ],
                 "index": 11
         },
@@ -826,7 +835,8 @@
                         "S5-007: Performs document registry reconciliation on startup",
                         "S5-007: Calls load_manifest(), scan_filesystem(), reconcile() from document_registry service",
                         "S5-007: Logs document registry reconciliation report on startup",
-                        "S5-007: Handles reconciliation errors gracefully with warning logs"
+                        "S5-007: Handles reconciliation errors gracefully with warning logs",
+                        "Registers validation_router at /api/validation prefix"
                 ],
                 "index": 29
         },
@@ -3262,6 +3272,95 @@
                         "Optional: render object with render details"
                 ],
                 "index": 215
+        },
+        {
+                "id": "backend/services/validation_service.py",
+                "type": "BackendService",
+                "observations": [
+                        "CaseValidationService class with singleton pattern",
+                        "Uses Google Generative AI (Gemini 2.5 Flash model)",
+                        "validate_case() async method for AI-powered case validation",
+                        "_build_validation_prompt() constructs prompt with case context, form data, documents",
+                        "_parse_validation_response() with robust JSON parsing and truncation repair",
+                        "ValidationResult dataclass: success, score (1-100), summary, warnings, recommendations",
+                        "ValidationWarning dataclass: severity, category, title, details",
+                        "Localized fallback messages (German/English)",
+                        "Uses ContextManager and document_registry for case context",
+                        "get_validation_service() singleton accessor function"
+                ],
+                "index": 216
+        },
+        {
+                "id": "backend/api/validation.py",
+                "type": "APIRouter",
+                "observations": [
+                        "FastAPI router for validation endpoints",
+                        "POST /api/validation/case/{case_id} - AI-powered case validation",
+                        "GET /api/validation/health - Health check endpoint",
+                        "ValidationRequest Pydantic model: formData, language, documentContents",
+                        "ValidationResponse Pydantic model: success, score, summary, warnings, recommendations, error",
+                        "ValidationWarningResponse Pydantic model for warning items",
+                        "Imports get_validation_service from validation_service"
+                ],
+                "index": 217
+        },
+        {
+                "id": "src/components/workspace/SubmitCaseDialog.tsx",
+                "type": "WorkspaceComponent",
+                "observations": [
+                        "Dialog component for case submission with validation",
+                        "Multi-state UI: initial, loading, results, error (DialogState type)",
+                        "Uses useApp context for currentCase, formFields",
+                        "Uses useTranslation for i18n support (German/English)",
+                        "Calls POST /api/validation/case/{case_id} endpoint",
+                        "Displays validation score with color-coded progress bar",
+                        "Collapsible warning groups by severity (critical, high, medium, low)",
+                        "severityConfig object maps severity to icons and colors",
+                        "getScoreColor(), getScoreBarColor(), getScoreLabel() helper functions",
+                        "handleRunValidation() performs validation request",
+                        "handleSubmitWithoutCheck(), handleSubmitAnyway() submission handlers",
+                        "Props: open, onOpenChange, onSubmit"
+                ],
+                "index": 218
+        },
+        {
+                "id": "src/components/workspace/CaseContextDialog.tsx",
+                "type": "WorkspaceComponent",
+                "observations": [
+                        "Dialog component for viewing case context details",
+                        "Displays case information, required documents, folder structure",
+                        "Uses useApp context for currentCase",
+                        "Uses useTranslation for i18n support",
+                        "Collapsible sections for different context areas",
+                        "Integrates with ContextManager data"
+                ],
+                "index": 219
+        },
+        {
+                "id": "google.generativeai",
+                "type": "ExternalDependency",
+                "observations": [
+                        "Google Generative AI Python SDK",
+                        "Used for Gemini model access"
+                ],
+                "index": 220
+        },
+        {
+                "id": "src/components/workspace/ContextHierarchyDialog.tsx",
+                "type": "WorkspaceComponent",
+                "observations": [
+                        "Dialog component for visualizing AI context injection hierarchy",
+                        "Shows context cascade: Case \u2192 Folder \u2192 Document",
+                        "Fetches case context from /api/context/case/{caseId} endpoint",
+                        "Displays collapsible tree structure with expandable nodes",
+                        "Shows regulations, required documents, common issues, validation rules from case context",
+                        "Shows folder structure with documents from current case",
+                        "Highlights active document when selected",
+                        "Indicates text content extraction status for documents",
+                        "Uses i18n for German/English translations",
+                        "Implements context flow indicator showing precedence: Document > Folder > Case"
+                ],
+                "index": 221
         }
 ];
         const links = [
@@ -5044,6 +5143,66 @@
                 "source": "backend/services/translation_service.py::TranslationService",
                 "target": "backend/services/translation_service.py::translate_email",
                 "type": "defines_method"
+        },
+        {
+                "source": "backend/api/validation.py",
+                "target": "backend/services/validation_service.py",
+                "type": "IMPORTS"
+        },
+        {
+                "source": "backend/api/validation.py",
+                "target": "backend/main.py",
+                "type": "REGISTERED_IN"
+        },
+        {
+                "source": "backend/services/validation_service.py",
+                "target": "backend/services/context_manager.py",
+                "type": "USES"
+        },
+        {
+                "source": "backend/services/validation_service.py",
+                "target": "backend/services/document_registry.py",
+                "type": "USES"
+        },
+        {
+                "source": "backend/services/validation_service.py",
+                "target": "google.generativeai",
+                "type": "USES"
+        },
+        {
+                "source": "src/components/workspace/SubmitCaseDialog.tsx",
+                "target": "src/contexts/AppContext.tsx",
+                "type": "USES"
+        },
+        {
+                "source": "src/components/workspace/SubmitCaseDialog.tsx",
+                "target": "backend/api/validation.py",
+                "type": "CALLS_API"
+        },
+        {
+                "source": "src/components/workspace/FormViewer.tsx",
+                "target": "src/components/workspace/SubmitCaseDialog.tsx",
+                "type": "IMPORTS"
+        },
+        {
+                "source": "src/components/workspace/CaseContextDialog.tsx",
+                "target": "src/contexts/AppContext.tsx",
+                "type": "USES"
+        },
+        {
+                "source": "src/components/workspace/AIChatInterface.tsx",
+                "target": "src/components/workspace/ContextHierarchyDialog.tsx",
+                "type": "imports"
+        },
+        {
+                "source": "src/components/workspace/ContextHierarchyDialog.tsx",
+                "target": "src/contexts/AppContext.tsx",
+                "type": "imports"
+        },
+        {
+                "source": "src/components/workspace/ContextHierarchyDialog.tsx",
+                "target": "useApp",
+                "type": "uses_hook"
         }
 ];
 

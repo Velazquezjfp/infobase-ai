@@ -1,4 +1,4 @@
-import { Case, SlashCommand, FormField, ChatMessage, Folder } from '@/types/case';
+import { Case, SlashCommand, FormField, ChatMessage, Folder, HierarchicalSlashCommand, SlashCommandArgument } from '@/types/case';
 import { SHACL_CONTEXT, type SHACLPropertyShape } from '@/types/shacl';
 
 export const slashCommands: SlashCommand[] = [
@@ -14,7 +14,97 @@ export const slashCommands: SlashCommand[] = [
   { command: '/generateEmail', label: 'Generate Email', description: 'Create notification email', icon: 'Mail' },
   { command: '/extractMetadata', label: 'Extract Metadata', description: 'Extract document metadata', icon: 'Database' },
   { command: '/fillForm', label: 'Fill Form', description: 'Extract data from document to form fields', icon: 'FileInput' },
+  // S5-017: Context modification commands
+  { command: '/Aktenkontext', label: 'Aktenkontext', description: 'Modify case context (rules, documents)', icon: 'Settings' },
+  { command: '/removeAktenkontext', label: 'Remove Context Rule', description: 'Remove a custom context rule', icon: 'Trash2' },
 ];
+
+/**
+ * S5-017: Hierarchical slash commands for context modification
+ * These commands have nested argument structures for guided input
+ */
+export const hierarchicalSlashCommands: HierarchicalSlashCommand[] = [
+  {
+    command: '/Aktenkontext',
+    label: 'Aktenkontext',
+    description: 'Modify case context (rules, documents)',
+    icon: 'Settings',
+    arguments: [
+      {
+        value: 'Regeln',
+        label: 'Regeln',
+        description: 'Add validation rules to the case',
+        children: [
+          {
+            value: 'Ordner',
+            label: 'Ordner',
+            description: 'Folder-specific validation rule',
+            children: [], // Will be populated dynamically with folder names
+            requiresInput: true,
+            placeholder: '"Rule description"'
+          },
+          {
+            value: 'Dateityp',
+            label: 'Dateityp',
+            description: 'File type validation rule',
+            requiresInput: true,
+            placeholder: '"Only PDF files allowed"'
+          },
+          {
+            value: 'Inhalt',
+            label: 'Inhalt',
+            description: 'Content validation rule',
+            requiresInput: true,
+            placeholder: '"Document must contain signature"'
+          },
+          {
+            value: 'Metadaten',
+            label: 'Metadaten',
+            description: 'Metadata validation rule',
+            requiresInput: true,
+            placeholder: '"Document must have author field"'
+          },
+          {
+            value: 'Vollständigkeit',
+            label: 'Vollständigkeit',
+            description: 'Completeness validation rule',
+            requiresInput: true,
+            placeholder: '"All pages must be present"'
+          }
+        ]
+      },
+      {
+        value: 'Dokumente',
+        label: 'Dokumente',
+        description: 'Add required document to the case',
+        requiresInput: true,
+        placeholder: '"An anonymized version of the passport is necessary under Personal Data"'
+      }
+    ]
+  },
+  {
+    command: '/removeAktenkontext',
+    label: 'Remove Context Rule',
+    description: 'Remove a custom context rule',
+    icon: 'Trash2',
+    isDynamic: true,
+    dynamicSource: 'customRules',
+    arguments: [] // Populated dynamically with existing rules
+  }
+];
+
+/**
+ * Get folder names from a case for dynamic command arguments
+ */
+export const getFolderArguments = (folders: Folder[]): SlashCommandArgument[] => {
+  return folders.map(folder => ({
+    value: folder.name,
+    label: folder.name,
+    description: `Add rule for ${folder.name} folder`,
+    requiresInput: true,
+    placeholder: '"Rule description"'
+  }));
+};
 
 // Case-type form templates - each case type has its own form schema
 // D-002: Integration Course Application form (7 fields)

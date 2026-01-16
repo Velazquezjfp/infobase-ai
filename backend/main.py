@@ -30,6 +30,7 @@ from backend.api.documents import router as documents_router
 from backend.api.context import router as context_router  # S5-011
 from backend.api.search import router as search_router  # S5-003
 from backend.api.validation import router as validation_router  # Case validation
+from backend.api.custom_context import router as custom_context_router  # S5-017
 
 # Configure logging
 logging.basicConfig(
@@ -178,6 +179,7 @@ app.include_router(documents_router, tags=["documents"])
 app.include_router(context_router, tags=["context"])  # S5-011
 app.include_router(search_router, prefix="/api/search", tags=["search"])  # S5-003
 app.include_router(validation_router, prefix="/api/validation", tags=["validation"])  # Case validation
+app.include_router(custom_context_router, tags=["custom-context"])  # S5-017
 
 
 @app.get("/health")

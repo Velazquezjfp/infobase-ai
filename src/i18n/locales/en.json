@@ -179,6 +179,14 @@
     "invalidFields": "Invalid Fields",
     "suggestions": "Suggestions"
   },
+  "formSuggestions": {
+    "accepted": "Updated field '{{fieldLabel}}' with suggested value: \"{{value}}\"",
+    "acceptedTitle": "Suggestion accepted",
+    "acceptedDescription": "Field '{{fieldLabel}}' updated successfully.",
+    "rejected": "Rejected suggestion for '{{fieldLabel}}'",
+    "rejectedTitle": "Suggestion rejected",
+    "rejectedDescription": "Keeping current value for '{{fieldLabel}}'."
+  },
   "submitCase": {
     "title": "Submit Case",
     "confirmMessage": "You are about to submit this case.",
@@ -402,6 +410,45 @@
     "en": "English",
     "switchLanguage": "Switch Language"
   },
+  "contextHierarchy": {
+    "title": "AI Context Hierarchy",
+    "description": "This shows how context is injected into the AI agent. The hierarchy flows from Case → Folder → Document.",
+    "viewDetails": "View context details",
+    "case": "Case",
+    "folder": "Folder",
+    "document": "Document",
+    "flowLabel": "Context Flow",
+    "precedenceNote": "Higher specificity takes precedence: Document > Folder > Case",
+    "loading": "Loading context...",
+    "sourceNote": "Context data loaded from",
+    "regulations": "Articles & Rules",
+    "requiredDocuments": "Required Documents",
+    "commonIssues": "Common Issues",
+    "validationRules": "Validation Rules",
+    "folders": "Folders",
+    "activeDocument": "Active Document",
+    "textExtracted": "Text content extracted",
+    "noTextContent": "No text content",
+    "critical": "Critical",
+    "optional": "Optional",
+    "customRules": "Custom Rules",
+    "customValidationRules": "Custom Validation Rules",
+    "customDocuments": "Custom Required Documents"
+  },
+  "contextCommands": {
+    "noRules": "No custom rules",
+    "noRulesDescription": "No custom rules have been added yet",
+    "validationRule": "Rule",
+    "requiredDocument": "Document",
+    "enterDescription": "Enter description",
+    "enterRule": "Enter rule",
+    "ruleAddedSuccess": "Built and tested validation script, your rule is active.",
+    "documentAddedSuccess": "Built and tested validation script, new document required added to context.",
+    "ruleRemovedSuccess": "Rule removed successfully.",
+    "addRule": "Add validation rule",
+    "addDocument": "Add required document",
+    "removeRule": "Remove rule"
+  },
   "login": {
     "title": "AI Case Management System",
     "subtitle": "Streamlined case processing with intelligent document management and AI-powered assistance.",
@@ -468,6 +515,10 @@
     "suggestion": "Suggestion",
     "critical": "Critical",
     "optional": "Optional",
+    "userRule": "User Rule",
+    "targetFolder": "Target folder",
+    "customDocument": "Custom Requirement",
+    "userDefined": "User defined",
     "content": {
       "caseTypes": {
         "integration_course": "Integration Course",

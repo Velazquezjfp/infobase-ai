@@ -152,6 +152,14 @@
     "formSubmitted": "Formular erfolgreich abgesendet!",
     "sentForReview": "Der Antrag wurde zur Prüfung gesendet."
   },
+  "formSuggestions": {
+    "accepted": "Feld '{{fieldLabel}}' mit vorgeschlagenem Wert aktualisiert: \"{{value}}\"",
+    "acceptedTitle": "Vorschlag angenommen",
+    "acceptedDescription": "Feld '{{fieldLabel}}' erfolgreich aktualisiert.",
+    "rejected": "Vorschlag für '{{fieldLabel}}' abgelehnt",
+    "rejectedTitle": "Vorschlag abgelehnt",
+    "rejectedDescription": "Aktueller Wert für '{{fieldLabel}}' beibehalten."
+  },
   "metadata": {
     "title": "Dokument-Metadaten",
     "createdAt": "Erstellt am",
@@ -402,6 +410,45 @@
     "en": "Englisch",
     "switchLanguage": "Sprache wechseln"
   },
+  "contextHierarchy": {
+    "title": "KI-Kontext-Hierarchie",
+    "description": "Zeigt, wie der Kontext in den KI-Agenten injiziert wird. Die Hierarchie fließt von Akte → Ordner → Dokument.",
+    "viewDetails": "Kontextdetails anzeigen",
+    "case": "Akte",
+    "folder": "Ordner",
+    "document": "Dokument",
+    "flowLabel": "Kontextfluss",
+    "precedenceNote": "Höhere Spezifität hat Vorrang: Dokument > Ordner > Akte",
+    "loading": "Kontext wird geladen...",
+    "sourceNote": "Kontextdaten geladen von",
+    "regulations": "Artikel & Regeln",
+    "requiredDocuments": "Erforderliche Dokumente",
+    "commonIssues": "Häufige Probleme",
+    "validationRules": "Validierungsregeln",
+    "folders": "Ordner",
+    "activeDocument": "Aktives Dokument",
+    "textExtracted": "Textinhalt extrahiert",
+    "noTextContent": "Kein Textinhalt",
+    "critical": "Kritisch",
+    "optional": "Optional",
+    "customRules": "Benutzerdefinierte Regeln",
+    "customValidationRules": "Benutzerdefinierte Validierungsregeln",
+    "customDocuments": "Benutzerdefinierte erforderliche Dokumente"
+  },
+  "contextCommands": {
+    "noRules": "Keine benutzerdefinierten Regeln",
+    "noRulesDescription": "Es wurden noch keine benutzerdefinierten Regeln hinzugefügt",
+    "validationRule": "Regel",
+    "requiredDocument": "Dokument",
+    "enterDescription": "Beschreibung eingeben",
+    "enterRule": "Regel eingeben",
+    "ruleAddedSuccess": "Validierungsskript erstellt und getestet, Ihre Regel ist aktiv.",
+    "documentAddedSuccess": "Validierungsskript erstellt und getestet, neues erforderliches Dokument zum Kontext hinzugefügt.",
+    "ruleRemovedSuccess": "Regel erfolgreich entfernt.",
+    "addRule": "Validierungsregel hinzufügen",
+    "addDocument": "Erforderliches Dokument hinzufügen",
+    "removeRule": "Regel entfernen"
+  },
   "login": {
     "title": "KI-Fallverwaltungssystem",
     "subtitle": "Optimierte Fallbearbeitung mit intelligentem Dokumentenmanagement und KI-gestützter Unterstützung.",
@@ -468,6 +515,10 @@
     "suggestion": "Empfehlung",
     "critical": "Kritisch",
     "optional": "Optional",
+    "userRule": "Benutzerregel",
+    "targetFolder": "Zielordner",
+    "customDocument": "Benutzerdefinierte Anforderung",
+    "userDefined": "Benutzerdefiniert",
     "content": {
       "caseTypes": {
         "integration_course": "Integrationskurs",

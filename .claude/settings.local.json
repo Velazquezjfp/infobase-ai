@@ -59,7 +59,8 @@
       "mcp__playwright__browser_run_code",
       "Bash(__NEW_LINE_ded5ba2c09052fb0__ sleep 2)",
       "Bash(sleep 3 curl -s -X POST http://localhost:8000/api/validation/case/ACTE-2024-001 -H \"Content-Type: application/json\" -d '{\"\"\"\"formData\"\"\"\": {}, \"\"\"\"language\"\"\"\": \"\"\"\"de\"\"\"\"}')",
-      "Bash(pgrep:*)"
+      "Bash(pgrep:*)",
+      "Skill(update-docs-apis)"
     ]
   }
 }

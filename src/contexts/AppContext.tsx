@@ -209,15 +209,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return updated;
     });
 
-    // Add confirmation chat message
+    // Add confirmation chat message with i18n
     addChatMessage({
       role: 'assistant',
-      content: `✅ Updated field '${fieldLabel}' with suggested value: "${suggestion.value}"`,
+      content: `✅ ${i18n.t('formSuggestions.accepted', { fieldLabel, value: suggestion.value })}`,
     });
 
     toast({
-      title: 'Suggestion accepted',
-      description: `Field '${fieldLabel}' updated successfully.`,
+      title: i18n.t('formSuggestions.acceptedTitle'),
+      description: i18n.t('formSuggestions.acceptedDescription', { fieldLabel }),
     });
   };
 
@@ -240,10 +240,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return updated;
     });
 
-    // Add confirmation chat message
+    // Add confirmation chat message with i18n
     addChatMessage({
       role: 'assistant',
-      content: `❌ Rejected suggestion for field '${fieldLabel}'`,
+      content: `❌ ${i18n.t('formSuggestions.rejected', { fieldLabel })}`,
+    });
+
+    toast({
+      title: i18n.t('formSuggestions.rejectedTitle'),
+      description: i18n.t('formSuggestions.rejectedDescription', { fieldLabel }),
     });
   };
 

@@ -24,6 +24,7 @@ from google.generativeai.types import GenerationConfig
 
 from backend.services.context_manager import ContextManager, generate_document_tree
 from backend.services.document_registry import get_documents_by_case
+from backend.api.custom_context import load_custom_rules
 
 logger = logging.getLogger(__name__)
 
@@ -259,6 +260,32 @@ IMPORTANT: Respond in {language_name} language for the summary, warnings, and re
                 preview = content[:500] + "..." if len(content) > 500 else content
                 parts.append(f"\n[Document: {doc_id}]\n{preview}")
 
+        # S5-017: Load and include custom rules in validation
+        try:
+            custom_rules = load_custom_rules(case_id)
+            if custom_rules:
+                custom_validation_rules = [r for r in custom_rules if r.get('type') == 'validation_rule']
+                custom_documents = [r for r in custom_rules if r.get('type') == 'required_document']
+
+                if custom_validation_rules:
+                    parts.append("\n**Custom Validation Rules (user-defined - MUST be checked):**")
+                    for rule in custom_validation_rules:
+                        target_folder = rule.get('targetFolder')
+                        rule_text = rule.get('rule', '')
+                        if target_folder:
+                            parts.append(f"- [Folder: {target_folder}] {rule_text}")
+                        else:
+                            parts.append(f"- {rule_text}")
+
+                if custom_documents:
+                    parts.append("\n**Custom Required Documents (user-defined - MUST be verified):**")
+                    for doc in custom_documents:
+                        doc_desc = doc.get('rule', '')
+                        parts.append(f"- [CUSTOM REQUIREMENT] {doc_desc}")
+                        parts.append("  (Check if an anonymized/rendered version exists for this requirement)")
+        except Exception as e:
+            logger.warning(f"Could not load custom rules for validation: {e}")
+
         # Validation task - Keep instructions concise to leave room for response
         parts.append("""
 **Task:**
@@ -266,7 +293,7 @@ Return a JSON object with this EXACT structure (keep values SHORT):
 {"score":<1-100>,"summary":"<1 sentence max 50 words>","warnings":[{"severity":"critical|high|medium|low","category":"<type>","title":"<5 words max>","details":["<issue>"]}],"recommendations":["<step 1>","<step 2>"]}
 
 Score: 90-100=ready, 70-89=minor issues, 50-69=significant, <50=critical issues.
-Check: documents, form fields, consistency.
+Check: documents, form fields, consistency, CUSTOM RULES.
 Return ONLY valid JSON, no markdown, no extra text.""")
 
         return "\n".join(parts)

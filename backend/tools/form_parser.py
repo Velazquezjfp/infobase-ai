@@ -73,6 +73,11 @@ def build_extraction_prompt(
     Returns:
         str: A formatted prompt for the AI model.
     """
+    # Log the form schema for debugging
+    logger.info(f"Building extraction prompt for {len(form_schema)} fields")
+    for idx, field in enumerate(form_schema[:3]):  # Log first 3 fields
+        logger.info(f"  Field[{idx}]: id={field.get('id')}, label={field.get('label')}, shaclMetadata keys={list(field.get('shaclMetadata', {}).keys())}")
+
     prompt_parts = [
         "# Task: Extract Form Field Values",
         "",
@@ -83,7 +88,7 @@ def build_extraction_prompt(
         ""
     ]
 
-    # Add field definitions
+    # Add field definitions with semantic paths for better AI matching
     for field in form_schema:
         field_id = field.get("id", "")
         field_label = field.get("label", "")
@@ -91,9 +96,22 @@ def build_extraction_prompt(
         field_required = field.get("required", False)
         field_options = field.get("options", [])
 
+        # Extract semantic path from SHACL metadata if available
+        shacl_metadata = field.get("shaclMetadata", {})
+        semantic_path = shacl_metadata.get("sh:path", "")
+        # Extract property name from path (e.g., "schema:passportNumber" -> "passportNumber")
+        semantic_property = semantic_path.split(":")[-1] if semantic_path else ""
+
+        # Debug logging to trace SHACL metadata
+        logger.debug(f"Field {field_id}: shaclMetadata={shacl_metadata}, semantic_path={semantic_path}")
+
         prompt_parts.append(f"- {field_id} ({field_label})")
         prompt_parts.append(f"  Type: {field_type}")
         prompt_parts.append(f"  Required: {'Yes' if field_required else 'No'}")
+
+        # Include semantic property for AI matching (crucial for NLP-generated fields)
+        if semantic_property:
+            prompt_parts.append(f"  Semantic: {semantic_property}")
 
         # Include options for select fields
         if field_type == "select" and field_options:
@@ -111,21 +129,23 @@ def build_extraction_prompt(
         "",
         "### 1. Field Extraction Rules:",
         "- Extract values for each field from the document content",
-        "- Match field labels semantically (e.g., 'Full Name' matches 'Name:', 'Applicant:', 'Person:')",
+        "- For EACH field, use ALL available hints to find matching data:",
+        "  1. The field Label (e.g., 'Geburtsort', 'Full Name')",
+        "  2. The Semantic property (e.g., 'geburtsort', 'name', 'birthDate')",
+        "  3. The field ID (e.g., 'fullName', 'passport_number')",
+        "- The Semantic property indicates the MEANING of the field - use it to understand what data to look for",
         "- Return only fields where data was clearly found",
         "- If data is ambiguous or unclear, omit the field rather than guessing",
         "",
-        "### 2. Multilingual Document Handling:",
-        "- Documents may be in German or English",
-        "- Common German-English field mappings:",
-        "  * 'Vorname' or 'Rufname' → firstName",
-        "  * 'Nachname' or 'Familienname' → lastName",
-        "  * 'Name' or 'Vollständiger Name' → fullName",
-        "  * 'Geburtsdatum' or 'Geboren' → birthDate",
-        "  * 'Geburtsort' → placeOfBirth",
-        "  * 'Staatsangehörigkeit' or 'Nationalität' → nationality",
-        "  * 'Passnummer' or 'Reisepassnummer' → passportNumber",
-        "  * 'Adresse' or 'Anschrift' → address",
+        "### 2. Multilingual and Semantic Matching:",
+        "- Documents may be in German, English, Arabic, or other languages",
+        "- Use the Semantic property to UNDERSTAND what the field represents, then search for equivalent terms",
+        "- Examples of semantic interpretation:",
+        "  * Semantic 'geburtsort' or 'birthPlace' → look for: place of birth, Geburtsort, lieu de naissance, مكان الولادة",
+        "  * Semantic 'name' or 'fullName' → look for: Name, Full Name, Vollständiger Name, الاسم",
+        "  * Semantic 'geburtsdatum' or 'birthDate' → look for: date of birth, Geburtsdatum, تاريخ الميلاد",
+        "- The semantic property may be in ANY language (German, English, etc.) - interpret its meaning",
+        "- Search the document for data that matches the CONCEPT, not just the exact word",
         "- Extract the actual data value, not the label",
         "",
         "### 3. Date Format Conversion:",

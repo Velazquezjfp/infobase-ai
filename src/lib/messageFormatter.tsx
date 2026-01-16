@@ -269,26 +269,19 @@ export function detectTableData(content: string): boolean {
 /**
  * Preprocess content to preserve S2-004 source citation highlighting.
  *
- * Adds special markers for source citations and context indicators
- * that will be styled appropriately during rendering.
+ * Note: Slash command styling removed because:
+ * 1. ReactMarkdown doesn't render raw HTML - spans appeared as literal text
+ * 2. The regex /(\/\w+)/g was too greedy, matching normal text like "Einheiten/Woche"
+ *
+ * Slash commands are now styled at the component level in AIChatInterface.tsx
  *
  * @param content - Raw message content
  * @returns Content with preserved source citations
  */
 function preprocessSourceCitations(content: string): string {
-  let processed = content;
-
-  // S2-004: Preserve slash command styling
-  processed = processed.replace(
-    /(\/\w+)/g,
-    '<span class="slash-command">$1</span>'
-  );
-
-  // S2-004: Preserve checkmarks and warnings
-  processed = processed.replace(/✅/g, '<span class="text-success">✅</span>');
-  processed = processed.replace(/⚠️/g, '<span class="text-warning">⚠️</span>');
-
-  return processed;
+  // No preprocessing needed currently - emojis render correctly in markdown
+  // and slash command styling has been moved to component level
+  return content;
 }
 
 /**

@@ -1,12 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useApp } from '@/contexts/AppContext';
-import { slashCommands } from '@/data/mockData';
-import { Send, Plus, Search, Languages, EyeOff, FileOutput, CheckCircle, Mail, Database, Bot, Loader2, FileText, FolderOpen, Briefcase, Info, RotateCcw } from 'lucide-react';
+import { slashCommands, hierarchicalSlashCommands, getFolderArguments } from '@/data/mockData';
+import { Send, Plus, Search, Languages, EyeOff, FileOutput, CheckCircle, Mail, Database, Bot, Loader2, FileText, FolderOpen, Briefcase, Info, RotateCcw, Folder, Settings, Trash2, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { formatChatMessage } from '@/lib/messageFormatter';
 import { useTranslation } from 'react-i18next';
+import { ContextHierarchyDialog } from './ContextHierarchyDialog';
+import type { SlashCommandArgument, CustomContextRule } from '@/types/case';
 
 const quickActionIcons: Record<string, React.ReactNode> = {
   '/convert': <FileOutput className="w-3.5 h-3.5" />,
@@ -18,7 +20,20 @@ const quickActionIcons: Record<string, React.ReactNode> = {
   '/validateCase': <CheckCircle className="w-3.5 h-3.5" />,
   '/generateEmail': <Mail className="w-3.5 h-3.5" />,
   '/fillForm': <FileOutput className="w-3.5 h-3.5" />,
+  '/Aktenkontext': <Settings className="w-3.5 h-3.5" />,
+  '/removeAktenkontext': <Trash2 className="w-3.5 h-3.5" />,
 };
+
+// S5-017: Interface for autocomplete suggestion items
+interface AutocompleteSuggestion {
+  value: string;
+  label: string;
+  description: string;
+  isCommand?: boolean;
+  hasChildren?: boolean;
+  requiresInput?: boolean;
+  placeholder?: string;
+}
 
 // Quick actions config with translation keys
 // S5-012: Buttons are dynamically filtered based on selected document type
@@ -64,6 +79,7 @@ const getVisibleQuickActions = (docType: string | undefined) => {
 export default function AIChatInterface() {
   const {
     chatMessages,
+    addChatMessage,
     sendChatMessage,
     selectedDocument,
     wsStatus,
@@ -72,20 +88,250 @@ export default function AIChatInterface() {
     isTyping,
     currentCase
   } = useApp();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [input, setInput] = useState('');
   const [showCommands, setShowCommands] = useState(false);
   const [filteredCommands, setFilteredCommands] = useState(slashCommands);
+  const [showContextHierarchy, setShowContextHierarchy] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // S5-017: State for hierarchical command autocomplete
+  const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<AutocompleteSuggestion[]>([]);
+  const [customRules, setCustomRules] = useState<CustomContextRule[]>([]);
+  const [isLoadingRules, setIsLoadingRules] = useState(false);
+
+  // S5-017: Fetch custom rules for the current case
+  const fetchCustomRules = useCallback(async () => {
+    if (!currentCase) return;
+
+    setIsLoadingRules(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_BASE_URL}/api/custom-context/${currentCase.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCustomRules(data.rules || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch custom rules:', error);
+    } finally {
+      setIsLoadingRules(false);
+    }
+  }, [currentCase]);
+
+  // Fetch custom rules when case changes
+  useEffect(() => {
+    fetchCustomRules();
+  }, [fetchCustomRules]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
+  // S5-017: Parse input and generate hierarchical autocomplete suggestions
+  const parseCommandInput = useCallback((inputText: string): AutocompleteSuggestion[] => {
+    if (!inputText.startsWith('/')) return [];
+
+    const parts = inputText.split(/\s+/);
+    const command = parts[0];
+
+    // Check if it's a hierarchical command
+    const hierCmd = hierarchicalSlashCommands.find(c => c.command === command);
+
+    if (!hierCmd) {
+      // Fall back to simple command filtering
+      const search = inputText.slice(1).toLowerCase();
+      return slashCommands
+        .filter(cmd =>
+          cmd.command.toLowerCase().includes(search) ||
+          cmd.label.toLowerCase().includes(search)
+        )
+        .map(cmd => ({
+          value: cmd.command,
+          label: cmd.label,
+          description: cmd.description,
+          isCommand: true,
+          hasChildren: hierarchicalSlashCommands.some(h => h.command === cmd.command)
+        }));
+    }
+
+    // Handle /removeAktenkontext with dynamic rules
+    if (command === '/removeAktenkontext') {
+      if (customRules.length === 0) {
+        return [{
+          value: '',
+          label: t('contextCommands.noRules', 'No custom rules'),
+          description: t('contextCommands.noRulesDescription', 'No custom rules have been added yet'),
+          isCommand: false
+        }];
+      }
+
+      // Filter based on what user has typed
+      const search = parts.slice(1).join(' ').toLowerCase();
+      return customRules
+        .filter(rule => rule.rule.toLowerCase().includes(search) || rule.id.includes(search))
+        .map(rule => ({
+          value: `/removeAktenkontext "${rule.id}"`,
+          label: rule.type === 'validation_rule'
+            ? t('contextCommands.validationRule', 'Rule')
+            : t('contextCommands.requiredDocument', 'Document'),
+          description: rule.rule.length > 50 ? rule.rule.substring(0, 50) + '...' : rule.rule,
+          isCommand: false
+        }));
+    }
+
+    // Handle /Aktenkontext hierarchical arguments
+    if (command === '/Aktenkontext') {
+      const args = hierCmd.arguments || [];
+
+      // No arguments typed yet - show first level options
+      if (parts.length === 1) {
+        return args.map(arg => ({
+          value: `/Aktenkontext ${arg.value}`,
+          label: arg.label,
+          description: arg.description,
+          hasChildren: !!arg.children && arg.children.length > 0
+        }));
+      }
+
+      // First argument typed (Regeln or Dokumente)
+      const firstArg = parts[1];
+      const matchedArg = args.find(a => a.value.toLowerCase() === firstArg.toLowerCase());
+
+      if (!matchedArg) {
+        // Partial match - filter first level
+        return args
+          .filter(a => a.value.toLowerCase().startsWith(firstArg.toLowerCase()))
+          .map(arg => ({
+            value: `/Aktenkontext ${arg.value}`,
+            label: arg.label,
+            description: arg.description,
+            hasChildren: !!arg.children && arg.children.length > 0
+          }));
+      }
+
+      // Dokumente - requires input directly
+      if (matchedArg.value === 'Dokumente') {
+        if (parts.length === 2 && matchedArg.requiresInput) {
+          return [{
+            value: `/Aktenkontext Dokumente `,
+            label: t('contextCommands.enterDescription', 'Enter description'),
+            description: matchedArg.placeholder || '"Document requirement description"',
+            requiresInput: true
+          }];
+        }
+        return []; // User is typing the description
+      }
+
+      // Regeln - show sub-options
+      if (matchedArg.value === 'Regeln' && matchedArg.children) {
+        // Merge static children with dynamic folder names
+        let children = [...matchedArg.children];
+
+        // Find the "Ordner" option and add folder names as its children
+        const ordnerIdx = children.findIndex(c => c.value === 'Ordner');
+        if (ordnerIdx >= 0 && currentCase) {
+          const folderArgs = getFolderArguments(currentCase.folders);
+          children[ordnerIdx] = {
+            ...children[ordnerIdx],
+            children: folderArgs
+          };
+        }
+
+        if (parts.length === 2) {
+          // Show second level options
+          return children.map(child => ({
+            value: `/Aktenkontext Regeln ${child.value}`,
+            label: child.label,
+            description: child.description,
+            hasChildren: !!child.children && child.children.length > 0,
+            requiresInput: child.requiresInput,
+            placeholder: child.placeholder
+          }));
+        }
+
+        // Third level - find matched second level arg
+        const secondArg = parts[2];
+        const matchedChild = children.find(c => c.value.toLowerCase() === secondArg.toLowerCase());
+
+        if (!matchedChild) {
+          // Partial match - filter second level
+          return children
+            .filter(c => c.value.toLowerCase().startsWith(secondArg.toLowerCase()))
+            .map(child => ({
+              value: `/Aktenkontext Regeln ${child.value}`,
+              label: child.label,
+              description: child.description,
+              hasChildren: !!child.children && child.children.length > 0
+            }));
+        }
+
+        // If matched child is Ordner, show folder names
+        if (matchedChild.value === 'Ordner' && matchedChild.children && matchedChild.children.length > 0) {
+          if (parts.length === 3) {
+            return matchedChild.children.map(folder => ({
+              value: `/Aktenkontext Regeln Ordner ${folder.value}`,
+              label: folder.label,
+              description: folder.description,
+              requiresInput: folder.requiresInput,
+              placeholder: folder.placeholder
+            }));
+          }
+
+          // Fourth level - folder selected, need rule text
+          const folderArg = parts[3];
+          const matchedFolder = matchedChild.children.find(f => f.value.toLowerCase() === folderArg.toLowerCase());
+
+          if (!matchedFolder && parts.length === 4) {
+            // Partial match folder names
+            return matchedChild.children
+              .filter(f => f.value.toLowerCase().startsWith(folderArg.toLowerCase()))
+              .map(folder => ({
+                value: `/Aktenkontext Regeln Ordner ${folder.value}`,
+                label: folder.label,
+                description: folder.description,
+                requiresInput: folder.requiresInput,
+                placeholder: folder.placeholder
+              }));
+          }
+
+          if (matchedFolder?.requiresInput && parts.length === 4) {
+            return [{
+              value: `/Aktenkontext Regeln Ordner ${matchedFolder.value} `,
+              label: t('contextCommands.enterRule', 'Enter rule'),
+              description: matchedFolder.placeholder || '"Rule description"',
+              requiresInput: true
+            }];
+          }
+
+          return []; // User is typing the rule
+        }
+
+        // Non-Ordner rule types - directly need input
+        if (matchedChild.requiresInput && parts.length === 3) {
+          return [{
+            value: `/Aktenkontext Regeln ${matchedChild.value} `,
+            label: t('contextCommands.enterRule', 'Enter rule'),
+            description: matchedChild.placeholder || '"Rule description"',
+            requiresInput: true
+          }];
+        }
+
+        return []; // User is typing
+      }
+    }
+
+    return [];
+  }, [currentCase, customRules, t]);
+
   useEffect(() => {
     if (input.startsWith('/')) {
-      setShowCommands(true);
+      const suggestions = parseCommandInput(input);
+      setAutocompleteSuggestions(suggestions);
+      setShowCommands(suggestions.length > 0);
+
+      // Also update legacy filtered commands for backward compatibility
       const search = input.slice(1).toLowerCase();
       setFilteredCommands(
         slashCommands.filter(cmd =>
@@ -95,14 +341,141 @@ export default function AIChatInterface() {
       );
     } else {
       setShowCommands(false);
+      setAutocompleteSuggestions([]);
     }
-  }, [input]);
+  }, [input, parseCommandInput]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // S5-017: Process context modification commands
+  const processContextCommand = async (command: string): Promise<boolean> => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+    // Helper to add user and AI messages
+    const addCommandResponse = (userCmd: string, aiResponse: string) => {
+      addChatMessage({ role: 'user', content: userCmd });
+      addChatMessage({ role: 'assistant', content: aiResponse });
+    };
+
+    // Parse /Aktenkontext Regeln Ordner <folder> "<rule>"
+    const regelnOrdnerMatch = command.match(/^\/Aktenkontext\s+Regeln\s+Ordner\s+(\S+)\s+"(.+)"$/i);
+    if (regelnOrdnerMatch) {
+      const [, folder, rule] = regelnOrdnerMatch;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/custom-context/${currentCase.id}/rule`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetFolder: folder, ruleType: 'folder_rule', rule })
+        });
+
+        if (response.ok) {
+          const responseMsg = i18n.language === 'de'
+            ? '✅ Validierungsskript erstellt und getestet, Ihre Regel ist aktiv.'
+            : '✅ Built and tested validation script, your rule is active.';
+
+          addCommandResponse(command, responseMsg);
+          fetchCustomRules(); // Refresh rules
+          return true;
+        }
+      } catch (error) {
+        console.error('Failed to add rule:', error);
+      }
+      return false;
+    }
+
+    // Parse /Aktenkontext Regeln <type> "<rule>"
+    const regelnMatch = command.match(/^\/Aktenkontext\s+Regeln\s+(\w+)\s+"(.+)"$/i);
+    if (regelnMatch) {
+      const [, ruleType, rule] = regelnMatch;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/custom-context/${currentCase.id}/rule`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ruleType: ruleType.toLowerCase(), rule })
+        });
+
+        if (response.ok) {
+          const responseMsg = i18n.language === 'de'
+            ? '✅ Validierungsskript erstellt und getestet, Ihre Regel ist aktiv.'
+            : '✅ Built and tested validation script, your rule is active.';
+
+          addCommandResponse(command, responseMsg);
+          fetchCustomRules();
+          return true;
+        }
+      } catch (error) {
+        console.error('Failed to add rule:', error);
+      }
+      return false;
+    }
+
+    // Parse /Aktenkontext Dokumente "<description>"
+    const dokumenteMatch = command.match(/^\/Aktenkontext\s+Dokumente\s+"(.+)"$/i);
+    if (dokumenteMatch) {
+      const [, description] = dokumenteMatch;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/custom-context/${currentCase.id}/document`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description })
+        });
+
+        if (response.ok) {
+          const responseMsg = i18n.language === 'de'
+            ? '✅ Validierungsskript erstellt und getestet, neues erforderliches Dokument zum Kontext hinzugefügt.'
+            : '✅ Built and tested validation script, new document required added to context.';
+
+          addCommandResponse(command, responseMsg);
+          fetchCustomRules();
+          return true;
+        }
+      } catch (error) {
+        console.error('Failed to add document requirement:', error);
+      }
+      return false;
+    }
+
+    // Parse /removeAktenkontext "<ruleId>"
+    const removeMatch = command.match(/^\/removeAktenkontext\s+"(.+)"$/i);
+    if (removeMatch) {
+      const [, ruleId] = removeMatch;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/custom-context/${currentCase.id}/${ruleId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          const responseMsg = i18n.language === 'de'
+            ? '✅ Regel erfolgreich entfernt.'
+            : '✅ Rule removed successfully.';
+
+          addCommandResponse(command, responseMsg);
+          fetchCustomRules();
+          return true;
+        }
+      } catch (error) {
+        console.error('Failed to remove rule:', error);
+      }
+      return false;
+    }
+
+    return false;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     const userMessage = input.trim();
+
+    // S5-017: Check if it's a context modification command
+    if (userMessage.startsWith('/Aktenkontext') || userMessage.startsWith('/removeAktenkontext')) {
+      const processed = await processContextCommand(userMessage);
+      if (processed) {
+        setInput('');
+        setShowCommands(false);
+        return;
+      }
+      // If not processed, continue to send as regular message
+    }
 
     // Get document content if a document is selected
     const documentContent = selectedDocument?.content;
@@ -115,7 +488,12 @@ export default function AIChatInterface() {
   };
 
   const insertCommand = (command: string) => {
-    setInput(command + ' ');
+    // If command ends with space or has requiresInput, just set it
+    if (command.endsWith(' ') || command.includes('"')) {
+      setInput(command);
+    } else {
+      setInput(command + ' ');
+    }
     setShowCommands(false);
     inputRef.current?.focus();
   };
@@ -179,17 +557,51 @@ export default function AIChatInterface() {
   };
 
   // S5-009: Format message with markdown rendering and S2-004 source citation highlighting
-  const formatMessage = (content: string) => {
-    // S5-009: Use new markdown formatter for proper rendering
+  // Fix: Only style slash commands for user messages, and only at start of message
+  const formatMessage = (content: string, role: 'user' | 'assistant' | 'system' = 'assistant') => {
+    // For user messages, check if it starts with a slash command
+    if (role === 'user') {
+      const slashCommandMatch = content.match(/^(\/\w+)(\s|$)/);
+      if (slashCommandMatch) {
+        const command = slashCommandMatch[1];
+        const rest = content.slice(command.length);
+        return (
+          <>
+            <span className="slash-command font-mono">{command}</span>
+            {rest && formatChatMessage(rest)}
+          </>
+        );
+      }
+    }
+    // S5-009: Use markdown formatter for proper rendering
     return formatChatMessage(content);
   };
 
   // S2-004: Get active context sources for display
+  // Updated: Always show case context, plus folder and document when selected
   const getActiveContextSources = () => {
     const sources: { type: string; name: string; icon: React.ReactNode }[] = [];
 
-    // Check if document is selected
+    // Case context is always active
+    sources.push({
+      type: 'Case',
+      name: currentCase.id,
+      icon: <Briefcase className="w-3 h-3" />
+    });
+
+    // Check if document is selected (which implies folder context)
     if (selectedDocument) {
+      // Add folder context
+      const folder = currentCase.folders.find(f => f.id === selectedDocument.folderId);
+      if (folder) {
+        sources.push({
+          type: 'Folder',
+          name: folder.name,
+          icon: <Folder className="w-3 h-3" />
+        });
+      }
+
+      // Add document context
       sources.push({
         type: 'Document',
         name: selectedDocument.name,
@@ -197,8 +609,6 @@ export default function AIChatInterface() {
       });
     }
 
-    // Note: Folder and Case context would come from AppContext
-    // These would be populated when the user is working within a case
     return sources;
   };
 
@@ -249,25 +659,39 @@ export default function AIChatInterface() {
         </div>
       </div>
 
-      {/* S2-004: Context Source Indicator */}
-      {contextSources.length > 0 && (
-        <div className="px-4 py-2 bg-muted/30 border-b border-pane-border flex items-center gap-2">
-          <Info className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Active context:</span>
-          <div className="flex flex-wrap gap-1.5">
-            {contextSources.map((source, idx) => (
-              <Badge
-                key={idx}
-                variant="outline"
-                className="text-xs gap-1 px-2 py-0.5 font-normal"
-              >
-                {source.icon}
-                <span className="truncate max-w-[100px]">{source.name}</span>
-              </Badge>
-            ))}
-          </div>
+      {/* S2-004: Context Source Indicator - Always visible, clickable info icon */}
+      <div className="px-4 py-2 bg-muted/30 border-b border-pane-border flex items-center gap-2">
+        <button
+          onClick={() => setShowContextHierarchy(true)}
+          className={cn(
+            "p-1 rounded-md transition-colors",
+            "hover:bg-accent hover:text-accent-foreground",
+            "text-muted-foreground"
+          )}
+          title={t('contextHierarchy.viewDetails', 'View context details')}
+        >
+          <Info className="w-3.5 h-3.5" />
+        </button>
+        <span className="text-xs text-muted-foreground">{t('chat.contextActive', 'Active context')}:</span>
+        <div className="flex flex-wrap gap-1.5 flex-1">
+          {contextSources.map((source, idx) => (
+            <Badge
+              key={idx}
+              variant={source.type === 'Document' ? 'default' : 'outline'}
+              className="text-xs gap-1 px-2 py-0.5 font-normal"
+            >
+              {source.icon}
+              <span className="truncate max-w-[100px]">{source.name}</span>
+            </Badge>
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* Context Hierarchy Dialog */}
+      <ContextHierarchyDialog
+        isOpen={showContextHierarchy}
+        onClose={() => setShowContextHierarchy(false)}
+      />
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
@@ -279,7 +703,7 @@ export default function AIChatInterface() {
               message.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'
             )}
           >
-            {formatMessage(message.content)}
+            {formatMessage(message.content, message.role)}
           </div>
         ))}
         {isTyping && (
@@ -307,17 +731,42 @@ export default function AIChatInterface() {
         </div>
       </div>
 
-      {/* Command Autocomplete */}
-      {showCommands && filteredCommands.length > 0 && (
-        <div className="mx-4 mb-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden animate-fade-in">
-          {filteredCommands.slice(0, 6).map((cmd) => (
+      {/* S5-017: Hierarchical Command Autocomplete */}
+      {showCommands && autocompleteSuggestions.length > 0 && (
+        <div className="mx-4 mb-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden animate-fade-in max-h-64 overflow-y-auto">
+          {autocompleteSuggestions.slice(0, 8).map((suggestion, idx) => (
             <button
-              key={cmd.command}
-              onClick={() => insertCommand(cmd.command)}
+              key={`${suggestion.value}-${idx}`}
+              onClick={() => insertCommand(suggestion.value)}
               className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-accent transition-colors text-left"
             >
-              <span className="slash-command font-mono text-sm">{cmd.command}</span>
-              <span className="text-sm text-muted-foreground">{cmd.description}</span>
+              {suggestion.isCommand && quickActionIcons[suggestion.value.split(' ')[0]]}
+              {suggestion.requiresInput && (
+                <span className="text-primary">
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </span>
+              )}
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className={cn(
+                  "text-sm truncate",
+                  suggestion.isCommand ? "slash-command font-mono" : "font-medium"
+                )}>
+                  {suggestion.isCommand ? suggestion.value : suggestion.label}
+                </span>
+                {suggestion.description && (
+                  <span className="text-xs text-muted-foreground truncate">
+                    {suggestion.description}
+                  </span>
+                )}
+              </div>
+              {suggestion.hasChildren && (
+                <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              )}
+              {suggestion.requiresInput && suggestion.placeholder && (
+                <span className="text-xs text-muted-foreground italic flex-shrink-0">
+                  {suggestion.placeholder}
+                </span>
+              )}
             </button>
           ))}
         </div>

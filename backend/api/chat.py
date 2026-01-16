@@ -295,7 +295,8 @@ async def handle_chat_message(
                 case_id,
                 document_content or content,
                 form_schema,
-                current_values
+                current_values,
+                language  # Pass language for localized responses
             )
         else:
             # Handle regular chat message with optional streaming
@@ -351,7 +352,8 @@ async def handle_form_extraction(
     case_id: str,
     document_text: str,
     form_schema: list,
-    current_values: Dict[str, str] = None
+    current_values: Dict[str, str] = None,
+    language: str = "de"
 ) -> None:
     """
     Handle form field extraction from document content.
@@ -367,8 +369,13 @@ async def handle_form_extraction(
         document_text: The document content to extract from.
         form_schema: The form field definitions.
         current_values: Optional dict of current form field values (S5-002).
+        language: Language for response messages ('de' or 'en').
     """
     logger.info(f"Extracting form fields for case {case_id}")
+    logger.info(f"  Document text length: {len(document_text) if document_text else 0}")
+    logger.info(f"  Form schema fields: {len(form_schema) if form_schema else 0}")
+    if form_schema and len(form_schema) > 0:
+        logger.info(f"  First field example: {form_schema[0]}")
 
     try:
         # Build extraction prompt
@@ -407,17 +414,28 @@ async def handle_form_extraction(
                     "timestamp": None
                 })
 
-            # Send chat response with summary
+            # Send chat response with summary (localized)
             ignored_count = len(result.get("ignored", []))
             summary_parts = []
-            if direct_count > 0:
-                summary_parts.append(f"{direct_count} field{'s' if direct_count != 1 else ''} filled")
-            if suggestion_count > 0:
-                summary_parts.append(f"{suggestion_count} suggestion{'s' if suggestion_count != 1 else ''} available")
-            if ignored_count > 0:
-                summary_parts.append(f"{ignored_count} field{'s' if ignored_count != 1 else ''} unchanged")
 
-            summary = "I've extracted form data: " + ", ".join(summary_parts) + "."
+            if language == "de":
+                # German messages
+                if direct_count > 0:
+                    summary_parts.append(f"{direct_count} Feld{'er' if direct_count != 1 else ''} ausgefüllt")
+                if suggestion_count > 0:
+                    summary_parts.append(f"{suggestion_count} Vorschläge verfügbar" if suggestion_count != 1 else "1 Vorschlag verfügbar")
+                if ignored_count > 0:
+                    summary_parts.append(f"{ignored_count} Feld{'er' if ignored_count != 1 else ''} unverändert")
+                summary = "Formulardaten extrahiert: " + ", ".join(summary_parts) + "."
+            else:
+                # English messages
+                if direct_count > 0:
+                    summary_parts.append(f"{direct_count} field{'s' if direct_count != 1 else ''} filled")
+                if suggestion_count > 0:
+                    summary_parts.append(f"{suggestion_count} suggestion{'s' if suggestion_count != 1 else ''} available")
+                if ignored_count > 0:
+                    summary_parts.append(f"{ignored_count} field{'s' if ignored_count != 1 else ''} unchanged")
+                summary = "I've extracted form data: " + ", ".join(summary_parts) + "."
             await websocket.send_json({
                 "type": "chat_response",
                 "content": summary,
@@ -432,11 +450,15 @@ async def handle_form_extraction(
                 "timestamp": None
             })
 
-            # Also send a chat response confirming the action
+            # Also send a chat response confirming the action (localized)
             field_count = len(result["updates"])
+            if language == "de":
+                content = f"Ich habe {field_count} Feld{'er' if field_count != 1 else ''} aus dem Dokument extrahiert und das Formular aktualisiert."
+            else:
+                content = f"I've extracted {field_count} field{'s' if field_count != 1 else ''} from the document and updated the form."
             await websocket.send_json({
                 "type": "chat_response",
-                "content": f"I've extracted {field_count} field{'s' if field_count != 1 else ''} from the document and updated the form.",
+                "content": content,
                 "timestamp": None
             })
 

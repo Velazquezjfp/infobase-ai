@@ -93,3 +93,40 @@ export interface SlashCommand {
   description: string;
   icon: string;
 }
+
+/**
+ * Custom Context Rule Types for /Aktenkontext commands
+ * S5-017: Context modification via slash commands
+ */
+export type CustomRuleType = 'validation_rule' | 'required_document';
+
+export interface CustomContextRule {
+  id: string;
+  type: CustomRuleType;
+  createdAt: string;
+  targetFolder?: string;  // For folder-specific rules
+  rule: string;           // The rule text
+  ruleType?: string;      // Sub-type (e.g., 'file_type', 'content', 'metadata')
+}
+
+/**
+ * Hierarchical slash command argument
+ * Supports nested command completion like /Aktenkontext Regeln Ordner
+ */
+export interface SlashCommandArgument {
+  value: string;
+  label: string;
+  description: string;
+  children?: SlashCommandArgument[];
+  requiresInput?: boolean;  // If true, expects free-form text input after
+  placeholder?: string;     // Placeholder text for free-form input
+}
+
+/**
+ * Extended slash command with hierarchical arguments
+ */
+export interface HierarchicalSlashCommand extends SlashCommand {
+  arguments?: SlashCommandArgument[];
+  isDynamic?: boolean;      // If true, arguments come from context (e.g., existing rules)
+  dynamicSource?: string;   // Source for dynamic arguments (e.g., 'customRules')
+}

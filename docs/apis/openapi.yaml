@@ -10,7 +10,7 @@ info:
 
     The API will provide document management, AI-powered case processing, and integration course
     application handling for BAMF (Bundesamt für Migration und Flüchtlinge).
-  version: 2.0.0
+  version: 2.1.0
   contact:
     name: BAMF Development Team
     email: api@bamf.example.de
@@ -44,6 +44,8 @@ tags:
     description: Application form management
   - name: Search
     description: Cross-case and document search capabilities with semantic understanding
+  - name: Validation
+    description: AI-powered case validation for submission completeness
 
 paths:
   /api/admin/generate-field:
@@ -751,6 +753,192 @@ paths:
                     type: boolean
                     example: true
       x-source-file: backend/api/search.py
+
+  /api/validation/case/{case_id}:
+    post:
+      tags:
+        - Validation
+      summary: Validate case for submission completeness
+      description: |
+        AI-powered case validation using Gemini 2.5 Flash.
+
+        **S5-005: Case Validation API**
+
+        Analyzes form data, documents, and case context to provide structured feedback
+        with score, warnings, and recommendations.
+
+        **Score interpretation:**
+        - 90-100: Ready for submission
+        - 70-89: Minor issues to address
+        - 50-69: Significant issues present
+        - <50: Critical issues, not ready for submission
+
+        **Features:**
+        - AI-powered analysis using Gemini 2.5 Flash
+        - Multilingual support (German/English)
+        - Comprehensive form and document checking
+        - Context-aware validation against required documents
+        - Structured warnings by severity and category
+        - Actionable recommendations
+      operationId: validateCase
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          description: Case ID to validate (e.g., ACTE-2024-001)
+          schema:
+            type: string
+            example: ACTE-2024-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                formData:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: Dictionary of form field IDs to values
+                  default: {}
+                  example:
+                    fullName: John Doe
+                    dateOfBirth: "1990-01-15"
+                    email: john@example.com
+                language:
+                  type: string
+                  description: Response language code (de or en)
+                  default: de
+                  enum: [de, en]
+                  example: de
+                documentContents:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  nullable: true
+                  description: Optional cached document text contents
+                  example:
+                    doc-001: "Extracted text from document..."
+      responses:
+        '200':
+          description: Validation completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - score
+                  - summary
+                  - warnings
+                  - recommendations
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether validation completed successfully
+                    example: true
+                  score:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                    description: Validation score (1-100)
+                    example: 75
+                  summary:
+                    type: string
+                    description: Brief overall assessment
+                    example: Case is mostly complete but missing some required documents.
+                  warnings:
+                    type: array
+                    description: List of validation warnings
+                    items:
+                      type: object
+                      required:
+                        - severity
+                        - category
+                        - title
+                        - details
+                      properties:
+                        severity:
+                          type: string
+                          enum: [critical, high, medium, low]
+                          description: Warning severity level
+                          example: critical
+                        category:
+                          type: string
+                          description: Warning category
+                          example: missing_documents
+                        title:
+                          type: string
+                          description: Short warning title
+                          example: Missing ID Document
+                        details:
+                          type: array
+                          items:
+                            type: string
+                          description: Detailed issues
+                          example: ["No passport or national ID uploaded"]
+                  recommendations:
+                    type: array
+                    items:
+                      type: string
+                    description: Actionable next steps
+                    example: ["Upload a valid passport or national ID", "Complete the address section"]
+                  error:
+                    type: string
+                    nullable: true
+                    description: Error message if validation failed
+                    example: null
+        '500':
+          description: Validation processing failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Validation failed: <error message>"
+      x-source-file: backend/api/validation.py
+
+  /api/validation/health:
+    get:
+      tags:
+        - Validation
+      summary: Validation service health check
+      description: Check the health status of the validation service and Gemini API initialization
+      operationId: validationHealthCheck
+      responses:
+        '200':
+          description: Service health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                    description: Service health status
+                    example: healthy
+                  service:
+                    type: string
+                    description: Service name
+                    example: case_validation
+                  gemini_initialized:
+                    type: boolean
+                    description: Whether Gemini API is initialized
+                    example: true
+                  ai_powered:
+                    type: boolean
+                    description: Whether service uses AI
+                    example: true
+                  error:
+                    type: string
+                    nullable: true
+                    description: Error message if status is unhealthy
+                    example: null
+      x-source-file: backend/api/validation.py
 
   /api/files/renders/{case_id}/{document_id}/{render_id}:
     delete:

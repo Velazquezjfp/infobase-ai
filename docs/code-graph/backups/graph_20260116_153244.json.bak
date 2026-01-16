@@ -76,7 +76,11 @@
         "S5-003: Added semantic search state (searchQuery, searchHighlights, activeHighlightIndex, isSearching)",
         "Added performSemanticSearch() async function calling /api/search/semantic",
         "Added clearSearch() function to reset search state",
-        "loadDocumentsFromBackend() now includes renders array in document mapping"
+        "loadDocumentsFromBackend() now includes renders array in document mapping",
+        "S5-004: Translation state (isTranslating, setIsTranslating)",
+        "S5-003: updateSelectedDocumentContent() stores extracted text for AI",
+        "translation_complete WebSocket message handler",
+        "Creates translated renders in document.renders array"
       ]
     },
     {
@@ -181,7 +185,10 @@
         "Added getRenderIcon() and getRenderDisplayName() helper functions",
         "handleDeleteRender() calls DELETE /api/files/renders endpoint",
         "Supports expand/collapse for documents with multiple renders",
-        "canDeleteFiles restricts deletion to user folders, protects system folders"
+        "canDeleteFiles restricts deletion to user folders, protects system folders",
+        "S5-006: Implemented handleDeleteRender() with API call",
+        "Calls DELETE /api/files/renders endpoint",
+        "Uses refreshDocuments after render deletion"
       ]
     },
     {
@@ -234,7 +241,11 @@
         "S3-002: Renders img element with onLoad/onError handlers for image documents",
         "S3-002: Shows loading spinner (Loader2) during image loading",
         "S3-002: Shows error state (AlertCircle) when image fails to load",
-        "S3-002: useEffect resets imageLoading/imageError when document changes"
+        "S3-002: useEffect resets imageLoading/imageError when document changes",
+        "S5-008: Email display integration with EmailViewer component",
+        "S5-004: Translation button with handleTranslate()",
+        "Parses emails via POST /api/documents/parse-email",
+        "Email content extracted for AI context"
       ]
     },
     {
@@ -262,7 +273,11 @@
         "S5-001: Added SHACL visualization dialog showing current NodeShape",
         "S5-001: Field validation using validateValue() from SHACL types",
         "S5-001: Tracks field validation errors in fieldValidationErrors state",
-        "S5-001: Integrates Edit3, FileCode, Send, Loader2 icons for NL UI"
+        "S5-001: Integrates Edit3, FileCode, Send, Loader2 icons for NL UI",
+        "Imports and uses SubmitCaseDialog component",
+        "handleFormSubmit() opens SubmitCaseDialog instead of direct submission",
+        "showSubmitDialog state for dialog visibility",
+        "handleConfirmedSubmit() for actual submission after dialog"
       ]
     },
     {
@@ -334,7 +349,8 @@
         "Imports SHACLPropertyShape from @/types/shacl for shaclMetadata typing (S2-003)",
         "S3-002: Document interface extended with optional caseId and folderId for case-scoped path construction",
         "S5-006: Added DocumentRender interface with id, type, name, filePath, createdAt, metadata",
-        "Document interface now includes optional renders: DocumentRender[] field"
+        "Document interface now includes optional renders: DocumentRender[] field",
+        "S5-008: Document type union includes 'eml' for email files"
       ]
     },
     {
@@ -511,7 +527,8 @@
         "S5-007: Performs document registry reconciliation on startup",
         "S5-007: Calls load_manifest(), scan_filesystem(), reconcile() from document_registry service",
         "S5-007: Logs document registry reconciliation report on startup",
-        "S5-007: Handles reconciliation errors gracefully with warning logs"
+        "S5-007: Handles reconciliation errors gracefully with warning logs",
+        "Registers validation_router at /api/validation prefix"
       ]
     },
     {
@@ -545,7 +562,11 @@
         "Sprint 5 update: Integrated ConversationManager for chat history (S5-010)",
         "Sprint 5 update: Added current form values support for suggestion mode (S5-002)",
         "Sprint 5 update: Updated handle_form_extraction to categorize results into direct_updates and suggestions",
-        "Sprint 5 update: Translated welcome messages based on language preference"
+        "Sprint 5 update: Translated welcome messages based on language preference",
+        "S5-004: Added translation WebSocket handler",
+        "handle_translation() processes translate message type",
+        "Supports email translation with render creation",
+        "Imports translation_service for document translation"
       ]
     },
     {
@@ -938,7 +959,10 @@
         "S3-001: Exports AnonymizationResponse interface for anonymization_complete message type",
         "S3-001: WebSocketMessage union type updated to include AnonymizationResponse",
         "S5-006: AnonymizationResponse now includes renderMetadata and documentId fields",
-        "Supports new render-based anonymization flow"
+        "Supports new render-based anonymization flow",
+        "S5-004: Added TranslationRequest interface",
+        "S5-004: Added TranslationResponse interface",
+        "Updated WebSocketMessage union type with translation types"
       ]
     },
     {
@@ -1398,7 +1422,9 @@
         "Uses FormData for multipart upload handling",
         "S5-006: Added DELETE /api/files/renders/{case_id}/{document_id}/{render_id} endpoint",
         "delete_render() function for deleting document renders (anonymized, translated)",
-        "Invalidates tree cache after render deletion via invalidate_tree_cache()"
+        "Invalidates tree cache after render deletion via invalidate_tree_cache()",
+        "delete_render() function for deleting document renders",
+        "Includes tree cache invalidation after render deletion"
       ]
     },
     {
@@ -2058,7 +2084,9 @@
         "Integrates with document registry system",
         "Response models: DocumentResponse, FolderResponse, DocumentTreeResponse",
         "Maps internal document registry format to frontend format",
-        "Related to S5-007: Container-Compatible File Persistence"
+        "Related to S5-007: Container-Compatible File Persistence",
+        "S5-008: Added POST /api/documents/parse-email endpoint",
+        "Imports email_service for email parsing"
       ]
     },
     {
@@ -2097,7 +2125,10 @@
         "Added get_document_renders() function for retrieving document renders",
         "Added remove_render_from_document() function for deleting renders",
         "is_render_file() helper checks for render patterns (_anonymized., _translated., _annotated.)",
-        "register_document() now creates original render entry automatically"
+        "register_document() now creates original render entry automatically",
+        "S5-003/S5-006: Cascade deletes all render files when document is deleted",
+        "unregister_document() loops through renders array and deletes files",
+        "Prevents orphaned anonymized/translated files"
       ]
     },
     {
@@ -2384,7 +2415,9 @@
       "entityType": "file",
       "observations": [
         "S5-003: Search Types for Semantic Search Feature",
-        "Defines types for search highlights, text blocks, and API request/response"
+        "Defines types for search highlights, text blocks, and API request/response",
+        "Made documentContent optional for semantic search",
+        "Added documentPath field for PDF text extraction"
       ]
     },
     {
@@ -2519,6 +2552,297 @@
         "Parameters: query, document_text, query_lang, doc_lang",
         "Returns List[Dict] with highlights including matched_text, positions, relevance",
         "Uses temperature 0.3 for deterministic output"
+      ]
+    },
+    {
+      "name": "backend/services/email_service.py",
+      "entityType": "Service",
+      "observations": [
+        "S5-008: Email parsing service for .eml files",
+        "Provides email header extraction (From, To, Subject, Date)",
+        "Supports multiple character encodings (UTF-8, ISO-8859-6 for Arabic)",
+        "Extracts email body content (plain text and HTML)",
+        "Extracts attachment metadata",
+        "Uses html2text for HTML to plain text conversion",
+        "Implements singleton pattern with get_email_service()"
+      ]
+    },
+    {
+      "name": "backend/services/email_service.py::EmailService",
+      "entityType": "Class",
+      "observations": [
+        "Main service class for email parsing",
+        "Uses BytesParser for proper encoding handling",
+        "Supports Arabic and RTL text",
+        "Converts HTML emails to plain text when needed",
+        "Methods: parse_eml_file(), _decode_header(), _extract_body(), _extract_attachments()"
+      ]
+    },
+    {
+      "name": "backend/services/email_service.py::EmailAttachment",
+      "entityType": "Dataclass",
+      "observations": [
+        "Dataclass representing email attachment metadata",
+        "Fields: filename (str), content_type (str), size (Optional[int])"
+      ]
+    },
+    {
+      "name": "backend/services/email_service.py::EmailData",
+      "entityType": "Dataclass",
+      "observations": [
+        "Dataclass for parsed email data structure",
+        "Fields: from_addr, to_addr, subject, date, body_text",
+        "Optional fields: body_html, attachments (List[EmailAttachment]), headers (Dict)"
+      ]
+    },
+    {
+      "name": "backend/services/email_service.py::parse_eml_file",
+      "entityType": "Method",
+      "observations": [
+        "Parses .eml files and extracts all email data",
+        "Handles multiple character encodings including Arabic",
+        "Returns EmailData dataclass",
+        "Raises FileNotFoundError if file doesn't exist",
+        "Raises ValueError if file is not .eml"
+      ]
+    },
+    {
+      "name": "backend/services/email_service.py::get_email_service",
+      "entityType": "Function",
+      "observations": [
+        "Singleton factory function for EmailService",
+        "Returns shared EmailService instance",
+        "Creates instance on first call"
+      ]
+    },
+    {
+      "name": "backend/services/translation_service.py",
+      "entityType": "Service",
+      "observations": [
+        "S5-004: Translation service using Gemini AI",
+        "Supports email translation with header preservation",
+        "Multi-language support (Arabic, German, English, French, Spanish, etc.)",
+        "Creates translated renders as new files",
+        "Implements singleton pattern with get_translation_service()"
+      ]
+    },
+    {
+      "name": "backend/services/translation_service.py::TranslationService",
+      "entityType": "Class",
+      "observations": [
+        "Main service class for document translation",
+        "Uses Gemini AI for translation",
+        "Methods: translate_text(), translate_email(), _get_language_name()",
+        "Async methods for translation operations"
+      ]
+    },
+    {
+      "name": "backend/services/translation_service.py::TranslationResult",
+      "entityType": "Dataclass",
+      "observations": [
+        "Dataclass for translation operation results",
+        "Fields: success (bool), original_path (str)",
+        "Optional fields: translated_path, source_language, target_language, error"
+      ]
+    },
+    {
+      "name": "backend/services/translation_service.py::translate_text",
+      "entityType": "Method",
+      "observations": [
+        "Async method to translate text using Gemini API",
+        "Parameters: text, source_lang ('auto' for detection), target_lang (default: 'de')",
+        "Returns translated string",
+        "Uses temperature=0.3 for consistent translations"
+      ]
+    },
+    {
+      "name": "backend/services/translation_service.py::translate_email",
+      "entityType": "Method",
+      "observations": [
+        "Async method to translate email files",
+        "Translates subject and body, preserves headers",
+        "Creates new .eml file with _translated_{lang} suffix",
+        "Returns TranslationResult dataclass"
+      ]
+    },
+    {
+      "name": "backend/services/translation_service.py::get_translation_service",
+      "entityType": "Function",
+      "observations": [
+        "Singleton factory function for TranslationService",
+        "Returns shared TranslationService instance"
+      ]
+    },
+    {
+      "name": "src/components/workspace/EmailViewer.tsx",
+      "entityType": "Component",
+      "observations": [
+        "S5-008: Email viewer React component",
+        "Displays parsed email content with proper formatting",
+        "Supports Arabic and RTL text detection",
+        "Shows email headers: From, To, Subject, Date",
+        "Displays attachment list with file sizes",
+        "Uses Card, CardHeader, CardContent from shadcn/ui",
+        "Uses lucide-react icons: Mail, User, Calendar, Paperclip"
+      ]
+    },
+    {
+      "name": "src/components/workspace/EmailViewer.tsx::EmailData",
+      "entityType": "Interface",
+      "observations": [
+        "TypeScript interface for email data",
+        "Fields: from_addr, to_addr, subject, date, body_text",
+        "Optional: body_html (string | null), attachments (EmailAttachment[])"
+      ]
+    },
+    {
+      "name": "src/components/workspace/EmailViewer.tsx::EmailAttachment",
+      "entityType": "Interface",
+      "observations": [
+        "TypeScript interface for email attachment",
+        "Fields: filename (string), content_type (string), size (number | undefined)"
+      ]
+    },
+    {
+      "name": "src/components/workspace/EmailViewer.tsx::isRTLText",
+      "entityType": "Function",
+      "observations": [
+        "Helper function to detect RTL text",
+        "Checks for Arabic Unicode range (0600-06FF)",
+        "Checks for Hebrew Unicode range (0590-05FF)",
+        "Returns boolean"
+      ]
+    },
+    {
+      "name": "src/components/workspace/EmailViewer.tsx::formatSize",
+      "entityType": "Function",
+      "observations": [
+        "Helper function to format file sizes",
+        "Converts bytes to human-readable format (B, KB, MB)"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::POST_/api/documents/parse-email",
+      "entityType": "HTTPEndpoint",
+      "observations": [
+        "S5-008: Parses .eml files and returns email data",
+        "Request model: EmailParseRequest with file_path field",
+        "Response model: EmailParseResponse with email data",
+        "Calls email_service.parse_eml_file()",
+        "Returns 404 if file not found, 400 if not valid email"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::EmailParseRequest",
+      "entityType": "Schema",
+      "observations": [
+        "Pydantic model for email parse request",
+        "Field: file_path (str) - path to .eml file"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::EmailParseResponse",
+      "entityType": "Schema",
+      "observations": [
+        "Pydantic model for email parse response",
+        "Fields: from_addr, to_addr, subject, date, body_text",
+        "Optional: body_html, attachments list"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::handle_translation",
+      "entityType": "Function",
+      "observations": [
+        "S5-004: WebSocket handler for translation requests",
+        "Processes message_type='translate' messages",
+        "Calls translation_service.translate_email()",
+        "Registers translated render with file_service",
+        "Sends translation_complete WebSocket response"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::TranslationRequest",
+      "entityType": "Interface",
+      "observations": [
+        "TypeScript interface for translation WebSocket request",
+        "Fields: type='translate', caseId, documentId, filePath, targetLang"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::TranslationResponse",
+      "entityType": "Interface",
+      "observations": [
+        "TypeScript interface for translation WebSocket response",
+        "Fields: type='translation_complete', success, caseId, documentId",
+        "Fields: originalPath, translatedPath, targetLanguage",
+        "Optional: render object with render details"
+      ]
+    },
+    {
+      "name": "backend/services/validation_service.py",
+      "entityType": "BackendService",
+      "observations": [
+        "CaseValidationService class with singleton pattern",
+        "Uses Google Generative AI (Gemini 2.5 Flash model)",
+        "validate_case() async method for AI-powered case validation",
+        "_build_validation_prompt() constructs prompt with case context, form data, documents",
+        "_parse_validation_response() with robust JSON parsing and truncation repair",
+        "ValidationResult dataclass: success, score (1-100), summary, warnings, recommendations",
+        "ValidationWarning dataclass: severity, category, title, details",
+        "Localized fallback messages (German/English)",
+        "Uses ContextManager and document_registry for case context",
+        "get_validation_service() singleton accessor function"
+      ]
+    },
+    {
+      "name": "backend/api/validation.py",
+      "entityType": "APIRouter",
+      "observations": [
+        "FastAPI router for validation endpoints",
+        "POST /api/validation/case/{case_id} - AI-powered case validation",
+        "GET /api/validation/health - Health check endpoint",
+        "ValidationRequest Pydantic model: formData, language, documentContents",
+        "ValidationResponse Pydantic model: success, score, summary, warnings, recommendations, error",
+        "ValidationWarningResponse Pydantic model for warning items",
+        "Imports get_validation_service from validation_service"
+      ]
+    },
+    {
+      "name": "src/components/workspace/SubmitCaseDialog.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Dialog component for case submission with validation",
+        "Multi-state UI: initial, loading, results, error (DialogState type)",
+        "Uses useApp context for currentCase, formFields",
+        "Uses useTranslation for i18n support (German/English)",
+        "Calls POST /api/validation/case/{case_id} endpoint",
+        "Displays validation score with color-coded progress bar",
+        "Collapsible warning groups by severity (critical, high, medium, low)",
+        "severityConfig object maps severity to icons and colors",
+        "getScoreColor(), getScoreBarColor(), getScoreLabel() helper functions",
+        "handleRunValidation() performs validation request",
+        "handleSubmitWithoutCheck(), handleSubmitAnyway() submission handlers",
+        "Props: open, onOpenChange, onSubmit"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Dialog component for viewing case context details",
+        "Displays case information, required documents, folder structure",
+        "Uses useApp context for currentCase",
+        "Uses useTranslation for i18n support",
+        "Collapsible sections for different context areas",
+        "Integrates with ContextManager data"
+      ]
+    },
+    {
+      "name": "google.generativeai",
+      "entityType": "ExternalDependency",
+      "observations": [
+        "Google Generative AI Python SDK",
+        "Used for Gemini model access"
       ]
     }
   ],
@@ -4012,6 +4336,341 @@
       "from_": "backend/services/context_manager.py",
       "to": "backend/models/regulation.py",
       "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/context.py",
+      "to": "backend/services/context_manager.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/context.py",
+      "to": "backend/services/document_registry.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/context.py::GET_/api/context/tree/{case_id}",
+      "to": "backend/services/context_manager.py::generate_document_tree",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/search.py",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/search.py",
+      "to": "backend/services/pdf_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/search.py",
+      "to": "backend/tools/language_detector.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/search.py::POST_/api/search/semantic",
+      "to": "backend/services/gemini_service.py::semantic_search",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/search.py::POST_/api/search/semantic",
+      "to": "backend/tools/language_detector.py::detect_query_and_document_languages",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/search.py::POST_/api/search/semantic",
+      "to": "backend/tools/language_detector.py::is_cross_language_search",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/search.py::POST_/api/search/semantic",
+      "to": "backend/tools/language_detector.py::get_language_name",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+      "to": "backend/services/file_service.py::delete_document_render",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+      "to": "backend/services/context_manager.py::invalidate_tree_cache",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::add_document_render",
+      "to": "backend/services/document_registry.py::add_render_to_document",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::delete_document_render",
+      "to": "backend/services/document_registry.py::get_document_renders",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/file_service.py::delete_document_render",
+      "to": "backend/services/document_registry.py::remove_render_from_document",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/context_manager.py::generate_document_tree",
+      "to": "backend/services/document_registry.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/tools/anonymization_tool.py",
+      "to": "backend/services/file_service.py::add_document_render",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/HighlightedText.tsx",
+      "to": "src/types/search.ts::SearchHighlight",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/types/search.ts::SearchHighlight",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "src/types/search.ts",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "backend/api/search.py::POST_/api/search/semantic",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/HighlightedText.tsx::HighlightedText",
+      "to": "src/types/search.ts::SearchHighlight",
+      "relationType": "references"
+    },
+    {
+      "from_": "src/components/workspace/PDFViewer.tsx::PDFViewer",
+      "to": "src/types/search.ts::SearchHighlight",
+      "relationType": "references"
+    },
+    {
+      "from_": "backend/services/pdf_service.py::PDFService",
+      "to": "backend/services/pdf_service.py::TextBlock",
+      "relationType": "references"
+    },
+    {
+      "from_": "backend/api/search.py::SemanticSearchResponse",
+      "to": "backend/api/search.py::SearchHighlight",
+      "relationType": "references"
+    },
+    {
+      "from_": "src/types/search.ts::SemanticSearchResponse",
+      "to": "src/types/search.ts::SearchHighlight",
+      "relationType": "references"
+    },
+    {
+      "from_": "backend/services/gemini_service.py::semantic_search",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/documents.py",
+      "to": "backend/services/email_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/services/translation_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/documents.py::POST_/api/documents/parse-email",
+      "to": "backend/services/email_service.py::parse_eml_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/chat.py::handle_translation",
+      "to": "backend/services/translation_service.py::translate_email",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/translation_service.py::translate_text",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/translation_service.py::translate_email",
+      "to": "backend/services/email_service.py::get_email_service",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "src/types/websocket.ts::TranslationResponse",
+      "relationType": "uses"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "backend/api/documents.py::POST_/api/documents/parse-email",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/email_service.py",
+      "to": "backend/services/email_service.py::EmailService",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/email_service.py",
+      "to": "backend/services/email_service.py::EmailData",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/email_service.py",
+      "to": "backend/services/email_service.py::EmailAttachment",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/email_service.py",
+      "to": "backend/services/email_service.py::get_email_service",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/translation_service.py",
+      "to": "backend/services/translation_service.py::TranslationService",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/translation_service.py",
+      "to": "backend/services/translation_service.py::TranslationResult",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/translation_service.py",
+      "to": "backend/services/translation_service.py::get_translation_service",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::EmailData",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::EmailAttachment",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::isRTLText",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::formatSize",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/documents.py",
+      "to": "backend/api/documents.py::POST_/api/documents/parse-email",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/documents.py",
+      "to": "backend/api/documents.py::EmailParseRequest",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/documents.py",
+      "to": "backend/api/documents.py::EmailParseResponse",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_translation",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/email_service.py::EmailService",
+      "to": "backend/services/email_service.py::parse_eml_file",
+      "relationType": "defines_method"
+    },
+    {
+      "from_": "backend/services/translation_service.py::TranslationService",
+      "to": "backend/services/translation_service.py::translate_text",
+      "relationType": "defines_method"
+    },
+    {
+      "from_": "backend/services/translation_service.py::TranslationService",
+      "to": "backend/services/translation_service.py::translate_email",
+      "relationType": "defines_method"
+    },
+    {
+      "from_": "backend/api/validation.py",
+      "to": "backend/services/validation_service.py",
+      "relationType": "IMPORTS"
+    },
+    {
+      "from_": "backend/api/validation.py",
+      "to": "backend/main.py",
+      "relationType": "REGISTERED_IN"
+    },
+    {
+      "from_": "backend/services/validation_service.py",
+      "to": "backend/services/context_manager.py",
+      "relationType": "USES"
+    },
+    {
+      "from_": "backend/services/validation_service.py",
+      "to": "backend/services/document_registry.py",
+      "relationType": "USES"
+    },
+    {
+      "from_": "backend/services/validation_service.py",
+      "to": "google.generativeai",
+      "relationType": "USES"
+    },
+    {
+      "from_": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "USES"
+    },
+    {
+      "from_": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "backend/api/validation.py",
+      "relationType": "CALLS_API"
+    },
+    {
+      "from_": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx",
+      "relationType": "IMPORTS"
+    },
+    {
+      "from_": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "USES"
     }
   ]
 }

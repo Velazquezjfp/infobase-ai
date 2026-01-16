@@ -19,6 +19,7 @@ This document provides detailed information about the BAMF ACTE Companion API en
 - [Context API](#context-api)
 - [Search API](#search-api)
 - [File Operations](#file-operations)
+- [Validation API](#validation-api)
 - [AI Operations](#ai-operations)
 - [Form Management](#form-management)
 - [Search](#search)
@@ -1918,6 +1919,257 @@ Remove document from case.
 curl -X DELETE https://api.bamf-acte.example.de/v1/cases/ACTE-2024-001/documents/doc-42 \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
+
+---
+
+## Validation API
+
+**Current Status:** IMPLEMENTED in `backend/api/validation.py` (S5-005)
+
+The Validation API provides AI-powered case validation for submission completeness. It analyzes form data, documents, and case context to provide a structured assessment with score, warnings, and recommendations.
+
+### POST /api/validation/case/{case_id}
+
+Validate a case for submission completeness using AI-powered analysis.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/validation.py`
+
+**Source:** `backend/api/validation.py:82-158`
+
+**Authentication:** None (public endpoint)
+
+**Path Parameters:**
+- `case_id` (required): Case identifier to validate (e.g., "ACTE-2024-001")
+
+**Request Body:**
+```json
+{
+  "formData": {
+    "fullName": "John Doe",
+    "dateOfBirth": "1990-01-15",
+    "email": "john@example.com"
+  },
+  "language": "de",
+  "documentContents": {
+    "doc-001": "Extracted text from document...",
+    "doc-002": "Another document content..."
+  }
+}
+```
+
+**Request Schema:**
+- `formData` (object, optional): Dictionary of form field IDs to their values
+  - Default: `{}`
+  - Example: `{"fieldId": "value"}`
+- `language` (string, optional): Response language code
+  - Default: `"de"`
+  - Supported: `"de"` (German), `"en"` (English)
+  - Affects: summary, warnings, recommendations
+- `documentContents` (object, optional): Dictionary of document IDs to cached text content
+  - Default: `null`
+  - Useful for providing pre-extracted text from documents
+  - Example: `{"doc-001": "text content"}`
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "score": 75,
+  "summary": "Case is mostly complete but missing some required documents.",
+  "warnings": [
+    {
+      "severity": "critical",
+      "category": "missing_documents",
+      "title": "Missing ID Document",
+      "details": [
+        "No passport or national ID uploaded",
+        "At least one form of identification is required"
+      ]
+    },
+    {
+      "severity": "medium",
+      "category": "incomplete_form",
+      "title": "Incomplete Address",
+      "details": [
+        "Street address is missing",
+        "Postal code is missing"
+      ]
+    }
+  ],
+  "recommendations": [
+    "Upload a valid passport or national ID",
+    "Complete the address section in the form",
+    "Review the personal data folder for completeness"
+  ],
+  "error": null
+}
+```
+
+**Response Schema:**
+- `success` (boolean): Whether validation completed successfully
+- `score` (integer, 0-100): Validation score
+  - 90-100: Ready for submission
+  - 70-89: Minor issues to address
+  - 50-69: Significant issues present
+  - <50: Critical issues, not ready for submission
+- `summary` (string): Brief overall assessment (1-2 sentences)
+- `warnings` (array): List of validation warnings
+  - `severity` (string): `"critical"`, `"high"`, `"medium"`, or `"low"`
+  - `category` (string): Warning type (e.g., `"missing_documents"`, `"incomplete_form"`)
+  - `title` (string): Short warning title
+  - `details` (array of strings): Detailed issues
+- `recommendations` (array of strings): Actionable next steps
+- `error` (string, nullable): Error message if validation failed
+
+**Error Response (500 Internal Server Error):**
+```json
+{
+  "detail": "Validation failed: <error message>"
+}
+```
+
+**Validation Process:**
+
+1. **Context Loading:** Loads case context including required documents
+2. **Form Analysis:** Checks form field completeness
+3. **Document Tree:** Generates document tree to assess uploaded files
+4. **AI Analysis:** Uses Gemini 2.5 Flash to analyze all data
+5. **Structured Response:** Returns JSON with score, warnings, and recommendations
+
+**Features:**
+- **AI-Powered Analysis:** Uses Google Gemini 2.5 Flash model
+- **Multilingual Support:** Responses in German or English
+- **Comprehensive Checking:** Analyzes form data, documents, and case context
+- **Structured Warnings:** Categorized by severity and type
+- **Actionable Recommendations:** Clear next steps for case completion
+- **Document Content Support:** Can analyze cached document text
+- **Context-Aware:** Checks against case-specific required documents
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/validation/case/ACTE-2024-001 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "formData": {
+      "fullName": "Ahmed Ali",
+      "dateOfBirth": "1990-01-15"
+    },
+    "language": "en"
+  }'
+```
+
+**Python Example:**
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:8000/api/validation/case/ACTE-2024-001",
+    json={
+        "formData": {
+            "fullName": "Ahmed Ali",
+            "dateOfBirth": "1990-01-15"
+        },
+        "language": "en"
+    }
+)
+
+result = response.json()
+print(f"Score: {result['score']}")
+print(f"Summary: {result['summary']}")
+for warning in result['warnings']:
+    print(f"- [{warning['severity']}] {warning['title']}")
+```
+
+**JavaScript Example:**
+```javascript
+const response = await fetch(
+  'http://localhost:8000/api/validation/case/ACTE-2024-001',
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      formData: {
+        fullName: 'Ahmed Ali',
+        dateOfBirth: '1990-01-15'
+      },
+      language: 'en'
+    })
+  }
+);
+
+const result = await response.json();
+console.log(`Score: ${result.score}`);
+console.log(`Summary: ${result.summary}`);
+```
+
+**Usage:**
+- Pre-submission case validation
+- Identify missing documents before submission
+- Check form completeness
+- Get actionable recommendations for case improvement
+- Quality assurance checks
+
+---
+
+### GET /api/validation/health
+
+Health check endpoint for validation service.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/validation.py`
+
+**Source:** `backend/api/validation.py:161-188`
+
+**Authentication:** None (public endpoint)
+
+**Success Response (200 OK - Healthy):**
+```json
+{
+  "status": "healthy",
+  "service": "case_validation",
+  "gemini_initialized": true,
+  "ai_powered": true
+}
+```
+
+**Degraded Response (200 OK - Degraded):**
+```json
+{
+  "status": "degraded",
+  "service": "case_validation",
+  "gemini_initialized": false,
+  "ai_powered": true
+}
+```
+
+**Unhealthy Response (200 OK - Unhealthy):**
+```json
+{
+  "status": "unhealthy",
+  "service": "case_validation",
+  "error": "Error message"
+}
+```
+
+**Response Schema:**
+- `status` (string): Service health status
+  - `"healthy"`: Service fully operational with Gemini API
+  - `"degraded"`: Service running but Gemini API not initialized
+  - `"unhealthy"`: Service error occurred
+- `service` (string): Always `"case_validation"`
+- `gemini_initialized` (boolean): Whether Gemini API is initialized
+- `ai_powered` (boolean): Always `true`
+- `error` (string, optional): Error message if status is unhealthy
+
+**Example:**
+```bash
+curl -X GET http://localhost:8000/api/validation/health
+```
+
+**Usage:**
+- Check if validation service is available
+- Verify Gemini API key is configured
+- Monitoring and health checks
+- Frontend can check before enabling validation features
 
 ---
 

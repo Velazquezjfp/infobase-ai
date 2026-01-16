@@ -39,6 +39,7 @@ This directory contains API documentation for the BAMF ACTE Companion applicatio
 | **FieldGenerator** | `backend/services/field_generator.py` | NLP-powered form field generation |
 | **FileService** | `backend/services/file_service.py` | File upload, deletion, validation |
 | **AnonymizationService** | `backend/services/anonymization_service.py` | PII detection client (calls external service) |
+| **ValidationService** | `backend/services/validation_service.py` | AI-powered case validation for submission (S5-005) |
 
 ### Implemented API Endpoints
 
@@ -55,6 +56,8 @@ This directory contains API documentation for the BAMF ACTE Companion applicatio
 | `GET` | `/api/files/health` | File service health |
 | `GET` | `/api/chat/health` | Chat service health |
 | `POST` | `/api/chat/clear/{case_id}` | Clear conversation history (S5-010) |
+| `POST` | `/api/validation/case/{case_id}` | AI-powered case validation for submission (S5-005) |
+| `GET` | `/api/validation/health` | Validation service health |
 
 ### External Dependencies
 
@@ -169,6 +172,6 @@ Internal tracking file for documentation synchronization with codebase changes.
 
 ---
 
-**Last Updated:** 2026-01-12
-**Documentation Version:** 1.8.0
+**Last Updated:** 2026-01-16
+**Documentation Version:** 2.1.0
 **Application Version:** 0.0.0

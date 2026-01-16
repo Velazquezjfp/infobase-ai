@@ -38,6 +38,136 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [2.1.0] - 2026-01-16
+
+### Added - Case Validation API (S5-005)
+
+This release adds the Case Validation API, providing AI-powered case validation for submission completeness. The validation service uses Google Gemini 2.5 Flash to analyze form data, documents, and case context, returning structured assessments with scores, warnings, and recommendations.
+
+#### New API Module: backend/api/validation.py
+
+**Endpoint: POST /api/validation/case/{case_id}**
+
+**Location:** `backend/api/validation.py:82-158`
+
+AI-powered case validation for submission completeness.
+
+**Request Format:**
+```json
+{
+  "formData": {
+    "fullName": "John Doe",
+    "dateOfBirth": "1990-01-15"
+  },
+  "language": "de",
+  "documentContents": {
+    "doc-001": "text content"
+  }
+}
+```
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "score": 75,
+  "summary": "Case is mostly complete but missing some required documents.",
+  "warnings": [
+    {
+      "severity": "critical",
+      "category": "missing_documents",
+      "title": "Missing ID Document",
+      "details": ["No passport uploaded"]
+    }
+  ],
+  "recommendations": [
+    "Upload a valid passport or national ID",
+    "Complete the address section"
+  ],
+  "error": null
+}
+```
+
+**Key Features:**
+- **AI-Powered Analysis:** Uses Gemini 2.5 Flash model for intelligent validation
+- **Multilingual Support:** Responses in German or English
+- **Comprehensive Checking:** Analyzes form data, documents, and case context
+- **Score-Based Assessment:** 1-100 score (90-100=ready, 70-89=minor, 50-69=significant, <50=critical)
+- **Structured Warnings:** Categorized by severity (critical, high, medium, low) and type
+- **Actionable Recommendations:** Clear next steps for case completion
+- **Context-Aware:** Checks against case-specific required documents from context files
+- **Document Analysis:** Can analyze cached document text contents
+
+**Endpoint: GET /api/validation/health**
+
+**Location:** `backend/api/validation.py:161-188`
+
+Health check for validation service with Gemini API status.
+
+**Response Format:**
+```json
+{
+  "status": "healthy",
+  "service": "case_validation",
+  "gemini_initialized": true,
+  "ai_powered": true
+}
+```
+
+**Health Status:**
+- `healthy`: Service fully operational with Gemini API
+- `degraded`: Service running but Gemini API not initialized
+- `unhealthy`: Service error occurred
+
+#### New Service: backend/services/validation_service.py
+
+**Location:** `backend/services/validation_service.py`
+
+**Service Implementation:**
+- **CaseValidationService:** Singleton service for AI-powered validation
+- **ValidationResult:** Structured result with score, summary, warnings, recommendations
+- **ValidationWarning:** Individual warning with severity, category, title, details
+
+**Key Methods:**
+- `validate_case()`: Main validation method (async)
+  - Loads case context including required documents
+  - Builds comprehensive validation prompt
+  - Calls Gemini API with focused generation config
+  - Parses and structures AI response
+  - Returns ValidationResult
+- `_build_validation_prompt()`: Constructs prompt with:
+  - Case information (ID, type, name)
+  - Required documents from context
+  - Form data with completeness status
+  - Document tree view
+  - Document contents (if provided)
+- `_parse_validation_response()`: Robust JSON parsing with:
+  - Markdown code block removal
+  - JSON extraction and truncation repair
+  - Fallback handling for parsing failures
+  - Localized error messages
+
+**Technical Details:**
+- **Model:** Gemini 2.5 Flash
+- **Temperature:** 0.3 (for consistent JSON output)
+- **Max Tokens:** 4096
+- **Pattern:** Singleton with lazy initialization
+- **Error Handling:** Graceful fallbacks and localized messages
+
+**Use Cases:**
+- Pre-submission case validation
+- Identify missing documents before submission
+- Check form completeness
+- Get actionable recommendations
+- Quality assurance checks
+
+**Performance:**
+- Typical response time: 1-3 seconds
+- Depends on case complexity and document count
+- Cached context files improve performance
+
+---
+
 ## [2.0.0] - 2026-01-12
 
 ### Added - Sprint 5 Completion: Context API, Search API, and Render Management

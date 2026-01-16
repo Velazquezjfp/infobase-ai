@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -21,8 +21,10 @@ import {
   Loader2,
   ExternalLink,
   Info,
+  UserCog,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { CustomContextRule } from '@/types/case';
 
 interface Regulation {
   id: string;
@@ -101,12 +103,28 @@ export function CaseContextDialog({ isOpen, onClose, caseId }: CaseContextDialog
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [showAllRules, setShowAllRules] = useState(false);
+  // S5-017: Custom rules state
+  const [customRules, setCustomRules] = useState<CustomContextRule[]>([]);
 
   // Helper to translate content with fallback to original
   const tc = (key: string, fallback: string) => {
     const translated = t(`caseContext.content.${key}`, { defaultValue: '__NOT_FOUND__' });
     return translated === '__NOT_FOUND__' ? fallback : translated;
   };
+
+  // S5-017: Fetch custom rules for the case
+  const fetchCustomRules = useCallback(async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_BASE_URL}/api/custom-context/${caseId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCustomRules(data.rules || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch custom rules:', err);
+    }
+  }, [caseId]);
 
   useEffect(() => {
     if (isOpen && caseId) {
@@ -119,13 +137,18 @@ export function CaseContextDialog({ isOpen, onClose, caseId }: CaseContextDialog
     setError(null);
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${API_BASE_URL}/api/context/case/${caseId}`);
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch context: ${response.statusText}`);
+      // S5-017: Fetch both case context and custom rules in parallel
+      const [contextResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/context/case/${caseId}`),
+        fetchCustomRules()
+      ]);
+
+      if (!contextResponse.ok) {
+        throw new Error(`Failed to fetch context: ${contextResponse.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await contextResponse.json();
       setContext(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load context');
@@ -135,14 +158,18 @@ export function CaseContextDialog({ isOpen, onClose, caseId }: CaseContextDialog
     }
   };
 
+  // S5-017: Separate custom rules by type
+  const customValidationRules = customRules.filter(r => r.type === 'validation_rule');
+  const customDocuments = customRules.filter(r => r.type === 'required_document');
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'error':
-        return 'bg-destructive/10 text-destructive border-destructive/20';
+        return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800';
       case 'warning':
-        return 'bg-warning/10 text-warning border-warning/20';
+        return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800';
       case 'info':
-        return 'bg-primary/10 text-primary border-primary/20';
+        return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -274,7 +301,7 @@ export function CaseContextDialog({ isOpen, onClose, caseId }: CaseContextDialog
                 <TabsTrigger value="documents" className="gap-1.5">
                   <FileText className="w-4 h-4" />
                   {t('caseContext.tabs.documents', 'Documents')}
-                  <Badge variant="secondary" className="ml-1 text-xs">{context.requiredDocuments?.length || 0}</Badge>
+                  <Badge variant="secondary" className="ml-1 text-xs">{(context.requiredDocuments?.length || 0) + customDocuments.length}</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="folders" className="gap-1.5">
                   <Folder className="w-4 h-4" />
@@ -355,9 +382,31 @@ export function CaseContextDialog({ isOpen, onClose, caseId }: CaseContextDialog
                   <h3 className="text-sm font-semibold flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-primary" />
                     {t('caseContext.validationRules', 'Validation Rules')}
-                    <Badge variant="secondary" className="text-xs">{context.validationRules?.length || 0}</Badge>
+                    <Badge variant="secondary" className="text-xs">{(context.validationRules?.length || 0) + customValidationRules.length}</Badge>
                   </h3>
                   <div className="space-y-2">
+                    {/* S5-017: Show custom validation rules first with "User Rule" badge */}
+                    {customValidationRules.map((rule) => (
+                      <div key={rule.id} className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium flex items-center gap-2">
+                              <UserCog className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                              {rule.rule}
+                            </p>
+                            {rule.targetFolder && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {t('caseContext.targetFolder', 'Target folder')}: {rule.targetFolder}
+                              </p>
+                            )}
+                          </div>
+                          <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 text-xs">
+                            {t('caseContext.userRule', 'User Rule')}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Standard validation rules */}
                     {(showAllRules ? context.validationRules : context.validationRules?.slice(0, 5))?.map((rule) => (
                       <div key={rule.rule_id} className="bg-muted/50 rounded-lg p-3">
                         <p className="text-sm font-medium">{tc(`ruleNames.${rule.rule_id}`, rule.rule_id.replace(/_/g, ' '))}</p>
@@ -413,6 +462,31 @@ export function CaseContextDialog({ isOpen, onClose, caseId }: CaseContextDialog
                 <p className="text-sm text-muted-foreground mb-4">
                   {t('caseContext.documentsDescription', 'Documents required for this case type with their validation requirements.')}
                 </p>
+                {/* S5-017: Show custom required documents first with "User Rule" badge */}
+                {customDocuments.map((doc) => (
+                  <div key={doc.id} className="border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4 space-y-2">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-medium flex items-center gap-2">
+                          <UserCog className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          {t('caseContext.customDocument', 'Custom Requirement')}
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-1">{t('caseContext.userDefined', 'User defined')}</p>
+                      </div>
+                      <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 text-xs">
+                        {t('caseContext.userRule', 'User Rule')}
+                      </Badge>
+                    </div>
+                    <p className="text-sm">{doc.rule}</p>
+                    {doc.targetFolder && (
+                      <div className="bg-purple-100/50 dark:bg-purple-900/30 rounded p-2 text-xs text-muted-foreground">
+                        <Folder className="w-3 h-3 inline mr-1" />
+                        {t('caseContext.targetFolder', 'Target folder')}: {doc.targetFolder}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {/* Standard required documents */}
                 {context.requiredDocuments?.map((doc, index) => (
                   <div key={index} className="border rounded-lg p-4 space-y-2">
                     <div className="flex items-start justify-between">
