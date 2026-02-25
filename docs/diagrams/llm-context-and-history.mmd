@@ -1,0 +1,187 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#1976d2','lineColor':'#424242','fontSize':'13px'}}}%%
+
+flowchart TB
+
+    %% ============================================================
+    %% TITLE: How the LLM Consumes Dynamic Context + Per-Akte History
+    %% ============================================================
+
+    %% ============================================================
+    %% LEFT SIDE: What the user does
+    %% ============================================================
+
+    subgraph user_actions["What the User Does"]
+        direction TB
+        action1["Opens Akte ACTE-2024-001"]
+        action2["Clicks folder 'Personal Data'"]
+        action3["Selects 'Reisepass.png'<br/>(text extracted via OCR)"]
+        action4["Types: 'Is this passport<br/>valid for this case?'"]
+        action1 --> action2 --> action3 --> action4
+    end
+
+    %% ============================================================
+    %% CENTER: The WebSocket message (what actually gets sent)
+    %% ============================================================
+
+    subgraph ws_message["WebSocket Message (sent on every chat)"]
+        direction TB
+        msg_payload["{<br/>  type: 'chat',<br/>  content: 'Is this passport valid...',<br/>  <b>caseId</b>: 'ACTE-2024-001',<br/>  <b>folderId</b>: 'personal-data',<br/>  <b>documentContent</b>: 'BUNDESREPUBLIK...',<br/>  language: 'de'<br/>}"]
+    end
+
+    action4 --> msg_payload
+
+    %% ============================================================
+    %% BACKEND: The three inputs that get assembled
+    %% ============================================================
+
+    subgraph backend["Backend: Three Parallel Loads"]
+        direction LR
+
+        subgraph ctx_load["1. Context Loading<br/>(ContextManager)"]
+            direction TB
+            load_case["load_case_context('ACTE-2024-001')<br/>→ case.json<br/>regulations, required docs,<br/>validation rules, applicant info"]
+            load_folder["load_folder_context(<br/>  'ACTE-2024-001',<br/>  'personal-data'<br/>)<br/>→ folders/personal-data.json<br/>expected docs, validation criteria"]
+            load_tree["generate_document_tree()<br/>→ ASCII tree of ALL docs<br/>(cached in memory)"]
+            merge["merge_contexts()<br/>Case + Folder + Document<br/>Precedence: Doc > Folder > Case"]
+            load_case --> merge
+            load_folder --> merge
+        end
+
+        subgraph hist_load["2. History Loading<br/>(ConversationManager)"]
+            direction TB
+            hist_get["prepare_history_for_prompt(<br/>  'ACTE-2024-001'<br/>)"]
+            hist_store["In-Memory Store<br/>(dict: case_id → messages)"]
+            hist_window["Context Window:<br/>Last 10 messages max"]
+            hist_budget["Token Budget:<br/>~30K tokens total<br/>−5K reserved for response<br/>Oldest messages dropped first"]
+            hist_store --> hist_get
+            hist_get --> hist_window
+            hist_window --> hist_budget
+        end
+
+        subgraph doc_pass["3. Document Content<br/>(passed directly)"]
+            direction TB
+            doc_text["documentContent from<br/>WebSocket message<br/>(already extracted<br/>by frontend)"]
+        end
+    end
+
+    msg_payload --> ctx_load
+    msg_payload --> hist_load
+    msg_payload --> doc_pass
+
+    %% ============================================================
+    %% PROMPT ASSEMBLY: The actual prompt Gemini receives
+    %% ============================================================
+
+    subgraph prompt_assembly["_build_prompt() → What Gemini Actually Sees"]
+        direction TB
+
+        prompt_full["<b># System Instructions</b><br/>'You are an AI assistant helping with case management.'<br/>'IMPORTANT: Respond in German language.'<br/>'Cite sources with [Source: ...]'<br/><br/><b># Case Context</b><br/>'=== CASE CONTEXT ==='<br/>'Case ID: ACTE-2024-001, Type: integration_course'<br/>'Regulations: IntV §4, AufenthG §44...'<br/>'Required Documents: 5 mandatory types'<br/>'Validation Rules: identity_verification...'<br/>'=== FOLDER CONTEXT ==='<br/>'Folder: Personal Data'<br/>'Purpose: Identity and personal information'<br/>'Expected: Passport, Birth Certificate...'<br/>'Validation: name_consistency, valid_dates...'<br/><br/><b># Available Documents (Tree View)</b><br/>'ACTE-2024-001/<br/>├── personal-data/<br/>│   ├── Reisepass.png ← <i>you are here</i><br/>│   └── Personalausweis.png<br/>├── certificates/<br/>│   └── Sprachzeugnis.pdf<br/>└── evidence/<br/>    └── Notenspiegel.pdf'<br/><br/><b># Document Content</b><br/>'BUNDESREPUBLIK DEUTSCHLAND...<br/>Name: AHMAD ALI...' <i>(the actual OCR text)</i><br/><br/><b># Conversation History</b><br/>'User: What documents do I need?'<br/>'Assistant: For an integration course...'<br/><br/><b># User Request</b><br/>'Is this passport valid for this case?'<br/><br/><b># Response Guidelines</b><br/>'Cite sources, say if info not found'"]
+    end
+
+    merge --> prompt_full
+    hist_budget --> prompt_full
+    doc_text --> prompt_full
+    load_tree --> prompt_full
+
+    %% ============================================================
+    %% GEMINI CALL: Single LLM call, no agent loop
+    %% ============================================================
+
+    subgraph gemini_call["Gemini API Call (No Agent Loop)"]
+        direction TB
+        call["model.generate_content(<br/>  full_prompt,<br/>  temperature=0.7,<br/>  max_output_tokens=2048<br/>)"]
+        stream_yes["Streaming: chunks sent<br/>via WebSocket as they arrive"]
+        stream_no["Non-streaming: complete<br/>response sent at once"]
+        call --> stream_yes
+        call --> stream_no
+    end
+
+    prompt_full --> call
+
+    %% ============================================================
+    %% AFTER RESPONSE: History is saved
+    %% ============================================================
+
+    subgraph after_response["After Response: Save to History"]
+        direction TB
+        save_user["conversation_manager.add_message(<br/>  'ACTE-2024-001', 'user',<br/>  'Is this passport valid...'<br/>)"]
+        save_assistant["conversation_manager.add_message(<br/>  'ACTE-2024-001', 'assistant',<br/>  'Based on the passport... [Source: case.json]'<br/>)"]
+        save_user --> save_assistant
+    end
+
+    stream_yes --> after_response
+    stream_no --> after_response
+
+    %% ============================================================
+    %% RIGHT SIDE: Per-Akte history isolation
+    %% ============================================================
+
+    subgraph history_isolation["Per-Akte History Isolation (In-Memory)"]
+        direction TB
+
+        subgraph akte1["ACTE-2024-001"]
+            h1["msg 1: User asked about documents<br/>msg 2: AI listed requirements<br/>msg 3: User asked about passport<br/>msg 4: AI validated passport<br/>... (max 10 messages)"]
+        end
+
+        subgraph akte2["ACTE-2024-002"]
+            h2["msg 1: User asked about asylum process<br/>msg 2: AI explained requirements<br/>... (separate history)"]
+        end
+
+        subgraph akte3["ACTE-2024-003"]
+            h3["(empty - no messages yet)"]
+        end
+
+        isolation_note["Each Akte has its own history.<br/>Switching Akte = different conversation.<br/>Server restart = all history cleared.<br/>No cross-Akte contamination."]
+    end
+
+    save_assistant --> akte1
+
+    %% ============================================================
+    %% BOTTOM: What changes when user switches context
+    %% ============================================================
+
+    subgraph context_switches["What Changes When the User Navigates"]
+        direction TB
+
+        subgraph switch_akte["Switches Akte"]
+            sa["- WebSocket reconnects to new case_id<br/>- Different case.json loaded<br/>- Different conversation history<br/>- Different document tree<br/>- <b>Everything changes</b>"]
+        end
+
+        subgraph switch_folder["Switches Folder"]
+            sf["- folderId changes in next message<br/>- Different folder context loaded<br/>  (different expected docs + criteria)<br/>- Same case context, same history<br/>- <b>Folder section changes</b>"]
+        end
+
+        subgraph switch_doc["Selects Document"]
+            sd["- documentContent changes<br/>- Same case + folder context<br/>- Same history<br/>- <b>Document section changes</b>"]
+        end
+
+        subgraph add_rule["Adds Custom Rule"]
+            ar["- Rule saved to custom_rules.json<br/>- Picked up during next validation<br/>- <b>Validation prompt changes</b>"]
+        end
+    end
+
+    %% ============================================================
+    %% STYLING
+    %% ============================================================
+
+    classDef user fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef ws fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef ctx fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef hist fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef doc fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#000
+    classDef prompt fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef gemini fill:#ffebee,stroke:#c62828,stroke-width:3px,color:#000
+    classDef save fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#000
+    classDef isolation fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#000
+    classDef switch fill:#f5f5f5,stroke:#616161,stroke-width:1px,color:#333
+
+    class action1,action2,action3,action4 user
+    class msg_payload ws
+    class load_case,load_folder,load_tree,merge ctx
+    class hist_get,hist_store,hist_window,hist_budget hist
+    class doc_text doc
+    class prompt_full prompt
+    class call,stream_yes,stream_no gemini
+    class save_user,save_assistant save
+    class h1,h2,h3,isolation_note isolation
+    class sa,sf,sd,ar switch

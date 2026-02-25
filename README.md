@@ -257,6 +257,7 @@ All diagrams are in `docs/diagrams/` as `.mmd` files. Render them with any Merma
 | System Architecture | [`architecture.mmd`](docs/diagrams/architecture.mmd) | All 4 layers: frontend, API, services, storage with connections |
 | SHACL + Form Fill | [`shacl-and-formfill-flow.mmd`](docs/diagrams/shacl-and-formfill-flow.mmd) | NL form modification flow + AI form fill agent flow |
 | Context Management | [`context-management-flow.mmd`](docs/diagrams/context-management-flow.mmd) | Dynamic context cascade, prompt assembly, custom rules |
+| LLM Context + History | [`llm-context-and-history.mmd`](docs/diagrams/llm-context-and-history.mmd) | How Gemini consumes dynamic context, per-Akte history isolation, what changes on navigation |
 
 ### Code Graph (Knowledge Base)
 
