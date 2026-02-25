@@ -1,0 +1,185 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#1976d2','lineColor':'#424242','fontSize':'13px'}}}%%
+
+flowchart TB
+
+    %% ============================================================
+    %% PART 1: SHACL AUTO-GENERATION FLOW
+    %% ============================================================
+
+    subgraph shacl_flow["SHACL Auto-Generation Flow"]
+        direction TB
+
+        %% Trigger
+        admin_nl["Admin enters Natural Language command<br/>e.g. 'Add a required email field<br/>for contact email'"]
+
+        subgraph frontend_admin["Frontend - FormViewer / AdminConfigPanel"]
+            direction TB
+            nl_dialog["NL Modification Dialog<br/>handleModifyForm()"]
+            api_call["POST /api/admin/modify-form<br/>command + currentFields + caseId"]
+        end
+
+        subgraph backend_admin["Backend - Admin API + SHACL Generator"]
+            direction TB
+
+            shacl_svc["SHACLGeneratorService<br/>apply_modification()"]
+
+            subgraph ai_parse["Step 1: AI Command Parsing"]
+                gemini_parse["Gemini AI<br/>parse_nl_command()<br/>temp=0.1 for precision"]
+                parsed_intent["Parsed Intent<br/>action: add/remove/modify<br/>field_label, field_type,<br/>required, options"]
+            end
+
+            subgraph semantic_infer["Step 2: Semantic Type Inference"]
+                normalize["normalize_field_label()<br/>'Contact Email' -> 'contact_email'<br/>Supports German -> English mapping"]
+                schema_lookup["schema_org_mappings.py<br/>60+ property mappings<br/>'email' -> schema:email<br/>'phone' -> schema:telephone<br/>'birth_date' -> schema:birthDate"]
+                type_infer["infer_field_type_from_label()<br/>'email' -> text<br/>'birth date' -> date<br/>'notes' -> textarea<br/>'nationality' -> select"]
+            end
+
+            subgraph pattern_assign["Step 3: Validation Pattern Assignment"]
+                pattern_lookup["validation_patterns.py<br/>Regex pattern library"]
+                patterns["EMAIL_PATTERN<br/>PHONE_PATTERN<br/>NAME_PATTERN<br/>DATE_PATTERN<br/>ADDRESS_PATTERN<br/>POSTAL_CODE_DE_PATTERN"]
+            end
+
+            subgraph shape_gen["Step 4: SHACL Shape Generation"]
+                prop_shape["generate_property_shape()<br/>SHACLPropertyShape with:<br/>sh:path = schema:email<br/>sh:datatype = xsd:string<br/>sh:pattern = email regex<br/>sh:message = error msg<br/>sh:minCount = 1 if required"]
+                node_shape["generate_node_shape()<br/>SHACL NodeShape wrapping<br/>all PropertyShapes<br/>with JSON-LD @context"]
+            end
+        end
+
+        subgraph response["Response to Frontend"]
+            direction TB
+            result["FormModificationResponse<br/>fields: updated field list<br/>shaclShape: full NodeShape<br/>modifications: description list"]
+            fe_update["Frontend updates:<br/>1. Form fields with SHACL metadata<br/>2. SHACL viz dialog<br/>3. Field validation via validateValue()"]
+        end
+
+        %% Connections for SHACL flow
+        admin_nl --> nl_dialog
+        nl_dialog --> api_call
+        api_call --> shacl_svc
+
+        shacl_svc --> gemini_parse
+        gemini_parse --> parsed_intent
+
+        parsed_intent --> normalize
+        normalize --> schema_lookup
+        schema_lookup --> type_infer
+
+        type_infer --> pattern_lookup
+        pattern_lookup --> patterns
+
+        patterns --> prop_shape
+        prop_shape --> node_shape
+
+        node_shape --> result
+        result --> fe_update
+    end
+
+    %% ============================================================
+    %% PART 2: FORM FILL AGENT FLOW
+    %% ============================================================
+
+    subgraph fill_flow["Form Fill Agent Flow - Using SHACL-Defined Forms"]
+        direction TB
+
+        %% Trigger
+        user_trigger["User triggers form fill<br/>e.g. 'Fill the form from this document'<br/>or clicks auto-fill button"]
+
+        subgraph fe_fill["Frontend - AppContext + AIChatInterface"]
+            direction TB
+            detect_fill["Detect fill/extract/populate keywords<br/>in user message"]
+            ws_send["Send via WebSocket:<br/>type: chat<br/>content: user message<br/>documentContent: extracted text<br/>formSchema: SHACL-enriched fields<br/>currentFormValues: existing values"]
+        end
+
+        subgraph be_fill["Backend - Chat API + Gemini Service"]
+            direction TB
+
+            subgraph step1_detect["Step 1: Request Detection"]
+                is_form_fill["is_form_fill_request?<br/>form_schema present AND<br/>content contains fill/extract/populate"]
+            end
+
+            subgraph step2_extract["Step 2: AI Data Extraction"]
+                gemini_extract["Gemini AI<br/>generate_response()<br/>stream=False"]
+                extract_prompt["Prompt includes:<br/>- Document text content<br/>- Form field schema with labels+types<br/>- Instructions for JSON extraction"]
+            end
+
+            subgraph step3_parse["Step 3: Result Categorization"]
+                parse_result["parse_extraction_result()<br/>Compare AI output vs current values"]
+                categorize["Categorize per field:<br/>Empty field + AI has value = direct_update<br/>Filled field + AI differs = suggestion<br/>No AI value = ignored"]
+            end
+
+            subgraph step4_send["Step 4: WebSocket Responses"]
+                ws_direct["form_update message<br/>Direct updates for empty fields<br/>Applied automatically"]
+                ws_suggest["form_suggestion message<br/>Suggestions for non-empty fields<br/>Requires user approval"]
+                ws_summary["chat_response message<br/>Summary: 'X fields filled,<br/>Y suggestions available'"]
+            end
+        end
+
+        subgraph fe_receive["Frontend - Form Update Handling"]
+            direction TB
+
+            subgraph auto_fill["Auto-Applied Updates"]
+                direct_apply["updateFormField() called<br/>for each direct update<br/>Fields populated instantly"]
+            end
+
+            subgraph suggestion_ui["Suggestion UI - User Decision"]
+                show_suggest["FormViewer shows suggestions<br/>with accept/reject buttons<br/>Shows current vs suggested value"]
+                accept["acceptSuggestion()<br/>Updates field + toast + chat msg"]
+                reject["rejectSuggestion()<br/>Dismisses + chat msg"]
+            end
+
+            subgraph validation["SHACL Validation"]
+                validate["validateValue() from SHACL types<br/>Checks against PropertyShape:<br/>- Pattern matching<br/>- Required constraint<br/>- Allowed values<br/>- Length constraints"]
+                errors["fieldValidationErrors state<br/>Shows inline validation messages"]
+            end
+        end
+
+        %% Connections for fill flow
+        user_trigger --> detect_fill
+        detect_fill --> ws_send
+        ws_send -->|WebSocket| is_form_fill
+
+        is_form_fill -->|Yes| gemini_extract
+        gemini_extract --> extract_prompt
+        extract_prompt --> parse_result
+
+        parse_result --> categorize
+
+        categorize --> ws_direct
+        categorize --> ws_suggest
+        categorize --> ws_summary
+
+        ws_direct -->|WebSocket| direct_apply
+        ws_suggest -->|WebSocket| show_suggest
+        ws_summary -->|WebSocket| fe_receive
+
+        show_suggest --> accept
+        show_suggest --> reject
+
+        direct_apply --> validate
+        accept --> validate
+        validate --> errors
+    end
+
+    %% ============================================================
+    %% CONNECTION BETWEEN THE TWO FLOWS
+    %% ============================================================
+
+    fe_update -..->|"SHACL-enriched form fields<br/>used as formSchema"| ws_send
+
+    %% ============================================================
+    %% STYLING
+    %% ============================================================
+
+    classDef trigger fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef backend fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef ai fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000
+    classDef schema fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef result fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef user_action fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+
+    class admin_nl,user_trigger trigger
+    class nl_dialog,api_call,detect_fill,ws_send,direct_apply,show_suggest,accept,reject,validate,errors frontend
+    class shacl_svc,is_form_fill,parse_result,categorize,ws_direct,ws_suggest,ws_summary backend
+    class gemini_parse,gemini_extract,extract_prompt ai
+    class normalize,schema_lookup,type_infer,pattern_lookup,patterns,prop_shape,node_shape schema
+    class result,fe_update,parsed_intent result

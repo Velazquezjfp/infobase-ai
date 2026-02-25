@@ -1,0 +1,151 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#1976d2','lineColor':'#424242','secondaryColor':'#f3e5f5','tertiaryColor':'#fff3e0','fontSize':'14px'}}}%%
+
+flowchart TB
+    %% External Services
+    gemini["Google Gemini API<br/>gemini-2.5-flash<br/>Central AI Brain"]
+    anon_ext["External Anonymization Service<br/>localhost:5000<br/>PII Detection"]
+
+    %% Frontend Layer
+    subgraph frontend["Frontend Layer - React 18 + TypeScript SPA"]
+        direction TB
+        appctx["App Context<br/>Global State + WebSocket Mgmt"]
+
+        subgraph ui_main["Main Workspace Components"]
+            chat["Chat Interface<br/>Streaming, Slash Commands,<br/>Context Modification"]
+            explorer["File Explorer<br/>Document Tree, Drag-Drop,<br/>Upload, Renders"]
+            viewer["Document Viewer<br/>PDF, Text, Images, Emails,<br/>Semantic Search"]
+            formview["Form Viewer<br/>AI Auto-fill, SHACL Validation,<br/>NL Form Modification"]
+        end
+
+        subgraph ui_dialogs["Dialogs and Admin"]
+            admin["Admin Config Panel<br/>Folders, Doc Types, Macros,<br/>Forms, SHACL Viz"]
+            contextdlg["Case Context Dialog<br/>Injected AI Context,<br/>Custom User Rules"]
+            submitdlg["Submit Case Dialog<br/>AI Validation + Scoring"]
+        end
+    end
+
+    %% Backend API Layer
+    subgraph api["API Layer - FastAPI Routers"]
+        direction TB
+        chatapi["Chat API<br/>WebSocket /ws/chat"]
+        adminapi["Admin API<br/>/api/admin"]
+        filesapi["Files API<br/>/api/files"]
+        docsapi["Documents API<br/>/api/documents"]
+        searchapi["Search API<br/>/api/search"]
+        validapi["Validation API<br/>/api/validation"]
+        contextapi["Context API<br/>/api/context"]
+        customctxapi["Custom Context API<br/>/api/custom-context"]
+    end
+
+    %% Backend Services Layer
+    subgraph services["Services Layer - Business Logic"]
+        direction TB
+
+        subgraph ai_services["AI-Powered Services"]
+            gemini_svc["Gemini Service<br/>Chat, Analysis, Extraction,<br/>Search, Translation"]
+            validation_svc["Validation Service<br/>Case Scoring + Warnings"]
+            shacl_gen["SHACL Generator<br/>NL Form Modification,<br/>Shape Generation"]
+            field_gen["Field Generator<br/>NLP Field Creation"]
+        end
+
+        subgraph core_services["Core Services"]
+            context_mgr["Context Manager<br/>Hierarchical Loading<br/>Case &gt; Folder &gt; Document<br/>Merge with Precedence"]
+            translation_svc["Translation Service<br/>Multi-language"]
+            anon_svc["Anonymization Service<br/>PII Masking"]
+            conv_mgr["Conversation Manager<br/>Chat History + Token Budget"]
+        end
+
+        subgraph doc_services["Document Services"]
+            email_svc["Email Service<br/>EML Parsing"]
+            pdf_svc["PDF Service<br/>Text Extraction"]
+            file_svc["File Service<br/>Validation + Storage"]
+            doc_registry["Document Registry<br/>Manifest Tracking,<br/>FS Reconciliation"]
+        end
+    end
+
+    %% Storage Layer
+    subgraph storage["Storage Layer - NO DATABASE - JSON Files on Filesystem"]
+        direction TB
+        case_data["Case Context JSON Files<br/>case.json, folders/*.json,<br/>custom_rules.json"]
+        templates["Case Templates<br/>templates/"]
+        manifest["Document Manifest<br/>document_manifest.json"]
+        docs_files["Document Files<br/>PDFs, Images, Emails,<br/>Anonymized/Translated Renders"]
+        schemas["SHACL Schemas<br/>JSON-LD, Validation Patterns,<br/>schema.org Mappings"]
+    end
+
+    %% Frontend to API connections
+    chat -->|WebSocket| chatapi
+    explorer -->|HTTP| filesapi
+    explorer -->|HTTP| docsapi
+    viewer -->|HTTP| searchapi
+    viewer -->|HTTP| docsapi
+    formview -->|HTTP| adminapi
+    admin -->|HTTP| adminapi
+    contextdlg -->|HTTP| contextapi
+    contextdlg -->|HTTP| customctxapi
+    submitdlg -->|HTTP| validapi
+    appctx -.->|manages| chat
+    appctx -.->|manages| explorer
+
+    %% API to Services
+    chatapi --> gemini_svc
+    chatapi --> anon_svc
+    chatapi --> translation_svc
+    chatapi --> conv_mgr
+
+    adminapi --> field_gen
+    adminapi --> shacl_gen
+
+    filesapi --> file_svc
+    filesapi --> doc_registry
+
+    docsapi --> doc_registry
+    docsapi --> email_svc
+
+    searchapi --> gemini_svc
+    searchapi --> pdf_svc
+
+    validapi --> validation_svc
+
+    contextapi --> context_mgr
+    contextapi --> doc_registry
+
+    customctxapi --> context_mgr
+
+    %% Services internal connections
+    gemini_svc --> context_mgr
+    validation_svc --> gemini_svc
+    validation_svc --> context_mgr
+    validation_svc --> doc_registry
+    shacl_gen --> gemini_svc
+    field_gen --> gemini_svc
+    translation_svc --> gemini_svc
+    file_svc --> doc_registry
+
+    %% Services to External
+    gemini_svc -->|API Calls| gemini
+    anon_svc -->|HTTP| anon_ext
+
+    %% Services to Storage
+    context_mgr --> case_data
+    context_mgr --> templates
+    doc_registry --> manifest
+    doc_registry --> docs_files
+    file_svc --> docs_files
+    email_svc --> docs_files
+    pdf_svc --> docs_files
+    field_gen --> schemas
+    shacl_gen --> schemas
+
+    %% Styling
+    classDef frontend_style fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef api_style fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef service_style fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef storage_style fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef external_style fill:#ffebee,stroke:#c62828,stroke-width:3px,color:#000
+
+    class chat,explorer,viewer,formview,admin,contextdlg,submitdlg,appctx frontend_style
+    class chatapi,adminapi,filesapi,docsapi,searchapi,validapi,contextapi,customctxapi api_style
+    class gemini_svc,validation_svc,shacl_gen,field_gen,context_mgr,translation_svc,anon_svc,conv_mgr,email_svc,pdf_svc,file_svc,doc_registry service_style
+    class case_data,templates,manifest,docs_files,schemas storage_style
+    class gemini,anon_ext external_style

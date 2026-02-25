@@ -1,0 +1,254 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#1976d2','lineColor':'#424242','fontSize':'13px'}}}%%
+
+flowchart TB
+
+    %% ============================================================
+    %% PART 1: USER TRIGGERS - What causes context to change
+    %% ============================================================
+
+    subgraph triggers["User Actions That Change Context"]
+        direction LR
+        switch_case["Switch Akte (Case)<br/>switchCase() in AppContext<br/>Changes entire case scope"]
+        switch_folder["Navigate to Folder<br/>Click folder in File Explorer<br/>Changes folder context"]
+        select_doc["Select Document<br/>Click document in tree<br/>Extracts document content"]
+        modify_rules["Modify Custom Rules<br/>Slash commands in chat:<br/>/add-rule, /add-document<br/>/remove-rule, /list-rules"]
+    end
+
+    %% ============================================================
+    %% PART 2: FRONTEND - WebSocket message construction
+    %% ============================================================
+
+    subgraph frontend_ctx["Frontend - AppContext.tsx (WebSocket Message)"]
+        direction TB
+
+        subgraph ws_payload["Every Chat Message Carries Context IDs"]
+            direction TB
+            payload_build["sendChatMessage() constructs payload:<br/>{<br/>  type: 'chat',<br/>  caseId: currentCase.id,<br/>  folderId: selectedDocument?.id || null,<br/>  documentContent: extractedText,<br/>  formSchema: SHACL fields,<br/>  currentFormValues: form state,<br/>  language: 'de' | 'en'<br/>}"]
+        end
+
+        subgraph switch_effects["What Happens on Switch"]
+            direction TB
+            case_switch_effect["switchCase():<br/>1. Save current form data<br/>2. Set new currentCase<br/>3. Clear selectedDocument<br/>4. Reconnect WebSocket<br/>   ws://host/ws/chat/{newCaseId}"]
+            folder_switch_effect["Folder navigation:<br/>1. Update selectedDocument<br/>2. folderId changes in payload<br/>3. Next chat message carries<br/>   new folder context automatically"]
+            doc_switch_effect["Document selection:<br/>1. Extract text (PDF/email/image)<br/>2. documentContent updated<br/>3. Next chat message carries<br/>   document text automatically"]
+        end
+    end
+
+    %% ============================================================
+    %% PART 3: BACKEND - WebSocket receives and routes
+    %% ============================================================
+
+    subgraph backend_ws["Backend - chat.py WebSocket Handler"]
+        direction TB
+        ws_receive["websocket_chat_endpoint()<br/>Receives message with:<br/>case_id from URL path<br/>folderId from message body<br/>documentContent from message body"]
+        extract_ids["Extract context identifiers:<br/>folder_id = message.get('folderId')<br/>document_content = message.get('documentContent')<br/>language = message.get('language', 'de')"]
+        call_gemini["gemini_service.generate_response(<br/>  prompt = user message,<br/>  case_id = case_id,<br/>  folder_id = folder_id,<br/>  document_content = document_content,<br/>  language = language<br/>)"]
+    end
+
+    %% ============================================================
+    %% PART 4: CONTEXT LOADING - The hierarchical cascade
+    %% ============================================================
+
+    subgraph context_loading["GeminiService._load_context() - Hierarchical Loading"]
+        direction TB
+
+        subgraph level1["Level 1: Case Context (Always Loaded)"]
+            direction TB
+            load_case["ContextManager.load_case_context(case_id)<br/>Reads: cases/{caseId}/case.json"]
+            case_data["Case Context Contains:<br/>- caseType (e.g. integration_course)<br/>- applicant info<br/>- regulations (German law refs)<br/>- requiredDocuments (mandatory types)<br/>- validationRules<br/>- commonIssues + suggestions"]
+            tree_gen["generate_document_tree(case_id)<br/>Scans filesystem, builds ASCII tree<br/>of ALL documents in case<br/>(cached in _tree_view_cache)"]
+            tree_inject["Injects documentTreeView<br/>into case context object"]
+        end
+
+        subgraph level2["Level 2: Folder Context (If folderId provided)"]
+            direction TB
+            load_folder["ContextManager.load_folder_context(<br/>  case_id, folder_id<br/>)<br/>Reads: cases/{caseId}/folders/{folderId}.json"]
+            folder_data["Folder Context Contains:<br/>- folderName + purpose<br/>- expectedDocuments for this folder<br/>- validationCriteria specific to folder<br/>  (e.g. name_consistency,<br/>   valid_dates, certified_translations)<br/>- commonMistakes"]
+            no_folder["If folderId is null:<br/>Folder context = None<br/>(only case-level context used)"]
+        end
+
+        subgraph level3["Level 3: Document Content (If document selected)"]
+            direction TB
+            doc_content["Document content passed directly<br/>from frontend extraction<br/>(PDF text, email body, image OCR)"]
+            doc_priority["Highest priority source<br/>in merge precedence"]
+        end
+    end
+
+    %% ============================================================
+    %% PART 5: CONTEXT MERGE
+    %% ============================================================
+
+    subgraph merge_step["ContextManager.merge_contexts() - Three-Level Merge"]
+        direction TB
+
+        merge_call["merge_contexts(case_ctx, folder_ctx, doc_ctx)"]
+
+        subgraph merged_output["Merged Context String"]
+            direction TB
+            section_case["=== CASE CONTEXT ===<br/>Case ID, Type, Name<br/>Applicable Regulations (top 5)<br/>Required Documents count<br/>Key Validation Rules (top 3)"]
+            section_folder["=== FOLDER CONTEXT ===<br/>Folder name + purpose<br/>Expected Documents list<br/>Validation Criteria<br/>(only present if folderId provided)"]
+            section_doc["=== DOCUMENT CONTENT ===<br/>Full extracted text<br/>(only present if document selected)"]
+        end
+
+        precedence["Conflict Resolution Precedence:<br/>Document > Folder > Case > User > System<br/>resolve_conflict() with ContextSource enum"]
+    end
+
+    %% ============================================================
+    %% PART 6: PROMPT ASSEMBLY
+    %% ============================================================
+
+    subgraph prompt_build["GeminiService._build_prompt() - Final AI Prompt"]
+        direction TB
+
+        subgraph prompt_sections["Complete Prompt Structure"]
+            direction TB
+            p1["1. # System Instructions<br/>'You are an AI assistant...'<br/>'IMPORTANT: Respond in German/English'<br/>'Cite sources with [Source: ...]'"]
+            p2["2. # Available Context Sources<br/>List of sources used<br/>(case, folder, document names)"]
+            p3["3. # Case Context<br/>Merged context from merge_contexts()<br/>Contains case + folder sections"]
+            p4["4. # Available Documents (Tree View)<br/>ASCII tree of ALL documents<br/>Used for document awareness queries"]
+            p5["5. # Document Content<br/>'Primary source - extracted from<br/>uploaded document'"]
+            p6["6. # Conversation History<br/>Previous messages (S5-010)<br/>Token-budgeted via ConversationManager"]
+            p7["7. # User Request<br/>The actual user question"]
+            p8["8. # Response Guidelines<br/>'Cite sources', 'If not found, say so'"]
+        end
+    end
+
+    %% ============================================================
+    %% PART 7: CUSTOM RULES FLOW
+    %% ============================================================
+
+    subgraph custom_rules_flow["Custom Rules Flow (Slash Commands)"]
+        direction TB
+
+        subgraph rule_input["User Creates Rules via Chat"]
+            direction TB
+            slash_cmd["Slash commands in chat:<br/>/add-rule 'All IDs must be certified'<br/>/add-document 'Language certificate B1'<br/>/remove-rule 'rule-id'<br/>/list-rules"]
+        end
+
+        subgraph rule_storage["Storage: custom_rules.json"]
+            direction TB
+            rule_api["POST /api/custom-context/{caseId}/rules<br/>custom_context.py API"]
+            rule_file["cases/{caseId}/custom_rules.json<br/>{<br/>  caseId: 'ACTE-2024-001',<br/>  rules: [<br/>    { type: 'validation_rule',<br/>      rule: '...', targetFolder: '...' },<br/>    { type: 'required_document',<br/>      rule: '...' }<br/>  ]<br/>}"]
+        end
+
+        subgraph rule_injection["Injection into AI Validation"]
+            direction TB
+            val_load["validation_service.py<br/>load_custom_rules(case_id)"]
+            val_inject["Appended to validation prompt:<br/>'Custom Validation Rules<br/>(user-defined - MUST be checked)'<br/>'Custom Required Documents<br/>(user-defined - MUST be verified)'"]
+        end
+    end
+
+    %% ============================================================
+    %% PART 8: STORAGE LAYER
+    %% ============================================================
+
+    subgraph storage["JSON File Storage (No Database)"]
+        direction LR
+        case_json["cases/{caseId}/<br/>case.json"]
+        folders_json["cases/{caseId}/folders/<br/>personal-data.json<br/>certificates.json<br/>evidence.json<br/>emails.json<br/>applications.json<br/>integration-docs.json"]
+        rules_json["cases/{caseId}/<br/>custom_rules.json"]
+        doc_files["public/documents/{caseId}/<br/>Actual document files<br/>(PDFs, images, emails)"]
+    end
+
+    %% ============================================================
+    %% CONNECTIONS
+    %% ============================================================
+
+    %% Triggers to frontend
+    switch_case --> case_switch_effect
+    switch_folder --> folder_switch_effect
+    select_doc --> doc_switch_effect
+    modify_rules --> slash_cmd
+
+    %% Frontend to backend
+    case_switch_effect --> payload_build
+    folder_switch_effect --> payload_build
+    doc_switch_effect --> payload_build
+    payload_build -->|"WebSocket"| ws_receive
+
+    %% Backend routing
+    ws_receive --> extract_ids
+    extract_ids --> call_gemini
+
+    %% Gemini to context loading
+    call_gemini --> load_case
+    load_case --> case_data
+    load_case --> tree_gen
+    tree_gen --> tree_inject
+
+    call_gemini --> load_folder
+    load_folder --> folder_data
+    load_folder -.->|"folderId is null"| no_folder
+
+    call_gemini --> doc_content
+    doc_content --> doc_priority
+
+    %% Context to merge
+    case_data --> merge_call
+    folder_data --> merge_call
+    doc_priority --> merge_call
+
+    merge_call --> section_case
+    merge_call --> section_folder
+    merge_call --> section_doc
+    merge_call --> precedence
+
+    %% Merge to prompt
+    section_case --> p3
+    section_folder --> p3
+    section_doc --> p5
+    tree_inject --> p4
+
+    %% Custom rules flow
+    slash_cmd --> rule_api
+    rule_api --> rule_file
+    rule_file --> val_load
+    val_load --> val_inject
+
+    %% Storage connections
+    load_case -.->|reads| case_json
+    load_folder -.->|reads| folders_json
+    rule_api -.->|reads/writes| rules_json
+    tree_gen -.->|scans| doc_files
+
+    %% Final output
+    p8 --> gemini_out["Gemini API<br/>Receives full prompt with<br/>dynamic context from all levels"]
+
+    %% ============================================================
+    %% DYNAMIC CONTEXT CHANGE ILLUSTRATION
+    %% ============================================================
+
+    subgraph dynamic_example["Example: Context Changes When User Navigates"]
+        direction TB
+        ex1["User in 'Personal Data' folder:<br/>Case ctx + Personal Data folder ctx<br/>→ AI knows: check ID validity,<br/>   name consistency, translations"]
+        ex2["User switches to 'Certificates' folder:<br/>Case ctx + Certificates folder ctx<br/>→ AI now knows: check cert validity,<br/>   issuing authority, expiry dates"]
+        ex3["User selects 'Reisepass.png':<br/>Case ctx + Personal Data folder ctx<br/>+ Document text (OCR extracted)<br/>→ AI analyzes specific passport"]
+        ex1 -->|"click folder"| ex2
+        ex2 -->|"click document"| ex3
+    end
+
+    %% ============================================================
+    %% STYLING
+    %% ============================================================
+
+    classDef trigger fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef backend fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef context fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef merge fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#000
+    classDef prompt fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#000
+    classDef rules fill:#fff9c4,stroke:#f9a825,stroke-width:2px,color:#000
+    classDef storage_style fill:#efebe9,stroke:#795548,stroke-width:2px,color:#000
+    classDef example fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,color:#333,font-style:italic
+    classDef external fill:#ffebee,stroke:#c62828,stroke-width:3px,color:#000
+
+    class switch_case,switch_folder,select_doc,modify_rules trigger
+    class payload_build,case_switch_effect,folder_switch_effect,doc_switch_effect frontend
+    class ws_receive,extract_ids,call_gemini backend
+    class load_case,case_data,tree_gen,tree_inject,load_folder,folder_data,no_folder,doc_content,doc_priority context
+    class merge_call,section_case,section_folder,section_doc,precedence merge
+    class p1,p2,p3,p4,p5,p6,p7,p8 prompt
+    class slash_cmd,rule_api,rule_file,val_load,val_inject rules
+    class case_json,folders_json,rules_json,doc_files storage_style
+    class ex1,ex2,ex3 example
+    class gemini_out external

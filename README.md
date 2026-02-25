@@ -1,466 +1,422 @@
 # BAMF ACTE Companion
 
-AI-powered case management system for BAMF asylum case processing with context-aware document analysis and intelligent form filling.
+AI-powered case management system for BAMF asylum case processing. Features context-aware document analysis, intelligent form filling with SHACL validation, dynamic AI context injection, and natural language administration.
 
-## Project Status
+## What This App Does
 
-### Implementation Progress
+A caseworker opens an **Akte** (case file) containing folders of documents (passports, certificates, emails, evidence). An AI assistant understands the full case context -- regulations, required documents, validation rules -- and helps the caseworker:
 
-According to [docs/implementation_plan.md](docs/implementation_plan.md):
+- **Analyze documents** with case-specific knowledge (e.g. "Is this passport valid for this application type?")
+- **Auto-fill forms** by extracting data from uploaded documents, with suggestions for conflicting values
+- **Validate the case** before submission, scoring completeness and flagging issues
+- **Modify forms** via natural language ("Add a required email field for contact")
+- **Search documents** semantically across languages
+- **Translate** documents between German, English, and Arabic
+- **Anonymize** identity documents (PII masking via external service)
+- **Add custom rules** that the AI enforces during validation
 
-- ✅ **Phase 1: Foundation** - Complete
-  - Backend modular architecture (NFR-002)
-  - Hierarchical context data schema (D-001)
-  - Case-type form schemas (D-002)
-  - Sample document text content (D-003)
-
-- ✅ **Phase 2: Core Infrastructure** - Complete
-  - Document Assistant Agent with WebSocket (F-001)
-  - Document Context Management System (F-002)
-  - Text file document loading (F-006)
-  - Local storage without database (NFR-003)
-
-- ✅ **Phase 3: Feature Implementation** - Complete
-  - Case-level form management (F-005)
-  - Form auto-fill from documents (F-003)
-  - Real-time AI response performance (NFR-001)
-
-- ❌ **Phase 4: Admin Features** - NOT IMPLEMENTED
-  - AI-Powered Form Field Generator (F-004) - Missing
-
-### Known Limitations and Missing Features
-
-1. **Phase 4 Admin Features**: AI-powered form field generator for admins is not implemented
-2. **PDF Processing**: Only text files (.txt) are currently supported, PDF parsing not implemented
-3. **Document Type Support**: Limited to text files; DOCX, XML, JSON viewers are placeholder UI only
-4. **Multi-Case Testing**: Further testing needed to ensure proper isolation between different case types
-5. **Production Deployment**: No deployment configuration or production environment setup
-6. **Error Recovery**: Limited error handling for edge cases and network failures
-7. **Authentication**: Simple name-based login; no real authentication/authorization system
-8. **Internationalization**: UI is in English; no German localization despite BAMF context
+The AI's context changes dynamically as the user navigates between cases, folders, and documents -- see [Context Management](#context-management) below.
 
 ## Quick Start
 
 ### Prerequisites
 
-- **Node.js 16+** and npm ([install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
-- **Python 3.8+** ([download here](https://www.python.org/downloads/))
-- **Google Gemini API key** ([get one free here](https://aistudio.google.com/app/apikey))
+- **Node.js 16+** and npm
+- **Python 3.8+**
+- **Google Gemini API key** ([get one here](https://aistudio.google.com/app/apikey))
 
-### Installation and Startup
-
-#### Option 1: Automated Startup (Recommended)
+### Start the App
 
 ```bash
-# 1. Clone the repository
-git clone <YOUR_GIT_URL>
-cd bamf-acte-companion
-
-# 2. Configure environment
+# 1. Configure API key
 echo "GEMINI_API_KEY=your_api_key_here" > backend/.env
 
-# 3. Start everything with one command
+# 2. Start everything
 ./start.sh
 ```
 
-The startup script automatically:
-- Checks for required dependencies (Node.js, npm, Python)
-- Installs npm packages if needed
-- Creates Python virtual environment if it doesn't exist
-- Installs Python dependencies
-- Starts backend on port 8000
-- Starts frontend on port 5173
-- Handles graceful shutdown with Ctrl+C
+The script installs dependencies and starts both services:
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **Swagger UI**: http://localhost:8000/docs
 
-#### Option 2: Manual Setup
+Login with any name (no auth system -- this is a demo).
 
-**Terminal 1 - Backend:**
+<details>
+<summary>Manual setup</summary>
+
+**Terminal 1 -- Backend:**
 ```bash
-# Create virtual environment (first time only)
 python3 -m venv backend/venv
-
-# Activate virtual environment
-source backend/venv/bin/activate  # On Windows: backend\venv\Scripts\activate
-
-# Install dependencies
+source backend/venv/bin/activate
 pip install -r backend/requirements.txt
-
-# Create .env file with your API key
-echo "GEMINI_API_KEY=your_api_key_here" > backend/.env
-
-# Start backend (run from project root)
+echo "GEMINI_API_KEY=your_key" > backend/.env
 PYTHONPATH="${PWD}:${PYTHONPATH}" python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-**Terminal 2 - Frontend:**
+**Terminal 2 -- Frontend:**
 ```bash
-# Install dependencies (first time only)
 npm install
-
-# Start frontend
 npm run dev
 ```
+</details>
 
-### Access the Application
+## Technology Stack
 
-Once both services are running:
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, TypeScript, Vite, shadcn/ui, Tailwind CSS, TanStack Query |
+| Backend | FastAPI (Python), Uvicorn, Pydantic |
+| AI | Google Gemini API (gemini-2.5-flash) |
+| Real-time | WebSocket (chat streaming, form updates, notifications) |
+| Storage | JSON files on filesystem -- **no database** |
+| i18n | i18next with German and English locales |
 
-- **Frontend Application**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs (interactive Swagger UI)
-- **Health Check**: http://localhost:8000/health
+## Architecture Overview
 
-**Default Login**: Enter any name to access the workspace (no authentication required)
-
-## Project Architecture
-
-### Technology Stack
-
-**Frontend:**
-- React 18 + TypeScript
-- Vite (build tool and dev server)
-- shadcn/ui component library
-- Tailwind CSS
-- TanStack Query (data fetching)
-- React Router (routing)
-- WebSocket (real-time communication)
-
-**Backend:**
-- FastAPI (Python web framework)
-- Google Gemini API (AI/LLM integration)
-- Uvicorn (ASGI server)
-- WebSockets (real-time communication)
-- Pydantic (data validation)
-
-### Directory Structure
+The system has four layers with strict separation:
 
 ```
-bamf-acte-companion/
-├── src/                           # Frontend React application
-│   ├── components/
-│   │   └── workspace/            # Main workspace components
-│   │       ├── AIChatInterface.tsx       # AI chat with streaming
-│   │       ├── WorkspaceHeader.tsx       # Top navigation bar
-│   │       ├── CaseTreeExplorer.tsx      # Document tree sidebar
-│   │       ├── DocumentViewer.tsx        # Document display
-│   │       ├── FormViewer.tsx            # Case form display
-│   │       └── AdminConfigPanel.tsx      # Admin configuration
-│   ├── contexts/
-│   │   └── AppContext.tsx        # Global app state + WebSocket
-│   ├── pages/
-│   │   ├── Index.tsx             # Landing/login page
-│   │   ├── Workspace.tsx         # Main workspace layout
-│   │   └── NotFound.tsx          # 404 page
-│   ├── types/
-│   │   ├── case.ts               # Case, Document, Folder types
-│   │   └── websocket.ts          # WebSocket message types
-│   ├── data/
-│   │   └── mockData.ts           # Sample data and commands
-│   └── lib/
-│       └── utils.ts              # Utility functions
-│
-├── backend/                       # Python FastAPI backend
-│   ├── main.py                   # Application entry point
-│   ├── requirements.txt          # Python dependencies
-│   ├── api/
-│   │   └── chat.py              # WebSocket chat endpoint
-│   ├── services/
-│   │   ├── gemini_service.py    # Gemini AI integration
-│   │   └── context_manager.py   # Case context management
-│   ├── tools/
-│   │   └── form_parser.py       # Form field extraction
-│   ├── data/
-│   │   └── contexts/            # Case-specific context data
-│   │       ├── cases/           # Active case contexts
-│   │       │   ├── ACTE-2024-001/  # German Integration Course
-│   │       │   ├── ACTE-2024-002/  # Asylum Application
-│   │       │   └── ACTE-2024-003/  # Family Reunification
-│   │       └── templates/       # Templates for new cases
-│   └── venv/                    # Python virtual environment
-│
-├── docs/                         # Documentation
-│   ├── code-graph/              # Architecture documentation
-│   │   └── code-graph.json     # Complete system architecture
-│   ├── requirements/            # Project requirements
-│   │   ├── requirements.md     # Detailed requirements
-│   │   ├── implementation_plan.md  # Sprint implementation plan
-│   │   └── quick-reference.md  # Quick reference guide
-│   ├── apis/                    # API documentation
-│   └── tests/                   # Test documentation
-│
-├── public/
-│   └── documents/               # Case document storage
-│       ├── ACTE-2024-001/      # Case-specific documents
-│       └── templates/          # Document templates
-│
-├── start.sh                     # Automated startup script
-└── package.json                 # Node.js dependencies
-
+Frontend (React SPA)  -->  API Layer (FastAPI Routers)  -->  Services Layer  -->  JSON File Storage
+       |                         |                              |
+   WebSocket  <--->  Chat API (streaming)  <--->  Gemini Service + Context Manager
 ```
 
-### Key Features
+See the full architecture diagram: [`docs/diagrams/architecture.mmd`](docs/diagrams/architecture.mmd)
 
-**Case Management:**
-- Multi-case workspace with case switching
-- Case-instance scoped data (complete isolation between cases)
-- Template-based case creation
-- Hierarchical folder structure per case
+### Backend: 9 API Routers, 12 Services
 
-**AI-Powered Features:**
-- Context-aware AI assistant using Google Gemini
-- Real-time streaming responses via WebSocket
-- Document content analysis and Q&A
-- Automatic form field extraction from documents
-- Case and folder-specific context injection
+**API Routers** (`backend/api/`):
 
-**Document Processing:**
-- Document tree explorer with drag-and-drop upload
-- Text file content loading and display
-- Document metadata and type icons
-- Case-scoped document storage
+| Router | Prefix | Purpose |
+|--------|--------|---------|
+| `chat.py` | WebSocket `/ws/chat/{case_id}` | Real-time AI chat with streaming |
+| `admin.py` | `/api/admin` | NL field generation, form modification |
+| `files.py` | `/api/files` | Upload, delete, duplicate detection |
+| `documents.py` | `/api/documents` | Document tree, PDF extraction, email parsing |
+| `search.py` | `/api/search` | Semantic search across documents |
+| `validation.py` | `/api/validation` | AI-powered case scoring and warnings |
+| `context.py` | `/api/context` | Case context and document tree view |
+| `custom_context.py` | `/api/custom-context` | Custom validation rules CRUD |
+| `folders.py` | `/api/folders` | Folder CRUD, reorder, bulk update |
 
-**Form Management:**
-- Case-level persistent forms
-- Auto-fill from document content
-- Multiple field types: text, date, select, textarea
-- Form data persists across folder navigation
+**Services** (`backend/services/`):
 
-## Development Guide
+| Service | Purpose |
+|---------|---------|
+| `gemini_service.py` | Central AI brain -- chat, analysis, extraction, translation, search |
+| `context_manager.py` | Hierarchical context loading with case isolation and tree caching |
+| `validation_service.py` | Case validation with structured scoring and custom rules |
+| `shacl_generator.py` | NL form modification with SHACL shape generation |
+| `field_generator.py` | AI-powered form field creation with SHACL metadata |
+| `conversation_manager.py` | In-memory chat history with token budget |
+| `document_registry.py` | Document manifest tracking with filesystem reconciliation |
+| `translation_service.py` | Multi-language document translation via Gemini |
+| `email_service.py` | EML parsing with multi-encoding support |
+| `pdf_service.py` | PDF text extraction with position data |
+| `file_service.py` | Upload validation, sanitization, secure storage |
+| `anonymization_service.py` | PII masking via external black-box service |
 
-### Available Commands
+**Schemas & Models** (`backend/schemas/`, `backend/models/`):
+- SHACL PropertyShape model with JSON-LD serialization
+- Schema.org mappings (60+ property types)
+- Validation patterns (email, phone, postal code, etc.)
+- JSON-LD context definitions
 
-**Frontend:**
-```bash
-npm install              # Install dependencies
-npm run dev             # Start dev server (port 5173)
-npm run build           # Build for production
-npm run build:dev       # Build in development mode
-npm run preview         # Preview production build
-npm run lint            # Run ESLint
+### Frontend: 16 Workspace Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| `AIChatInterface` | Chat with AI, streaming, slash commands, context indicator |
+| `CaseTreeExplorer` | Document tree sidebar with folders, drag-drop upload |
+| `DocumentViewer` | PDF, images, emails, text -- with semantic search highlights |
+| `FormViewer` | Dynamic form with AI auto-fill and SHACL validation |
+| `AdminConfigPanel` | Folder config, document types, macros, SHACL visualization |
+| `WorkspaceHeader` | Case selector, language toggle, theme |
+| `CaseContextDialog` | View injected AI context with custom rules |
+| `ContextHierarchyDialog` | Visual context cascade tree |
+| `SubmitCaseDialog` | AI-powered case validation and scoring |
+| `PDFViewer` | PDF rendering with search highlights |
+| `EmailViewer` | Email display with headers and attachments |
+| `FileDropZone` | Drag-and-drop upload zone |
+| `NewCaseDialog` | Template-based case creation |
+| `CaseSearchDialog` | Search across cases |
+| `HighlightedText` | Search result highlighting |
+| `DataTable` | Generic data table |
+
+**State management**: Single `AppContext.tsx` manages global state including WebSocket connections, case/folder/document selection, form fields, chat messages, language, and theme.
+
+## Context Management
+
+The core architectural idea: **the AI gets different context depending on where the user is navigating**.
+
+### The Cascade: Case > Folder > Document > Custom Rules
+
+```
+User clicks "ACTE-2024-001"
+  --> Case context loaded (regulations, required docs, validation rules)
+
+User clicks "Personal Data" folder
+  --> + Folder context added (expected docs: passport, birth cert; validation: name consistency)
+
+User clicks "Reisepass.png"
+  --> + Document content added (OCR-extracted text from passport)
+
+User adds custom rule: /Aktenkontext Regeln Ordner Evidence "Only PDFs allowed"
+  --> + Custom rule stored and enforced during validation
 ```
 
-**Backend:**
-```bash
-# Activate venv (from project root)
-source backend/venv/bin/activate
+Every chat message carries `caseId + folderId + documentContent`. The backend loads the appropriate context files, merges them with precedence (Document > Folder > Case), and builds an 8-section prompt for Gemini.
 
-# Run backend (from project root)
-PYTHONPATH="${PWD}:${PYTHONPATH}" python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+When the user **switches folders**, the folder context changes automatically -- the AI immediately knows different validation criteria, expected documents, and common mistakes for that folder.
 
-# Install/update dependencies
-pip install -r backend/requirements.txt
+See the full flow: [`docs/diagrams/context-management-flow.mmd`](docs/diagrams/context-management-flow.mmd)
 
-# List installed packages
-pip list
-```
+### Storage: All JSON, No Database
 
-**Startup Script:**
-```bash
-./start.sh              # Start both frontend and backend
-chmod +x start.sh       # Make executable (if needed)
-```
+| Data | Path |
+|------|------|
+| Case context | `backend/data/contexts/cases/{caseId}/case.json` |
+| Folder contexts | `backend/data/contexts/cases/{caseId}/folders/{folderId}.json` |
+| Custom rules | `backend/data/contexts/cases/{caseId}/custom_rules.json` |
+| Folder config | `backend/data/contexts/cases/{caseId}/folder_config.json` |
+| Document manifest | `backend/data/document_manifest.json` |
+| Case templates | `backend/data/contexts/templates/{caseType}/` |
+| Document files | `public/documents/{caseId}/{folderId}/` |
 
-### Environment Configuration
+Complete isolation between cases. No cross-case data contamination.
 
-Create `backend/.env`:
-```bash
-GEMINI_API_KEY=your_gemini_api_key_here
-```
+## Key Features in Detail
 
-**Security Note:** The `.env` file is gitignored. Never commit API keys to the repository.
+### SHACL-Based Form Validation
+
+Admin says: *"Add a required email field for contact email"*
+
+The system:
+1. Parses the NL command via Gemini (temp=0.1 for precision)
+2. Maps "email" to `schema:email` via 60+ schema.org mappings
+3. Assigns email regex validation pattern
+4. Generates a SHACL `PropertyShape` with `sh:pattern`, `sh:minCount`, `sh:datatype`
+5. Wraps in a `NodeShape` with JSON-LD `@context`
+6. Frontend validates input against the SHACL constraints in real-time
+
+See: [`docs/diagrams/shacl-and-formfill-flow.mmd`](docs/diagrams/shacl-and-formfill-flow.mmd)
+
+### AI Form Fill Agent
+
+User says: *"Fill the form from this document"*
+
+The system:
+1. Detects fill/extract/populate keywords in the message
+2. Sends document text + form schema to Gemini for extraction
+3. Categorizes results: **direct updates** (empty fields) vs **suggestions** (conflicts with existing values)
+4. Direct updates apply automatically; suggestions show accept/reject UI
+5. All filled values are validated against SHACL constraints
+
+### Custom Validation Rules
+
+Users add rules via slash commands in chat:
+
+| Command | Example |
+|---------|---------|
+| `/Aktenkontext Regeln Ordner <folder> "<rule>"` | Folder-specific validation |
+| `/Aktenkontext Regeln Dateityp "<rule>"` | File type rules |
+| `/Aktenkontext Dokumente "<description>"` | Required document |
+| `/removeAktenkontext "<rule_id>"` | Remove a rule |
+
+Rules are stored in `custom_rules.json` and injected into the validation prompt with "MUST be checked" priority.
 
 ### WebSocket Communication
 
-The frontend connects to the backend via WebSocket:
-- **Endpoint**: `ws://localhost:8000/ws/chat/{caseId}`
-- **Protocol**: JSON messages
-- **Features**: Streaming responses, form updates, error handling
+Chat uses WebSocket at `ws://localhost:8000/ws/chat/{caseId}`.
 
-**Message Types:**
-- `chat` - User chat message
-- `chat_response` - AI response (non-streaming)
-- `chat_chunk` - AI response chunk (streaming)
-- `form_update` - Form field updates from extraction
-- `system` - System notifications
-- `error` - Error messages
+**Message types:**
 
-### Case-Instance Architecture
+| Type | Direction | Purpose |
+|------|-----------|---------|
+| `chat` | Client > Server | User message with context IDs |
+| `chat_response` | Server > Client | Complete AI response |
+| `chat_chunk` | Server > Client | Streaming response chunk |
+| `form_update` | Server > Client | Auto-fill field updates |
+| `form_suggestion` | Server > Client | Suggested field values (needs approval) |
+| `anonymize` | Client > Server | Anonymization request |
+| `anonymization_complete` | Server > Client | Anonymization result |
+| `translate` | Client > Server | Translation request |
+| `translation_complete` | Server > Client | Translation result |
+| `system` | Server > Client | System notifications |
+| `error` | Server > Client | Error messages |
 
-All data is scoped to specific case instances (ACTEs):
+## Documentation & Diagrams
 
-| Component | Scope | Path Pattern |
-|-----------|-------|--------------|
-| Context | Per case | `backend/data/contexts/cases/{caseId}/` |
-| Documents | Per case | `public/documents/{caseId}/{folderId}/` |
-| Forms | Per case | `sampleCaseFormData[caseId]` |
-| Folders | Per case | Defined in case folder structure |
+### Architecture Diagrams (Mermaid)
 
-**Key Principles:**
-- Complete isolation between cases
-- Dynamic case creation from templates
-- Context switches entirely when changing cases
-- No cross-case data contamination
+All diagrams are in `docs/diagrams/` as `.mmd` files. Render them with any Mermaid viewer (VS Code extension, GitHub, mermaid.live).
+
+| Diagram | File | Shows |
+|---------|------|-------|
+| System Architecture | [`architecture.mmd`](docs/diagrams/architecture.mmd) | All 4 layers: frontend, API, services, storage with connections |
+| SHACL + Form Fill | [`shacl-and-formfill-flow.mmd`](docs/diagrams/shacl-and-formfill-flow.mmd) | NL form modification flow + AI form fill agent flow |
+| Context Management | [`context-management-flow.mmd`](docs/diagrams/context-management-flow.mmd) | Dynamic context cascade, prompt assembly, custom rules |
+
+### Code Graph (Knowledge Base)
+
+The code graph is a machine-readable knowledge base of all code entities and their relationships.
+
+| File | Purpose |
+|------|---------|
+| [`docs/code-graph/code-graph.json`](docs/code-graph/code-graph.json) | 222 entities, 368 relations -- the full code knowledge base |
+| [`docs/code-graph/graph_visualization.html`](docs/code-graph/graph_visualization.html) | Interactive D3.js visualization -- open in a browser |
+| [`docs/code-graph/manifest.json`](docs/code-graph/manifest.json) | Code graph metadata |
+
+**For AI agents (Claude, Copilot, etc.):** The code graph is designed to be queried via MCP (Model Context Protocol). To understand how any part of the system works:
+
+1. Set the graph path: `set_graph_path("./docs/code-graph/code-graph.json")`
+2. Search by keyword: `search_nodes("context manager")` -- finds entities matching the query
+3. Open specific nodes: `open_nodes(["backend/services/gemini_service.py"])` -- shows all observations and relations
+4. Find paths: `find_paths("AppContext", "gemini_service")` -- traces how frontend connects to backend
+5. Advanced search: `advanced_search(entityType="Service")` -- find all services
+6. Get statistics: `get_statistics()` -- overview of entity types and connections
+
+The graph contains observations (facts about each entity) and relations (imports, calls, defines, uses). This lets an AI understand the full dependency chain without reading every file.
+
+**For developers:** Open `docs/code-graph/graph_visualization.html` in a browser to interactively explore all components, services, and their connections. Nodes are clickable and draggable.
+
+### Other Documentation
+
+| Location | Contents |
+|----------|----------|
+| `docs/requirements/` | Requirements docs, sprint plans, quick reference |
+| `docs/apis/` | API endpoint documentation, changelog, authentication |
+| `docs/tests/` | Test suites organized by requirement ID (D-001, F-001, S2-001, etc.) |
+| `.claude/context.md` | AI session context with implementation details |
+| `http://localhost:8000/docs` | Live Swagger UI (when backend is running) |
+
+## Project Structure
+
+```
+bamf-acte-companion/
+├── src/                              # Frontend (React + TypeScript)
+│   ├── components/
+│   │   ├── workspace/               # 16 workspace components
+│   │   └── ui/                      # 47 UI components (shadcn/ui + custom)
+│   ├── contexts/
+│   │   └── AppContext.tsx            # Global state + WebSocket management
+│   ├── types/                        # 7 type definition files
+│   ├── hooks/                        # Custom hooks (toast, mobile)
+│   ├── i18n/locales/                 # de.json, en.json
+│   ├── pages/                        # Index, Workspace, Login, NotFound
+│   └── lib/                          # Utilities, localStorage
+│
+├── backend/                          # Backend (FastAPI + Python)
+│   ├── api/                          # 9 API routers (40+ endpoints)
+│   ├── services/                     # 12 service modules
+│   ├── schemas/                      # SHACL, JSON-LD, schema.org, validation patterns
+│   ├── models/                       # Data models (SHACL shapes, regulations)
+│   ├── tools/                        # Document processing, anonymization, language detection
+│   └── data/
+│       └── contexts/
+│           ├── cases/                # Per-case context (case.json, folders/, custom_rules.json)
+│           └── templates/            # Case type templates
+│
+├── public/documents/                 # Case document files (PDFs, images, emails)
+│
+├── docs/
+│   ├── diagrams/                     # Mermaid architecture diagrams (.mmd)
+│   ├── code-graph/                   # Knowledge base (JSON + interactive HTML)
+│   ├── requirements/                 # Sprint requirements and plans
+│   ├── apis/                         # API documentation
+│   └── tests/                        # Test suites by requirement ID
+│
+└── start.sh                          # One-command startup script
+```
+
+## Development
+
+### Commands
+
+```bash
+# Frontend
+npm run dev              # Dev server on :5173
+npm run build            # Production build
+npm run lint             # ESLint
+
+# Backend (activate venv first: source backend/venv/bin/activate)
+PYTHONPATH="${PWD}:${PYTHONPATH}" python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Both
+./start.sh               # Start frontend + backend together
+```
+
+### Environment
+
+Create `backend/.env`:
+```
+GEMINI_API_KEY=your_key_here
+```
+
+The `.env` file is gitignored. Never commit API keys.
+
+### Sample Case Data
+
+The app ships with one pre-configured case:
+
+- **ACTE-2024-001** (German Integration Course) -- with 6 folders: personal-data, certificates, evidence, emails, applications, integration-docs. Includes sample documents, regulations (IntV, AufenthG), and validation rules.
+
+Case templates exist for additional types (asylum application, family reunification) but only ACTE-2024-001 has full sample data.
 
 ## Troubleshooting
 
-### Connection Error
-
-If frontend shows "Connection Error" or cannot reach backend:
+<details>
+<summary>Connection Error / Backend not reachable</summary>
 
 ```bash
 # Check if backend is running
 ps aux | grep uvicorn
 
-# Check backend logs (from project root)
+# Verify .env file
+cat backend/.env
+
+# Start backend manually
 source backend/venv/bin/activate
 PYTHONPATH="${PWD}:${PYTHONPATH}" python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
-
-# Verify .env file exists
-cat backend/.env
 ```
+</details>
 
-### Port Already in Use
+<details>
+<summary>Port already in use</summary>
 
 ```bash
-# Find and kill process on port 5173 (frontend)
-lsof -ti:5173 | xargs kill -9
-
-# Find and kill process on port 8000 (backend)
-lsof -ti:8000 | xargs kill -9
-
-# Alternative: kill by name
-pkill -f "vite"
-pkill -f "uvicorn"
+lsof -ti:5173 | xargs kill -9   # Frontend
+lsof -ti:8000 | xargs kill -9   # Backend
 ```
+</details>
 
-### Python Virtual Environment Issues
+<details>
+<summary>Python venv issues</summary>
 
 ```bash
-# Remove and recreate venv (from project root)
 rm -rf backend/venv
 python3 -m venv backend/venv
 source backend/venv/bin/activate
 pip install -r backend/requirements.txt
 ```
+</details>
 
-### Module Import Errors
+<details>
+<summary>Module import errors</summary>
 
 ```bash
-# Ensure project root is in Python path
 export PYTHONPATH="${PWD}:${PYTHONPATH}"
-
-# Run backend from project root
-source backend/venv/bin/activate
-python3 -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+# Always run from project root
 ```
+</details>
 
-### API Key Issues
+<details>
+<summary>WebSocket connection failed</summary>
 
-```bash
-# Verify .env file location and format
-cat backend/.env
-# Should show: GEMINI_API_KEY=AIza...
-
-# Test Gemini API key
-curl -X GET "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro?key=YOUR_KEY"
-```
-
-### WebSocket Connection Failed
-
-Check CORS configuration in `backend/main.py`:
-```python
-allow_origins=[
-    "http://localhost:5173",  # Vite dev server
-    "http://localhost:3000",  # Alternative port
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:3000",
-]
-```
-
-### Document Loading Issues
-
-```bash
-# Verify document files exist
-ls -la public/documents/ACTE-2024-001/
-
-# Check file permissions
-chmod 644 public/documents/ACTE-2024-001/*/*.txt
-```
-
-## Testing
-
-### Manual Testing Checklist
-
-- [ ] Frontend starts on port 5173
-- [ ] Backend starts on port 8000
-- [ ] Login with any name works
-- [ ] WebSocket connection establishes
-- [ ] Case switching works
-- [ ] Document tree loads for each case
-- [ ] Text file content displays
-- [ ] AI chat responds to messages
-- [ ] Form fields update from chat
-- [ ] Form data persists across folder navigation
-
-### API Testing
-
-Access interactive API docs at http://localhost:8000/docs
-
-Test endpoints:
-- GET `/health` - Health check
-- GET `/` - Root endpoint
-- GET `/api/chat/health` - Chat service health
-- WebSocket `/ws/chat/{case_id}` - Chat endpoint
-
-## Documentation
-
-- **Architecture**: [docs/code-graph/code-graph.json](docs/code-graph/code-graph.json)
-- **Requirements**: [docs/requirements/requirements.md](docs/requirements/requirements.md)
-- **Implementation Plan**: [docs/implementation_plan.md](docs/implementation_plan.md)
-- **Quick Reference**: [docs/requirements/quick-reference.md](docs/requirements/quick-reference.md)
-- **API Documentation**: Available at http://localhost:8000/docs when running
-
-## Future Work
-
-Based on the implementation plan and current gaps:
-
-### Phase 4 (Not Implemented)
-- **F-004**: AI-Powered Form Field Generator for admins
-  - Natural language form field creation
-  - JSON-LD metadata for fields
-  - Admin API endpoint for field generation
-
-### Additional Improvements Needed
-1. **PDF Processing**: Implement PDF parsing and text extraction
-2. **Document Type Support**: Add DOCX, XML, JSON file processing
-3. **Multi-Case Testing**: Comprehensive testing across different case types
-4. **Authentication System**: Real user authentication and authorization
-5. **Production Deployment**: Docker, CI/CD, environment configuration
-6. **Error Handling**: Comprehensive error recovery and user feedback
-7. **Internationalization**: German localization for BAMF context
-8. **Performance**: Caching, optimization for large documents
-9. **Testing Suite**: Automated tests for frontend and backend
-10. **Monitoring**: Logging, metrics, alerting for production
-
-## Contributing
-
-This project follows:
-- Clean architecture with separation of concerns
-- Type-safe TypeScript for frontend
-- Python type hints for backend
-- WebSocket for real-time communication
-- Case-instance scoped data architecture
+Check CORS in `backend/main.py` allows `http://localhost:5173`.
+</details>
 
 ## License
 
-Proprietary - BAMF Internal Use Only
-
-## Support
-
-For issues or questions:
-- Check [Troubleshooting](#troubleshooting) section
-- Review [Documentation](#documentation)
-- Examine backend logs: Look for errors in the uvicorn output
-- Check browser console for frontend errors
-- Verify GEMINI_API_KEY is set in `backend/.env`
-- Ensure you're running commands from the project root directory
+Proprietary -- BAMF Internal Use Only
