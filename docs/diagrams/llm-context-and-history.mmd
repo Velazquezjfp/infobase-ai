@@ -89,14 +89,14 @@ flowchart TB
 
     subgraph gemini_call["Gemini API Call (No Agent Loop)"]
         direction TB
-        call["model.generate_content(<br/>  full_prompt,<br/>  temperature=0.7,<br/>  max_output_tokens=2048<br/>)"]
+        gemini_invoke["model.generate_content(<br/>  full_prompt,<br/>  temperature=0.7,<br/>  max_output_tokens=2048<br/>)"]
         stream_yes["Streaming: chunks sent<br/>via WebSocket as they arrive"]
         stream_no["Non-streaming: complete<br/>response sent at once"]
-        call --> stream_yes
-        call --> stream_no
+        gemini_invoke --> stream_yes
+        gemini_invoke --> stream_no
     end
 
-    prompt_full --> call
+    prompt_full --> gemini_invoke
 
     %% ============================================================
     %% AFTER RESPONSE: History is saved
@@ -181,7 +181,7 @@ flowchart TB
     class hist_get,hist_store,hist_window,hist_budget hist
     class doc_text doc
     class prompt_full prompt
-    class call,stream_yes,stream_no gemini
+    class gemini_invoke,stream_yes,stream_no gemini
     class save_user,save_assistant save
     class h1,h2,h3,isolation_note isolation
     class sa,sf,sd,ar switch
