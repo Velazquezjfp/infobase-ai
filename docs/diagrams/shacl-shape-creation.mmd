@@ -15,34 +15,45 @@ flowchart TB
         %% Step 1: NL Input
         nl_input["Admin says:<br/>'Add a required email field<br/>for contact email'"]
 
-        %% Step 2: Gemini parses intent
-        subgraph ai_parse["Gemini Parses Intent (temp=0.1)"]
+        %% Step 2: Gemini parses intent (ONLY this is AI)
+        subgraph ai_parse["Step 1: Gemini — NL Parsing ONLY"]
             direction TB
+            parse_note["Gemini receives the raw text + 4 field_type hints<br/>(text, date, select, textarea).<br/><b>No ontology list in prompt.</b><br/>Returns a structured JSON:"]
             parse_result["{ action: 'add',<br/>  field_label: 'Contact Email',<br/>  field_type: 'text',<br/>  required: true }"]
+            parse_note --> parse_result
         end
 
-        %% Step 3: Semantic inference
-        subgraph semantic["Automatic Semantic Inference"]
+        %% Step 3: Code-only inference (NO AI)
+        subgraph semantic["Step 2: Code-Only — Dictionary Lookups (No AI)"]
             direction TB
-            label_norm["normalize_field_label()<br/>'Contact Email' → 'email'"]
-            schema_map["Schema.org Lookup<br/>'email' → <b>schema:email</b><br/>(from 60+ hardcoded mappings)"]
-            pattern_pick["Validation Pattern Lookup<br/>schema:email → <b>^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$</b><br/>(from pattern library)"]
+            label_norm["normalize_field_label()<br/>'Contact Email' → 'email'<br/>(lowercase, remove prefixes,<br/>German→English mapping)"]
+            schema_map["SCHEMA_ORG_PROPERTIES dict<br/>'email' → <b>schema:email</b><br/>(60 hardcoded entries in Python)"]
+            pattern_pick["SEMANTIC_TYPE_PATTERNS dict<br/>'email' → <b>EMAIL_PATTERN</b><br/>(~20 regex patterns in Python)"]
+            fallback["If key not found in dict:<br/>→ <b>schema:Thing</b> + no validation<br/>(freetext, no constraints)"]
             label_norm --> schema_map --> pattern_pick
+            schema_map -.->|"no match"| fallback
+        end
+
+        %% The "ontology"
+        subgraph ontology_box["Where Is the Ontology?"]
+            direction TB
+            onto_answer["There is <b>no external ontology file</b>.<br/>The 'ontology' is two Python dicts:<br/>• SCHEMA_ORG_PROPERTIES (60 entries)<br/>• SEMANTIC_TYPE_PATTERNS (20 entries)<br/>in <b>schema_org_mappings.py</b><br/><br/>To add a new mapping, a developer<br/>must edit the Python source code."]
         end
 
         %% Step 4: SHACL shape output
-        subgraph shacl_out["Generated SHACL PropertyShape"]
+        subgraph shacl_out["Step 3: Assemble SHACL PropertyShape"]
             direction TB
             shape_json["{ @type: 'sh:PropertyShape',<br/>  sh:path: 'schema:email',<br/>  sh:name: 'Contact Email',<br/>  sh:datatype: 'xsd:string',<br/>  sh:minCount: 1,<br/>  sh:pattern: '^[^\\s@]+@...',<br/>  sh:message: 'Must be valid email' }"]
         end
 
         %% Step 5: Where it goes
-        form_ui["Form UI validates<br/>input in real-time"]
+        form_ui["Step 4: Form UI validates<br/>input in real-time"]
 
         %% Connections
         nl_input --> ai_parse
         ai_parse --> semantic
         semantic --> shacl_out
+        ontology_box -.-> schema_map
         shacl_out --> form_ui
     end
 
@@ -50,13 +61,13 @@ flowchart TB
     %% LIMITATIONS BOX
     %% ============================================================
 
-    subgraph limitations["Limitations of Automated Approach"]
+    subgraph limitations["Limitations of Current Approach"]
         direction TB
-        lim1["Ontology is <b>hardcoded</b> — 60 schema.org mappings in Python"]
-        lim2["AI picks validation <b>without user confirmation</b>"]
-        lim3["No review process — shapes go <b>straight to UI</b>"]
-        lim4["No versioning — <b>no audit trail</b> of shape changes"]
-        lim5["Only the developer can extend the ontology"]
+        lim1["Ontology is <b>two Python dicts</b> — only a developer can add new mappings"]
+        lim2["Validation pattern is <b>auto-assigned by string match</b> — no user confirmation"]
+        lim3["If the label doesn't match a dict key → <b>schema:Thing with no validation</b>"]
+        lim4["No review process — shapes go <b>straight to the UI</b>"]
+        lim5["No versioning — <b>no audit trail</b> of shape changes"]
     end
 
     current_flow --> limitations
@@ -146,11 +157,13 @@ flowchart TB
     classDef interview fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
     classDef git fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
     classDef dist fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    classDef ontology fill:#ffecb3,stroke:#ff8f00,stroke-width:2px,color:#000
     classDef diffstyle fill:#fafafa,stroke:#424242,stroke-width:1px,color:#333
 
     class nl_input input
-    class parse_result ai
-    class label_norm,schema_map,pattern_pick semantic_cls
+    class parse_note,parse_result ai
+    class label_norm,schema_map,pattern_pick,fallback semantic_cls
+    class onto_answer ontology
     class shape_json shacl
     class form_ui ui
     class lim1,lim2,lim3,lim4,lim5 warn
