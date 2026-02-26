@@ -1,0 +1,160 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#1976d2','lineColor':'#424242','fontSize':'13px'}}}%%
+
+flowchart TB
+
+    %% ============================================================
+    %% SECTION A: Current Automated Flow
+    %% ============================================================
+
+    section_a["<b>A — Current: Fully Automated SHACL Generation</b>"]
+    style section_a fill:#fff,stroke:none,color:#1565c0,font-size:16px
+
+    subgraph current_flow[" "]
+        direction TB
+
+        %% Step 1: NL Input
+        nl_input["Admin says:<br/>'Add a required email field<br/>for contact email'"]
+
+        %% Step 2: Gemini parses intent
+        subgraph ai_parse["Gemini Parses Intent (temp=0.1)"]
+            direction TB
+            parse_result["{ action: 'add',<br/>  field_label: 'Contact Email',<br/>  field_type: 'text',<br/>  required: true }"]
+        end
+
+        %% Step 3: Semantic inference
+        subgraph semantic["Automatic Semantic Inference"]
+            direction TB
+            label_norm["normalize_field_label()<br/>'Contact Email' → 'email'"]
+            schema_map["Schema.org Lookup<br/>'email' → <b>schema:email</b><br/>(from 60+ hardcoded mappings)"]
+            pattern_pick["Validation Pattern Lookup<br/>schema:email → <b>^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$</b><br/>(from pattern library)"]
+            label_norm --> schema_map --> pattern_pick
+        end
+
+        %% Step 4: SHACL shape output
+        subgraph shacl_out["Generated SHACL PropertyShape"]
+            direction TB
+            shape_json["{ @type: 'sh:PropertyShape',<br/>  sh:path: 'schema:email',<br/>  sh:name: 'Contact Email',<br/>  sh:datatype: 'xsd:string',<br/>  sh:minCount: 1,<br/>  sh:pattern: '^[^\\s@]+@...',<br/>  sh:message: 'Must be valid email' }"]
+        end
+
+        %% Step 5: Where it goes
+        form_ui["Form UI validates<br/>input in real-time"]
+
+        %% Connections
+        nl_input --> ai_parse
+        ai_parse --> semantic
+        semantic --> shacl_out
+        shacl_out --> form_ui
+    end
+
+    %% ============================================================
+    %% LIMITATIONS BOX
+    %% ============================================================
+
+    subgraph limitations["Limitations of Automated Approach"]
+        direction TB
+        lim1["Ontology is <b>hardcoded</b> — 60 schema.org mappings in Python"]
+        lim2["AI picks validation <b>without user confirmation</b>"]
+        lim3["No review process — shapes go <b>straight to UI</b>"]
+        lim4["No versioning — <b>no audit trail</b> of shape changes"]
+        lim5["Only the developer can extend the ontology"]
+    end
+
+    current_flow --> limitations
+
+    %% ============================================================
+    %% SECTION B: Proposed Human-in-the-Loop
+    %% ============================================================
+
+    section_b["<b>B — Proposed: Human-in-the-Loop SHACL Governance</b>"]
+    style section_b fill:#fff,stroke:none,color:#2e7d32,font-size:16px
+
+    subgraph proposed_flow[" "]
+        direction TB
+
+        %% Phase 1: Guided interview
+        subgraph phase1["Phase 1 — Agent-Guided Interview"]
+            direction TB
+            user_starts["Any user starts:<br/>'I need a new field for<br/>visa expiry date'"]
+            agent_q1["Agent asks:<br/>'What data type? Date, text, number?'<br/>User: 'Date'"]
+            agent_q2["Agent asks:<br/>'Should this be required?'<br/>User: 'Yes, mandatory'"]
+            agent_q3["Agent asks:<br/>'Which ontology property fits best?'<br/>Suggests: schema:validThrough,<br/>schema:endDate, schema:expires<br/>User picks: 'schema:expires'"]
+            agent_q4["Agent asks:<br/>'Any constraints? Min/max date?'<br/>User: 'Must be in the future'"]
+            agent_q5["Agent generates preview:<br/>Shows SHACL shape + sample UI<br/>User: 'Looks good, submit'"]
+            user_starts --> agent_q1 --> agent_q2 --> agent_q3 --> agent_q4 --> agent_q5
+        end
+
+        %% Phase 2: Git-based approval
+        subgraph phase2["Phase 2 — Git-Based Approval"]
+            direction TB
+            pr_create["Agent creates Pull Request<br/>with the new SHACL shape file<br/>+ changelog entry"]
+            pr_review["Data Owner reviews:<br/>- Correct ontology property?<br/>- Validation pattern appropriate?<br/>- No conflicts with existing shapes?"]
+            pr_approve["Approved & merged to main"]
+            pr_reject["Rejected with comments<br/>→ User refines via agent"]
+            pr_create --> pr_review
+            pr_review -->|approved| pr_approve
+            pr_review -->|changes needed| pr_reject
+            pr_reject -.->|iterate| user_starts
+        end
+
+        %% Phase 3: Distribution
+        subgraph phase3["Phase 3 — Shape Distribution"]
+            direction TB
+            shape_repo["Central SHACL Shape<br/>Repository (Git)"]
+            ui_forms["Form UIs<br/>validate against shapes"]
+            ui_admin["Admin dashboards<br/>show shape catalog"]
+            api_validate["APIs<br/>enforce shapes on input"]
+            other_apps["Other applications<br/>consume same shapes"]
+            shape_repo --> ui_forms
+            shape_repo --> ui_admin
+            shape_repo --> api_validate
+            shape_repo --> other_apps
+        end
+
+        %% Connections
+        agent_q5 --> pr_create
+        pr_approve --> shape_repo
+    end
+
+    limitations --> section_b
+    section_b ~~~ proposed_flow
+
+    %% ============================================================
+    %% KEY DIFFERENCES
+    %% ============================================================
+
+    subgraph diff["Key Differences"]
+        direction TB
+        d1["<b>Ontology:</b> User picks from suggested options<br/>instead of hardcoded mapping"]
+        d2["<b>Validation:</b> User confirms constraints<br/>instead of auto-assignment"]
+        d3["<b>Governance:</b> Git PR review by data owner<br/>instead of instant deployment"]
+        d4["<b>Reuse:</b> Central shape repo serves many UIs<br/>instead of one app's form"]
+        d5["<b>Access:</b> Any domain expert can create shapes<br/>not just developers"]
+    end
+
+    proposed_flow --> diff
+
+    %% ============================================================
+    %% STYLING
+    %% ============================================================
+
+    classDef input fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef ai fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef semantic_cls fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef shacl fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef ui fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#000
+    classDef warn fill:#fff9c4,stroke:#f9a825,stroke-width:2px,color:#000
+    classDef interview fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef git fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef dist fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000
+    classDef diffstyle fill:#fafafa,stroke:#424242,stroke-width:1px,color:#333
+
+    class nl_input input
+    class parse_result ai
+    class label_norm,schema_map,pattern_pick semantic_cls
+    class shape_json shacl
+    class form_ui ui
+    class lim1,lim2,lim3,lim4,lim5 warn
+    class user_starts,agent_q1,agent_q2,agent_q3,agent_q4,agent_q5 interview
+    class pr_create,pr_review,pr_approve,pr_reject git
+    class shape_repo,ui_forms,ui_admin,api_validate,other_apps dist
+    class d1,d2,d3,d4,d5 diffstyle

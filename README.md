@@ -258,6 +258,7 @@ All diagrams are in `docs/diagrams/` as `.mmd` files. Render them with any Merma
 | SHACL + Form Fill | [`shacl-and-formfill-flow.mmd`](docs/diagrams/shacl-and-formfill-flow.mmd) | NL form modification flow + AI form fill agent flow |
 | Context Management | [`context-management-flow.mmd`](docs/diagrams/context-management-flow.mmd) | Dynamic context cascade, prompt assembly, custom rules |
 | LLM Context + History | [`llm-context-and-history.mmd`](docs/diagrams/llm-context-and-history.mmd) | How Gemini consumes dynamic context, per-Akte history isolation, what changes on navigation |
+| SHACL Shape Creation | [`shacl-shape-creation.mmd`](docs/diagrams/shacl-shape-creation.mmd) | (A) Current automated SHACL generation flow, (B) Proposed human-in-the-loop governance |
 
 ### Code Graph (Knowledge Base)
 

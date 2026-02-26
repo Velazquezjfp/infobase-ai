@@ -1,6 +1,26 @@
 {
   "version": "1.0",
   "schemaVersion": "1.0",
-  "lastUpdated": "2026-02-25T17:27:59.420190+00:00",
-  "documents": []
+  "lastUpdated": "2026-02-25T21:41:13.302070+00:00",
+  "documents": [
+    {
+      "documentId": "doc_07de67c30684",
+      "caseId": "ACTE-2024-001",
+      "folderId": "applications",
+      "fileName": "Anmeldeformular.pdf",
+      "filePath": "public/documents/ACTE-2024-001/applications/Anmeldeformular.pdf",
+      "uploadedAt": "2026-02-25T21:41:13.302032+00:00",
+      "fileHash": "sha256:766dd47b86169319402562a55e85909876bd73739493eb8c3ad49b5790b4d5bf",
+      "renders": [
+        {
+          "id": "render_doc_47c671adb5da",
+          "type": "original",
+          "name": "Anmeldeformular.pdf",
+          "filePath": "public/documents/ACTE-2024-001/applications/Anmeldeformular.pdf",
+          "createdAt": "2026-02-25T21:41:13.302032+00:00",
+          "metadata": {}
+        }
+      ]
+    }
+  ]
 }
