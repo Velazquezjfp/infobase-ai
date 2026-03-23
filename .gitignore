@@ -3,3 +3,6 @@
 # AI & Tool Specific Folders
 .claude/
 .playwright-mcp/
+
+#Node modules
+node_modules/
