@@ -1,11 +1,11 @@
 {
   "caseId": "ACTE-2024-001",
-  "lastModified": "2026-02-26T10:42:44.281003+00:00",
+  "lastModified": "2026-03-18T15:25:24.682855+00:00",
   "rules": [
     {
-      "id": "custom-rule-4687657e",
+      "id": "custom-rule-7d933c1a",
       "type": "validation_rule",
-      "createdAt": "2026-02-26T10:42:44.280657+00:00",
+      "createdAt": "2026-03-18T15:25:24.682680+00:00",
       "targetFolder": "Evidence",
       "rule": "nur PDFs erlaubt",
       "ruleType": "folder_rule"

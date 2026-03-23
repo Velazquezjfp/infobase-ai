@@ -1,1 +1,5 @@
+#envs
 .env
+# AI & Tool Specific Folders
+.claude/
+.playwright-mcp/

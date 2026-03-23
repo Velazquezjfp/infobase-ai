@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "BAMF ACTE Companion API",
-    "description": "API specification for the BAMF ACTE (Automated Case and Task Environment) Companion application.\n\n**Current Status:** This is a PLANNED API specification. The application currently operates as a\nfrontend-only prototype with simulated operations. This specification documents the target\narchitecture for future backend implementation.\n\nThe API will provide document management, AI-powered case processing, and integration course\napplication handling for BAMF (Bundesamt für Migration und Flüchtlinge).\n",
-    "version": "2.3.0",
+    "description": "API specification for the BAMF ACTE (Automated Case and Task Environment) Companion application.\n\n**Current Status:** This is a PLANNED API specification. The application currently operates as a\nfrontend-only prototype with simulated operations. This specification documents the target\narchitecture for future backend implementation.\n\nThe API will provide document management, AI-powered case processing, and integration course\napplication handling for BAMF (Bundesamt f\u00fcr Migration und Fl\u00fcchtlinge).\n",
+    "version": "2.4.0",
     "contact": {
       "name": "BAMF Development Team",
       "email": "api@bamf.example.de"
@@ -40,6 +40,10 @@
       "description": "Case management operations"
     },
     {
+      "name": "Context",
+      "description": "Document tree views and hierarchical context information"
+    },
+    {
       "name": "Custom Context",
       "description": "User-defined validation rules and required documents for case context"
     },
@@ -65,7 +69,11 @@
     },
     {
       "name": "Search",
-      "description": "Cross-case and document search capabilities"
+      "description": "Cross-case and document search capabilities with semantic understanding"
+    },
+    {
+      "name": "IDIRS",
+      "description": "IDIRS OpenSearch integration for hybrid document search and RAG queries"
     },
     {
       "name": "Validation",
@@ -659,13 +667,1639 @@
         "x-source-file": "backend/api/files.py"
       }
     },
+    "/api/context/tree/{case_id}": {
+      "get": {
+        "tags": [
+          "Context"
+        ],
+        "summary": "Get document tree view for case",
+        "description": "Retrieve hierarchical document tree view for a specific case.\n\n**S5-011: Cascading Context with Document Tree View**\n\nReturns a hierarchical text representation of all folders and documents\nin the case, formatted with ASCII tree characters (\u251c\u2500\u2500 \u2514\u2500\u2500).\n\n**Features:**\n- Cached for performance (regenerates on document changes)\n- Localized folder names based on language parameter\n- Shows empty folders\n- Lists all documents with original filenames\n",
+        "operationId": "getTreeView",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID (e.g., ACTE-2024-001)",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "description": "Language for folder names ('de' for German, 'en' for English)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "en"
+              ],
+              "default": "de",
+              "example": "de"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tree view retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "treeView",
+                    "folders",
+                    "documentCount"
+                  ],
+                  "properties": {
+                    "treeView": {
+                      "type": "string",
+                      "description": "Hierarchical tree representation with ASCII characters",
+                      "example": "Case ACTE-2024-001:\n\u251c\u2500\u2500 Personal Data (5 documents)\n\u2502   \u251c\u2500\u2500 Passport_Scan.pdf\n\u2502   \u2514\u2500\u2500 Birth_Certificate.pdf"
+                    },
+                    "folders": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "List of folder display names",
+                      "example": [
+                        "Personal Data",
+                        "Applications",
+                        "Evidence"
+                      ]
+                    },
+                    "documentCount": {
+                      "type": "integer",
+                      "description": "Total number of documents in the case",
+                      "example": 10
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Case not found"
+                        },
+                        "case_id": {
+                          "type": "string",
+                          "example": "ACTE-2024-001"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Failed to generate tree view"
+                        },
+                        "detail": {
+                          "type": "string"
+                        },
+                        "case_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/context.py"
+      }
+    },
+    "/api/custom-context/{case_id}": {
+      "get": {
+        "tags": [
+          "Custom Context"
+        ],
+        "summary": "Get custom context rules for a case",
+        "description": "Retrieve all custom validation rules and required documents for a case.\n\n**S5-017: Custom Context Rules API**\n\nUsers can add custom validation rules and document requirements through the\n/Aktenkontext slash command. These rules are stored per-case and can be\nmanaged through this API.\n\n**Rule Types:**\n- validation_rule: Custom validation rules for folders or files\n- required_document: Custom required document definitions\n\n**Features:**\n- Case-scoped custom rules\n- Target folder specification\n- Chronological ordering (newest first)\n- Persistent storage in JSON format\n",
+        "operationId": "getCustomRules",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID (e.g., ACTE-2024-001)",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Custom rules retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message",
+                    "rules"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Found 2 custom rule(s)"
+                    },
+                    "rules": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CustomContextRule"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Case not found"
+                        },
+                        "case_id": {
+                          "type": "string",
+                          "example": "ACTE-2024-001"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/custom_context.py"
+      }
+    },
+    "/api/custom-context/{case_id}/rule": {
+      "post": {
+        "tags": [
+          "Custom Context"
+        ],
+        "summary": "Add a validation rule",
+        "description": "Add a custom validation rule to the case context.\n\n**S5-017: Custom Context Rules API**\n\nValidation rules define custom checks for documents or folders.\nEach rule is assigned a unique ID and timestamp.\n\n**Rule Types:**\n- file_type: File type restrictions\n- content: Content validation rules\n- metadata: Metadata requirements\n- completeness: Completeness checks\n",
+        "operationId": "addValidationRule",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID (e.g., ACTE-2024-001)",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "ruleType",
+                  "rule"
+                ],
+                "properties": {
+                  "targetFolder": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Target folder for the rule (optional)",
+                    "example": "Evidence"
+                  },
+                  "ruleType": {
+                    "type": "string",
+                    "description": "Type of rule",
+                    "enum": [
+                      "file_type",
+                      "content",
+                      "metadata",
+                      "completeness"
+                    ],
+                    "example": "file_type"
+                  },
+                  "rule": {
+                    "type": "string",
+                    "description": "The rule description/text",
+                    "example": "Only PDFs should be allowed in here"
+                  }
+                }
+              },
+              "examples": {
+                "folderRule": {
+                  "summary": "Folder-specific rule",
+                  "value": {
+                    "targetFolder": "Evidence",
+                    "ruleType": "file_type",
+                    "rule": "Only PDFs should be allowed in here"
+                  }
+                },
+                "globalRule": {
+                  "summary": "Global validation rule",
+                  "value": {
+                    "ruleType": "completeness",
+                    "rule": "All documents must have clear scans with no blurred text"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation rule added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message",
+                    "rule"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Validation rule added successfully"
+                    },
+                    "rule": {
+                      "$ref": "#/components/schemas/CustomContextRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Case not found"
+                        },
+                        "case_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to save rule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Failed to save rule"
+                        },
+                        "case_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/custom_context.py"
+      }
+    },
+    "/api/custom-context/{case_id}/document": {
+      "post": {
+        "tags": [
+          "Custom Context"
+        ],
+        "summary": "Add a required document",
+        "description": "Add a custom required document to the case context.\n\n**S5-017: Custom Context Rules API**\n\nRequired documents define what additional documents are expected\nfor the case. Each document requirement is assigned a unique ID and timestamp.\n\n**Features:**\n- Target folder specification (optional)\n- Automatic ruleType: document_requirement\n- Persistent storage\n",
+        "operationId": "addRequiredDocument",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID (e.g., ACTE-2024-001)",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "description"
+                ],
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the required document",
+                    "example": "Proof of German language proficiency (B1 certificate)"
+                  },
+                  "targetFolder": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Target folder for the document (optional)",
+                    "example": "Language Certificates"
+                  }
+                }
+              },
+              "examples": {
+                "withFolder": {
+                  "summary": "Required document with target folder",
+                  "value": {
+                    "description": "Proof of German language proficiency (B1 certificate)",
+                    "targetFolder": "Language Certificates"
+                  }
+                },
+                "withoutFolder": {
+                  "summary": "Required document without folder",
+                  "value": {
+                    "description": "Recent passport photo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Required document added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message",
+                    "rule"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Required document added successfully"
+                    },
+                    "rule": {
+                      "$ref": "#/components/schemas/CustomContextRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Case not found"
+                        },
+                        "case_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to save document requirement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Failed to save document requirement"
+                        },
+                        "case_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/custom_context.py"
+      }
+    },
+    "/api/custom-context/{case_id}/{rule_id}": {
+      "delete": {
+        "tags": [
+          "Custom Context"
+        ],
+        "summary": "Remove a custom rule",
+        "description": "Remove a custom validation rule or required document from the case.\n\n**S5-017: Custom Context Rules API**\n\nDeletes a rule by its ID and saves the updated rule set.\nWorks for both validation_rule and required_document types.\n\n**Features:**\n- Removes rule by ID\n- Returns the deleted rule in response\n- Updates persistent storage\n",
+        "operationId": "removeCustomRule",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID (e.g., ACTE-2024-001)",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          },
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "description": "Rule ID to delete",
+            "schema": {
+              "type": "string",
+              "example": "custom-rule-abc12345"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message",
+                    "rule"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Rule removed successfully"
+                    },
+                    "rule": {
+                      "$ref": "#/components/schemas/CustomContextRule"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case or rule not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Rule not found"
+                        },
+                        "rule_id": {
+                          "type": "string",
+                          "example": "custom-rule-abc12345"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to save rules",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Failed to save rules"
+                        },
+                        "case_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/custom_context.py"
+      }
+    },
+    "/api/folders/{case_id}": {
+      "get": {
+        "tags": [
+          "Folders"
+        ],
+        "summary": "Get folder configuration for a case",
+        "description": "Retrieve all configured folders with their localized names, display order, and mandatory status.\nAutomatically ensures all physical directories exist.\n",
+        "operationId": "getFolders",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case identifier",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Folder configuration retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderConfigResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to load folder configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Failed to load folder config"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/folders.py"
+      },
+      "post": {
+        "tags": [
+          "Folders"
+        ],
+        "summary": "Create a new folder",
+        "description": "Create a new folder with both a configuration entry and physical directory.\nThe folder ID must be unique and follow kebab-case naming conventions.\n",
+        "operationId": "createFolder",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case identifier",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFolderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Folder created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderConfig"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request (duplicate ID or invalid format)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Folder 'my-folder' already exists"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/folders.py"
+      },
+      "put": {
+        "tags": [
+          "Folders"
+        ],
+        "summary": "Bulk update all folders",
+        "description": "Replace the entire folder configuration. Used by the admin panel when saving all folder changes.\nCreates new folders and removes deleted ones (only if empty).\n",
+        "operationId": "bulkUpdateFolders",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case identifier",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkUpdateFoldersRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Folders updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderConfigResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/folders.py"
+      }
+    },
+    "/api/folders/{case_id}/{folder_id}": {
+      "put": {
+        "tags": [
+          "Folders"
+        ],
+        "summary": "Update folder properties",
+        "description": "Update folder properties including name, mandatory status, and display order.\nAll fields are optional - only provided fields will be updated.\n",
+        "operationId": "updateFolder",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case identifier",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          },
+          {
+            "name": "folder_id",
+            "in": "path",
+            "required": true,
+            "description": "Folder identifier",
+            "schema": {
+              "type": "string",
+              "example": "personal-data"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFolderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Folder updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderConfig"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Folder not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Folder 'unknown' not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/folders.py"
+      },
+      "delete": {
+        "tags": [
+          "Folders"
+        ],
+        "summary": "Delete a folder",
+        "description": "Delete a folder from the configuration. By default, only allows deletion of empty folders.\nUse force=true to delete folders with contents (documents will be moved to uploads).\n",
+        "operationId": "deleteFolder",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case identifier",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          },
+          {
+            "name": "folder_id",
+            "in": "path",
+            "required": true,
+            "description": "Folder identifier",
+            "schema": {
+              "type": "string",
+              "example": "custom-folder"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "required": false,
+            "description": "Force deletion of non-empty folder",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Folder deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Folder 'custom-folder' deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Folder not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Folder 'unknown' not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Folder is not empty (force=false)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Folder 'personal-data' is not empty. Use force=true to delete."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/folders.py"
+      }
+    },
+    "/api/folders/{case_id}/reorder": {
+      "post": {
+        "tags": [
+          "Folders"
+        ],
+        "summary": "Reorder folders",
+        "description": "Update the display order of all folders by accepting a list of folder IDs in desired order.\nAll existing folder IDs must be included.\n",
+        "operationId": "reorderFolders",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case identifier",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "example": [
+                  "personal-data",
+                  "evidence",
+                  "emails",
+                  "certificates"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Folders reordered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderConfigResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid folder order (missing IDs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Folder order must contain exactly all existing folder IDs"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/folders.py"
+      }
+    },
+    "/api/search/semantic": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Perform semantic search on document",
+        "description": "Perform semantic search on document content using Gemini AI with natural language queries.\n\n**S5-003: Semantic Search with Cross-Language Support**\n\nThis endpoint analyzes document content and finds text passages that semantically match\nthe user's natural language query. Supports cross-language search where query and document\ncan be in different languages.\n\n**Features:**\n- Semantic understanding (matches meaning, not just keywords)\n- Cross-language search (German \u2194 English)\n- Automatic language detection\n- PDF text extraction\n- Text highlighting with character positions\n- Relevance scoring (0.0-1.0)\n",
+        "operationId": "semanticSearch",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "query",
+                  "documentType"
+                ],
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Natural language search query",
+                    "example": "passport number"
+                  },
+                  "documentContent": {
+                    "type": "string",
+                    "description": "Full text content (required for non-PDF documents)",
+                    "example": "Name: John Doe\nReisepassnummer: 123456789"
+                  },
+                  "documentType": {
+                    "type": "string",
+                    "description": "Document type",
+                    "example": "pdf"
+                  },
+                  "documentPath": {
+                    "type": "string",
+                    "description": "Path to PDF file (required for PDF documents)",
+                    "example": "public/documents/ACTE-2024-001/personal-data/Passport.pdf"
+                  },
+                  "queryLanguage": {
+                    "type": "string",
+                    "description": "Query language ISO 639-1 code (auto-detected if not provided)",
+                    "example": "en"
+                  },
+                  "documentLanguage": {
+                    "type": "string",
+                    "description": "Document language ISO 639-1 code (auto-detected if not provided)",
+                    "example": "de"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "highlights",
+                    "count",
+                    "matchSummary",
+                    "queryLanguage",
+                    "documentLanguage",
+                    "isCrossLanguage"
+                  ],
+                  "properties": {
+                    "highlights": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "start": {
+                            "type": "integer",
+                            "description": "Starting character position",
+                            "example": 125
+                          },
+                          "end": {
+                            "type": "integer",
+                            "description": "Ending character position",
+                            "example": 145
+                          },
+                          "relevance": {
+                            "type": "number",
+                            "format": "float",
+                            "description": "Relevance score (0.0-1.0)",
+                            "example": 0.95
+                          },
+                          "matchedText": {
+                            "type": "string",
+                            "description": "The exact matched text",
+                            "example": "Passnummer: 123456789"
+                          },
+                          "context": {
+                            "type": "string",
+                            "description": "Explanation of why this matched",
+                            "example": "Direct match: passport number field"
+                          }
+                        }
+                      }
+                    },
+                    "count": {
+                      "type": "integer",
+                      "description": "Total number of matches found",
+                      "example": 2
+                    },
+                    "matchSummary": {
+                      "type": "string",
+                      "description": "Brief summary of search results",
+                      "example": "Found 2 relevant passages (cross-language: English \u2192 German)"
+                    },
+                    "queryLanguage": {
+                      "type": "string",
+                      "description": "Detected or provided query language",
+                      "example": "en"
+                    },
+                    "documentLanguage": {
+                      "type": "string",
+                      "description": "Detected or provided document language",
+                      "example": "de"
+                    },
+                    "isCrossLanguage": {
+                      "type": "boolean",
+                      "description": "Whether this is a cross-language search",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "documentPath is required for PDF documents"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PDF file not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "PDF file not found: /path/to/document.pdf"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Search processing failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Search failed: <error details>"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/search.py"
+      }
+    },
+    "/api/search/health": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search service health check",
+        "description": "Check the health status and capabilities of the search service",
+        "operationId": "searchHealthCheck",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "healthy"
+                    },
+                    "service": {
+                      "type": "string",
+                      "example": "semantic_search"
+                    },
+                    "gemini_initialized": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "pdf_support": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "cross_language_support": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/search.py"
+      }
+    },
+    "/api/idirs/search": {
+      "post": {
+        "tags": [
+          "IDIRS"
+        ],
+        "summary": "Hybrid document search via IDIRS OpenSearch API",
+        "description": "Proxy endpoint for IDIRS OpenSearch API performing hybrid search (BM25 + kNN).\n\nThis endpoint forwards search requests to the IDIRS (Integrated Document Information\nRetrieval System) OpenSearch API, which combines BM25 keyword-based search with\nkNN semantic vector search for optimal document retrieval.\n\n**Features:**\n- Hybrid search combining keyword and semantic matching\n- Entity filtering by metadata fields\n- Document type filtering\n- Configurable result count (1-50 documents)\n- Transparent error forwarding from IDIRS\n\n**Configuration:**\n- IDIRS_BASE_URL (default: http://localhost:8010)\n- IDIRS_TIMEOUT (default: 30 seconds)\n",
+        "operationId": "idirsSearch",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "query"
+                ],
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "Semantic search query for document retrieval",
+                    "example": "Aufenthaltsgenehmigung f\u00fcr Syrien"
+                  },
+                  "entity_filters": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Key-value pairs for entity filtering",
+                    "example": {
+                      "referenznummer": "REF-2024-12345"
+                    }
+                  },
+                  "doc_type_filter": {
+                    "type": "string",
+                    "description": "Filter by document type",
+                    "example": "decision_letter"
+                  },
+                  "top_k": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50,
+                    "default": 5,
+                    "description": "Number of results to return"
+                  }
+                }
+              },
+              "examples": {
+                "basicSearch": {
+                  "summary": "Basic search",
+                  "value": {
+                    "query": "Aufenthaltsgenehmigung",
+                    "top_k": 5
+                  }
+                },
+                "filteredSearch": {
+                  "summary": "Filtered search with entity and document type",
+                  "value": {
+                    "query": "Asylentscheidung",
+                    "entity_filters": {
+                      "referenznummer": "REF-2024-12345"
+                    },
+                    "doc_type_filter": "decision_letter",
+                    "top_k": 10
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "doc_id": {
+                            "type": "string",
+                            "example": "doc_2024_001234"
+                          },
+                          "score": {
+                            "type": "number",
+                            "format": "float",
+                            "example": 0.9234
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "Aufenthaltsentscheidung Syrien"
+                          },
+                          "document_type": {
+                            "type": "string",
+                            "example": "decision_letter"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          "snippet": {
+                            "type": "string",
+                            "example": "... Aufenthaltsgenehmigung f\u00fcr syrische Staatsangeh\u00f6rige ..."
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "query": {
+                      "type": "string",
+                      "example": "Aufenthaltsgenehmigung f\u00fcr Syrien"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cannot connect to IDIRS service",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Cannot connect to IDIRS service"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "IDIRS request timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "IDIRS search timed out"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/idirs.py"
+      }
+    },
+    "/api/idirs/rag": {
+      "post": {
+        "tags": [
+          "IDIRS"
+        ],
+        "summary": "RAG query with AI confidence analysis",
+        "description": "Perform Retrieval-Augmented Generation (RAG) queries with AI-powered analysis.\n\nThis endpoint retrieves relevant document chunks from IDIRS for specified document IDs,\nthen uses Google Gemini AI to analyze the chunks and produce a confidence-rated answer\nto the user's question.\n\n**Process:**\n1. For each document ID, calls IDIRS /rag endpoint to retrieve top-k chunks\n2. Aggregates all chunks and calculates confidence score from relevance scores\n3. Uses Gemini AI to analyze chunks and synthesize an answer\n4. Returns analysis with confidence rating and appropriate disclaimer\n\n**Features:**\n- Multi-document RAG queries\n- AI-powered answer synthesis using Google Gemini 2.5 Flash\n- Automatic confidence scoring from chunk relevance\n- High/low confidence classification (threshold: 0.80)\n- Multilingual responses (German/English)\n- Professional disclaimers based on confidence level\n\n**Configuration:**\n- IDIRS_BASE_URL (default: http://localhost:8010)\n- IDIRS_TIMEOUT (default: 30 seconds)\n- RAG_CONFIDENCE_THRESHOLD (default: 0.80)\n",
+        "operationId": "idirsRag",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "doc_ids",
+                  "question"
+                ],
+                "properties": {
+                  "doc_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "description": "Document IDs to query",
+                    "example": [
+                      "doc_2024_001234",
+                      "doc_2024_001235"
+                    ]
+                  },
+                  "question": {
+                    "type": "string",
+                    "description": "Question to answer from documents",
+                    "example": "Welche Voraussetzungen gelten f\u00fcr die Aufenthaltsgenehmigung?"
+                  },
+                  "top_k": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20,
+                    "default": 5,
+                    "description": "Number of chunks per document"
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "de",
+                      "en"
+                    ],
+                    "default": "de",
+                    "description": "Response language (German or English)"
+                  }
+                }
+              },
+              "examples": {
+                "germanQuery": {
+                  "summary": "German RAG query",
+                  "value": {
+                    "doc_ids": [
+                      "doc_2024_001234",
+                      "doc_2024_001235"
+                    ],
+                    "question": "Welche Voraussetzungen gelten f\u00fcr die Aufenthaltsgenehmigung?",
+                    "top_k": 5,
+                    "language": "de"
+                  }
+                },
+                "englishQuery": {
+                  "summary": "English RAG query",
+                  "value": {
+                    "doc_ids": [
+                      "doc_2024_001234"
+                    ],
+                    "question": "What are the requirements for residence permit?",
+                    "top_k": 10,
+                    "language": "en"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RAG query completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "analysis",
+                    "confidence",
+                    "is_high_confidence",
+                    "disclaimer",
+                    "doc_ids",
+                    "chunk_count"
+                  ],
+                  "properties": {
+                    "analysis": {
+                      "type": "string",
+                      "description": "AI-generated analysis in requested language",
+                      "example": "F\u00fcr die Aufenthaltsgenehmigung gelten folgende Voraussetzungen: 1. G\u00fcltiger Reisepass, 2. Nachweis des Lebensunterhalts, 3. Krankenversicherung."
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "format": "float",
+                      "minimum": 0.0,
+                      "maximum": 1.0,
+                      "description": "Confidence score calculated from chunk relevance",
+                      "example": 0.8542
+                    },
+                    "is_high_confidence": {
+                      "type": "boolean",
+                      "description": "True if confidence >= threshold (default 0.80)",
+                      "example": true
+                    },
+                    "disclaimer": {
+                      "type": "string",
+                      "description": "Localized disclaimer based on confidence level",
+                      "example": "Die Antwort wird durch Dokumentennachweise gut gest\u00fctzt."
+                    },
+                    "doc_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Document IDs that were queried",
+                      "example": [
+                        "doc_2024_001234",
+                        "doc_2024_001235"
+                      ]
+                    },
+                    "chunk_count": {
+                      "type": "integer",
+                      "description": "Total number of chunks retrieved and analyzed",
+                      "example": 8
+                    }
+                  }
+                },
+                "examples": {
+                  "highConfidence": {
+                    "summary": "High confidence response",
+                    "value": {
+                      "analysis": "F\u00fcr die Aufenthaltsgenehmigung gelten folgende Voraussetzungen: 1. G\u00fcltiger Reisepass, 2. Nachweis des Lebensunterhalts, 3. Krankenversicherung. Diese Anforderungen sind in den analysierten Dokumenten klar dokumentiert.",
+                      "confidence": 0.8542,
+                      "is_high_confidence": true,
+                      "disclaimer": "Die Antwort wird durch Dokumentennachweise gut gest\u00fctzt.",
+                      "doc_ids": [
+                        "doc_2024_001234",
+                        "doc_2024_001235"
+                      ],
+                      "chunk_count": 8
+                    }
+                  },
+                  "lowConfidence": {
+                    "summary": "Low confidence response",
+                    "value": {
+                      "analysis": "Die verf\u00fcgbaren Dokumente enthalten nur fragmentarische Informationen zu Aufenthaltsgenehmigungen.",
+                      "confidence": 0.6234,
+                      "is_high_confidence": false,
+                      "disclaimer": "Die Antwort ist unsicher. Eine manuelle \u00dcberpr\u00fcfung der Dokumente wird empfohlen.",
+                      "doc_ids": [
+                        "doc_2024_001234"
+                      ],
+                      "chunk_count": 3
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cannot connect to IDIRS service",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Cannot connect to IDIRS service"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "IDIRS request timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "IDIRS RAG timed out"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/idirs.py"
+      }
+    },
     "/api/validation/case/{case_id}": {
       "post": {
         "tags": [
           "Validation"
         ],
         "summary": "Validate case for submission completeness",
-        "description": "AI-powered case validation using Gemini 2.5 Flash.\n\n**S5-005: Case Validation API**\n\nAnalyzes form data, documents, and case context to provide structured feedback with score, warnings, and recommendations.\n\n**Score interpretation:**\n- 90-100: Ready for submission\n- 70-89: Minor issues to address\n- 50-69: Significant issues present\n- <50: Critical issues, not ready for submission\n\n**Features:**\n- AI-powered analysis using Gemini 2.5 Flash\n- Multilingual support (German/English)\n- Comprehensive form and document checking\n- Context-aware validation against required documents\n- Structured warnings by severity and category\n- Actionable recommendations\n",
+        "description": "AI-powered case validation using Gemini 2.5 Flash.\n\n**S5-005: Case Validation API**\n\nAnalyzes form data, documents, and case context to provide structured feedback\nwith score, warnings, and recommendations.\n\n**Score interpretation:**\n- 90-100: Ready for submission\n- 70-89: Minor issues to address\n- 50-69: Significant issues present\n- <50: Critical issues, not ready for submission\n\n**Features:**\n- AI-powered analysis using Gemini 2.5 Flash\n- Multilingual support (German/English)\n- Comprehensive form and document checking\n- Context-aware validation against required documents\n- Structured warnings by severity and category\n- Actionable recommendations\n",
         "operationId": "validateCase",
         "parameters": [
           {
@@ -899,6 +2533,111 @@
           }
         },
         "x-source-file": "backend/api/validation.py"
+      }
+    },
+    "/api/files/renders/{case_id}/{document_id}/{render_id}": {
+      "delete": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Delete document render",
+        "description": "Delete a specific render (anonymized, translated, etc.) from a document.\n\n**S5-006: Document Render Deletion**\n\nDeletes a render version of a document and removes it from the document registry.\nAlso invalidates the tree cache to ensure updated tree views.\n",
+        "operationId": "deleteRender",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "description": "Case ID",
+            "schema": {
+              "type": "string",
+              "example": "ACTE-2024-001"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "description": "Parent document ID (UUID)",
+            "schema": {
+              "type": "string",
+              "example": "550e8400-e29b-41d4-a716-446655440001"
+            }
+          },
+          {
+            "name": "render_id",
+            "in": "path",
+            "required": true,
+            "description": "Render ID to delete (UUID)",
+            "schema": {
+              "type": "string",
+              "example": "550e8400-e29b-41d4-a716-446655440002"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Render deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Render deleted successfully"
+                    },
+                    "render_id": {
+                      "type": "string",
+                      "example": "550e8400-e29b-41d4-a716-446655440002"
+                    },
+                    "document_id": {
+                      "type": "string",
+                      "example": "550e8400-e29b-41d4-a716-446655440001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Render not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Render 550e8400-e29b-41d4-a716-446655440002 not found or could not be deleted"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "example": "Failed to delete render: <error details>"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-source-file": "backend/api/files.py"
       }
     },
     "/auth/login": {
@@ -2069,337 +3808,6 @@
         },
         "x-source-file": "src/components/workspace/FormViewer.tsx (simulated)"
       }
-    },
-    "/api/custom-context/{case_id}": {
-      "get": {
-        "tags": [
-          "Custom Context"
-        ],
-        "summary": "Get custom context rules for a case",
-        "description": "Retrieve all custom validation rules and required documents for a case.\n\n**S5-017: Custom Context Rules API**\n\nUsers can add custom validation rules and document requirements through the /Aktenkontext slash command.",
-        "operationId": "getCustomRules",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "description": "Case ID (e.g., ACTE-2024-001)",
-            "schema": {
-              "type": "string",
-              "example": "ACTE-2024-001"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Custom rules retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success",
-                    "message",
-                    "rules"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Found 2 custom rule(s)"
-                    },
-                    "rules": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/CustomContextRule"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Case not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "detail": {
-                      "type": "object",
-                      "properties": {
-                        "error": {
-                          "type": "string",
-                          "example": "Case not found"
-                        },
-                        "case_id": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-source-file": "backend/api/custom_context.py"
-      }
-    },
-    "/api/custom-context/{case_id}/rule": {
-      "post": {
-        "tags": [
-          "Custom Context"
-        ],
-        "summary": "Add a validation rule",
-        "description": "Add a custom validation rule to the case context.\n\n**S5-017: Custom Context Rules API**",
-        "operationId": "addValidationRule",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "description": "Case ID (e.g., ACTE-2024-001)",
-            "schema": {
-              "type": "string",
-              "example": "ACTE-2024-001"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "ruleType",
-                  "rule"
-                ],
-                "properties": {
-                  "targetFolder": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "Target folder for the rule (optional)",
-                    "example": "Evidence"
-                  },
-                  "ruleType": {
-                    "type": "string",
-                    "description": "Type of rule",
-                    "enum": [
-                      "file_type",
-                      "content",
-                      "metadata",
-                      "completeness"
-                    ],
-                    "example": "file_type"
-                  },
-                  "rule": {
-                    "type": "string",
-                    "description": "The rule description/text",
-                    "example": "Only PDFs should be allowed in here"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Validation rule added successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success",
-                    "message",
-                    "rule"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Validation rule added successfully"
-                    },
-                    "rule": {
-                      "$ref": "#/components/schemas/CustomContextRule"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Case not found"
-          },
-          "500": {
-            "description": "Failed to save rule"
-          }
-        },
-        "x-source-file": "backend/api/custom_context.py"
-      }
-    },
-    "/api/custom-context/{case_id}/document": {
-      "post": {
-        "tags": [
-          "Custom Context"
-        ],
-        "summary": "Add a required document",
-        "description": "Add a custom required document to the case context.\n\n**S5-017: Custom Context Rules API**",
-        "operationId": "addRequiredDocument",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "description": "Case ID (e.g., ACTE-2024-001)",
-            "schema": {
-              "type": "string",
-              "example": "ACTE-2024-001"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "description"
-                ],
-                "properties": {
-                  "description": {
-                    "type": "string",
-                    "description": "Description of the required document",
-                    "example": "Proof of German language proficiency (B1 certificate)"
-                  },
-                  "targetFolder": {
-                    "type": "string",
-                    "nullable": true,
-                    "description": "Target folder for the document (optional)",
-                    "example": "Language Certificates"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Required document added successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success",
-                    "message",
-                    "rule"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Required document added successfully"
-                    },
-                    "rule": {
-                      "$ref": "#/components/schemas/CustomContextRule"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Case not found"
-          },
-          "500": {
-            "description": "Failed to save document requirement"
-          }
-        },
-        "x-source-file": "backend/api/custom_context.py"
-      }
-    },
-    "/api/custom-context/{case_id}/{rule_id}": {
-      "delete": {
-        "tags": [
-          "Custom Context"
-        ],
-        "summary": "Remove a custom rule",
-        "description": "Remove a custom validation rule or required document from the case.\n\n**S5-017: Custom Context Rules API**",
-        "operationId": "removeCustomRule",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "description": "Case ID (e.g., ACTE-2024-001)",
-            "schema": {
-              "type": "string",
-              "example": "ACTE-2024-001"
-            }
-          },
-          {
-            "name": "rule_id",
-            "in": "path",
-            "required": true,
-            "description": "Rule ID to delete",
-            "schema": {
-              "type": "string",
-              "example": "custom-rule-abc12345"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Rule removed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success",
-                    "message",
-                    "rule"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Rule removed successfully"
-                    },
-                    "rule": {
-                      "$ref": "#/components/schemas/CustomContextRule"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Case or rule not found"
-          },
-          "500": {
-            "description": "Failed to save rules"
-          }
-        },
-        "x-source-file": "backend/api/custom_context.py"
-      }
     }
   },
   "components": {
@@ -2863,7 +4271,7 @@
           "ruleType": {
             "type": "string",
             "nullable": true,
-            "description": "Classification of the rule",
+            "description": "Classification of the rule (for validation_rule) or document_requirement (for required_document)",
             "enum": [
               "file_type",
               "content",
@@ -2886,7 +4294,7 @@
           "de": {
             "type": "string",
             "description": "German folder name",
-            "example": "Persönliche Daten"
+            "example": "Pers\u00f6nliche Daten"
           },
           "en": {
             "type": "string",

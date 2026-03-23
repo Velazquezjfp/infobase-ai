@@ -17,6 +17,9 @@ export const slashCommands: SlashCommand[] = [
   // S5-017: Context modification commands
   { command: '/Aktenkontext', label: 'Aktenkontext', description: 'Modify case context (rules, documents)', icon: 'Settings' },
   { command: '/removeAktenkontext', label: 'Remove Context Rule', description: 'Remove a custom context rule', icon: 'Trash2' },
+  // IDIRS: Hybrid search & RAG commands
+  { command: '/Dokumentsuche', label: 'Dokumentsuche', description: 'Hybrid document search', icon: 'Search' },
+  { command: '/Dokumente-abfragen', label: 'Dokumente abfragen', description: 'Query documents with RAG', icon: 'FileSearch' },
 ];
 
 /**
@@ -90,6 +93,36 @@ export const hierarchicalSlashCommands: HierarchicalSlashCommand[] = [
     isDynamic: true,
     dynamicSource: 'customRules',
     arguments: [] // Populated dynamically with existing rules
+  },
+  {
+    command: '/Dokumentsuche',
+    label: 'Dokumentsuche',
+    description: 'Hybrid document search with entity filters',
+    icon: 'Search',
+    arguments: [
+      {
+        value: '',
+        label: 'Search',
+        description: 'Enter filters and query',
+        requiresInput: true,
+        placeholder: 'referenznummer=AKTE-2024-001 "search query"'
+      }
+    ]
+  },
+  {
+    command: '/Dokumente-abfragen',
+    label: 'Dokumente abfragen',
+    description: 'Query specific documents with RAG',
+    icon: 'FileSearch',
+    arguments: [
+      {
+        value: '',
+        label: 'RAG Query',
+        description: 'Enter document IDs and question',
+        requiresInput: true,
+        placeholder: 'docId1 [docId2...] "your question"'
+      }
+    ]
   }
 ];
 

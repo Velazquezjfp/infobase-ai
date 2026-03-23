@@ -10,7 +10,7 @@ info:
 
     The API will provide document management, AI-powered case processing, and integration course
     application handling for BAMF (Bundesamt für Migration und Flüchtlinge).
-  version: 2.3.0
+  version: 2.4.0
   contact:
     name: BAMF Development Team
     email: api@bamf.example.de
@@ -48,6 +48,8 @@ tags:
     description: Application form management
   - name: Search
     description: Cross-case and document search capabilities with semantic understanding
+  - name: IDIRS
+    description: IDIRS OpenSearch integration for hybrid document search and RAG queries
   - name: Validation
     description: AI-powered case validation for submission completeness
 
@@ -1411,6 +1413,308 @@ paths:
                     example: true
       x-source-file: backend/api/search.py
 
+  /api/idirs/search:
+    post:
+      tags:
+        - IDIRS
+      summary: Hybrid document search via IDIRS OpenSearch API
+      description: |
+        Proxy endpoint for IDIRS OpenSearch API performing hybrid search (BM25 + kNN).
+
+        This endpoint forwards search requests to the IDIRS (Integrated Document Information
+        Retrieval System) OpenSearch API, which combines BM25 keyword-based search with
+        kNN semantic vector search for optimal document retrieval.
+
+        **Features:**
+        - Hybrid search combining keyword and semantic matching
+        - Entity filtering by metadata fields
+        - Document type filtering
+        - Configurable result count (1-50 documents)
+        - Transparent error forwarding from IDIRS
+
+        **Configuration:**
+        - IDIRS_BASE_URL (default: http://localhost:8010)
+        - IDIRS_TIMEOUT (default: 30 seconds)
+      operationId: idirsSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: Semantic search query for document retrieval
+                  example: "Aufenthaltsgenehmigung für Syrien"
+                entity_filters:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  description: Key-value pairs for entity filtering
+                  example:
+                    referenznummer: "REF-2024-12345"
+                doc_type_filter:
+                  type: string
+                  description: Filter by document type
+                  example: "decision_letter"
+                top_k:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+                  default: 5
+                  description: Number of results to return
+            examples:
+              basicSearch:
+                summary: Basic search
+                value:
+                  query: "Aufenthaltsgenehmigung"
+                  top_k: 5
+              filteredSearch:
+                summary: Filtered search with entity and document type
+                value:
+                  query: "Asylentscheidung"
+                  entity_filters:
+                    referenznummer: "REF-2024-12345"
+                  doc_type_filter: "decision_letter"
+                  top_k: 10
+      responses:
+        '200':
+          description: Search completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        doc_id:
+                          type: string
+                          example: "doc_2024_001234"
+                        score:
+                          type: number
+                          format: float
+                          example: 0.9234
+                        title:
+                          type: string
+                          example: "Aufenthaltsentscheidung Syrien"
+                        document_type:
+                          type: string
+                          example: "decision_letter"
+                        metadata:
+                          type: object
+                          additionalProperties: true
+                        snippet:
+                          type: string
+                          example: "... Aufenthaltsgenehmigung für syrische Staatsangehörige ..."
+                  total:
+                    type: integer
+                    example: 1
+                  query:
+                    type: string
+                    example: "Aufenthaltsgenehmigung für Syrien"
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Cannot connect to IDIRS service
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Cannot connect to IDIRS service"
+        '504':
+          description: IDIRS request timed out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "IDIRS search timed out"
+      x-source-file: backend/api/idirs.py
+
+  /api/idirs/rag:
+    post:
+      tags:
+        - IDIRS
+      summary: RAG query with AI confidence analysis
+      description: |
+        Perform Retrieval-Augmented Generation (RAG) queries with AI-powered analysis.
+
+        This endpoint retrieves relevant document chunks from IDIRS for specified document IDs,
+        then uses Google Gemini AI to analyze the chunks and produce a confidence-rated answer
+        to the user's question.
+
+        **Process:**
+        1. For each document ID, calls IDIRS /rag endpoint to retrieve top-k chunks
+        2. Aggregates all chunks and calculates confidence score from relevance scores
+        3. Uses Gemini AI to analyze chunks and synthesize an answer
+        4. Returns analysis with confidence rating and appropriate disclaimer
+
+        **Features:**
+        - Multi-document RAG queries
+        - AI-powered answer synthesis using Google Gemini 2.5 Flash
+        - Automatic confidence scoring from chunk relevance
+        - High/low confidence classification (threshold: 0.80)
+        - Multilingual responses (German/English)
+        - Professional disclaimers based on confidence level
+
+        **Configuration:**
+        - IDIRS_BASE_URL (default: http://localhost:8010)
+        - IDIRS_TIMEOUT (default: 30 seconds)
+        - RAG_CONFIDENCE_THRESHOLD (default: 0.80)
+      operationId: idirsRag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - doc_ids
+                - question
+              properties:
+                doc_ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  description: Document IDs to query
+                  example: ["doc_2024_001234", "doc_2024_001235"]
+                question:
+                  type: string
+                  description: Question to answer from documents
+                  example: "Welche Voraussetzungen gelten für die Aufenthaltsgenehmigung?"
+                top_k:
+                  type: integer
+                  minimum: 1
+                  maximum: 20
+                  default: 5
+                  description: Number of chunks per document
+                language:
+                  type: string
+                  enum: ["de", "en"]
+                  default: "de"
+                  description: Response language (German or English)
+            examples:
+              germanQuery:
+                summary: German RAG query
+                value:
+                  doc_ids: ["doc_2024_001234", "doc_2024_001235"]
+                  question: "Welche Voraussetzungen gelten für die Aufenthaltsgenehmigung?"
+                  top_k: 5
+                  language: "de"
+              englishQuery:
+                summary: English RAG query
+                value:
+                  doc_ids: ["doc_2024_001234"]
+                  question: "What are the requirements for residence permit?"
+                  top_k: 10
+                  language: "en"
+      responses:
+        '200':
+          description: RAG query completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - analysis
+                  - confidence
+                  - is_high_confidence
+                  - disclaimer
+                  - doc_ids
+                  - chunk_count
+                properties:
+                  analysis:
+                    type: string
+                    description: AI-generated analysis in requested language
+                    example: "Für die Aufenthaltsgenehmigung gelten folgende Voraussetzungen: 1. Gültiger Reisepass, 2. Nachweis des Lebensunterhalts, 3. Krankenversicherung."
+                  confidence:
+                    type: number
+                    format: float
+                    minimum: 0.0
+                    maximum: 1.0
+                    description: Confidence score calculated from chunk relevance
+                    example: 0.8542
+                  is_high_confidence:
+                    type: boolean
+                    description: True if confidence >= threshold (default 0.80)
+                    example: true
+                  disclaimer:
+                    type: string
+                    description: Localized disclaimer based on confidence level
+                    example: "Die Antwort wird durch Dokumentennachweise gut gestützt."
+                  doc_ids:
+                    type: array
+                    items:
+                      type: string
+                    description: Document IDs that were queried
+                    example: ["doc_2024_001234", "doc_2024_001235"]
+                  chunk_count:
+                    type: integer
+                    description: Total number of chunks retrieved and analyzed
+                    example: 8
+              examples:
+                highConfidence:
+                  summary: High confidence response
+                  value:
+                    analysis: "Für die Aufenthaltsgenehmigung gelten folgende Voraussetzungen: 1. Gültiger Reisepass, 2. Nachweis des Lebensunterhalts, 3. Krankenversicherung. Diese Anforderungen sind in den analysierten Dokumenten klar dokumentiert."
+                    confidence: 0.8542
+                    is_high_confidence: true
+                    disclaimer: "Die Antwort wird durch Dokumentennachweise gut gestützt."
+                    doc_ids: ["doc_2024_001234", "doc_2024_001235"]
+                    chunk_count: 8
+                lowConfidence:
+                  summary: Low confidence response
+                  value:
+                    analysis: "Die verfügbaren Dokumente enthalten nur fragmentarische Informationen zu Aufenthaltsgenehmigungen."
+                    confidence: 0.6234
+                    is_high_confidence: false
+                    disclaimer: "Die Antwort ist unsicher. Eine manuelle Überprüfung der Dokumente wird empfohlen."
+                    doc_ids: ["doc_2024_001234"]
+                    chunk_count: 3
+        '400':
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Cannot connect to IDIRS service
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Cannot connect to IDIRS service"
+        '504':
+          description: IDIRS request timed out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "IDIRS RAG timed out"
+      x-source-file: backend/api/idirs.py
+
   /api/validation/case/{case_id}:
     post:
       tags:
@@ -1671,7 +1975,7 @@ paths:
                 properties:
                   detail:
                     type: string
-                    example: Failed to delete render: <error details>
+                    example: "Failed to delete render: <error details>"
       x-source-file: backend/api/files.py
 
   /auth/login:

@@ -20,6 +20,7 @@ This document provides detailed information about the BAMF ACTE Companion API en
 - [Custom Context API](#custom-context-api)
 - [Folder Management](#folder-management)
 - [Search API](#search-api)
+- [IDIRS Integration](#idirs-integration)
 - [File Operations](#file-operations)
 - [Validation API](#validation-api)
 - [AI Operations](#ai-operations)
@@ -5006,6 +5007,358 @@ curl -X GET http://localhost:8000/api/search/health
 - Check Gemini AI integration status
 - Confirm PDF extraction capability
 - Validate cross-language search support
+
+---
+
+## IDIRS Integration
+
+**Current Status:** IMPLEMENTED - Proxy endpoints for IDIRS OpenSearch API with RAG support.
+
+The IDIRS Integration API provides proxy endpoints to the IDIRS (Integrated Document Information Retrieval System) OpenSearch API, enabling hybrid document search (BM25 + kNN) and RAG (Retrieval-Augmented Generation) queries with AI-powered confidence analysis using Google Gemini.
+
+### POST /api/idirs/search
+
+Perform hybrid document search using IDIRS OpenSearch API.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/idirs.py`
+
+**Source:** `backend/api/idirs.py:49-77`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint proxies search requests to the IDIRS OpenSearch API, which performs hybrid search combining BM25 (keyword-based) and kNN (semantic vector) search for optimal document retrieval. The endpoint supports entity filters and document type filtering.
+
+**Request Body (application/json):**
+
+```json
+{
+  "query": "Aufenthaltsgenehmigung für Syrien",
+  "entity_filters": {
+    "referenznummer": "REF-2024-12345"
+  },
+  "doc_type_filter": "decision_letter",
+  "top_k": 10
+}
+```
+
+**Request Fields:**
+
+- `query` (required): Semantic search query for document retrieval
+- `entity_filters` (optional): Key-value pairs for entity filtering (e.g., `{"referenznummer": "REF-123"}`)
+- `doc_type_filter` (optional): Filter documents by type (e.g., "decision_letter", "application_form")
+- `top_k` (optional): Number of results to return (1-50, default: 5)
+
+**Features:**
+
+- **Hybrid Search:** Combines BM25 keyword matching with kNN semantic search
+- **Entity Filtering:** Filter by document metadata like reference numbers
+- **Document Type Filtering:** Narrow results to specific document types
+- **Configurable Results:** Control number of returned documents
+- **Transparent Proxying:** Forwards IDIRS responses directly to client
+
+**Success Response (200 OK):**
+```json
+{
+  "results": [
+    {
+      "doc_id": "doc_2024_001234",
+      "score": 0.9234,
+      "title": "Aufenthaltsentscheidung Syrien",
+      "document_type": "decision_letter",
+      "metadata": {
+        "referenznummer": "REF-2024-12345",
+        "date": "2024-01-15"
+      },
+      "snippet": "... Aufenthaltsgenehmigung für syrische Staatsangehörige ..."
+    }
+  ],
+  "total": 1,
+  "query": "Aufenthaltsgenehmigung für Syrien"
+}
+```
+
+**Error Response (503 Service Unavailable - IDIRS Connection Failed):**
+```json
+{
+  "detail": "Cannot connect to IDIRS service"
+}
+```
+
+**Error Response (504 Gateway Timeout - IDIRS Timeout):**
+```json
+{
+  "detail": "IDIRS search timed out"
+}
+```
+
+**Error Response (4xx - IDIRS Error Forwarded):**
+```json
+{
+  "detail": "IDIRS error: <error details from IDIRS service>"
+}
+```
+
+**Configuration:**
+
+- `IDIRS_BASE_URL`: Base URL for IDIRS API (default: `http://localhost:8010`)
+- `IDIRS_TIMEOUT`: Request timeout in seconds (default: 30)
+
+**Example Usage:**
+
+**cURL (Basic Search):**
+```bash
+curl -X POST http://localhost:8000/api/idirs/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Aufenthaltsgenehmigung",
+    "top_k": 5
+  }'
+```
+
+**cURL (Filtered Search):**
+```bash
+curl -X POST http://localhost:8000/api/idirs/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Asylentscheidung",
+    "entity_filters": {
+      "referenznummer": "REF-2024-12345"
+    },
+    "doc_type_filter": "decision_letter",
+    "top_k": 10
+  }'
+```
+
+**JavaScript/TypeScript:**
+```typescript
+const response = await fetch('http://localhost:8000/api/idirs/search', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    query: 'Aufenthaltsgenehmigung',
+    entity_filters: { referenznummer: 'REF-2024-12345' },
+    top_k: 5
+  })
+});
+
+const results = await response.json();
+console.log(`Found ${results.total} documents`);
+```
+
+**Python:**
+```python
+import requests
+
+response = requests.post(
+    'http://localhost:8000/api/idirs/search',
+    json={
+        'query': 'Aufenthaltsgenehmigung',
+        'entity_filters': {'referenznummer': 'REF-2024-12345'},
+        'top_k': 5
+    }
+)
+
+results = response.json()
+print(f"Found {results['total']} documents")
+```
+
+---
+
+### POST /api/idirs/rag
+
+Perform RAG query with AI-powered confidence analysis.
+
+**Current Implementation:** IMPLEMENTED in `backend/api/idirs.py`
+
+**Source:** `backend/api/idirs.py:83-184`
+
+**Authentication:** None (planned for future implementation)
+
+**Description:**
+
+This endpoint performs Retrieval-Augmented Generation (RAG) queries by retrieving relevant document chunks from IDIRS for specified document IDs, then using Google Gemini AI to analyze the chunks and produce a confidence-rated answer to the user's question. The confidence score is calculated from chunk relevance scores, and the response includes professional disclaimers based on confidence levels.
+
+**Request Body (application/json):**
+
+```json
+{
+  "doc_ids": ["doc_2024_001234", "doc_2024_001235"],
+  "question": "Welche Voraussetzungen gelten für die Aufenthaltsgenehmigung?",
+  "top_k": 5,
+  "language": "de"
+}
+```
+
+**Request Fields:**
+
+- `doc_ids` (required): Array of document IDs to query (minimum 1)
+- `question` (required): Question to answer from the documents
+- `top_k` (optional): Number of chunks per document to retrieve (1-20, default: 5)
+- `language` (optional): Response language, either "de" (German) or "en" (English), default: "de"
+
+**Features:**
+
+- **Multi-Document RAG:** Queries multiple documents in a single request
+- **AI-Powered Analysis:** Uses Google Gemini 2.5 Flash for intelligent answer synthesis
+- **Confidence Scoring:** Automatic confidence calculation from chunk relevance scores
+- **High/Low Confidence Classification:** Compares against configurable threshold (default: 0.80)
+- **Multilingual Responses:** Supports German and English responses
+- **Professional Disclaimers:** Context-appropriate warnings based on confidence level
+- **Chunk Aggregation:** Combines results from multiple documents for comprehensive answers
+
+**Success Response (200 OK - High Confidence):**
+```json
+{
+  "analysis": "Für die Aufenthaltsgenehmigung gelten folgende Voraussetzungen: 1. Gültiger Reisepass, 2. Nachweis des Lebensunterhalts, 3. Krankenversicherung. Diese Anforderungen sind in den analysierten Dokumenten klar dokumentiert und durch mehrere Quellen bestätigt.",
+  "confidence": 0.8542,
+  "is_high_confidence": true,
+  "disclaimer": "Die Antwort wird durch Dokumentennachweise gut gestützt.",
+  "doc_ids": ["doc_2024_001234", "doc_2024_001235"],
+  "chunk_count": 8
+}
+```
+
+**Success Response (200 OK - Low Confidence):**
+```json
+{
+  "analysis": "Die verfügbaren Dokumente enthalten nur fragmentarische Informationen zu Aufenthaltsgenehmigungen. Es werden einige Anforderungen erwähnt, aber die Informationen sind unvollständig.",
+  "confidence": 0.6234,
+  "is_high_confidence": false,
+  "disclaimer": "Die Antwort ist unsicher. Eine manuelle Überprüfung der Dokumente wird empfohlen.",
+  "doc_ids": ["doc_2024_001234"],
+  "chunk_count": 3
+}
+```
+
+**Response Fields:**
+
+- `analysis` (string): AI-generated analysis in the requested language
+- `confidence` (number): Confidence score from 0.0 to 1.0 (calculated from chunk relevance scores)
+- `is_high_confidence` (boolean): True if confidence >= threshold (default: 0.80)
+- `disclaimer` (string): Localized disclaimer message based on confidence level
+- `doc_ids` (array): Document IDs that were queried
+- `chunk_count` (integer): Total number of chunks retrieved and analyzed
+
+**Error Response (503 Service Unavailable - IDIRS Connection Failed):**
+```json
+{
+  "detail": "Cannot connect to IDIRS service"
+}
+```
+
+**Error Response (504 Gateway Timeout - IDIRS Timeout):**
+```json
+{
+  "detail": "IDIRS RAG timed out"
+}
+```
+
+**Error Response (4xx - IDIRS Error Forwarded):**
+```json
+{
+  "detail": "IDIRS error: <error details from IDIRS service>"
+}
+```
+
+**Configuration:**
+
+- `IDIRS_BASE_URL`: Base URL for IDIRS API (default: `http://localhost:8010`)
+- `IDIRS_TIMEOUT`: Request timeout in seconds (default: 30)
+- `RAG_CONFIDENCE_THRESHOLD`: Threshold for high confidence classification (default: 0.80)
+
+**Confidence Calculation:**
+
+The confidence score is computed from the relevance scores of retrieved chunks:
+```
+confidence = sum(non_zero_chunk_scores) / count(non_zero_chunk_scores)
+```
+
+Chunks with zero scores are excluded from the calculation to avoid artificially lowering confidence due to padding or irrelevant results.
+
+**Example Usage:**
+
+**cURL (German Response):**
+```bash
+curl -X POST http://localhost:8000/api/idirs/rag \
+  -H "Content-Type: application/json" \
+  -d '{
+    "doc_ids": ["doc_2024_001234", "doc_2024_001235"],
+    "question": "Welche Voraussetzungen gelten für die Aufenthaltsgenehmigung?",
+    "top_k": 5,
+    "language": "de"
+  }'
+```
+
+**cURL (English Response):**
+```bash
+curl -X POST http://localhost:8000/api/idirs/rag \
+  -H "Content-Type: application/json" \
+  -d '{
+    "doc_ids": ["doc_2024_001234"],
+    "question": "What are the requirements for residence permit?",
+    "top_k": 10,
+    "language": "en"
+  }'
+```
+
+**JavaScript/TypeScript:**
+```typescript
+const response = await fetch('http://localhost:8000/api/idirs/rag', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    doc_ids: ['doc_2024_001234', 'doc_2024_001235'],
+    question: 'Welche Voraussetzungen gelten für die Aufenthaltsgenehmigung?',
+    top_k: 5,
+    language: 'de'
+  })
+});
+
+const result = await response.json();
+console.log(`Confidence: ${(result.confidence * 100).toFixed(1)}%`);
+console.log(`Analysis: ${result.analysis}`);
+if (!result.is_high_confidence) {
+  console.warn('Low confidence - manual review recommended');
+}
+```
+
+**Python:**
+```python
+import requests
+
+response = requests.post(
+    'http://localhost:8000/api/idirs/rag',
+    json={
+        'doc_ids': ['doc_2024_001234', 'doc_2024_001235'],
+        'question': 'Welche Voraussetzungen gelten für die Aufenthaltsgenehmigung?',
+        'top_k': 5,
+        'language': 'de'
+    }
+)
+
+result = response.json()
+print(f"Confidence: {result['confidence']:.1%}")
+print(f"Analysis: {result['analysis']}")
+if not result['is_high_confidence']:
+    print("Warning: Low confidence - manual review recommended")
+```
+
+**Use Cases:**
+
+- **Case Analysis:** Get AI-synthesized answers from multiple case documents
+- **Regulation Queries:** Query legal documents for specific requirements
+- **Decision Support:** Assist case workers with evidence-backed recommendations
+- **Quality Assurance:** Verify document completeness and consistency
+- **Training:** Provide context-aware answers for learning purposes
+
+**Notes:**
+
+- If Gemini AI analysis fails, the endpoint falls back to returning the raw RAG answer from IDIRS
+- The analysis prompt instructs Gemini to be concise, professional, and appropriate for BAMF context
+- Disclaimers are automatically localized based on the `language` parameter
+- Multiple document IDs are queried sequentially, and all chunks are aggregated before analysis
 
 ---
 

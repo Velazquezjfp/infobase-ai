@@ -387,7 +387,27 @@
     "extractMetadata": "Metadaten extrahieren",
     "generateEmail": "E-Mail generieren",
     "addDocument": "Dokument hinzufügen",
-    "convert": "Dokument konvertieren"
+    "convert": "Dokument konvertieren",
+    "dokumentsuche": "Hybride Dokumentsuche mit Entitätsfiltern",
+    "dokumenteAbfragen": "Dokumente mit RAG abfragen"
+  },
+  "documentSearch": {
+    "noResults": "Keine Ergebnisse gefunden",
+    "resultsFound": "{{count}} Ergebnis(se) gefunden",
+    "docName": "Dokumentname",
+    "docType": "Typ",
+    "docId": "Dokument-ID",
+    "score": "Relevanz",
+    "highConfidence": "Die Antwort wird durch Dokumentennachweise gut gestützt.",
+    "lowConfidence": "Die Antwort ist unsicher. Eine manuelle Überprüfung der Dokumente wird empfohlen.",
+    "confidence": "Konfidenz",
+    "chunks": "Textabschnitte",
+    "searchError": "Fehler bei der Dokumentsuche",
+    "ragError": "Fehler bei der Dokumentabfrage",
+    "searching": "Dokumente werden durchsucht...",
+    "querying": "Dokumente werden abgefragt...",
+    "searchPlaceholder": "z.B. referenznummer=AKTE-2024-001 \"Suchbegriff\"",
+    "ragPlaceholder": "z.B. docId1 docId2 \"Ihre Frage\""
   },
   "errors": {
     "generic": "Ein Fehler ist aufgetreten",

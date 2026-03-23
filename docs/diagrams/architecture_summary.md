@@ -2,7 +2,7 @@ Zusammenfassung der System-Architektur
 
 Benutzeroberfläche (Frontend): Die React-App schickt jede Nutzer-Aktion (mit Fall-ID, Ordner-ID und Dokument-Inhalt) über eine dauerhafte Verbindung (WebSocket).
 
-Verteilung (Routing): 9 Router nehmen die Anfragen an und leiten sie an spezialisierte Dienste weiter.
+Verteilung (Routing): 10 Router nehmen die Anfragen an und leiten sie an spezialisierte Dienste weiter.
 
 Zentraler KI-Dienst: Es gibt einen Haupt-Dienst (GeminiService). Alle KI-Aufgaben wie Chatten, Suchen oder Übersetzen laufen über diesen Dienst.
 
@@ -13,6 +13,8 @@ Keine "Agenten": Die KI plant nicht selbst und nutzt keine externen Werkzeuge. D
 Kontext-Manager: Informationen werden erst beim Aufruf aus JSON-Dateien geladen und dynamisch in den Prompt eingebaut (bestehend aus 8 Abschnitten).
 
 Chat-Verlauf: Der Verlauf wird pro Fall nur im Arbeitsspeicher behalten und nicht dauerhaft gespeichert.
+
+IDIRS-Integration: Über die Slash-Befehle /Dokumentsuche und /Dokumente-abfragen können Sachbearbeiter hybride Dokumentsuche (BM25 + kNN) und RAG-Abfragen mit KI-Konfidenzanalyse ausführen. Das Backend agiert als Proxy zum externen IDIRS OpenSearch-Dienst (localhost:8010).
 
 Speicherung: Alle Daten liegen in einfachen JSON-Dateien auf der Festplatte. Es gibt keine Datenbank und keine komplexen Vektor-Speicher.
 

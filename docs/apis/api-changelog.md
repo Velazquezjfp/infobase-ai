@@ -38,6 +38,101 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ---
 
+## [2.4.0] - 2026-03-17
+
+### Added - IDIRS Integration API
+
+This release introduces integration with the IDIRS (Integrated Document Information Retrieval System) OpenSearch API, providing hybrid document search and RAG (Retrieval-Augmented Generation) capabilities with AI-powered confidence analysis.
+
+#### New API Module: backend/api/idirs.py
+
+**Endpoint: POST /api/idirs/search**
+
+**Location:** `backend/api/idirs.py:49-77`
+
+Proxy endpoint for IDIRS OpenSearch API performing hybrid search combining BM25 keyword matching with kNN semantic vector search.
+
+**Request Format:**
+```json
+{
+  "query": "Aufenthaltsgenehmigung für Syrien",
+  "entity_filters": {
+    "referenznummer": "REF-2024-12345"
+  },
+  "doc_type_filter": "decision_letter",
+  "top_k": 10
+}
+```
+
+**Features:**
+- Hybrid search (BM25 + kNN) for optimal document retrieval
+- Entity filtering by metadata fields (e.g., referenznummer)
+- Document type filtering (e.g., decision_letter, application_form)
+- Configurable result count (1-50 documents)
+- Transparent IDIRS error forwarding
+
+**Configuration:**
+- `IDIRS_BASE_URL`: Base URL for IDIRS API (default: `http://localhost:8010`)
+- `IDIRS_TIMEOUT`: Request timeout in seconds (default: 30)
+
+**Endpoint: POST /api/idirs/rag**
+
+**Location:** `backend/api/idirs.py:83-184`
+
+RAG query endpoint that retrieves document chunks from IDIRS and uses Google Gemini AI to analyze and synthesize confidence-rated answers.
+
+**Request Format:**
+```json
+{
+  "doc_ids": ["doc_2024_001234", "doc_2024_001235"],
+  "question": "Welche Voraussetzungen gelten für die Aufenthaltsgenehmigung?",
+  "top_k": 5,
+  "language": "de"
+}
+```
+
+**Features:**
+- Multi-document RAG queries with chunk aggregation
+- AI-powered answer synthesis using Google Gemini 2.5 Flash
+- Automatic confidence scoring from chunk relevance scores
+- High/low confidence classification (threshold: 0.80)
+- Multilingual responses (German and English)
+- Professional disclaimers based on confidence level
+- Fallback to raw RAG answer if Gemini analysis fails
+
+**Response Fields:**
+- `analysis`: AI-generated answer in requested language
+- `confidence`: Score from 0.0 to 1.0 based on chunk relevance
+- `is_high_confidence`: Boolean indicating if confidence >= threshold
+- `disclaimer`: Localized warning/confirmation message
+- `doc_ids`: Document IDs queried
+- `chunk_count`: Total chunks analyzed
+
+**Configuration:**
+- `IDIRS_BASE_URL`: Base URL for IDIRS API (default: `http://localhost:8010`)
+- `IDIRS_TIMEOUT`: Request timeout in seconds (default: 30)
+- `RAG_CONFIDENCE_THRESHOLD`: High confidence threshold (default: 0.80)
+
+**Error Handling:**
+- 503 Service Unavailable: Cannot connect to IDIRS service
+- 504 Gateway Timeout: IDIRS request timed out
+- 4xx errors: Forwarded from IDIRS with error details
+
+**Use Cases:**
+- Case analysis with evidence-backed recommendations
+- Legal regulation queries
+- Decision support for case workers
+- Quality assurance and document completeness verification
+- Training and knowledge management
+
+**Technical Details:**
+- Uses `httpx.AsyncClient` for non-blocking IDIRS requests
+- Confidence calculated as average of non-zero chunk scores
+- Gemini prompt instructs concise, professional BAMF-appropriate responses
+- Automatic disclaimer localization based on language parameter
+
+---
+
 ## [2.3.0] - 2026-01-16
 
 ### Added - Folder Management API

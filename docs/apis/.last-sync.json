@@ -1,7 +1,7 @@
 {
-  "last_commit": "ea8be0c524d9f46896dfb42c3c70cb0c6c71daf5",
-  "last_sync": "2026-01-16T00:00:00.000Z",
-  "documentation_version": "2.1.0",
+  "last_commit": "c37bf5f2",
+  "last_sync": "2026-03-17T00:00:00.000Z",
+  "documentation_version": "2.4.0",
   "api_status": "partial_implementation",
   "tracked_paths": [
     "src/pages/Login.tsx",
@@ -26,6 +26,7 @@
     "backend/api/context.py",
     "backend/api/search.py",
     "backend/api/validation.py",
+    "backend/api/idirs.py",
     "backend/services/gemini_service.py",
     "backend/services/context_manager.py",
     "backend/services/conversation_manager.py",
@@ -101,6 +102,8 @@
     "MULTILINGUAL VALIDATION (S5-005): Responses in German or English based on language parameter",
     "CONTEXT-AWARE VALIDATION (S5-005): Checks against case-specific required documents from context files",
     "VALIDATION SERVICE (S5-005): Singleton CaseValidationService with robust JSON parsing and error handling",
+    "IDIRS INTEGRATION: Proxy API for IDIRS OpenSearch with hybrid search and RAG",
+    "IDIRS CONFIGURATION: IDIRS_BASE_URL (default: http://localhost:8010), IDIRS_TIMEOUT (default: 30s), RAG_CONFIDENCE_THRESHOLD (default: 0.80)",
     "Frontend still uses simulated data, needs integration with backend",
     "Authentication is currently simulated in Login.tsx and AppContext.tsx",
     "Document storage now implemented with registry system",
@@ -129,6 +132,8 @@
     "GET /api/search/health - backend/api/search.py (Search service health check - S5-003)",
     "POST /api/validation/case/{case_id} - backend/api/validation.py (AI-powered case validation for submission completeness - S5-005)",
     "GET /api/validation/health - backend/api/validation.py (Validation service health check - S5-005)",
+    "POST /api/idirs/search - backend/api/idirs.py (Hybrid document search via IDIRS OpenSearch API)",
+    "POST /api/idirs/rag - backend/api/idirs.py (RAG query with AI-powered confidence analysis)",
     "GET /health - backend/main.py (Backend health check)",
     "GET / - backend/main.py (Backend root info)"
   ],
@@ -217,7 +222,17 @@
     "Validation recommendations (S5-005): Actionable next steps for case improvement",
     "Multilingual validation (S5-005): Validation responses in German or English",
     "Context-aware validation (S5-005): Checks against case-specific required documents",
-    "Document content analysis (S5-005): Can analyze cached document text"
+    "Document content analysis (S5-005): Can analyze cached document text",
+    "IDIRS integration: Proxy endpoints for IDIRS OpenSearch API",
+    "Hybrid search: BM25 + kNN semantic search via IDIRS",
+    "Entity filtering: Filter search results by metadata fields (e.g., referenznummer)",
+    "Document type filtering: Narrow results to specific document types",
+    "RAG queries: Multi-document RAG with chunk aggregation from IDIRS",
+    "AI confidence analysis: Gemini-powered answer synthesis with confidence scoring",
+    "Multilingual RAG: German and English response support",
+    "Confidence thresholding: High/low confidence classification (default: 0.80)",
+    "Professional disclaimers: Context-appropriate warnings based on confidence",
+    "IDIRS error forwarding: Transparent error handling with proper status codes (503, 504, 4xx)"
   ],
   "simulated_endpoints": [
     "/auth/login - Login.tsx",

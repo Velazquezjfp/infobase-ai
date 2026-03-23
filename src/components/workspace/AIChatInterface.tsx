@@ -22,6 +22,8 @@ const quickActionIcons: Record<string, React.ReactNode> = {
   '/fillForm': <FileOutput className="w-3.5 h-3.5" />,
   '/Aktenkontext': <Settings className="w-3.5 h-3.5" />,
   '/removeAktenkontext': <Trash2 className="w-3.5 h-3.5" />,
+  '/Dokumentsuche': <Search className="w-3.5 h-3.5" />,
+  '/Dokumente-abfragen': <FileText className="w-3.5 h-3.5" />,
 };
 
 // S5-017: Interface for autocomplete suggestion items
@@ -322,6 +324,34 @@ export default function AIChatInterface() {
       }
     }
 
+    // Handle /Dokumentsuche autocomplete
+    if (command === '/Dokumentsuche') {
+      if (parts.length === 1) {
+        return [{
+          value: '/Dokumentsuche ',
+          label: t('slashCommands.dokumentsuche', 'Hybrid document search'),
+          description: t('documentSearch.searchPlaceholder', 'e.g. referenznummer=AKTE-2024-001 "search query"'),
+          requiresInput: true,
+          placeholder: t('documentSearch.searchPlaceholder')
+        }];
+      }
+      return []; // User is typing the query
+    }
+
+    // Handle /Dokumente-abfragen autocomplete
+    if (command === '/Dokumente-abfragen') {
+      if (parts.length === 1) {
+        return [{
+          value: '/Dokumente-abfragen ',
+          label: t('slashCommands.dokumenteAbfragen', 'Query documents with RAG'),
+          description: t('documentSearch.ragPlaceholder', 'e.g. docId1 docId2 "your question"'),
+          requiresInput: true,
+          placeholder: t('documentSearch.ragPlaceholder')
+        }];
+      }
+      return []; // User is typing the query
+    }
+
     return [];
   }, [currentCase, customRules, t]);
 
@@ -460,6 +490,147 @@ export default function AIChatInterface() {
     return false;
   };
 
+  // IDIRS: Process /Dokumentsuche and /Dokumente-abfragen commands
+  const [isSearching, setIsSearching] = useState(false);
+
+  const processSearchCommand = async (command: string): Promise<boolean> => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+    // Parse /Dokumentsuche [key=value ...] "query"
+    const searchMatch = command.match(/^\/Dokumentsuche\s+(.*)/);
+    if (searchMatch) {
+      const args = searchMatch[1];
+      // Extract quoted query
+      const queryMatch = args.match(/"([^"]+)"/);
+      if (!queryMatch) {
+        addChatMessage({ role: 'user', content: command });
+        addChatMessage({ role: 'assistant', content: t('documentSearch.searchError') + ': Missing query in quotes.' });
+        return true;
+      }
+      const query = queryMatch[1];
+
+      // Extract key=value filters before the quoted query
+      const filterPart = args.substring(0, args.indexOf('"')).trim();
+      const entityFilters: Record<string, string> = {};
+      if (filterPart) {
+        const filterPairs = filterPart.match(/(\w+)=(\S+)/g);
+        if (filterPairs) {
+          for (const pair of filterPairs) {
+            const [key, value] = pair.split('=');
+            entityFilters[key] = value;
+          }
+        }
+      }
+
+      addChatMessage({ role: 'user', content: command });
+      setIsSearching(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/idirs/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query,
+            entity_filters: Object.keys(entityFilters).length > 0 ? entityFilters : undefined,
+            top_k: 5,
+          }),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          addChatMessage({ role: 'assistant', content: `${t('documentSearch.searchError')}: ${errData.detail || response.statusText}` });
+          return true;
+        }
+
+        const data = await response.json();
+        const results = data.results || data.hits || [];
+
+        if (results.length === 0) {
+          addChatMessage({ role: 'assistant', content: t('documentSearch.noResults') });
+          return true;
+        }
+
+        // Format as markdown table
+        const header = `| ${t('documentSearch.docName')} | ${t('documentSearch.docType')} | ${t('documentSearch.docId')} | ${t('documentSearch.score')} |`;
+        const separator = '|---|---|---|---|';
+        const rows = results.map((r: any) => {
+          const name = r.doc_name || r.document_name || '-';
+          const type = r.doc_type || r.document_type || '-';
+          const docId = r._id || r.doc_id || r.document_id || '-';
+          const score = typeof r.score === 'number' ? r.score.toFixed(3) : '-';
+          return `| ${name} | ${type} | \`${docId}\` | ${score} |`;
+        });
+
+        const resultMsg = `**${t('documentSearch.resultsFound', { count: results.length })}**\n\n${header}\n${separator}\n${rows.join('\n')}`;
+        addChatMessage({ role: 'assistant', content: resultMsg });
+      } catch (error) {
+        addChatMessage({ role: 'assistant', content: `${t('documentSearch.searchError')}: ${(error as Error).message}` });
+      } finally {
+        setIsSearching(false);
+      }
+      return true;
+    }
+
+    // Parse /Dokumente-abfragen docId1 [docId2...] "question"
+    const ragMatch = command.match(/^\/Dokumente-abfragen\s+(.*)/);
+    if (ragMatch) {
+      const args = ragMatch[1];
+      // Extract quoted question
+      const questionMatch = args.match(/"([^"]+)"/);
+      if (!questionMatch) {
+        addChatMessage({ role: 'user', content: command });
+        addChatMessage({ role: 'assistant', content: t('documentSearch.ragError') + ': Missing question in quotes.' });
+        return true;
+      }
+      const question = questionMatch[1];
+
+      // Extract doc IDs (everything before the quoted question)
+      const docIdPart = args.substring(0, args.indexOf('"')).trim();
+      const docIds = docIdPart.split(/\s+/).filter(Boolean);
+      if (docIds.length === 0) {
+        addChatMessage({ role: 'user', content: command });
+        addChatMessage({ role: 'assistant', content: t('documentSearch.ragError') + ': No document IDs provided.' });
+        return true;
+      }
+
+      addChatMessage({ role: 'user', content: command });
+      setIsSearching(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/idirs/rag`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doc_ids: docIds,
+            question,
+            language: i18n.language === 'de' ? 'de' : 'en',
+          }),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          addChatMessage({ role: 'assistant', content: `${t('documentSearch.ragError')}: ${errData.detail || response.statusText}` });
+          return true;
+        }
+
+        const data = await response.json();
+        const confidencePercent = (data.confidence * 100).toFixed(1);
+        const confidenceEmoji = data.is_high_confidence ? '🟢' : '🟡';
+        const disclaimer = data.is_high_confidence
+          ? t('documentSearch.highConfidence')
+          : t('documentSearch.lowConfidence');
+
+        const resultMsg = `${data.analysis}\n\n---\n${confidenceEmoji} **${t('documentSearch.confidence')}:** ${confidencePercent}% | ${t('documentSearch.chunks')}: ${data.chunk_count}\n\n_${disclaimer}_`;
+        addChatMessage({ role: 'assistant', content: resultMsg });
+      } catch (error) {
+        addChatMessage({ role: 'assistant', content: `${t('documentSearch.ragError')}: ${(error as Error).message}` });
+      } finally {
+        setIsSearching(false);
+      }
+      return true;
+    }
+
+    return false;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -475,6 +646,16 @@ export default function AIChatInterface() {
         return;
       }
       // If not processed, continue to send as regular message
+    }
+
+    // IDIRS: Check if it's a document search/RAG command
+    if (userMessage.startsWith('/Dokumentsuche') || userMessage.startsWith('/Dokumente-abfragen')) {
+      const processed = await processSearchCommand(userMessage);
+      if (processed) {
+        setInput('');
+        setShowCommands(false);
+        return;
+      }
     }
 
     // Get document content if a document is selected
@@ -706,10 +887,10 @@ export default function AIChatInterface() {
             {formatMessage(message.content, message.role)}
           </div>
         ))}
-        {isTyping && (
+        {(isTyping || isSearching) && (
           <div className="chat-bubble chat-bubble-ai flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span>{t('chat.typing')}</span>
+            <span>{isSearching ? t('documentSearch.searching') : t('chat.typing')}</span>
           </div>
         )}
         <div ref={messagesEndRef} />

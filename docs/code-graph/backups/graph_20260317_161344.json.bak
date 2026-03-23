@@ -213,7 +213,12 @@
         "S2-004: Uses Info icon and Badge components for context source display",
         "Sprint 5 update: Integrated messageFormatter for rendering chat messages (S5-009)",
         "Sprint 5 update: Added CodeBlock and DataTable rendering support",
-        "Sprint 5 update: Updated form extraction to send current form values (S5-002)"
+        "Sprint 5 update: Updated form extraction to send current form values (S5-002)",
+        "Added ContextHierarchyDialog integration for viewing AI context hierarchy",
+        "Context indicator now always visible showing Case, Folder (if applicable), and Document badges",
+        "Info icon is clickable to open ContextHierarchyDialog",
+        "getActiveContextSources() updated to always include case context",
+        "showContextHierarchy state controls dialog visibility"
       ]
     },
     {
@@ -273,7 +278,11 @@
         "S5-001: Added SHACL visualization dialog showing current NodeShape",
         "S5-001: Field validation using validateValue() from SHACL types",
         "S5-001: Tracks field validation errors in fieldValidationErrors state",
-        "S5-001: Integrates Edit3, FileCode, Send, Loader2 icons for NL UI"
+        "S5-001: Integrates Edit3, FileCode, Send, Loader2 icons for NL UI",
+        "Imports and uses SubmitCaseDialog component",
+        "handleFormSubmit() opens SubmitCaseDialog instead of direct submission",
+        "showSubmitDialog state for dialog visibility",
+        "handleConfirmedSubmit() for actual submission after dialog"
       ]
     },
     {
@@ -523,7 +532,8 @@
         "S5-007: Performs document registry reconciliation on startup",
         "S5-007: Calls load_manifest(), scan_filesystem(), reconcile() from document_registry service",
         "S5-007: Logs document registry reconciliation report on startup",
-        "S5-007: Handles reconciliation errors gracefully with warning logs"
+        "S5-007: Handles reconciliation errors gracefully with warning logs",
+        "Registers validation_router at /api/validation prefix"
       ]
     },
     {
@@ -2772,6 +2782,153 @@
         "Fields: originalPath, translatedPath, targetLanguage",
         "Optional: render object with render details"
       ]
+    },
+    {
+      "name": "backend/services/validation_service.py",
+      "entityType": "BackendService",
+      "observations": [
+        "CaseValidationService class with singleton pattern",
+        "Uses Google Generative AI (Gemini 2.5 Flash model)",
+        "validate_case() async method for AI-powered case validation",
+        "_build_validation_prompt() constructs prompt with case context, form data, documents",
+        "_parse_validation_response() with robust JSON parsing and truncation repair",
+        "ValidationResult dataclass: success, score (1-100), summary, warnings, recommendations",
+        "ValidationWarning dataclass: severity, category, title, details",
+        "Localized fallback messages (German/English)",
+        "Uses ContextManager and document_registry for case context",
+        "get_validation_service() singleton accessor function"
+      ]
+    },
+    {
+      "name": "backend/api/validation.py",
+      "entityType": "APIRouter",
+      "observations": [
+        "FastAPI router for validation endpoints",
+        "POST /api/validation/case/{case_id} - AI-powered case validation",
+        "GET /api/validation/health - Health check endpoint",
+        "ValidationRequest Pydantic model: formData, language, documentContents",
+        "ValidationResponse Pydantic model: success, score, summary, warnings, recommendations, error",
+        "ValidationWarningResponse Pydantic model for warning items",
+        "Imports get_validation_service from validation_service"
+      ]
+    },
+    {
+      "name": "src/components/workspace/SubmitCaseDialog.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Dialog component for case submission with validation",
+        "Multi-state UI: initial, loading, results, error (DialogState type)",
+        "Uses useApp context for currentCase, formFields",
+        "Uses useTranslation for i18n support (German/English)",
+        "Calls POST /api/validation/case/{case_id} endpoint",
+        "Displays validation score with color-coded progress bar",
+        "Collapsible warning groups by severity (critical, high, medium, low)",
+        "severityConfig object maps severity to icons and colors",
+        "getScoreColor(), getScoreBarColor(), getScoreLabel() helper functions",
+        "handleRunValidation() performs validation request",
+        "handleSubmitWithoutCheck(), handleSubmitAnyway() submission handlers",
+        "Props: open, onOpenChange, onSubmit"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Dialog component for viewing case context details",
+        "Displays case information, required documents, folder structure",
+        "Uses useApp context for currentCase",
+        "Uses useTranslation for i18n support",
+        "Collapsible sections for different context areas",
+        "Integrates with ContextManager data"
+      ]
+    },
+    {
+      "name": "google.generativeai",
+      "entityType": "ExternalDependency",
+      "observations": [
+        "Google Generative AI Python SDK",
+        "Used for Gemini model access"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Dialog component for visualizing AI context injection hierarchy",
+        "Shows context cascade: Case \u2192 Folder \u2192 Document",
+        "Fetches case context from /api/context/case/{caseId} endpoint",
+        "Displays collapsible tree structure with expandable nodes",
+        "Shows regulations, required documents, common issues, validation rules from case context",
+        "Shows folder structure with documents from current case",
+        "Highlights active document when selected",
+        "Indicates text content extraction status for documents",
+        "Uses i18n for German/English translations",
+        "Implements context flow indicator showing precedence: Document > Folder > Case"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py",
+      "entityType": "APIRouter",
+      "observations": [
+        "IDIRS Proxy API for hybrid search and RAG queries",
+        "Exports FastAPI router with prefix /api/idirs",
+        "Defines POST /api/idirs/search endpoint for hybrid document search (BM25 + kNN)",
+        "Defines POST /api/idirs/rag endpoint for RAG query with AI confidence analysis",
+        "Uses httpx.AsyncClient for proxying requests to IDIRS OpenSearch API",
+        "Uses GeminiService singleton for AI-powered confidence analysis in RAG endpoint",
+        "Imports IDIRS_BASE_URL, IDIRS_TIMEOUT, RAG_CONFIDENCE_THRESHOLD from backend.config",
+        "Defines SearchRequest Pydantic model: query, entity_filters, doc_type_filter, top_k",
+        "Defines RagRequest Pydantic model: doc_ids, question, top_k, language",
+        "Proxies to external IDIRS service at configurable base URL (default localhost:8010)",
+        "RAG endpoint calculates confidence score from non-zero chunk scores",
+        "RAG endpoint uses RAG_CONFIDENCE_THRESHOLD to determine high/low confidence",
+        "RAG endpoint builds Gemini prompt with retrieved chunks, answer, and confidence score",
+        "Supports bilingual responses (de/en) in RAG analysis",
+        "Error handling: 504 for timeout, 503 for connection error, upstream status for HTTP errors",
+        "Uses logging module for warning on Gemini analysis failures",
+        "Falls back to raw RAG answer if Gemini analysis fails"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::POST_/api/idirs/search",
+      "entityType": "Endpoint",
+      "observations": [
+        "POST /api/idirs/search - Hybrid document search proxy to IDIRS OpenSearch",
+        "Accepts SearchRequest body with query, entity_filters, doc_type_filter, top_k",
+        "Proxies request to IDIRS /search endpoint via httpx.AsyncClient",
+        "Returns formatted search results with scores from IDIRS OpenSearch",
+        "Triggered by /Dokumentsuche slash command in frontend AIChatInterface"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::POST_/api/idirs/rag",
+      "entityType": "Endpoint",
+      "observations": [
+        "POST /api/idirs/rag - RAG query with Gemini AI confidence analysis",
+        "Accepts RagRequest body with doc_ids, question, top_k, language",
+        "Iterates over doc_ids calling IDIRS /rag endpoint for each document",
+        "Aggregates chunks and answers from all documents",
+        "Calculates confidence score from average of non-zero chunk scores",
+        "Uses GeminiService to generate structured analysis of RAG results",
+        "Returns analysis, confidence, is_high_confidence, disclaimer, doc_ids, chunk_count",
+        "Triggered by /Dokumente-abfragen slash command in frontend AIChatInterface"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::SearchRequest",
+      "entityType": "Model",
+      "observations": [
+        "Pydantic BaseModel for IDIRS search requests",
+        "Fields: query (str, required), entity_filters (Optional Dict), doc_type_filter (Optional str), top_k (int, default 5, range 1-50)"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::RagRequest",
+      "entityType": "Model",
+      "observations": [
+        "Pydantic BaseModel for IDIRS RAG requests",
+        "Fields: doc_ids (List[str], min_length 1), question (str, required), top_k (int, default 5, range 1-20), language (str, default 'de')"
+      ]
     }
   ],
   "relations": [
@@ -4404,6 +4561,216 @@
       "from_": "backend/services/gemini_service.py::semantic_search",
       "to": "backend/services/gemini_service.py",
       "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/documents.py",
+      "to": "backend/services/email_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/services/translation_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/documents.py::POST_/api/documents/parse-email",
+      "to": "backend/services/email_service.py::parse_eml_file",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/api/chat.py::handle_translation",
+      "to": "backend/services/translation_service.py::translate_email",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/translation_service.py::translate_text",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/translation_service.py::translate_email",
+      "to": "backend/services/email_service.py::get_email_service",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/contexts/AppContext.tsx",
+      "to": "src/types/websocket.ts::TranslationResponse",
+      "relationType": "uses"
+    },
+    {
+      "from_": "src/components/workspace/DocumentViewer.tsx",
+      "to": "backend/api/documents.py::POST_/api/documents/parse-email",
+      "relationType": "calls"
+    },
+    {
+      "from_": "backend/services/email_service.py",
+      "to": "backend/services/email_service.py::EmailService",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/email_service.py",
+      "to": "backend/services/email_service.py::EmailData",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/email_service.py",
+      "to": "backend/services/email_service.py::EmailAttachment",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/email_service.py",
+      "to": "backend/services/email_service.py::get_email_service",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/translation_service.py",
+      "to": "backend/services/translation_service.py::TranslationService",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/translation_service.py",
+      "to": "backend/services/translation_service.py::TranslationResult",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/translation_service.py",
+      "to": "backend/services/translation_service.py::get_translation_service",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::EmailData",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::EmailAttachment",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::isRTLText",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::formatSize",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/documents.py",
+      "to": "backend/api/documents.py::POST_/api/documents/parse-email",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/documents.py",
+      "to": "backend/api/documents.py::EmailParseRequest",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/documents.py",
+      "to": "backend/api/documents.py::EmailParseResponse",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_translation",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/files.py",
+      "to": "backend/api/files.py::DELETE_/api/files/renders/{case_id}/{document_id}/{render_id}",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from_": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/services/email_service.py::EmailService",
+      "to": "backend/services/email_service.py::parse_eml_file",
+      "relationType": "defines_method"
+    },
+    {
+      "from_": "backend/services/translation_service.py::TranslationService",
+      "to": "backend/services/translation_service.py::translate_text",
+      "relationType": "defines_method"
+    },
+    {
+      "from_": "backend/services/translation_service.py::TranslationService",
+      "to": "backend/services/translation_service.py::translate_email",
+      "relationType": "defines_method"
+    },
+    {
+      "from_": "backend/api/validation.py",
+      "to": "backend/services/validation_service.py",
+      "relationType": "IMPORTS"
+    },
+    {
+      "from_": "backend/api/validation.py",
+      "to": "backend/main.py",
+      "relationType": "REGISTERED_IN"
+    },
+    {
+      "from_": "backend/services/validation_service.py",
+      "to": "backend/services/context_manager.py",
+      "relationType": "USES"
+    },
+    {
+      "from_": "backend/services/validation_service.py",
+      "to": "backend/services/document_registry.py",
+      "relationType": "USES"
+    },
+    {
+      "from_": "backend/services/validation_service.py",
+      "to": "google.generativeai",
+      "relationType": "USES"
+    },
+    {
+      "from_": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "USES"
+    },
+    {
+      "from_": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "backend/api/validation.py",
+      "relationType": "CALLS_API"
+    },
+    {
+      "from_": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx",
+      "relationType": "IMPORTS"
+    },
+    {
+      "from_": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "USES"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "useApp",
+      "relationType": "uses_hook"
     }
   ]
 }

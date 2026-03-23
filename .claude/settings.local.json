@@ -61,7 +61,9 @@
       "Bash(sleep 3 curl -s -X POST http://localhost:8000/api/validation/case/ACTE-2024-001 -H \"Content-Type: application/json\" -d '{\"\"\"\"formData\"\"\"\": {}, \"\"\"\"language\"\"\"\": \"\"\"\"de\"\"\"\"}')",
       "Bash(pgrep:*)",
       "Skill(update-docs-apis)",
-      "mcp__knowledge-graph-custom-path__advanced_search"
+      "mcp__knowledge-graph-custom-path__advanced_search",
+      "WebFetch(domain:localhost)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

@@ -17,6 +17,32 @@ A caseworker opens an **Akte** (case file) containing folders of documents (pass
 
 The AI's context changes dynamically as the user navigates between cases, folders, and documents -- see [Context Management](#context-management) below.
 
+## External Service Dependencies
+
+Some features require external services running as Docker containers. The core app works without them, but those specific features will be unavailable.
+
+| Service | Port | Docker Required | Feature |
+|---------|------|-----------------|---------|
+| **FastAPI Backend** | `localhost:8000` | No (Python) | Core API -- always required |
+| **Vite Frontend** | `localhost:5173` | No (Node.js) | Web UI -- always required |
+| **Google Gemini API** | Cloud | No (API key) | All AI features (chat, analysis, translation, form fill, validation) |
+| **Anonymization Service** | `localhost:5000` | Yes | PII masking on identity documents (`/anonymize` command) |
+| **IDIRS OpenSearch** | `localhost:8010` | Yes | Hybrid document search and RAG queries (`/Dokumentsuche`, `/Dokumente-abfragen`) |
+
+**Without the Docker services:**
+- `/anonymize` will return a "service unavailable" error
+- `/Dokumentsuche` and `/Dokumente-abfragen` will return connection errors
+- All other features (chat, translation, form fill, validation, search, etc.) work normally
+
+## Demo Documents
+
+The repository includes sample documents for demonstration in two locations:
+
+- **`root_docs/`** -- Source demo documents (passports, certificates, emails, forms) used as test data
+- **`public/documents/ACTE-2024-001/`** -- Pre-configured case with documents distributed across 6 folders (personal-data, certificates, emails, evidence, applications, integration-docs)
+
+These are essential for demoing the system's document analysis, translation, form fill, and validation capabilities.
+
 ## Quick Start
 
 ### Prerequisites
@@ -24,6 +50,7 @@ The AI's context changes dynamically as the user navigates between cases, folder
 - **Node.js 16+** and npm
 - **Python 3.8+**
 - **Google Gemini API key** ([get one here](https://aistudio.google.com/app/apikey))
+- *(Optional)* Docker -- for Anonymization and IDIRS services
 
 ### Start the App
 
@@ -84,7 +111,7 @@ Frontend (React SPA)  -->  API Layer (FastAPI Routers)  -->  Services Layer  -->
 
 See the full architecture diagram: [`docs/diagrams/architecture.mmd`](docs/diagrams/architecture.mmd)
 
-### Backend: 9 API Routers, 12 Services
+### Backend: 10 API Routers, 12 Services
 
 **API Routers** (`backend/api/`):
 
@@ -99,6 +126,7 @@ See the full architecture diagram: [`docs/diagrams/architecture.mmd`](docs/diagr
 | `context.py` | `/api/context` | Case context and document tree view |
 | `custom_context.py` | `/api/custom-context` | Custom validation rules CRUD |
 | `folders.py` | `/api/folders` | Folder CRUD, reorder, bulk update |
+| `idirs.py` | `/api/idirs` | IDIRS hybrid search and RAG proxy |
 
 **Services** (`backend/services/`):
 
@@ -259,6 +287,7 @@ All diagrams are in `docs/diagrams/` as `.mmd` files. Render them with any Merma
 | Context Management | [`context-management-flow.mmd`](docs/diagrams/context-management-flow.mmd) | Dynamic context cascade, prompt assembly, custom rules |
 | LLM Context + History | [`llm-context-and-history.mmd`](docs/diagrams/llm-context-and-history.mmd) | How Gemini consumes dynamic context, per-Akte history isolation, what changes on navigation |
 | SHACL Shape Creation | [`shacl-shape-creation.mmd`](docs/diagrams/shacl-shape-creation.mmd) | (A) Current automated SHACL generation flow, (B) Proposed human-in-the-loop governance |
+| IDIRS Search & RAG | [`idirs-search-rag-flow.mmd`](docs/diagrams/idirs-search-rag-flow.mmd) | /Dokumentsuche (hybrid search) and /Dokumente-abfragen (RAG + AI confidence) flows |
 
 ### Code Graph (Knowledge Base)
 
@@ -287,6 +316,7 @@ The graph contains observations (facts about each entity) and relations (imports
 
 | Location | Contents |
 |----------|----------|
+| [`docs/tools-and-commands.md`](docs/tools-and-commands.md) | All available tools, slash commands, and AI capabilities |
 | `docs/requirements/` | Requirements docs, sprint plans, quick reference |
 | `docs/apis/` | API endpoint documentation, changelog, authentication |
 | `docs/tests/` | Test suites organized by requirement ID (D-001, F-001, S2-001, etc.) |
@@ -310,7 +340,7 @@ bamf-acte-companion/
 │   └── lib/                          # Utilities, localStorage
 │
 ├── backend/                          # Backend (FastAPI + Python)
-│   ├── api/                          # 9 API routers (40+ endpoints)
+│   ├── api/                          # 10 API routers (40+ endpoints)
 │   ├── services/                     # 12 service modules
 │   ├── schemas/                      # SHACL, JSON-LD, schema.org, validation patterns
 │   ├── models/                       # Data models (SHACL shapes, regulations)

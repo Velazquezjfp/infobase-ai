@@ -1,0 +1,34 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#1976d2','lineColor':'#424242','fontSize':'13px'}}}%%
+
+sequenceDiagram
+    participant User
+    participant Chat as AIChatInterface.tsx
+    participant Backend as backend/api/idirs.py
+    participant IDIRS as IDIRS OpenSearch<br/>localhost:8010
+    participant Gemini as GeminiService
+
+    Note over User,Gemini: /Dokumentsuche Flow (Hybrid Search)
+
+    User->>Chat: /Dokumentsuche ref=AKTE-001 "query"
+    Chat->>Chat: Parse filters + quoted query
+    Chat->>Backend: POST /api/idirs/search<br/>{query, entity_filters, top_k}
+    Backend->>IDIRS: POST /search<br/>(BM25 + kNN hybrid)
+    IDIRS-->>Backend: Results with scores
+    Backend-->>Chat: Formatted results
+    Chat->>User: Markdown table<br/>(name, type, doc_id, score)
+
+    Note over User,Gemini: /Dokumente-abfragen Flow (RAG + AI Analysis)
+
+    User->>Chat: /Dokumente-abfragen docId1 "question"
+    Chat->>Chat: Parse doc IDs + quoted question
+    Chat->>Backend: POST /api/idirs/rag<br/>{doc_ids, question, language}
+    loop For each doc_id
+        Backend->>IDIRS: POST /rag<br/>{doc_id, question, top_k}
+        IDIRS-->>Backend: Chunks + answer
+    end
+    Backend->>Backend: Calculate confidence<br/>(avg non-zero chunk scores)
+    Backend->>Gemini: Analyze chunks + scores<br/>(language-specific prompt)
+    Gemini-->>Backend: Structured analysis
+    Backend->>Backend: Build disclaimer<br/>(>= 80%: green, < 80%: yellow)
+    Backend-->>Chat: {analysis, confidence,<br/>disclaimer, chunk_count}
+    Chat->>User: AI analysis + confidence badge<br/>+ disclaimer

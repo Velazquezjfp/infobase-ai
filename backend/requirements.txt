@@ -20,6 +20,7 @@ python-multipart==0.0.21
 
 # Async HTTP Client
 aiohttp==3.9.1
+httpx==0.28.1
 
 # Image Processing (for PII masking)
 Pillow==10.2.0

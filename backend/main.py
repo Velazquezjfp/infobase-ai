@@ -32,6 +32,7 @@ from backend.api.search import router as search_router  # S5-003
 from backend.api.validation import router as validation_router  # Case validation
 from backend.api.custom_context import router as custom_context_router  # S5-017
 from backend.api.folders import router as folders_router  # Folder management
+from backend.api.idirs import router as idirs_router  # IDIRS hybrid search & RAG
 
 # Configure logging
 logging.basicConfig(
@@ -188,6 +189,7 @@ app.include_router(search_router, prefix="/api/search", tags=["search"])  # S5-0
 app.include_router(validation_router, prefix="/api/validation", tags=["validation"])  # Case validation
 app.include_router(custom_context_router, tags=["custom-context"])  # S5-017
 app.include_router(folders_router, tags=["folders"])  # Folder management
+app.include_router(idirs_router, tags=["idirs"])  # IDIRS hybrid search & RAG
 
 
 @app.get("/health")

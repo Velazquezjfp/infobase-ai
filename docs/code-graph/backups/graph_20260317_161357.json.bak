@@ -213,7 +213,17 @@
         "S2-004: Uses Info icon and Badge components for context source display",
         "Sprint 5 update: Integrated messageFormatter for rendering chat messages (S5-009)",
         "Sprint 5 update: Added CodeBlock and DataTable rendering support",
-        "Sprint 5 update: Updated form extraction to send current form values (S5-002)"
+        "Sprint 5 update: Updated form extraction to send current form values (S5-002)",
+        "Added ContextHierarchyDialog integration for viewing AI context hierarchy",
+        "Context indicator now always visible showing Case, Folder (if applicable), and Document badges",
+        "Info icon is clickable to open ContextHierarchyDialog",
+        "getActiveContextSources() updated to always include case context",
+        "showContextHierarchy state controls dialog visibility",
+        "IDIRS: Added processSearchCommand() function for document search via IDIRS API",
+        "IDIRS: Added autocomplete support for /Dokumentsuche and /Dokumente-abfragen commands",
+        "IDIRS: handleSubmit routes /Dokumentsuche to POST /api/idirs/search",
+        "IDIRS: handleSubmit routes /Dokumente-abfragen to POST /api/idirs/rag",
+        "IDIRS: Added isSearching local state for search loading indicator"
       ]
     },
     {
@@ -273,7 +283,11 @@
         "S5-001: Added SHACL visualization dialog showing current NodeShape",
         "S5-001: Field validation using validateValue() from SHACL types",
         "S5-001: Tracks field validation errors in fieldValidationErrors state",
-        "S5-001: Integrates Edit3, FileCode, Send, Loader2 icons for NL UI"
+        "S5-001: Integrates Edit3, FileCode, Send, Loader2 icons for NL UI",
+        "Imports and uses SubmitCaseDialog component",
+        "handleFormSubmit() opens SubmitCaseDialog instead of direct submission",
+        "showSubmitDialog state for dialog visibility",
+        "handleConfirmedSubmit() for actual submission after dialog"
       ]
     },
     {
@@ -366,7 +380,10 @@
         "Exports integrationCourseFormTemplate with SHACL metadata for integration course forms (S2-003)",
         "Exports asylumApplicationFormTemplate with SHACL metadata for asylum applications (S2-003)",
         "Exports familyReunificationFormTemplate with SHACL metadata for family reunification forms (S2-003)",
-        "Imports SHACL_CONTEXT from @/types/shacl for form template metadata (S2-003)"
+        "Imports SHACL_CONTEXT from @/types/shacl for form template metadata (S2-003)",
+        "IDIRS: Added /Dokumentsuche slash command for hybrid document search",
+        "IDIRS: Added /Dokumente-abfragen slash command for RAG document queries",
+        "IDIRS: Added hierarchical entries for both new commands in hierarchicalSlashCommands array"
       ]
     },
     {
@@ -523,7 +540,9 @@
         "S5-007: Performs document registry reconciliation on startup",
         "S5-007: Calls load_manifest(), scan_filesystem(), reconcile() from document_registry service",
         "S5-007: Logs document registry reconciliation report on startup",
-        "S5-007: Handles reconciliation errors gracefully with warning logs"
+        "S5-007: Handles reconciliation errors gracefully with warning logs",
+        "Registers validation_router at /api/validation prefix",
+        "Registers idirs_router from backend/api/idirs.py for IDIRS hybrid search and RAG API"
       ]
     },
     {
@@ -1841,7 +1860,10 @@
         "Imports: os, typing.Optional",
         "S5-007: Defines DOCUMENTS_BASE_PATH configuration for container-compatible file persistence",
         "DOCUMENTS_BASE_PATH defaults to backend/data/contexts/cases",
-        "Configuration used by document_registry service for filesystem operations"
+        "Configuration used by document_registry service for filesystem operations",
+        "Defines IDIRS_BASE_URL configuration for IDIRS OpenSearch API base URL",
+        "Defines IDIRS_TIMEOUT configuration for IDIRS API request timeout",
+        "Defines RAG_CONFIDENCE_THRESHOLD configuration for RAG confidence scoring threshold"
       ]
     },
     {
@@ -1985,7 +2007,9 @@
         "Sprint 5: German translation file for S5-014 internationalization",
         "Contains translation keys for: common, workspace, chat, documents, folders, forms, metadata, validation, admin, case, caseTemplates, slashCommands, errors, success, language, login, formFields",
         "Provides German translations for all UI elements",
-        "Includes chat-specific translations for AI assistant, connection states, slash commands"
+        "Includes chat-specific translations for AI assistant, connection states, slash commands",
+        "IDIRS: Added documentSearch section with UI strings for hybrid search and RAG features",
+        "IDIRS: Added /Dokumentsuche and /Dokumente-abfragen command descriptions under slashCommands"
       ]
     },
     {
@@ -2838,6 +2862,86 @@
       "observations": [
         "Google Generative AI Python SDK",
         "Used for Gemini model access"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "entityType": "WorkspaceComponent",
+      "observations": [
+        "Dialog component for visualizing AI context injection hierarchy",
+        "Shows context cascade: Case \u2192 Folder \u2192 Document",
+        "Fetches case context from /api/context/case/{caseId} endpoint",
+        "Displays collapsible tree structure with expandable nodes",
+        "Shows regulations, required documents, common issues, validation rules from case context",
+        "Shows folder structure with documents from current case",
+        "Highlights active document when selected",
+        "Indicates text content extraction status for documents",
+        "Uses i18n for German/English translations",
+        "Implements context flow indicator showing precedence: Document > Folder > Case"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py",
+      "entityType": "APIRouter",
+      "observations": [
+        "IDIRS Proxy API for hybrid search and RAG queries",
+        "Exports FastAPI router with prefix /api/idirs",
+        "Defines POST /api/idirs/search endpoint for hybrid document search (BM25 + kNN)",
+        "Defines POST /api/idirs/rag endpoint for RAG query with AI confidence analysis",
+        "Uses httpx.AsyncClient for proxying requests to IDIRS OpenSearch API",
+        "Uses GeminiService singleton for AI-powered confidence analysis in RAG endpoint",
+        "Imports IDIRS_BASE_URL, IDIRS_TIMEOUT, RAG_CONFIDENCE_THRESHOLD from backend.config",
+        "Defines SearchRequest Pydantic model: query, entity_filters, doc_type_filter, top_k",
+        "Defines RagRequest Pydantic model: doc_ids, question, top_k, language",
+        "Proxies to external IDIRS service at configurable base URL (default localhost:8010)",
+        "RAG endpoint calculates confidence score from non-zero chunk scores",
+        "RAG endpoint uses RAG_CONFIDENCE_THRESHOLD to determine high/low confidence",
+        "RAG endpoint builds Gemini prompt with retrieved chunks, answer, and confidence score",
+        "Supports bilingual responses (de/en) in RAG analysis",
+        "Error handling: 504 for timeout, 503 for connection error, upstream status for HTTP errors",
+        "Uses logging module for warning on Gemini analysis failures",
+        "Falls back to raw RAG answer if Gemini analysis fails"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::POST_/api/idirs/search",
+      "entityType": "Endpoint",
+      "observations": [
+        "POST /api/idirs/search - Hybrid document search proxy to IDIRS OpenSearch",
+        "Accepts SearchRequest body with query, entity_filters, doc_type_filter, top_k",
+        "Proxies request to IDIRS /search endpoint via httpx.AsyncClient",
+        "Returns formatted search results with scores from IDIRS OpenSearch",
+        "Triggered by /Dokumentsuche slash command in frontend AIChatInterface"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::POST_/api/idirs/rag",
+      "entityType": "Endpoint",
+      "observations": [
+        "POST /api/idirs/rag - RAG query with Gemini AI confidence analysis",
+        "Accepts RagRequest body with doc_ids, question, top_k, language",
+        "Iterates over doc_ids calling IDIRS /rag endpoint for each document",
+        "Aggregates chunks and answers from all documents",
+        "Calculates confidence score from average of non-zero chunk scores",
+        "Uses GeminiService to generate structured analysis of RAG results",
+        "Returns analysis, confidence, is_high_confidence, disclaimer, doc_ids, chunk_count",
+        "Triggered by /Dokumente-abfragen slash command in frontend AIChatInterface"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::SearchRequest",
+      "entityType": "Model",
+      "observations": [
+        "Pydantic BaseModel for IDIRS search requests",
+        "Fields: query (str, required), entity_filters (Optional Dict), doc_type_filter (Optional str), top_k (int, default 5, range 1-50)"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::RagRequest",
+      "entityType": "Model",
+      "observations": [
+        "Pydantic BaseModel for IDIRS RAG requests",
+        "Fields: doc_ids (List[str], min_length 1), question (str, required), top_k (int, default 5, range 1-20), language (str, default 'de')"
       ]
     }
   ],
@@ -4621,6 +4725,121 @@
       "from_": "backend/services/translation_service.py::TranslationService",
       "to": "backend/services/translation_service.py::translate_email",
       "relationType": "defines_method"
+    },
+    {
+      "from_": "backend/api/validation.py",
+      "to": "backend/services/validation_service.py",
+      "relationType": "IMPORTS"
+    },
+    {
+      "from_": "backend/api/validation.py",
+      "to": "backend/main.py",
+      "relationType": "REGISTERED_IN"
+    },
+    {
+      "from_": "backend/services/validation_service.py",
+      "to": "backend/services/context_manager.py",
+      "relationType": "USES"
+    },
+    {
+      "from_": "backend/services/validation_service.py",
+      "to": "backend/services/document_registry.py",
+      "relationType": "USES"
+    },
+    {
+      "from_": "backend/services/validation_service.py",
+      "to": "google.generativeai",
+      "relationType": "USES"
+    },
+    {
+      "from_": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "USES"
+    },
+    {
+      "from_": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "backend/api/validation.py",
+      "relationType": "CALLS_API"
+    },
+    {
+      "from_": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx",
+      "relationType": "IMPORTS"
+    },
+    {
+      "from_": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "USES"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from_": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "useApp",
+      "relationType": "uses_hook"
+    },
+    {
+      "from_": "backend/api/idirs.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/api/idirs.py",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "imports"
+    },
+    {
+      "from_": "backend/main.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "registers_route"
+    },
+    {
+      "from_": "backend/api/idirs.py",
+      "to": "backend/api/idirs.py::POST_/api/idirs/search",
+      "relationType": "defines_endpoint"
+    },
+    {
+      "from_": "backend/api/idirs.py",
+      "to": "backend/api/idirs.py::POST_/api/idirs/rag",
+      "relationType": "defines_endpoint"
+    },
+    {
+      "from_": "backend/api/idirs.py",
+      "to": "backend/api/idirs.py::SearchRequest",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/idirs.py",
+      "to": "backend/api/idirs.py::RagRequest",
+      "relationType": "defines"
+    },
+    {
+      "from_": "backend/api/idirs.py::POST_/api/idirs/rag",
+      "to": "backend/services/gemini_service.py::GeminiService",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/idirs.py::POST_/api/idirs/search",
+      "relationType": "calls"
+    },
+    {
+      "from_": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/idirs.py::POST_/api/idirs/rag",
+      "relationType": "calls"
     }
   ]
 }

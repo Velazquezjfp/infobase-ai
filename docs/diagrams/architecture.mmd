@@ -4,6 +4,7 @@ flowchart TB
     %% External Services
     gemini["Google Gemini API<br/>gemini-2.5-flash<br/>Central AI Brain"]
     anon_ext["External Anonymization Service<br/>localhost:5000<br/>PII Detection"]
+    idirs_ext["IDIRS OpenSearch API<br/>localhost:8010<br/>Hybrid Search &amp; RAG"]
 
     %% Frontend Layer
     subgraph frontend["Frontend Layer - React 18 + TypeScript SPA"]
@@ -11,7 +12,7 @@ flowchart TB
         appctx["App Context<br/>Global State + WebSocket Mgmt"]
 
         subgraph ui_main["Main Workspace Components"]
-            chat["Chat Interface<br/>Streaming, Slash Commands,<br/>Context Modification"]
+            chat["Chat Interface<br/>Streaming, Slash Commands,<br/>Context Modification,<br/>/Dokumentsuche, /Dokumente-abfragen"]
             explorer["File Explorer<br/>Document Tree, Drag-Drop,<br/>Upload, Renders"]
             viewer["Document Viewer<br/>PDF, Text, Images, Emails,<br/>Semantic Search"]
             formview["Form Viewer<br/>AI Auto-fill, SHACL Validation,<br/>NL Form Modification"]
@@ -35,6 +36,7 @@ flowchart TB
         validapi["Validation API<br/>/api/validation"]
         contextapi["Context API<br/>/api/context"]
         customctxapi["Custom Context API<br/>/api/custom-context"]
+        idirsapi["IDIRS API<br/>POST /api/idirs/search<br/>POST /api/idirs/rag"]
     end
 
     %% Backend Services Layer
@@ -42,7 +44,7 @@ flowchart TB
         direction TB
 
         subgraph ai_services["AI-Powered Services"]
-            gemini_svc["Gemini Service<br/>Chat, Analysis, Extraction,<br/>Search, Translation"]
+            gemini_svc["Gemini Service<br/>Chat, Analysis, Extraction,<br/>Search, Translation,<br/>RAG Confidence Scoring"]
             validation_svc["Validation Service<br/>Case Scoring + Warnings"]
             shacl_gen["SHACL Generator<br/>NL Form Modification,<br/>Shape Generation"]
             field_gen["Field Generator<br/>NLP Field Creation"]
@@ -75,6 +77,8 @@ flowchart TB
 
     %% Frontend to API connections
     chat -->|WebSocket| chatapi
+    chat -->|"REST /Dokumentsuche"| idirsapi
+    chat -->|"REST /Dokumente-abfragen"| idirsapi
     explorer -->|HTTP| filesapi
     explorer -->|HTTP| docsapi
     viewer -->|HTTP| searchapi
@@ -112,6 +116,9 @@ flowchart TB
 
     customctxapi --> context_mgr
 
+    idirsapi -->|Confidence Analysis| gemini_svc
+    idirsapi -->|HTTP Proxy| idirs_ext
+
     %% Services internal connections
     gemini_svc --> context_mgr
     validation_svc --> gemini_svc
@@ -145,7 +152,7 @@ flowchart TB
     classDef external_style fill:#ffebee,stroke:#c62828,stroke-width:3px,color:#000
 
     class chat,explorer,viewer,formview,admin,contextdlg,submitdlg,appctx frontend_style
-    class chatapi,adminapi,filesapi,docsapi,searchapi,validapi,contextapi,customctxapi api_style
+    class chatapi,adminapi,filesapi,docsapi,searchapi,validapi,contextapi,customctxapi,idirsapi api_style
     class gemini_svc,validation_svc,shacl_gen,field_gen,context_mgr,translation_svc,anon_svc,conv_mgr,email_svc,pdf_svc,file_svc,doc_registry service_style
     class case_data,templates,manifest,docs_files,schemas storage_style
-    class gemini,anon_ext external_style
+    class gemini,anon_ext,idirs_ext external_style

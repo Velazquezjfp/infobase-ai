@@ -115,6 +115,15 @@ DOCUMENTS_BASE_PATH: str = get_documents_path()
 
 
 # ============================================================================
+# IDIRS API Configuration (Hybrid Search & RAG)
+# ============================================================================
+
+IDIRS_BASE_URL: str = os.getenv('IDIRS_BASE_URL', 'http://localhost:8010')
+IDIRS_TIMEOUT: int = get_int_env('IDIRS_TIMEOUT', 30)
+RAG_CONFIDENCE_THRESHOLD: float = get_float_env('RAG_CONFIDENCE_THRESHOLD', 0.80)
+
+
+# ============================================================================
 # Logging Configuration
 # ============================================================================
 

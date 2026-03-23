@@ -387,7 +387,27 @@
     "extractMetadata": "Extract metadata",
     "generateEmail": "Generate email",
     "addDocument": "Add document",
-    "convert": "Convert document"
+    "convert": "Convert document",
+    "dokumentsuche": "Hybrid document search with entity filters",
+    "dokumenteAbfragen": "Query documents with RAG"
+  },
+  "documentSearch": {
+    "noResults": "No results found",
+    "resultsFound": "{{count}} result(s) found",
+    "docName": "Document Name",
+    "docType": "Type",
+    "docId": "Document ID",
+    "score": "Relevance",
+    "highConfidence": "The answer is well-supported by document evidence.",
+    "lowConfidence": "The answer is uncertain. Manual document review is recommended.",
+    "confidence": "Confidence",
+    "chunks": "Chunks",
+    "searchError": "Document search error",
+    "ragError": "Document query error",
+    "searching": "Searching documents...",
+    "querying": "Querying documents...",
+    "searchPlaceholder": "e.g. referenznummer=AKTE-2024-001 \"search query\"",
+    "ragPlaceholder": "e.g. docId1 docId2 \"your question\""
   },
   "errors": {
     "generic": "An error occurred",
