@@ -6,3 +6,11 @@
 
 #Node modules
 node_modules/
+
+#More filters
+backend/venv/ 
+**/__pycache__/
+*.pyc
+*.so
+temp/
+dist/

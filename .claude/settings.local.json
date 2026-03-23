@@ -63,7 +63,17 @@
       "Skill(update-docs-apis)",
       "mcp__knowledge-graph-custom-path__advanced_search",
       "WebFetch(domain:localhost)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(xargs:*)",
+      "Bash(sort:*)",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion log --all --full-history -- \"*/.env\" \"**/.env\" \".env\" \"backend/.env\")",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion show c37bf5f208ccf5ccf1b627f2227c895e994744c6:backend/.env)",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion log --all --full-history --pretty=format:\"%H %s\")",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion log --all --oneline --source --all -S \"AIzaSyA25jr2EC9eaQtUs50OHleoz69B7ULh1ZU\")",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion log --all --oneline --source --all -S \"2b5e151428aed2a6aff7158846cf4f2c\")",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion show 34866ae6:backend/.env)",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion show 136c7ac4:backend/.env)",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion reflog --all)"
     ]
   }
 }
