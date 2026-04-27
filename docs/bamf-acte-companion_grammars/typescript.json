@@ -1,0 +1,67 @@
+{
+  "language": "typescript",
+  "version": "5.8",
+  "project": "bamf-acte-companion",
+  "generated_at": "2026-04-27T00:00:00Z",
+  "last_updated": "2026-04-27T00:00:00Z",
+  "generator_version": "2.0",
+  "file_extensions": [".ts", ".tsx"],
+  "file_count": 96,
+  "frameworks": [
+    { "name": "@tanstack/react-query", "version": "5.83.0", "context7_status": "unavailable" },
+    { "name": "@vitejs/plugin-react-swc", "version": "3.11.0", "context7_status": "unavailable" },
+    { "name": "i18next", "version": "25.7.4", "context7_status": "unavailable" },
+    { "name": "lucide-react", "version": "0.462.0", "context7_status": "unavailable" },
+    { "name": "react", "version": "18.3.1", "context7_status": "fetched" },
+    { "name": "react-hook-form", "version": "7.61.1", "context7_status": "unavailable" },
+    { "name": "react-i18next", "version": "16.5.2", "context7_status": "unavailable" },
+    { "name": "react-router-dom", "version": "6.30.1", "context7_status": "fetched" },
+    { "name": "shadcn-ui", "version": "latest", "context7_status": "unavailable" },
+    { "name": "vite", "version": "5.4.19", "context7_status": "unavailable" },
+    { "name": "zod", "version": "3.25.76", "context7_status": "fetched" }
+  ],
+  "patterns": {
+    "api_calls": [
+      "(?:fetch|axios\\.(?:get|post|put|delete|patch))\\(\\s*['\"`]([^'\"` ]+)['\"`]",
+      "(?:get|post|put|delete|patch)\\(\\s*['\"`]([^'\"` ]+)['\"`]"
+    ],
+    "classes": [
+      "^\\s*(?:export\\s+)?(?:abstract\\s+)?class\\s+(\\w+)"
+    ],
+    "enums": [
+      "^\\s*(?:export\\s+)?(?:const\\s+)?enum\\s+(\\w+)"
+    ],
+    "functions": [
+      "^\\s*(?:export\\s+)?(?:async\\s+)?function\\s+(\\w+)\\s*[\\(<]",
+      "^\\s*(?:export\\s+)?const\\s+(\\w+)\\s*=\\s*(?:async\\s+)?\\(",
+      "^\\s*(?:export\\s+)?const\\s+(\\w+)\\s*=\\s*(?:async\\s+)?(?:[\\w<,\\s]+)\\s*=>"
+    ],
+    "hooks": [
+      "^\\s*(?:export\\s+)?(?:const\\s+)?function\\s+(use[A-Z]\\w+)\\s*[\\(<]",
+      "^\\s*(?:export\\s+)?const\\s+(use[A-Z]\\w+)\\s*=\\s*(?:async\\s+)?\\("
+    ],
+    "imports": [
+      "^\\s*import\\s+(?:type\\s+)?(?:\\{[^}]*\\}|\\*\\s+as\\s+\\w+|\\w+)\\s+from\\s+['\"]([^'\"]+)['\"]",
+      "^\\s*import\\s+['\"]([^'\"]+)['\"]"
+    ],
+    "interfaces": [
+      "^\\s*(?:export\\s+)?interface\\s+(\\w+)"
+    ],
+    "react_components": [
+      "^\\s*(?:export\\s+(?:default\\s+)?)?(?:const|function)\\s+([A-Z]\\w+)\\s*(?:=\\s*(?:React\\.)?(?:memo\\s*\\()?(?:forwardRef\\s*\\()?(?:async\\s+)?(?:\\(|React\\.FC)|[\\(<])",
+      "^\\s*(?:export\\s+)?const\\s+([A-Z]\\w+)\\s*:\\s*React\\.(?:FC|ComponentType|ReactNode|ReactElement)"
+    ],
+    "react_routes": [
+      "<Route\\s+[^>]*path=['\"]([^'\"]+)['\"]",
+      "<Route\\s+[^>]*to=['\"]([^'\"]+)['\"]"
+    ],
+    "type_definitions": [
+      "^\\s*(?:export\\s+)?type\\s+(\\w+)\\s*(?:=|<)"
+    ],
+    "zod_schemas": [
+      "^\\s*(?:export\\s+)?const\\s+(\\w+)\\s*=\\s*z\\.",
+      "^\\s*(?:export\\s+)?const\\s+(\\w+Schema)\\s*="
+    ]
+  },
+  "notes": "TypeScript 5.8 with React 18.3.1 (TSX). Vite 5 + SWC plugin, no Webpack. React Router v6 (BrowserRouter + Routes + Route) — v6 uses element prop not component/render props. Zod v3 schema pattern covers z.object(), z.string(), etc. shadcn/ui components are Radix UI wrappers (no custom patterns beyond React component conventions). react-hook-form v7 uses useForm hook — covered by hooks pattern. i18next/react-i18next use hook useTranslation — covered by hooks pattern. TanStack Query v5 uses useQuery/useMutation hooks. Component naming convention: PascalCase function or const exports detected by react_components group."
+}

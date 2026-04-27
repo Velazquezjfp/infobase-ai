@@ -1,0 +1,46 @@
+{
+  "language": "python",
+  "version": "3.12",
+  "project": "bamf-acte-companion",
+  "generated_at": "2026-04-27T00:00:00Z",
+  "last_updated": "2026-04-27T00:00:00Z",
+  "generator_version": "2.0",
+  "file_extensions": [".py"],
+  "file_count": 352,
+  "frameworks": [
+    { "name": "fastapi", "version": "0.104.1", "context7_status": "fetched" },
+    { "name": "google-generativeai", "version": "0.3.1", "context7_status": "unavailable" },
+    { "name": "pydantic", "version": "2.5.2", "context7_status": "fetched" },
+    { "name": "uvicorn", "version": "0.24.0", "context7_status": "unavailable" },
+    { "name": "websockets", "version": "12.0", "context7_status": "unavailable" }
+  ],
+  "patterns": {
+    "api_endpoints": [
+      "@(?:app|router)\\.(get|post|put|delete|patch|head|options)\\(\\s*['\"]([^'\"]+)['\"]",
+      "@(?:app|router)\\.websocket\\(\\s*['\"]([^'\"]+)['\"]"
+    ],
+    "classes": [
+      "^\\s*class\\s+(\\w+)\\s*[\\(:]"
+    ],
+    "decorators": [
+      "^\\s*@([\\w\\.]+)(?:\\(|$)"
+    ],
+    "functions": [
+      "^\\s*def\\s+(\\w+)\\s*\\(",
+      "^\\s*async\\s+def\\s+(\\w+)\\s*\\("
+    ],
+    "imports": [
+      "^\\s*from\\s+([\\w\\.]+)\\s+import",
+      "^\\s*import\\s+([\\w\\.]+)"
+    ],
+    "pydantic_models": [
+      "^\\s*class\\s+(\\w+)\\s*\\(\\s*BaseModel\\s*\\)\\s*:",
+      "^\\s*class\\s+(\\w+)\\s*\\(\\s*[\\w\\.]*BaseModel\\s*\\)\\s*:"
+    ],
+    "type_aliases": [
+      "^\\s*(\\w+)\\s*:\\s*TypeAlias\\s*=",
+      "^\\s*(\\w+)\\s*=\\s*Annotated\\["
+    ]
+  },
+  "notes": "Runtime detected from system Python (3.12.3). FastAPI 0.104.1 uses APIRouter with @router.get/post/put/delete/patch/head/options/websocket decorators and app.include_router() registration — no @app.route() (Flask-style). Pydantic v2: BaseModel inheritance unchanged from v1 at class-definition level but internal validation uses model_validator/field_validator (v2 decorators). google-generativeai and websockets not well-indexed in Context7 — patterns use standard Python constructs only. WebSocket endpoint pattern added for chat.py router."
+}

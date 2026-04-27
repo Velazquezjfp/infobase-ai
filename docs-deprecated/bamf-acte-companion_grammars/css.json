@@ -1,0 +1,38 @@
+{
+  "language": "css",
+  "version": "3",
+  "project": "bamf-acte-companion",
+  "generated_at": "2026-04-24T00:00:00Z",
+  "last_updated": "2026-04-24T00:00:00Z",
+  "generator_version": "2.0",
+  "file_extensions": [".css"],
+  "file_count": 1,
+  "frameworks": [
+    { "name": "tailwindcss", "version": "3.4.17", "context7_status": "fetched" }
+  ],
+  "patterns": {
+    "at_rules": [
+      "^\\s*@(tailwind|apply|layer|screen|variants|responsive|theme|config)\\b",
+      "^\\s*@(keyframes|media|supports|import|charset|font-face)\\b"
+    ],
+    "css_custom_properties": [
+      "^\\s*(--[\\w-]+)\\s*:",
+      "var\\s*\\(\\s*(--[\\w-]+)\\s*(?:,\\s*[^)]+)?\\)"
+    ],
+    "css_selectors": [
+      "^\\s*(\\.[\\.\\w\\-\\[\\]:#(), >+~*\"'=^$|]+)\\s*\\{",
+      "^\\s*(#[\\w-]+)\\s*\\{",
+      "^\\s*([a-z][\\w-]*)(?:[\\s,>+~]|:{1,2}[\\w-]+|\\[|$).*\\{"
+    ],
+    "tailwind_directives": [
+      "^\\s*@tailwind\\s+(base|components|utilities|variants)\\s*;",
+      "^\\s*@layer\\s+(base|components|utilities)\\s*\\{",
+      "^\\s*@apply\\s+([\\w\\s-:[\\/\\]()]+)\\s*;"
+    ],
+    "theme_extensions": [
+      "^\\s*@layer\\s+base\\s*\\{",
+      ":root\\s*\\{[^}]*--[\\w-]+\\s*:[^}]+\\}"
+    ]
+  },
+  "notes": "Single CSS file (src/index.css, 212 lines) acts as Tailwind entry point with @tailwind base/components/utilities directives plus CSS custom properties for shadcn/ui design tokens. Tailwind 3.4 uses PostCSS for processing. No CSS modules or CSS-in-JS detected — utility classes are applied directly in TSX via className."
+}

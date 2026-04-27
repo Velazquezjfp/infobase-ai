@@ -1,0 +1,44 @@
+{
+  "language": "turtle",
+  "version": "1.1",
+  "project": "bamf-acte-companion",
+  "generated_at": "2026-04-27T00:00:00Z",
+  "last_updated": "2026-04-27T00:00:00Z",
+  "generator_version": "2.0",
+  "file_extensions": [".ttl"],
+  "file_count": 2,
+  "frameworks": [
+    { "name": "shacl", "version": "W3C-2017", "context7_status": "unavailable" },
+    { "name": "owl", "version": "2", "context7_status": "unavailable" }
+  ],
+  "patterns": {
+    "datatype_declarations": [
+      "sh:datatype\\s+(xsd:\\w+|<[^>]+>)"
+    ],
+    "imports": [
+      "^@prefix\\s+(\\w+):\\s+<([^>]+)>",
+      "^@base\\s+<([^>]+)>"
+    ],
+    "node_shapes": [
+      "(\\w+:\\w+)\\s+a\\s+sh:NodeShape",
+      "(\\w+:\\w+)\\s+(?:a|rdf:type)\\s+owl:Class",
+      "(\\w+:\\w+)\\s+(?:a|rdf:type)\\s+rdfs:Class"
+    ],
+    "ontology_declarations": [
+      "(\\w+:\\w+)\\s+a\\s+owl:Ontology"
+    ],
+    "prefixes": [
+      "^@prefix\\s+([\\w-]*):\\s+<[^>]+>\\s*\\."
+    ],
+    "property_declarations": [
+      "(\\w+:\\w+)\\s+a\\s+owl:(?:ObjectProperty|DatatypeProperty|AnnotationProperty)",
+      "(\\w+:\\w+)\\s+a\\s+rdf:Property",
+      "sh:path\\s+(\\w+:\\w+)"
+    ],
+    "property_shapes": [
+      "(\\w+:\\w+)\\s+a\\s+sh:PropertyShape",
+      "sh:property\\s+(\\w+:\\w+)"
+    ]
+  },
+  "notes": "Two Turtle files: an OWL ontology (integration_course_ontology.ttl) and a SHACL shapes file (integration_course_shacl.ttl). SHACL W3C 2017 spec — shapes use sh:NodeShape, sh:PropertyShape, sh:targetClass, sh:path, sh:datatype, sh:pattern, sh:minCount/maxCount. OWL 2 ontology uses owl:Class, owl:ObjectProperty, owl:DatatypeProperty. Prefix pattern allows empty local name (default prefix @prefix :). No SPARQL or JSON-LD files detected — those would warrant separate grammar files."
+}

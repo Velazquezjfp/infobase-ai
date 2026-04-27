@@ -1,0 +1,38 @@
+{
+  "language": "css",
+  "version": "3",
+  "project": "bamf-acte-companion",
+  "generated_at": "2026-04-27T00:00:00Z",
+  "last_updated": "2026-04-27T00:00:00Z",
+  "generator_version": "2.0",
+  "file_extensions": [".css"],
+  "file_count": 1,
+  "frameworks": [
+    { "name": "tailwindcss", "version": "3.4.17", "context7_status": "fetched" },
+    { "name": "postcss", "version": "8.5.6", "context7_status": "unavailable" },
+    { "name": "@tailwindcss/typography", "version": "0.5.16", "context7_status": "unavailable" }
+  ],
+  "patterns": {
+    "css_custom_properties": [
+      "(--[\\w-]+)\\s*:"
+    ],
+    "css_rules": [
+      "^\\s*([\\w.:#\\[\\]>~+*\\-,\\s@][^{]*)\\{"
+    ],
+    "keyframes": [
+      "^\\s*@keyframes\\s+(\\w[\\w-]*)"
+    ],
+    "layer_blocks": [
+      "^\\s*@layer\\s+([\\w-]+(?:\\s*,\\s*[\\w-]+)*)"
+    ],
+    "media_queries": [
+      "^\\s*@media\\s+([^{]+)\\{"
+    ],
+    "tailwind_directives": [
+      "^\\s*@tailwind\\s+(base|components|utilities|screens)",
+      "^\\s*@apply\\s+([\\w\\s:\\[\\]!/-]+);",
+      "^\\s*@layer\\s+(base|components|utilities)\\s*\\{"
+    ]
+  },
+  "notes": "Single CSS entry point (src/index.css). Tailwind v3 directives: @tailwind base/components/utilities, @layer base/components/utilities, @apply. CSS custom properties (HSL design tokens) used extensively for shadcn/ui theming. The @apply pattern character class uses literal / and - positioned safely (not as range endpoints) — verified clean under Python re.compile. postcss.config.js present for autoprefixer integration."
+}

@@ -1,0 +1,92 @@
+{
+  "language": "typescript",
+  "version": "5.8",
+  "project": "bamf-acte-companion",
+  "generated_at": "2026-04-24T00:00:00Z",
+  "last_updated": "2026-04-24T00:00:00Z",
+  "generator_version": "2.0",
+  "file_extensions": [".ts", ".tsx"],
+  "file_count": 97,
+  "frameworks": [
+    { "name": "i18next", "version": "25.7.4", "context7_status": "fetched" },
+    { "name": "lucide-react", "version": "0.462.0", "context7_status": "fetched" },
+    { "name": "radix-ui", "version": "various", "context7_status": "fetched" },
+    { "name": "react", "version": "18.3.1", "context7_status": "fetched" },
+    { "name": "react-hook-form", "version": "7.61.1", "context7_status": "fetched" },
+    { "name": "react-i18next", "version": "16.5.2", "context7_status": "fetched" },
+    { "name": "react-router-dom", "version": "6.30.1", "context7_status": "fetched" },
+    { "name": "shadcn-ui", "version": "latest", "context7_status": "fetched" },
+    { "name": "tailwindcss", "version": "3.4.17", "context7_status": "fetched" },
+    { "name": "tanstack-query", "version": "5.83.0", "context7_status": "fetched" },
+    { "name": "vite", "version": "5.4.19", "context7_status": "fetched" },
+    { "name": "zod", "version": "3.25.76", "context7_status": "fetched" }
+  ],
+  "patterns": {
+    "classes": [
+      "^\\s*(?:export\\s+)?(?:abstract\\s+)?class\\s+(\\w+)(?:\\s+extends\\s+[\\w<>, ]+)?(?:\\s+implements\\s+[\\w<>, ]+)?\\s*\\{",
+      "^\\s*(?:export\\s+default\\s+)?class\\s+(\\w+)"
+    ],
+    "context_providers": [
+      "^\\s*(?:export\\s+)?const\\s+(\\w+Context)\\s*=\\s*(?:React\\.)?createContext",
+      "^\\s*(?:export\\s+)?(?:function|const)\\s+(\\w+Provider)\\s*[:(]"
+    ],
+    "custom_hooks": [
+      "^\\s*(?:export\\s+)?(?:function|const)\\s+(use[A-Z]\\w*)\\s*[=:(]",
+      "^\\s*export\\s+(?:function|const)\\s+(use[A-Z]\\w*)"
+    ],
+    "enums": [
+      "^\\s*(?:export\\s+)?(?:const\\s+)?enum\\s+(\\w+)\\s*\\{",
+      "^\\s*export\\s+const\\s+enum\\s+(\\w+)"
+    ],
+    "functions": [
+      "^\\s*(?:export\\s+)?(?:async\\s+)?function\\s+(\\w+)\\s*(?:<[^>]+>)?\\s*\\(",
+      "^\\s*(?:export\\s+)?(?:export\\s+default\\s+)?(?:async\\s+)?function\\s+(\\w+)",
+      "^\\s*(?:export\\s+)?const\\s+(\\w+)\\s*=\\s*(?:async\\s+)?(?:<[^>]+>\\s*)?\\([^)]*\\)\\s*(?::\\s*[\\w<>\\[\\]|\\s]+)?\\s*=>"
+    ],
+    "i18n_hooks": [
+      "const\\s*\\{\\s*t(?:\\s*,\\s*i18n)?\\s*\\}\\s*=\\s*useTranslation\\s*\\(",
+      "useTranslation\\(['\"]([\\w-]+)['\"]\\)"
+    ],
+    "imports": [
+      "^\\s*import\\s+(?:type\\s+)?(?:\\{[^}]+\\}|\\*\\s+as\\s+\\w+|\\w+)(?:\\s*,\\s*(?:\\{[^}]+\\}|\\*\\s+as\\s+\\w+|\\w+))*\\s+from\\s+['\"]([^'\"]+)['\"]",
+      "^\\s*import\\s+['\"]([^'\"]+)['\"]"
+    ],
+    "interfaces": [
+      "^\\s*(?:export\\s+)?interface\\s+(\\w+)(?:\\s+extends\\s+[\\w<>, ]+)?\\s*\\{",
+      "^\\s*export\\s+default\\s+interface\\s+(\\w+)"
+    ],
+    "react_components": [
+      "^\\s*(?:export\\s+)?(?:default\\s+)?(?:function|const)\\s+([A-Z]\\w*)\\s*(?:=\\s*(?:React\\.)?(?:memo|forwardRef)\\s*\\(\\s*)?(?:<[^>]*>\\s*)?\\([^)]*(?::\\s*[\\w<>\\[\\]|\\s]+)?\\)(?:\\s*:\\s*(?:JSX\\.Element|React\\.(?:FC|ReactNode|ReactElement)[^{]*))?",
+      "^\\s*export\\s+default\\s+(?:function\\s+)?([A-Z]\\w*)",
+      "^\\s*const\\s+([A-Z]\\w*)\\s*(?::\\s*React\\.FC(?:<[^>]+>)?\\s*)?=\\s*(?:\\([^)]*\\)|[^=]+)\\s*=>"
+    ],
+    "react_hooks": [
+      "\\b(use(?:State|Effect|Context|Reducer|Callback|Memo|Ref|ImperativeHandle|LayoutEffect|DebugValue|Transition|DeferredValue|Id|SyncExternalStore))\\s*\\(",
+      "const\\s+\\[([\\w,\\s]+)\\]\\s*=\\s*useState\\s*[<(]"
+    ],
+    "react_query_hooks": [
+      "\\b(useQuery|useMutation|useQueryClient|useInfiniteQuery|useSuspenseQuery)\\s*[<(]",
+      "const\\s+(?:\\{[^}]+\\}|\\w+)\\s*=\\s*useQuery\\s*[<(]"
+    ],
+    "react_router_patterns": [
+      "<Route(?:\\s+[^>]*)\\s+path=['\"]([^'\"]+)['\"]",
+      "<Route(?:\\s+[^>]*)\\s+element=\\{",
+      "useNavigate\\s*\\(\\s*\\)",
+      "useParams\\s*(?:<[^>]+>)?\\s*\\(\\s*\\)"
+    ],
+    "shadcn_component_variants": [
+      "const\\s+(\\w+Variants)\\s*=\\s*cva\\s*\\(",
+      "cva\\(['\"`]([^'\"`]+)['\"`]"
+    ],
+    "type_aliases": [
+      "^\\s*(?:export\\s+)?type\\s+(\\w+)(?:\\s*<[^>]+>)?\\s*=",
+      "^\\s*export\\s+type\\s+(\\w+)"
+    ],
+    "zod_schemas": [
+      "^\\s*(?:export\\s+)?const\\s+(\\w+(?:Schema|Shape|Validator)?)\\s*=\\s*z\\.",
+      "const\\s+(\\w+)\\s*=\\s*z\\.object\\s*\\(",
+      "const\\s+(\\w+)\\s*=\\s*z\\.(?:string|number|boolean|array|union|discriminatedUnion|enum|record|tuple)\\s*[<(]"
+    ]
+  },
+  "notes": "TypeScript 5.8 targeting ES2020 with React JSX transform (react-jsx). tsx: 78 files, ts (non-declaration): 17 files, root-level ts configs: 2 = 97 total. React 18.3 with hooks API — no class component patterns needed. shadcn/ui components use cva() from class-variance-authority with Radix UI primitives. TanStack Query v5 API confirmed (useQuery/useMutation signature changed from v4). React Router v6 declarative <Routes>/<Route> pattern confirmed in App.tsx. react-i18next useTranslation hook confirmed. Vite 5 + @vitejs/plugin-react-swc confirmed in vite.config.ts. No next.js — this is a pure Vite SPA."
+}

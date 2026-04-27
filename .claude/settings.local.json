@@ -73,7 +73,12 @@
       "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion log --all --oneline --source --all -S \"2b5e151428aed2a6aff7158846cf4f2c\")",
       "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion show 34866ae6:backend/.env)",
       "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion show 136c7ac4:backend/.env)",
-      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion reflog --all)"
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion reflog --all)",
+      "Read(//tmp/**)",
+      "Bash(awk -F/ '{print $1}' /tmp/files_to_scan.txt)",
+      "Bash(awk -F/ '{print $1\"/\"$2}')",
+      "Bash(awk -F. '{print $NF}' /tmp/files_to_scan.txt)",
+      "mcp__knowledge-graph-custom-path__delete_entities"
     ]
   }
 }

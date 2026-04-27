@@ -1,0 +1,78 @@
+{
+  "language": "python",
+  "version": "3.12",
+  "project": "bamf-acte-companion",
+  "generated_at": "2026-04-24T00:00:00Z",
+  "last_updated": "2026-04-24T00:00:00Z",
+  "generator_version": "2.0",
+  "file_extensions": [".py"],
+  "file_count": 57,
+  "frameworks": [
+    { "name": "aiohttp", "version": "3.9.1", "context7_status": "fetched" },
+    { "name": "beautifulsoup4", "version": "4.14.3", "context7_status": "fetched" },
+    { "name": "fastapi", "version": "0.104.1", "context7_status": "fetched" },
+    { "name": "google-generativeai", "version": "0.3.1", "context7_status": "fetched" },
+    { "name": "httpx", "version": "0.28.1", "context7_status": "fetched" },
+    { "name": "pdfplumber", "version": "0.11.0", "context7_status": "fetched" },
+    { "name": "pillow", "version": "10.2.0", "context7_status": "fetched" },
+    { "name": "pydantic", "version": "2.5.2", "context7_status": "fetched" },
+    { "name": "uvicorn", "version": "0.24.0", "context7_status": "fetched" },
+    { "name": "websockets", "version": "12.0", "context7_status": "fetched" }
+  ],
+  "patterns": {
+    "api_endpoints": [
+      "@(?:app|router)\\.(delete|get|patch|post|put|websocket)\\(['\"]([^'\"]+)['\"]",
+      "@(?:app|router)\\.(delete|get|patch|post|put|websocket)\\(['\"]([^'\"]+)['\"][^)]*\\)"
+    ],
+    "async_functions": [
+      "^\\s*async\\s+def\\s+(\\w+)\\s*\\(",
+      "^\\s*async\\s+def\\s+(\\w+)\\s*\\([^)]*\\)\\s*->\\s*[\\w\\[\\]\\s,|None]+"
+    ],
+    "classes": [
+      "^\\s*class\\s+(\\w+)\\s*(?:\\(([^)]+)\\))?\\s*:",
+      "^\\s*class\\s+(\\w+)\\s*:"
+    ],
+    "decorators": [
+      "^\\s*@(\\w+(?:\\.\\w+)*)(?:\\(.*\\))?$",
+      "^\\s*@(app|router)\\.(delete|get|patch|post|put|websocket)\\("
+    ],
+    "fastapi_dependencies": [
+      "=\\s*Depends\\(([^)]+)\\)",
+      ":\\s*([\\w]+)\\s*=\\s*Depends\\("
+    ],
+    "fastapi_router_declarations": [
+      "^\\s*(\\w+)\\s*=\\s*APIRouter\\s*\\(",
+      "app\\.include_router\\s*\\(\\s*(\\w+)"
+    ],
+    "functions": [
+      "^\\s*def\\s+(\\w+)\\s*\\(",
+      "^\\s*def\\s+(\\w+)\\s*\\([^)]*\\)\\s*->\\s*[\\w\\[\\]\\s,|None]+"
+    ],
+    "imports": [
+      "^\\s*from\\s+([\\w.]+)\\s+import\\s+(.+)",
+      "^\\s*import\\s+([\\w.]+)(?:\\s+as\\s+(\\w+))?"
+    ],
+    "lifespan_context_managers": [
+      "@asynccontextmanager\\s*\\n\\s*async\\s+def\\s+(\\w+)",
+      "^\\s*@asynccontextmanager"
+    ],
+    "pydantic_models": [
+      "^\\s*class\\s+(\\w+)\\s*\\(\\s*BaseModel\\s*\\)\\s*:",
+      "^\\s*class\\s+(\\w+)\\s*\\([^)]*BaseModel[^)]*\\)\\s*:",
+      "^\\s*(\\w+)\\s*:\\s*[\\w\\[\\]|]+\\s*=\\s*Field\\s*\\("
+    ],
+    "pydantic_validators": [
+      "@(?:field_validator|model_validator)\\s*\\(",
+      "@field_validator\\(['\"]([^'\"]+)['\"]"
+    ],
+    "type_annotations": [
+      "^\\s*(\\w+)\\s*:\\s*([\\w\\[\\]|,\\s]+)(?:\\s*=.+)?$",
+      "->\\s*([\\w\\[\\]|,\\s]+)\\s*:"
+    ],
+    "websocket_endpoints": [
+      "@(?:app|router)\\.websocket\\(['\"]([^'\"]+)['\"]",
+      "async\\s+def\\s+(\\w+)\\s*\\([^)]*WebSocket[^)]*\\)"
+    ]
+  },
+  "notes": "FastAPI 0.104.1 with Pydantic v2 — uses @router.get/post/etc decorators and APIRouter(prefix=...). Pydantic v2 uses model_validator/field_validator (not @validator). WebSocket endpoints confirmed in backend/api/chat.py. Python 3.12 confirmed via mypy cache and runtime. Dataclasses also present (backend/models/regulation.py uses @dataclass, not BaseModel). async def lifespan with @asynccontextmanager confirmed in main.py. File count excludes venv and pycache: 48 backend source files + 4 root-level temp test files + 5 root-level py files = 57 total project-owned .py files."
+}
