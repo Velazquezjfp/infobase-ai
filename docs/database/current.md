@@ -22,19 +22,35 @@ The graph confirms: 0 `table` entities, 0 ORM imports (no SQLAlchemy / Django / 
 > - **S001-NFR-001** added `backend/Dockerfile` and `.dockerignore`. No data store schema changes; affects what is COPYed into the image.
 > - **S001-NFR-002** added `frontend/Dockerfile` (two-stage build). No data store schema changes.
 > - **S001-NFR-004** added the `litellm/` subproject (gitignored — entire directory excluded from version control). It introduces three env vars that live exclusively in `litellm/.env`: `LITELLM_MASTER_KEY`, `LITELLM_OLLAMA_HOST`, `LITELLM_OLLAMA_MODEL`. None of these are consumed by the Python codebase directly; they are read by the LiteLLM proxy container. They do not appear in the code-graph because `litellm/` is gitignored.
+>
+> **Wave 3 note (2026-04-28):** _No schema changes._
+>
+> - **S001-F-004** added three runtime feature-flag constants in `backend/config.py` (`ENABLE_ANONYMIZATION` line 168, `ENABLE_DOCUMENT_SEARCH` line 172, `ENABLE_UPLOAD` line 176; all default `False` via `get_bool_env`). The first one gates `backend/api/chat.py::handle_anonymization` (sends `error: "feature_disabled"` over the WebSocket when off) and `backend/services/anonymization_service.py::check_service_health` (returns `{"status": "disabled"}` without making the outbound HTTP probe). `GET /api/chat/health` now surfaces the flag as `"anonymization": "enabled"|"disabled"`. New i18n key `anonymization.notImplemented` was added to `src/i18n/locales/{de,en}.json`. None of this touches persistent state.
+> - **S001-NFR-003** added `docker-compose.yml` at the project root (Compose v3.9). It is the new authoritative definition of how the existing JSON stores and document blob storage are mounted in containers — see the **Docker Build & Volume Summary** section below for the named-volume mapping. Adds `## Quickstart` to `README.md`. No schema changes.
 
 ---
 
-## Docker Build & Volume Summary (Critical for Dockerfile)
+## Docker Build & Volume Summary (Critical for Dockerfile / Compose)
+
+### Named volumes declared in `docker-compose.yml` (S001-NFR-003)
+
+| Compose volume | Container mount | Service | Backing store |
+|---|---|---|---|
+| `documents-data` | `/var/app/documents` | backend | Document blob storage (uploaded files + renders) |
+| `cases-data` | `/app/backend/data/contexts/cases` | backend | Per-case JSON: `case.json`, `folder_config.json`, `custom_rules.json`, folder context files |
+| `manifest-data` | `/app/backend/data` | backend | `document_manifest.json` (and any future bare-`data/` siblings) |
+| `ollama-data` | (Ollama container) | ollama (profile-gated) | Not app data — LiteLLM proxy upstream model cache |
+
+The compose file gates the Ollama service behind `profiles: ["ollama"]`, so default `docker compose up -d` brings up only `backend` + `frontend`. Frontend waits on `backend.condition: service_healthy` before starting.
 
 ### Paths the container needs
 
 | Container path | Host source (build context) | Mode | Purpose |
 |---|---|---|---|
 | `/app/backend/data/contexts/templates/` | `backend/data/contexts/templates/` | COPY (read-only at runtime) | Case templates — required for `create_case_from_template` |
-| `/app/backend/data/contexts/cases/` | _empty volume_ (do **not** COPY dev cases) | VOLUME / read-write | Per-case context JSON, created at runtime |
-| `/var/app/documents/` (configurable via `DOCUMENTS_PATH`) | _empty volume_ | VOLUME / read-write | Uploaded documents and their renders |
-| `/app/backend/data/document_manifest.json` | _initialized at first run_ | inside the documents/data volume | Document registry (auto-created if missing) |
+| `/app/backend/data/contexts/cases/` | _empty volume_ (do **not** COPY dev cases) | VOLUME (`cases-data`) | Per-case context JSON, created at runtime |
+| `/var/app/documents/` (configurable via `DOCUMENTS_PATH`) | _empty volume_ | VOLUME (`documents-data`) | Uploaded documents and their renders |
+| `/app/backend/data/document_manifest.json` | _initialized at first run_ | VOLUME (`manifest-data`) | Document registry (auto-created if missing) |
 | `/app/ontology_shacl_material/` | `ontology_shacl_material/` | COPY (read-only) | SHACL ontology reference (`.ttl`, `.json`, `.md`, `.mmd`) |
 | `/app/root_docs/` | `root_docs/` | COPY (read-only) | Six seed documents used by the S001-F-007 seed-reset flow |
 | `/app/src/i18n/locales/` | `src/i18n/locales/` | bundled into `dist/` at build | i18n strings (frontend) |
@@ -47,6 +63,11 @@ From the graph (`env_var` entities) and config:
 
 **Persistence-relevant:**
 - `DOCUMENTS_PATH` — base path for document storage. Default: `public/documents`. **In containers set to `/var/app/documents`** and mount as a volume (per docstring in `backend/config.py::get_documents_path`). Set in the backend Dockerfile by `ENV DOCUMENTS_PATH=/var/app/documents`.
+
+**Feature flags (no on-disk persistence; runtime gates only — added by S001-F-004):**
+- `ENABLE_ANONYMIZATION` — gates `handle_anonymization` and `check_service_health`. Default: `False`.
+- `ENABLE_DOCUMENT_SEARCH` — placeholder for S001-F-005. Default: `False`.
+- `ENABLE_UPLOAD` — placeholder for S001-F-006. Default: `False`.
 
 **LLM / external services (no on-disk persistence):**
 - `LLM_BACKEND` — selects LLM transport: `internal` (LiteLLM proxy) or `external` (Gemini API). Default: `internal` (cutover by S001-NFR-004; was `external` after Wave 1).
@@ -73,9 +94,9 @@ From the graph (`env_var` entities) and config:
 
 ### Volumes that MUST persist across container restarts
 
-1. `backend/data/contexts/cases/` — every per-case context, custom rule, folder config.
-2. `public/documents/` (or wherever `DOCUMENTS_PATH` points) — every uploaded document and render.
-3. `backend/data/document_manifest.json` — the document registry index (lives inside the data volume).
+1. `backend/data/contexts/cases/` — every per-case context, custom rule, folder config. (Mapped to `cases-data` in compose.)
+2. `public/documents/` (or wherever `DOCUMENTS_PATH` points) — every uploaded document and render. (Mapped to `documents-data`.)
+3. `backend/data/document_manifest.json` — the document registry index (lives inside the data volume). (Mapped to `manifest-data`.)
 
 If these are not mounted as volumes, **all user uploads, custom rules, and folder configurations are lost on container restart** — the registry will rebuild from filesystem (`reconcile()` in `document_registry.py`) but custom rules and folder configs cannot be recovered.
 
@@ -328,7 +349,9 @@ If these are not mounted as volumes, **all user uploads, custom rules, and folde
 
 **Mode:** Read-write. Files are uploaded by users via the upload endpoints, modified by anonymization/translation tools, and deleted via folder management.
 
-**MUST be a Docker volume** — without persistence, all user uploads are lost on container restart. The manifest reconciler will detect missing files but cannot recover them.
+**MUST be a Docker volume** (S001-NFR-003 maps this to the `documents-data` named volume) — without persistence, all user uploads are lost on container restart. The manifest reconciler will detect missing files but cannot recover them.
+
+**Note (S001-F-004):** Upload endpoints will become gated behind the `ENABLE_UPLOAD` feature flag in a future wave (S001-F-006). Current upload code paths are unchanged in Wave 3.
 
 ---
 
@@ -368,8 +391,8 @@ Six seed documents that the S001-F-007 seed-reset flow uses to populate fresh de
 
 **Files:**
 
-- `src/i18n/locales/de.json` — German strings (source of truth after S001-F-008). Wave 2 added the `context.offlineNotice` key.
-- `src/i18n/locales/en.json` — English strings. Wave 2 added the `context.offlineNotice` key.
+- `src/i18n/locales/de.json` — German strings (source of truth after S001-F-008). Wave 2 added the `context.offlineNotice` key. Wave 3 added the `anonymization.notImplemented` key.
+- `src/i18n/locales/en.json` — English strings. Wave 2 added the `context.offlineNotice` key. Wave 3 added the `anonymization.notImplemented` key.
 - `src/data/mockData.ts` — slash commands (`slashCommands`, `hierarchicalSlashCommands`), demo case factory (`createNewCase`), seed chat messages.
 
 **Mode:** Read-only. Bundled into `dist/` at build time by Vite. Not read at runtime by the backend.
@@ -390,7 +413,7 @@ Six seed documents that the S001-F-007 seed-reset flow uses to populate fresh de
 
 ---
 
-## Summary Checklist for Dockerfile Authors
+## Summary Checklist for Dockerfile / Compose Authors
 
 1. `COPY backend/ /app/backend/` (excluding `venv/`, `__pycache__/`).
 2. `COPY ontology_shacl_material/ /app/ontology_shacl_material/`.
@@ -398,9 +421,10 @@ Six seed documents that the S001-F-007 seed-reset flow uses to populate fresh de
 4. `COPY public/favicon.ico public/placeholder.svg public/robots.txt /app/public/`.
 5. Multi-stage frontend build: `npm ci && npm run build` then `COPY --from=build /app/dist /app/dist`.
 6. `ENV DOCUMENTS_PATH=/var/app/documents`.
-7. `VOLUME ["/var/app/documents", "/app/backend/data/contexts/cases", "/app/backend/data"]` (the last covers `document_manifest.json`).
+7. Mount the three persistence volumes via the named volumes declared in `docker-compose.yml` (S001-NFR-003): `documents-data` → `/var/app/documents`, `cases-data` → `/app/backend/data/contexts/cases`, `manifest-data` → `/app/backend/data`.
 8. Ensure `backend/data/contexts/cases/` directory exists in the image (empty), so the runtime can create case subdirs.
 9. Ensure `/var/app/documents` directory exists in the image (empty), so the runtime can create case subdirs.
 10. Do **not** bake `backend/data/contexts/cases/ACTE-*`, `public/documents/ACTE-*`, or `litellm/` into the image (the project root `.dockerignore` from S001-NFR-001 enforces this).
 11. Pass `LLM_BACKEND`, `LITELLM_PROXY_URL`, `LITELLM_TOKEN`, `LITELLM_MODEL`, `GEMINI_API_KEY`, `IDIRS_BASE_URL`, `LOG_LEVEL` as runtime env vars (never bake into image). LLM env vars do not affect persistence — they configure transport.
-12. The LiteLLM proxy is a **separate** container/compose stack at `litellm/docker-compose.yml`; its env vars (`LITELLM_MASTER_KEY`, `LITELLM_OLLAMA_HOST`, `LITELLM_OLLAMA_MODEL`) belong to that stack's `litellm/.env`, not the backend's `.env`.
+12. Pass feature-flag env vars (`ENABLE_ANONYMIZATION`, `ENABLE_DOCUMENT_SEARCH`, `ENABLE_UPLOAD`) as runtime env vars; they default to `False`. They do not affect persistence — they gate request handlers.
+13. The LiteLLM proxy is a **separate** container/compose stack at `litellm/docker-compose.yml`; its env vars (`LITELLM_MASTER_KEY`, `LITELLM_OLLAMA_HOST`, `LITELLM_OLLAMA_MODEL`) belong to that stack's `litellm/.env`, not the backend's `.env`.

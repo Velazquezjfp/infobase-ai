@@ -148,130 +148,6 @@
       ]
     },
     {
-      "name": "backend/api/chat.py",
-      "entityType": "file",
-      "observations": [
-        "language: python",
-        "frameworks: fastapi, google-generativeai, pydantic, uvicorn, websockets",
-        "external_imports: fastapi, fastapi.responses, json, logging, pathlib, typing",
-        "decorators: router.get, router.post, router.websocket"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::ConnectionManager",
-      "entityType": "class",
-      "observations": [
-        "line 30"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::__init__",
-      "entityType": "function",
-      "observations": [
-        "line 39"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::disconnect",
-      "entityType": "function",
-      "observations": [
-        "line 55"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::connect",
-      "entityType": "function",
-      "observations": [
-        "line 43"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::send_message",
-      "entityType": "function",
-      "observations": [
-        "line 66"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::websocket_chat_endpoint",
-      "entityType": "function",
-      "observations": [
-        "line 87",
-        "async"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::handle_chat_message",
-      "entityType": "function",
-      "observations": [
-        "line 235"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::handle_form_extraction",
-      "entityType": "function",
-      "observations": [
-        "line 348"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::handle_anonymization",
-      "entityType": "function",
-      "observations": [
-        "line 472"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::handle_translation",
-      "entityType": "function",
-      "observations": [
-        "line 599"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::chat_health_check",
-      "entityType": "function",
-      "observations": [
-        "line 720",
-        "async"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::clear_conversation_history",
-      "entityType": "function",
-      "observations": [
-        "line 740",
-        "async"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::GET /api/chat/health",
-      "entityType": "endpoint",
-      "observations": [
-        "line 719",
-        "method: GET",
-        "path: /api/chat/health"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
-      "entityType": "endpoint",
-      "observations": [
-        "line 739",
-        "method: POST",
-        "path: /api/chat/clear/{case_id}"
-      ]
-    },
-    {
-      "name": "backend/api/chat.py::WS /ws/chat/{case_id}",
-      "entityType": "endpoint",
-      "observations": [
-        "line 86",
-        "method: WS",
-        "path: /ws/chat/{case_id}"
-      ]
-    },
-    {
       "name": "backend/api/context.py",
       "entityType": "file",
       "observations": [
@@ -1277,155 +1153,6 @@
       ]
     },
     {
-      "name": "backend/config.py",
-      "entityType": "file",
-      "observations": [
-        "language: python",
-        "frameworks: fastapi, google-generativeai, pydantic, uvicorn, websockets",
-        "external_imports: os, typing"
-      ]
-    },
-    {
-      "name": "backend/config.py::get_bool_env",
-      "entityType": "function",
-      "observations": [
-        "line 15"
-      ]
-    },
-    {
-      "name": "backend/config.py::get_int_env",
-      "entityType": "function",
-      "observations": [
-        "line 31"
-      ]
-    },
-    {
-      "name": "backend/config.py::get_float_env",
-      "entityType": "function",
-      "observations": [
-        "line 51"
-      ]
-    },
-    {
-      "name": "backend/config.py::get_documents_path",
-      "entityType": "function",
-      "observations": [
-        "line 97"
-      ]
-    },
-    {
-      "name": "backend/config.py::get_config_summary",
-      "entityType": "function",
-      "observations": [
-        "line 165"
-      ]
-    },
-    {
-      "name": "backend/config.py::ENABLE_CHAT_HISTORY",
-      "entityType": "constant",
-      "observations": [
-        "line 75"
-      ]
-    },
-    {
-      "name": "backend/config.py::MAX_CONVERSATION_HISTORY",
-      "entityType": "constant",
-      "observations": [
-        "line 79"
-      ]
-    },
-    {
-      "name": "backend/config.py::MAX_TOKENS_PER_REQUEST",
-      "entityType": "constant",
-      "observations": [
-        "line 83"
-      ]
-    },
-    {
-      "name": "backend/config.py::TOKEN_ESTIMATE_PER_CHAR",
-      "entityType": "constant",
-      "observations": [
-        "line 87"
-      ]
-    },
-    {
-      "name": "backend/config.py::RESERVE_TOKENS",
-      "entityType": "constant",
-      "observations": [
-        "line 91"
-      ]
-    },
-    {
-      "name": "backend/config.py::DOCUMENTS_BASE_PATH",
-      "entityType": "constant",
-      "observations": [
-        "line 114"
-      ]
-    },
-    {
-      "name": "backend/config.py::IDIRS_BASE_URL",
-      "entityType": "constant",
-      "observations": [
-        "line 121"
-      ]
-    },
-    {
-      "name": "backend/config.py::IDIRS_TIMEOUT",
-      "entityType": "constant",
-      "observations": [
-        "line 122"
-      ]
-    },
-    {
-      "name": "backend/config.py::RAG_CONFIDENCE_THRESHOLD",
-      "entityType": "constant",
-      "observations": [
-        "line 123"
-      ]
-    },
-    {
-      "name": "backend/config.py::LOG_LEVEL",
-      "entityType": "constant",
-      "observations": [
-        "line 130"
-      ]
-    },
-    {
-      "name": "backend/config.py::LLM_BACKEND",
-      "entityType": "constant",
-      "observations": [
-        "line 143"
-      ]
-    },
-    {
-      "name": "backend/config.py::LITELLM_PROXY_URL",
-      "entityType": "constant",
-      "observations": [
-        "line 147"
-      ]
-    },
-    {
-      "name": "backend/config.py::LITELLM_TOKEN",
-      "entityType": "constant",
-      "observations": [
-        "line 151"
-      ]
-    },
-    {
-      "name": "backend/config.py::LITELLM_MODEL",
-      "entityType": "constant",
-      "observations": [
-        "line 155"
-      ]
-    },
-    {
-      "name": "backend/config.py::GEMINI_API_KEY",
-      "entityType": "constant",
-      "observations": [
-        "line 159"
-      ]
-    },
-    {
       "name": "DOCUMENTS_PATH",
       "entityType": "env_var",
       "observations": [
@@ -2076,65 +1803,6 @@
         "language: python",
         "frameworks: fastapi, google-generativeai, pydantic, uvicorn, websockets",
         "external_imports: services.context_manager, services.gemini_service"
-      ]
-    },
-    {
-      "name": "backend/services/anonymization_service.py",
-      "entityType": "file",
-      "observations": [
-        "language: python",
-        "frameworks: fastapi, google-generativeai, pydantic, uvicorn, websockets",
-        "external_imports: PIL, aiohttp, base64, dataclasses, io, logging, typing",
-        "decorators: dataclass"
-      ]
-    },
-    {
-      "name": "backend/services/anonymization_service.py::AnonymizationResult",
-      "entityType": "class",
-      "observations": [
-        "line 24"
-      ]
-    },
-    {
-      "name": "backend/services/anonymization_service.py::AnonymizationService",
-      "entityType": "class",
-      "observations": [
-        "line 42"
-      ]
-    },
-    {
-      "name": "backend/services/anonymization_service.py::__new__",
-      "entityType": "function",
-      "observations": [
-        "line 62"
-      ]
-    },
-    {
-      "name": "backend/services/anonymization_service.py::_extract_base64_data",
-      "entityType": "function",
-      "observations": [
-        "line 73"
-      ]
-    },
-    {
-      "name": "backend/services/anonymization_service.py::_apply_black_boxes",
-      "entityType": "function",
-      "observations": [
-        "line 89"
-      ]
-    },
-    {
-      "name": "backend/services/anonymization_service.py::anonymize_image",
-      "entityType": "function",
-      "observations": [
-        "line 166"
-      ]
-    },
-    {
-      "name": "backend/services/anonymization_service.py::check_service_health",
-      "entityType": "function",
-      "observations": [
-        "line 309"
       ]
     },
     {
@@ -6127,210 +5795,6 @@
       ]
     },
     {
-      "name": "src/components/workspace/CaseContextDialog.tsx::Regulation",
-      "entityType": "class",
-      "observations": [
-        "line 28",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::RequiredDocument",
-      "entityType": "class",
-      "observations": [
-        "line 35",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::ValidationRule",
-      "entityType": "class",
-      "observations": [
-        "line 45",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::CommonIssue",
-      "entityType": "class",
-      "observations": [
-        "line 51",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::Applicant",
-      "entityType": "class",
-      "observations": [
-        "line 59",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::FolderContext",
-      "entityType": "class",
-      "observations": [
-        "line 66",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContext",
-      "entityType": "class",
-      "observations": [
-        "line 78",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialogProps",
-      "entityType": "class",
-      "observations": [
-        "line 92",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialog",
-      "entityType": "component",
-      "observations": [
-        "line 98"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::tc",
-      "entityType": "function",
-      "observations": [
-        "line 110"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::fetchCaseContext",
-      "entityType": "function",
-      "observations": [
-        "line 134"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::getSeverityColor",
-      "entityType": "function",
-      "observations": [
-        "line 164"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::getCriticalityBadge",
-      "entityType": "function",
-      "observations": [
-        "line 177"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCaseType",
-      "entityType": "function",
-      "observations": [
-        "line 186"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCaseName",
-      "entityType": "function",
-      "observations": [
-        "line 191"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateDescription",
-      "entityType": "function",
-      "observations": [
-        "line 196"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateStatus",
-      "entityType": "function",
-      "observations": [
-        "line 201"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateNationality",
-      "entityType": "function",
-      "observations": [
-        "line 206"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateValidationRule",
-      "entityType": "function",
-      "observations": [
-        "line 211"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateRegulation",
-      "entityType": "function",
-      "observations": [
-        "line 216"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateDocument",
-      "entityType": "function",
-      "observations": [
-        "line 221"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateFolder",
-      "entityType": "function",
-      "observations": [
-        "line 226"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateDocType",
-      "entityType": "function",
-      "observations": [
-        "line 231"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCriterion",
-      "entityType": "function",
-      "observations": [
-        "line 236"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateIssue",
-      "entityType": "function",
-      "observations": [
-        "line 241"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCheckPoint",
-      "entityType": "function",
-      "observations": [
-        "line 247"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCategory",
-      "entityType": "function",
-      "observations": [
-        "line 253"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateFrequency",
-      "entityType": "function",
-      "observations": [
-        "line 258"
-      ]
-    },
-    {
       "name": "src/components/workspace/CaseSearchDialog.tsx",
       "entityType": "file",
       "observations": [
@@ -6526,57 +5990,6 @@
         "language: typescript",
         "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
         "external_imports: lucide-react, react, react-i18next"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextNode",
-      "entityType": "class",
-      "observations": [
-        "line 32",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialogProps",
-      "entityType": "class",
-      "observations": [
-        "line 43",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialog",
-      "entityType": "component",
-      "observations": [
-        "line 48"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::fetchCaseContext",
-      "entityType": "function",
-      "observations": [
-        "line 81"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::buildContextTree",
-      "entityType": "function",
-      "observations": [
-        "line 112"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::toggleNode",
-      "entityType": "function",
-      "observations": [
-        "line 313"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
-      "entityType": "function",
-      "observations": [
-        "line 325"
       ]
     },
     {
@@ -8730,142 +8143,6 @@
       ]
     },
     {
-      "name": "src/types/websocket.ts",
-      "entityType": "file",
-      "observations": [
-        "language: typescript",
-        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::BaseMessage",
-      "entityType": "class",
-      "observations": [
-        "line 13",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::ChatRequest",
-      "entityType": "class",
-      "observations": [
-        "line 21",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::ChatResponse",
-      "entityType": "class",
-      "observations": [
-        "line 34",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::ChatChunkMessage",
-      "entityType": "class",
-      "observations": [
-        "line 43",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::FormUpdateMessage",
-      "entityType": "class",
-      "observations": [
-        "line 53",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::FormSuggestionMessage",
-      "entityType": "class",
-      "observations": [
-        "line 64",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::SystemMessage",
-      "entityType": "class",
-      "observations": [
-        "line 77",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::ErrorMessage",
-      "entityType": "class",
-      "observations": [
-        "line 86",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::AnonymizationRequest",
-      "entityType": "class",
-      "observations": [
-        "line 95",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::DetectionInfo",
-      "entityType": "class",
-      "observations": [
-        "line 107",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::AnonymizationResponse",
-      "entityType": "class",
-      "observations": [
-        "line 118",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::TranslationRequest",
-      "entityType": "class",
-      "observations": [
-        "line 135",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::TranslationResponse",
-      "entityType": "class",
-      "observations": [
-        "line 148",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::WebSocketState",
-      "entityType": "class",
-      "observations": [
-        "line 186",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::WebSocketMessage",
-      "entityType": "class",
-      "observations": [
-        "line 164",
-        "kind: type_alias"
-      ]
-    },
-    {
-      "name": "src/types/websocket.ts::ConnectionStatus",
-      "entityType": "class",
-      "observations": [
-        "line 177",
-        "kind: type_alias"
-      ]
-    },
-    {
       "name": "src/vite-env.d.ts",
       "entityType": "file",
       "observations": [
@@ -9253,6 +8530,876 @@
       "observations": [
         "line 822"
       ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::LLMProvider",
+      "entityType": "class",
+      "observations": [
+        "line 42",
+        "extends: ABC"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::LiteLLMProvider",
+      "entityType": "class",
+      "observations": [
+        "line 64"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::GeminiProvider",
+      "entityType": "class",
+      "observations": [
+        "line 148"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::is_initialized",
+      "entityType": "function",
+      "observations": [
+        "line 169"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::__init__",
+      "entityType": "function",
+      "observations": [
+        "line 153"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::_map_kwargs",
+      "entityType": "function",
+      "observations": [
+        "line 95",
+        "decorated @staticmethod"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::_build_config",
+      "entityType": "function",
+      "observations": [
+        "line 172"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::_build_provider",
+      "entityType": "function",
+      "observations": [
+        "line 204"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::get_provider",
+      "entityType": "function",
+      "observations": [
+        "line 220"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::reset_provider_for_tests",
+      "entityType": "function",
+      "observations": [
+        "line 233"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::generate",
+      "entityType": "function",
+      "observations": [
+        "line 180",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::generate_streaming",
+      "entityType": "function",
+      "observations": [
+        "line 188",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::Regulation",
+      "entityType": "class",
+      "observations": [
+        "line 28",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::RequiredDocument",
+      "entityType": "class",
+      "observations": [
+        "line 35",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::ValidationRule",
+      "entityType": "class",
+      "observations": [
+        "line 45",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::CommonIssue",
+      "entityType": "class",
+      "observations": [
+        "line 51",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::Applicant",
+      "entityType": "class",
+      "observations": [
+        "line 59",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::FolderContext",
+      "entityType": "class",
+      "observations": [
+        "line 66",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContext",
+      "entityType": "class",
+      "observations": [
+        "line 78",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialogProps",
+      "entityType": "class",
+      "observations": [
+        "line 92",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialog",
+      "entityType": "component",
+      "observations": [
+        "line 98"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::tc",
+      "entityType": "function",
+      "observations": [
+        "line 109"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::fetchCaseContext",
+      "entityType": "function",
+      "observations": [
+        "line 134"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::getSeverityColor",
+      "entityType": "function",
+      "observations": [
+        "line 164"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::getCriticalityBadge",
+      "entityType": "function",
+      "observations": [
+        "line 177"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCaseType",
+      "entityType": "function",
+      "observations": [
+        "line 185"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCaseName",
+      "entityType": "function",
+      "observations": [
+        "line 190"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateDescription",
+      "entityType": "function",
+      "observations": [
+        "line 195"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateStatus",
+      "entityType": "function",
+      "observations": [
+        "line 200"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateNationality",
+      "entityType": "function",
+      "observations": [
+        "line 205"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateValidationRule",
+      "entityType": "function",
+      "observations": [
+        "line 210"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateRegulation",
+      "entityType": "function",
+      "observations": [
+        "line 215"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateDocument",
+      "entityType": "function",
+      "observations": [
+        "line 220"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateFolder",
+      "entityType": "function",
+      "observations": [
+        "line 225"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateDocType",
+      "entityType": "function",
+      "observations": [
+        "line 230"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCriterion",
+      "entityType": "function",
+      "observations": [
+        "line 235"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateIssue",
+      "entityType": "function",
+      "observations": [
+        "line 240"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCheckPoint",
+      "entityType": "function",
+      "observations": [
+        "line 246"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCategory",
+      "entityType": "function",
+      "observations": [
+        "line 252"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateFrequency",
+      "entityType": "function",
+      "observations": [
+        "line 257"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextNode",
+      "entityType": "class",
+      "observations": [
+        "line 33",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialogProps",
+      "entityType": "class",
+      "observations": [
+        "line 45",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialog",
+      "entityType": "component",
+      "observations": [
+        "line 50"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::fetchCaseContext",
+      "entityType": "function",
+      "observations": [
+        "line 83"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::buildContextTree",
+      "entityType": "function",
+      "observations": [
+        "line 114"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::toggleNode",
+      "entityType": "function",
+      "observations": [
+        "line 316"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
+      "entityType": "function",
+      "observations": [
+        "line 328"
+      ]
+    },
+    {
+      "name": "backend/config.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "frameworks: fastapi, google-generativeai, pydantic, uvicorn, websockets",
+        "external_imports: os, typing"
+      ]
+    },
+    {
+      "name": "backend/config.py::get_bool_env",
+      "entityType": "function",
+      "observations": [
+        "line 16"
+      ]
+    },
+    {
+      "name": "backend/config.py::get_int_env",
+      "entityType": "function",
+      "observations": [
+        "line 33"
+      ]
+    },
+    {
+      "name": "backend/config.py::get_float_env",
+      "entityType": "function",
+      "observations": [
+        "line 53"
+      ]
+    },
+    {
+      "name": "backend/config.py::get_documents_path",
+      "entityType": "function",
+      "observations": [
+        "line 98"
+      ]
+    },
+    {
+      "name": "backend/config.py::get_config_summary",
+      "entityType": "function",
+      "observations": [
+        "line 183"
+      ]
+    },
+    {
+      "name": "backend/config.py::ENABLE_CHAT_HISTORY",
+      "entityType": "constant",
+      "observations": [
+        "line 75",
+        "feature_flag",
+        "default: False"
+      ]
+    },
+    {
+      "name": "backend/config.py::MAX_CONVERSATION_HISTORY",
+      "entityType": "constant",
+      "observations": [
+        "line 79",
+        "default: 10"
+      ]
+    },
+    {
+      "name": "backend/config.py::MAX_TOKENS_PER_REQUEST",
+      "entityType": "constant",
+      "observations": [
+        "line 83",
+        "default: 30000"
+      ]
+    },
+    {
+      "name": "backend/config.py::TOKEN_ESTIMATE_PER_CHAR",
+      "entityType": "constant",
+      "observations": [
+        "line 87",
+        "default: 0.25"
+      ]
+    },
+    {
+      "name": "backend/config.py::RESERVE_TOKENS",
+      "entityType": "constant",
+      "observations": [
+        "line 91",
+        "default: 5000"
+      ]
+    },
+    {
+      "name": "backend/config.py::DOCUMENTS_BASE_PATH",
+      "entityType": "constant",
+      "observations": [
+        "line 114"
+      ]
+    },
+    {
+      "name": "backend/config.py::IDIRS_BASE_URL",
+      "entityType": "constant",
+      "observations": [
+        "line 121",
+        "default: http://localhost:8010"
+      ]
+    },
+    {
+      "name": "backend/config.py::IDIRS_TIMEOUT",
+      "entityType": "constant",
+      "observations": [
+        "line 122",
+        "default: 30"
+      ]
+    },
+    {
+      "name": "backend/config.py::RAG_CONFIDENCE_THRESHOLD",
+      "entityType": "constant",
+      "observations": [
+        "line 123",
+        "default: 0.80"
+      ]
+    },
+    {
+      "name": "backend/config.py::LOG_LEVEL",
+      "entityType": "constant",
+      "observations": [
+        "line 130",
+        "default: INFO"
+      ]
+    },
+    {
+      "name": "backend/config.py::LLM_BACKEND",
+      "entityType": "constant",
+      "observations": [
+        "line 143",
+        "default: internal"
+      ]
+    },
+    {
+      "name": "backend/config.py::LITELLM_PROXY_URL",
+      "entityType": "constant",
+      "observations": [
+        "line 147"
+      ]
+    },
+    {
+      "name": "backend/config.py::LITELLM_TOKEN",
+      "entityType": "constant",
+      "observations": [
+        "line 151"
+      ]
+    },
+    {
+      "name": "backend/config.py::LITELLM_MODEL",
+      "entityType": "constant",
+      "observations": [
+        "line 155",
+        "default: gemma3:12b"
+      ]
+    },
+    {
+      "name": "backend/config.py::GEMINI_API_KEY",
+      "entityType": "constant",
+      "observations": [
+        "line 159"
+      ]
+    },
+    {
+      "name": "backend/config.py::ENABLE_ANONYMIZATION",
+      "entityType": "constant",
+      "observations": [
+        "line 168",
+        "feature_flag",
+        "default: False",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "backend/config.py::ENABLE_DOCUMENT_SEARCH",
+      "entityType": "constant",
+      "observations": [
+        "line 172",
+        "feature_flag",
+        "default: False",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "backend/config.py::ENABLE_UPLOAD",
+      "entityType": "constant",
+      "observations": [
+        "line 176",
+        "feature_flag",
+        "default: False",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "frameworks: fastapi, google-generativeai, pydantic, uvicorn, websockets",
+        "external_imports: fastapi, fastapi.responses, json, logging, pathlib, typing",
+        "decorators: router.get, router.post, router.websocket",
+        "module_constants: ANONYMIZATION_DISABLED_MESSAGE_DE, ANONYMIZATION_DISABLED_MESSAGE_EN (S001-F-004)"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::ConnectionManager",
+      "entityType": "class",
+      "observations": [
+        "line 41"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::__init__",
+      "entityType": "function",
+      "observations": [
+        "line 49"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::connect",
+      "entityType": "function",
+      "observations": [
+        "line 53",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::disconnect",
+      "entityType": "function",
+      "observations": [
+        "line 65"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::send_message",
+      "entityType": "function",
+      "observations": [
+        "line 76",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::websocket_chat_endpoint",
+      "entityType": "function",
+      "observations": [
+        "line 96",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::handle_chat_message",
+      "entityType": "function",
+      "observations": [
+        "line 246",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::handle_form_extraction",
+      "entityType": "function",
+      "observations": [
+        "line 359",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::handle_anonymization",
+      "entityType": "function",
+      "observations": [
+        "line 483",
+        "async",
+        "S001-F-004: gated on ENABLE_ANONYMIZATION feature flag with feature_disabled short-circuit"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::handle_translation",
+      "entityType": "function",
+      "observations": [
+        "line 626",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::chat_health_check",
+      "entityType": "function",
+      "observations": [
+        "line 745",
+        "async",
+        "S001-F-004: response now includes anonymization: enabled/disabled"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::clear_conversation_history",
+      "entityType": "function",
+      "observations": [
+        "line 766",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::GET /api/chat/health",
+      "entityType": "endpoint",
+      "observations": [
+        "line 744",
+        "method: GET",
+        "path: /api/chat/health",
+        "S001-F-004: returns anonymization key"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
+      "entityType": "endpoint",
+      "observations": [
+        "line 765",
+        "method: POST",
+        "path: /api/chat/clear/{case_id}"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::WS /ws/chat/{case_id}",
+      "entityType": "endpoint",
+      "observations": [
+        "line 95",
+        "method: WS",
+        "path: /ws/chat/{case_id}"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "frameworks: fastapi, google-generativeai, pydantic, uvicorn, websockets",
+        "external_imports: PIL, aiohttp, base64, dataclasses, io, logging, typing",
+        "decorators: dataclass",
+        "S001-F-004: check_service_health early-returns disabled when ENABLE_ANONYMIZATION false"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py::AnonymizationResult",
+      "entityType": "class",
+      "observations": [
+        "line 24",
+        "dataclass"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py::AnonymizationService",
+      "entityType": "class",
+      "observations": [
+        "line 44",
+        "singleton"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py::__new__",
+      "entityType": "function",
+      "observations": [
+        "line 63"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py::_extract_base64_data",
+      "entityType": "function",
+      "observations": [
+        "line 74"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py::_apply_black_boxes",
+      "entityType": "function",
+      "observations": [
+        "line 90"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py::anonymize_image",
+      "entityType": "function",
+      "observations": [
+        "line 167",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/anonymization_service.py::check_service_health",
+      "entityType": "function",
+      "observations": [
+        "line 310",
+        "async",
+        "S001-F-004: returns {status: disabled} when feature flag off"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts",
+      "entityType": "file",
+      "observations": [
+        "language: typescript",
+        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::BaseMessage",
+      "entityType": "class",
+      "observations": [
+        "line 13",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ChatRequest",
+      "entityType": "class",
+      "observations": [
+        "line 21",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ChatResponse",
+      "entityType": "class",
+      "observations": [
+        "line 34",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ChatChunkMessage",
+      "entityType": "class",
+      "observations": [
+        "line 43",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::FormUpdateMessage",
+      "entityType": "class",
+      "observations": [
+        "line 53",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::FormSuggestionMessage",
+      "entityType": "class",
+      "observations": [
+        "line 64",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::SystemMessage",
+      "entityType": "class",
+      "observations": [
+        "line 77",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ErrorMessage",
+      "entityType": "class",
+      "observations": [
+        "line 86",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::AnonymizationRequest",
+      "entityType": "class",
+      "observations": [
+        "line 95",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::DetectionInfo",
+      "entityType": "class",
+      "observations": [
+        "line 107",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::AnonymizationResponse",
+      "entityType": "class",
+      "observations": [
+        "line 118",
+        "kind: interface",
+        "S001-F-004: added optional message field for localized backend strings"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::TranslationRequest",
+      "entityType": "class",
+      "observations": [
+        "line 136",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::TranslationResponse",
+      "entityType": "class",
+      "observations": [
+        "line 149",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::WebSocketMessage",
+      "entityType": "class",
+      "observations": [
+        "line 165",
+        "kind: type_alias"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ConnectionStatus",
+      "entityType": "class",
+      "observations": [
+        "line 178",
+        "kind: type_alias"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::WebSocketState",
+      "entityType": "class",
+      "observations": [
+        "line 187",
+        "kind: interface"
+      ]
     }
   ],
   "relations": [
@@ -9335,136 +9482,6 @@
       "from": "backend/api/admin.py",
       "to": "backend/api/admin.py::GET /api/admin/health",
       "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/services/gemini_service.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/services/conversation_manager.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/config.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/tools/form_parser.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/tools/anonymization_tool.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/services/translation_service.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/services/file_service.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::ConnectionManager",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::__init__",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::disconnect",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::connect",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::send_message",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::websocket_chat_endpoint",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::handle_chat_message",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::handle_form_extraction",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::handle_anonymization",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::handle_translation",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::chat_health_check",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::clear_conversation_history",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::GET /api/chat/health",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py",
-      "to": "backend/api/chat.py::WS /ws/chat/{case_id}",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/chat.py::ConnectionManager",
-      "to": "backend/api/chat.py::__init__",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/api/chat.py::ConnectionManager",
-      "to": "backend/api/chat.py::connect",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/api/chat.py::ConnectionManager",
-      "to": "backend/api/chat.py::disconnect",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/api/chat.py::ConnectionManager",
-      "to": "backend/api/chat.py::send_message",
-      "relationType": "contains"
     },
     {
       "from": "backend/api/context.py",
@@ -9589,11 +9606,6 @@
     {
       "from": "backend/api/documents.py",
       "to": "backend/services/document_registry.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/documents.py",
-      "to": "backend/config.py",
       "relationType": "imports"
     },
     {
@@ -9923,11 +9935,6 @@
     },
     {
       "from": "backend/api/idirs.py",
-      "to": "backend/config.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/idirs.py",
       "to": "backend/services/gemini_service.py",
       "relationType": "imports"
     },
@@ -10052,151 +10059,6 @@
       "relationType": "defines"
     },
     {
-      "from": "backend/config.py",
-      "to": "backend/config.py::get_bool_env",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::get_int_env",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::get_float_env",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::get_documents_path",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::get_config_summary",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::ENABLE_CHAT_HISTORY",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::MAX_CONVERSATION_HISTORY",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::MAX_TOKENS_PER_REQUEST",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::TOKEN_ESTIMATE_PER_CHAR",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::RESERVE_TOKENS",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::DOCUMENTS_BASE_PATH",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::IDIRS_BASE_URL",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::IDIRS_TIMEOUT",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::RAG_CONFIDENCE_THRESHOLD",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::LOG_LEVEL",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::LLM_BACKEND",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::LITELLM_PROXY_URL",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::LITELLM_TOKEN",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::LITELLM_MODEL",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::GEMINI_API_KEY",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "DOCUMENTS_PATH",
-      "relationType": "reads_env"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "GEMINI_API_KEY",
-      "relationType": "reads_env"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "IDIRS_BASE_URL",
-      "relationType": "reads_env"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "LITELLM_MODEL",
-      "relationType": "reads_env"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "LITELLM_PROXY_URL",
-      "relationType": "reads_env"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "LITELLM_TOKEN",
-      "relationType": "reads_env"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "LLM_BACKEND",
-      "relationType": "reads_env"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "LOG_LEVEL",
-      "relationType": "reads_env"
-    },
-    {
-      "from": "backend/main.py",
-      "to": "backend/api/chat.py",
-      "relationType": "imports"
-    },
-    {
       "from": "backend/main.py",
       "to": "backend/api/admin.py",
       "relationType": "imports"
@@ -10244,11 +10106,6 @@
     {
       "from": "backend/main.py",
       "to": "backend/scripts/initialize_test_documents.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/main.py",
-      "to": "backend/config.py",
       "relationType": "imports"
     },
     {
@@ -10702,66 +10559,6 @@
       "relationType": "defines"
     },
     {
-      "from": "backend/services/anonymization_service.py",
-      "to": "backend/services/anonymization_service.py::AnonymizationResult",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/anonymization_service.py",
-      "to": "backend/services/anonymization_service.py::AnonymizationService",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/anonymization_service.py",
-      "to": "backend/services/anonymization_service.py::__new__",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/anonymization_service.py",
-      "to": "backend/services/anonymization_service.py::_extract_base64_data",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/anonymization_service.py",
-      "to": "backend/services/anonymization_service.py::_apply_black_boxes",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/anonymization_service.py",
-      "to": "backend/services/anonymization_service.py::anonymize_image",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/anonymization_service.py",
-      "to": "backend/services/anonymization_service.py::check_service_health",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/anonymization_service.py::AnonymizationService",
-      "to": "backend/services/anonymization_service.py::__new__",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/anonymization_service.py::AnonymizationService",
-      "to": "backend/services/anonymization_service.py::_extract_base64_data",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/anonymization_service.py::AnonymizationService",
-      "to": "backend/services/anonymization_service.py::_apply_black_boxes",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/anonymization_service.py::AnonymizationService",
-      "to": "backend/services/anonymization_service.py::anonymize_image",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/anonymization_service.py::AnonymizationService",
-      "to": "backend/services/anonymization_service.py::check_service_health",
-      "relationType": "contains"
-    },
-    {
       "from": "backend/services/context_manager.py",
       "to": "backend/models/regulation.py",
       "relationType": "imports"
@@ -10950,11 +10747,6 @@
       "from": "backend/services/context_manager.py::ContextManager",
       "to": "backend/services/context_manager.py::validate_case_context",
       "relationType": "contains"
-    },
-    {
-      "from": "backend/services/conversation_manager.py",
-      "to": "backend/config.py",
-      "relationType": "imports"
     },
     {
       "from": "backend/services/conversation_manager.py",
@@ -11482,16 +11274,6 @@
       "relationType": "imports"
     },
     {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/config.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/config.py",
-      "relationType": "imports"
-    },
-    {
       "from": "backend/services/pdf_service.py",
       "to": "backend/services/pdf_service.py::TextBlock",
       "relationType": "defines"
@@ -11843,11 +11625,6 @@
     },
     {
       "from": "backend/tests/test_anonymization.py",
-      "to": "backend/services/anonymization_service.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/tests/test_anonymization.py",
       "to": "backend/tools/anonymization_tool.py",
       "relationType": "imports"
     },
@@ -12004,11 +11781,6 @@
     {
       "from": "backend/tests/test_conversation_manager.py",
       "to": "backend/services/conversation_manager.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/tests/test_conversation_manager.py",
-      "to": "backend/config.py",
       "relationType": "imports"
     },
     {
@@ -12199,11 +11971,6 @@
     {
       "from": "backend/tools/__init__.py",
       "to": "backend/tools/pdf_processor.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/tools/anonymization_tool.py",
-      "to": "backend/services/anonymization_service.py",
       "relationType": "imports"
     },
     {
@@ -12785,11 +12552,6 @@
       "from": "docs/tests/S001-F-001/TC-S001-F-001-04.py",
       "to": "docs/tests/S001-F-001/TC-S001-F-001-04.py::test_internal_backend_network_error_no_gemini_fallback",
       "relationType": "defines"
-    },
-    {
-      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
-      "to": "backend/api/chat.py",
-      "relationType": "imports"
     },
     {
       "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
@@ -14233,146 +13995,6 @@
     },
     {
       "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::Regulation",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::RequiredDocument",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::ValidationRule",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::CommonIssue",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::Applicant",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::FolderContext",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContext",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialogProps",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialog",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::tc",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::fetchCaseContext",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::getSeverityColor",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::getCriticalityBadge",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseType",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseName",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateDescription",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateStatus",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateNationality",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateValidationRule",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateRegulation",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocument",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateFolder",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocType",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCriterion",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateIssue",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCheckPoint",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCategory",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateFrequency",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
       "to": "VITE_API_URL",
       "relationType": "reads_env"
     },
@@ -14623,41 +14245,6 @@
     },
     {
       "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextNode",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialogProps",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialog",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::fetchCaseContext",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::buildContextTree",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::toggleNode",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
       "to": "VITE_API_URL",
       "relationType": "reads_env"
     },
@@ -14719,11 +14306,6 @@
     {
       "from": "src/components/workspace/DocumentViewer.tsx",
       "to": "src/hooks/use-toast.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/DocumentViewer.tsx",
-      "to": "src/types/websocket.ts",
       "relationType": "imports"
     },
     {
@@ -15314,11 +14896,6 @@
     {
       "from": "src/contexts/AppContext.tsx",
       "to": "src/data/mockData.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/contexts/AppContext.tsx",
-      "to": "src/types/websocket.ts",
       "relationType": "imports"
     },
     {
@@ -16367,146 +15944,6 @@
       "relationType": "defines"
     },
     {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/case.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::ChatRequest",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::ChatResponse",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::ChatChunkMessage",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::FormUpdateMessage",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::FormSuggestionMessage",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::SystemMessage",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::ErrorMessage",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::AnonymizationRequest",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::DetectionInfo",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::AnonymizationResponse",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::TranslationRequest",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::TranslationResponse",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::WebSocketState",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::WebSocketMessage",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts",
-      "to": "src/types/websocket.ts::ConnectionStatus",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/websocket.ts::ChatRequest",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::ChatResponse",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::ChatChunkMessage",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::FormUpdateMessage",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::FormSuggestionMessage",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::SystemMessage",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::ErrorMessage",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::AnonymizationRequest",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::AnonymizationResponse",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::TranslationRequest",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
-      "from": "src/types/websocket.ts::TranslationResponse",
-      "to": "src/types/websocket.ts::BaseMessage",
-      "relationType": "extends"
-    },
-    {
       "from": "temp/test_case_switching.py",
       "to": "backend/services/context_manager.py",
       "relationType": "imports"
@@ -16692,11 +16129,6 @@
       "relationType": "defines"
     },
     {
-      "from": "src/components/workspace/AIChatInterface.tsx",
-      "to": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
-      "relationType": "calls_endpoint"
-    },
-    {
       "from": "src/components/workspace/FormViewer.tsx",
       "to": "backend/api/admin.py::POST /api/admin/modify-form",
       "relationType": "calls_endpoint"
@@ -16845,6 +16277,811 @@
       "from": "backend/services/gemini_service.py::GeminiService",
       "to": "backend/services/gemini_service.py::is_initialized",
       "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::LLMProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::LiteLLMProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::GeminiProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::__init__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::_map_kwargs",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::_build_config",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::_build_provider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::get_provider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::reset_provider_for_tests",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::LLMProvider",
+      "relationType": "extends"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::LLMProvider",
+      "relationType": "extends"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LLMProvider",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LLMProvider",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LLMProvider",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::_map_kwargs",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::_build_config",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "contains"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::Regulation",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::RequiredDocument",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::ValidationRule",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CommonIssue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::Applicant",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::FolderContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::tc",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::fetchCaseContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::getSeverityColor",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::getCriticalityBadge",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateDescription",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateNationality",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateValidationRule",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateRegulation",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocument",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateFolder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCriterion",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateIssue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCheckPoint",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCategory",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateFrequency",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextNode",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::fetchCaseContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::buildContextTree",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::toggleNode",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_bool_env",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_int_env",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_float_env",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_documents_path",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_config_summary",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::ENABLE_CHAT_HISTORY",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::MAX_CONVERSATION_HISTORY",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::MAX_TOKENS_PER_REQUEST",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::TOKEN_ESTIMATE_PER_CHAR",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::RESERVE_TOKENS",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::DOCUMENTS_BASE_PATH",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::IDIRS_BASE_URL",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::IDIRS_TIMEOUT",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::RAG_CONFIDENCE_THRESHOLD",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LOG_LEVEL",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LLM_BACKEND",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LITELLM_PROXY_URL",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LITELLM_TOKEN",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LITELLM_MODEL",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::GEMINI_API_KEY",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::ENABLE_ANONYMIZATION",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::ENABLE_DOCUMENT_SEARCH",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::ENABLE_UPLOAD",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "DOCUMENTS_PATH",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "GEMINI_API_KEY",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "IDIRS_BASE_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LITELLM_MODEL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LITELLM_PROXY_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LITELLM_TOKEN",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LLM_BACKEND",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LOG_LEVEL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::ConnectionManager",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::__init__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::connect",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::disconnect",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::send_message",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::websocket_chat_endpoint",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_chat_message",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_form_extraction",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_anonymization",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_translation",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::chat_health_check",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::clear_conversation_history",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::GET /api/chat/health",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::WS /ws/chat/{case_id}",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py::ConnectionManager",
+      "to": "backend/api/chat.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/api/chat.py::ConnectionManager",
+      "to": "backend/api/chat.py::connect",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/api/chat.py::ConnectionManager",
+      "to": "backend/api/chat.py::disconnect",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/api/chat.py::ConnectionManager",
+      "to": "backend/api/chat.py::send_message",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/services/conversation_manager.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/tools/form_parser.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/tools/anonymization_tool.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::AnonymizationResult",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::AnonymizationService",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::__new__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::_extract_base64_data",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::_apply_black_boxes",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::anonymize_image",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::check_service_health",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::__new__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::_extract_base64_data",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::_apply_black_boxes",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::anonymize_image",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::check_service_health",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatChunkMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::FormUpdateMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::FormSuggestionMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::SystemMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ErrorMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::DetectionInfo",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ConnectionStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatChunkMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::FormUpdateMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::FormSuggestionMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::SystemMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ErrorMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::AnonymizationRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::AnonymizationResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::TranslationRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::TranslationResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ConnectionStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationResponse",
+      "relationType": "defines"
     }
   ]
 }

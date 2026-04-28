@@ -2892,91 +2892,6 @@
       ]
     },
     {
-      "name": "backend/services/llm_provider.py::LLMProvider",
-      "entityType": "class",
-      "observations": [
-        "line 40",
-        "extends: ABC"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::LiteLLMProvider",
-      "entityType": "class",
-      "observations": [
-        "line 62"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::GeminiProvider",
-      "entityType": "class",
-      "observations": [
-        "line 146"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::is_initialized",
-      "entityType": "function",
-      "observations": [
-        "line 168"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::__init__",
-      "entityType": "function",
-      "observations": [
-        "line 152"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::_map_kwargs",
-      "entityType": "function",
-      "observations": [
-        "line 95"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::_build_config",
-      "entityType": "function",
-      "observations": [
-        "line 171"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::_build_provider",
-      "entityType": "function",
-      "observations": [
-        "line 202"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::get_provider",
-      "entityType": "function",
-      "observations": [
-        "line 213"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::reset_provider_for_tests",
-      "entityType": "function",
-      "observations": [
-        "line 226"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::generate",
-      "entityType": "function",
-      "observations": [
-        "line 179"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::generate_streaming",
-      "entityType": "function",
-      "observations": [
-        "line 187"
-      ]
-    },
-    {
       "name": "backend/services/pdf_service.py",
       "entityType": "file",
       "observations": [
@@ -6212,210 +6127,6 @@
       ]
     },
     {
-      "name": "src/components/workspace/CaseContextDialog.tsx::Regulation",
-      "entityType": "class",
-      "observations": [
-        "line 28",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::RequiredDocument",
-      "entityType": "class",
-      "observations": [
-        "line 35",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::ValidationRule",
-      "entityType": "class",
-      "observations": [
-        "line 45",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::CommonIssue",
-      "entityType": "class",
-      "observations": [
-        "line 51",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::Applicant",
-      "entityType": "class",
-      "observations": [
-        "line 59",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::FolderContext",
-      "entityType": "class",
-      "observations": [
-        "line 66",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContext",
-      "entityType": "class",
-      "observations": [
-        "line 78",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialogProps",
-      "entityType": "class",
-      "observations": [
-        "line 92",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialog",
-      "entityType": "component",
-      "observations": [
-        "line 98"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::tc",
-      "entityType": "function",
-      "observations": [
-        "line 110"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::fetchCaseContext",
-      "entityType": "function",
-      "observations": [
-        "line 134"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::getSeverityColor",
-      "entityType": "function",
-      "observations": [
-        "line 164"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::getCriticalityBadge",
-      "entityType": "function",
-      "observations": [
-        "line 177"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCaseType",
-      "entityType": "function",
-      "observations": [
-        "line 186"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCaseName",
-      "entityType": "function",
-      "observations": [
-        "line 191"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateDescription",
-      "entityType": "function",
-      "observations": [
-        "line 196"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateStatus",
-      "entityType": "function",
-      "observations": [
-        "line 201"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateNationality",
-      "entityType": "function",
-      "observations": [
-        "line 206"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateValidationRule",
-      "entityType": "function",
-      "observations": [
-        "line 211"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateRegulation",
-      "entityType": "function",
-      "observations": [
-        "line 216"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateDocument",
-      "entityType": "function",
-      "observations": [
-        "line 221"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateFolder",
-      "entityType": "function",
-      "observations": [
-        "line 226"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateDocType",
-      "entityType": "function",
-      "observations": [
-        "line 231"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCriterion",
-      "entityType": "function",
-      "observations": [
-        "line 236"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateIssue",
-      "entityType": "function",
-      "observations": [
-        "line 241"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCheckPoint",
-      "entityType": "function",
-      "observations": [
-        "line 247"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateCategory",
-      "entityType": "function",
-      "observations": [
-        "line 253"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseContextDialog.tsx::translateFrequency",
-      "entityType": "function",
-      "observations": [
-        "line 258"
-      ]
-    },
-    {
       "name": "src/components/workspace/CaseSearchDialog.tsx",
       "entityType": "file",
       "observations": [
@@ -6611,57 +6322,6 @@
         "language: typescript",
         "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
         "external_imports: lucide-react, react, react-i18next"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextNode",
-      "entityType": "class",
-      "observations": [
-        "line 32",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialogProps",
-      "entityType": "class",
-      "observations": [
-        "line 43",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialog",
-      "entityType": "component",
-      "observations": [
-        "line 48"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::fetchCaseContext",
-      "entityType": "function",
-      "observations": [
-        "line 81"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::buildContextTree",
-      "entityType": "function",
-      "observations": [
-        "line 112"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::toggleNode",
-      "entityType": "function",
-      "observations": [
-        "line 313"
-      ]
-    },
-    {
-      "name": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
-      "entityType": "function",
-      "observations": [
-        "line 325"
       ]
     },
     {
@@ -9230,6 +8890,457 @@
         "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
         "external_imports: @vitejs/plugin-react-swc, lovable-tagger, path, vite"
       ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::GeminiService",
+      "entityType": "class",
+      "observations": [
+        "line 30"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::__new__",
+      "entityType": "function",
+      "observations": [
+        "line 49"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::__init__",
+      "entityType": "function",
+      "observations": [
+        "line 63"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_initialize_client",
+      "entityType": "function",
+      "observations": [
+        "line 78"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_initialize_context_manager",
+      "entityType": "function",
+      "observations": [
+        "line 95"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_initialize_conversation_manager",
+      "entityType": "function",
+      "observations": [
+        "line 109"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::generate_response",
+      "entityType": "function",
+      "observations": [
+        "line 126",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_generate_streaming_response",
+      "entityType": "function",
+      "observations": [
+        "line 282",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_load_context",
+      "entityType": "function",
+      "observations": [
+        "line 356"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_build_prompt",
+      "entityType": "function",
+      "observations": [
+        "line 450"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_is_json_data",
+      "entityType": "function",
+      "observations": [
+        "line 551"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_format_json_as_markdown_table",
+      "entityType": "function",
+      "observations": [
+        "line 570"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::format_response",
+      "entityType": "function",
+      "observations": [
+        "line 623"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::semantic_search",
+      "entityType": "function",
+      "observations": [
+        "line 672",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::is_initialized",
+      "entityType": "function",
+      "observations": [
+        "line 822"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::LLMProvider",
+      "entityType": "class",
+      "observations": [
+        "line 42",
+        "extends: ABC"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::LiteLLMProvider",
+      "entityType": "class",
+      "observations": [
+        "line 64"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::GeminiProvider",
+      "entityType": "class",
+      "observations": [
+        "line 148"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::is_initialized",
+      "entityType": "function",
+      "observations": [
+        "line 169"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::__init__",
+      "entityType": "function",
+      "observations": [
+        "line 153"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::_map_kwargs",
+      "entityType": "function",
+      "observations": [
+        "line 95",
+        "decorated @staticmethod"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::_build_config",
+      "entityType": "function",
+      "observations": [
+        "line 172"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::_build_provider",
+      "entityType": "function",
+      "observations": [
+        "line 204"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::get_provider",
+      "entityType": "function",
+      "observations": [
+        "line 220"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::reset_provider_for_tests",
+      "entityType": "function",
+      "observations": [
+        "line 233"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::generate",
+      "entityType": "function",
+      "observations": [
+        "line 180",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::generate_streaming",
+      "entityType": "function",
+      "observations": [
+        "line 188",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::Regulation",
+      "entityType": "class",
+      "observations": [
+        "line 28",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::RequiredDocument",
+      "entityType": "class",
+      "observations": [
+        "line 35",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::ValidationRule",
+      "entityType": "class",
+      "observations": [
+        "line 45",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::CommonIssue",
+      "entityType": "class",
+      "observations": [
+        "line 51",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::Applicant",
+      "entityType": "class",
+      "observations": [
+        "line 59",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::FolderContext",
+      "entityType": "class",
+      "observations": [
+        "line 66",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContext",
+      "entityType": "class",
+      "observations": [
+        "line 78",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialogProps",
+      "entityType": "class",
+      "observations": [
+        "line 92",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialog",
+      "entityType": "component",
+      "observations": [
+        "line 98"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::tc",
+      "entityType": "function",
+      "observations": [
+        "line 109"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::fetchCaseContext",
+      "entityType": "function",
+      "observations": [
+        "line 134"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::getSeverityColor",
+      "entityType": "function",
+      "observations": [
+        "line 164"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::getCriticalityBadge",
+      "entityType": "function",
+      "observations": [
+        "line 177"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCaseType",
+      "entityType": "function",
+      "observations": [
+        "line 185"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCaseName",
+      "entityType": "function",
+      "observations": [
+        "line 190"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateDescription",
+      "entityType": "function",
+      "observations": [
+        "line 195"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateStatus",
+      "entityType": "function",
+      "observations": [
+        "line 200"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateNationality",
+      "entityType": "function",
+      "observations": [
+        "line 205"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateValidationRule",
+      "entityType": "function",
+      "observations": [
+        "line 210"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateRegulation",
+      "entityType": "function",
+      "observations": [
+        "line 215"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateDocument",
+      "entityType": "function",
+      "observations": [
+        "line 220"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateFolder",
+      "entityType": "function",
+      "observations": [
+        "line 225"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateDocType",
+      "entityType": "function",
+      "observations": [
+        "line 230"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCriterion",
+      "entityType": "function",
+      "observations": [
+        "line 235"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateIssue",
+      "entityType": "function",
+      "observations": [
+        "line 240"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCheckPoint",
+      "entityType": "function",
+      "observations": [
+        "line 246"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateCategory",
+      "entityType": "function",
+      "observations": [
+        "line 252"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseContextDialog.tsx::translateFrequency",
+      "entityType": "function",
+      "observations": [
+        "line 257"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextNode",
+      "entityType": "class",
+      "observations": [
+        "line 33",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialogProps",
+      "entityType": "class",
+      "observations": [
+        "line 45",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialog",
+      "entityType": "component",
+      "observations": [
+        "line 50"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::fetchCaseContext",
+      "entityType": "function",
+      "observations": [
+        "line 83"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::buildContextTree",
+      "entityType": "function",
+      "observations": [
+        "line 114"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::toggleNode",
+      "entityType": "function",
+      "observations": [
+        "line 316"
+      ]
+    },
+    {
+      "name": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
+      "entityType": "function",
+      "observations": [
+        "line 328"
+      ]
     }
   ],
   "relations": [
@@ -11467,141 +11578,6 @@
       "from": "backend/services/llm_provider.py",
       "to": "backend/config.py",
       "relationType": "imports"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::LLMProvider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::LiteLLMProvider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::GeminiProvider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::is_initialized",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::__init__",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::_map_kwargs",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::_build_config",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::_build_provider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::get_provider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::reset_provider_for_tests",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::generate",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::generate_streaming",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::LLMProvider",
-      "relationType": "extends"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::LLMProvider",
-      "relationType": "extends"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LLMProvider",
-      "to": "backend/services/llm_provider.py::generate",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LLMProvider",
-      "to": "backend/services/llm_provider.py::generate_streaming",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LLMProvider",
-      "to": "backend/services/llm_provider.py::is_initialized",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::__init__",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::is_initialized",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::_map_kwargs",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::generate",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::generate_streaming",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::__init__",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::is_initialized",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::_build_config",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::generate",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::generate_streaming",
-      "relationType": "contains"
     },
     {
       "from": "backend/services/pdf_service.py",
@@ -14345,146 +14321,6 @@
     },
     {
       "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::Regulation",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::RequiredDocument",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::ValidationRule",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::CommonIssue",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::Applicant",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::FolderContext",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContext",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialogProps",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialog",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::tc",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::fetchCaseContext",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::getSeverityColor",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::getCriticalityBadge",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseType",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseName",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateDescription",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateStatus",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateNationality",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateValidationRule",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateRegulation",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocument",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateFolder",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocType",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCriterion",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateIssue",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCheckPoint",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateCategory",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx::translateFrequency",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseContextDialog.tsx",
       "to": "VITE_API_URL",
       "relationType": "reads_env"
     },
@@ -14732,41 +14568,6 @@
       "from": "src/components/workspace/ContextHierarchyDialog.tsx",
       "to": "src/types/case.ts",
       "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextNode",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialogProps",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialog",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::fetchCaseContext",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::buildContextTree",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::toggleNode",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
-      "to": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
-      "relationType": "defines"
     },
     {
       "from": "src/components/workspace/ContextHierarchyDialog.tsx",
@@ -16812,6 +16613,461 @@
       "from": "src/components/workspace/FormViewer.tsx",
       "to": "backend/api/admin.py::POST /api/admin/modify-form",
       "relationType": "calls_endpoint"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::GeminiService",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::__new__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::__init__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_initialize_client",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_initialize_context_manager",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_initialize_conversation_manager",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::generate_response",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_generate_streaming_response",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_load_context",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_build_prompt",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_is_json_data",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_format_json_as_markdown_table",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::format_response",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::semantic_search",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::is_initialized",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::__new__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_initialize_client",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_initialize_context_manager",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_initialize_conversation_manager",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::generate_response",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_generate_streaming_response",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_load_context",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_build_prompt",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_is_json_data",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_format_json_as_markdown_table",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::format_response",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::semantic_search",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::LLMProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::LiteLLMProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::GeminiProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::__init__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::_map_kwargs",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::_build_config",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::_build_provider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::get_provider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::reset_provider_for_tests",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::LLMProvider",
+      "relationType": "extends"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::LLMProvider",
+      "relationType": "extends"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LLMProvider",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LLMProvider",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LLMProvider",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::_map_kwargs",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::_build_config",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "contains"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::Regulation",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::RequiredDocument",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::ValidationRule",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CommonIssue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::Applicant",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::FolderContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::tc",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::fetchCaseContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::getSeverityColor",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::getCriticalityBadge",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateDescription",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateNationality",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateValidationRule",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateRegulation",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocument",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateFolder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCriterion",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateIssue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCheckPoint",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCategory",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateFrequency",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextNode",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::fetchCaseContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::buildContextTree",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::toggleNode",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
+      "relationType": "defines"
     }
   ]
 }
