@@ -2882,111 +2882,6 @@
       ]
     },
     {
-      "name": "backend/services/gemini_service.py::GeminiService",
-      "entityType": "class",
-      "observations": [
-        "line 28"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::__new__",
-      "entityType": "function",
-      "observations": [
-        "line 48"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::__init__",
-      "entityType": "function",
-      "observations": [
-        "line 62"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::_initialize_client",
-      "entityType": "function",
-      "observations": [
-        "line 77"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::_initialize_context_manager",
-      "entityType": "function",
-      "observations": [
-        "line 94"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::_initialize_conversation_manager",
-      "entityType": "function",
-      "observations": [
-        "line 108"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::_load_context",
-      "entityType": "function",
-      "observations": [
-        "line 355"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::_build_prompt",
-      "entityType": "function",
-      "observations": [
-        "line 429"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::_is_json_data",
-      "entityType": "function",
-      "observations": [
-        "line 530"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::_format_json_as_markdown_table",
-      "entityType": "function",
-      "observations": [
-        "line 549"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::format_response",
-      "entityType": "function",
-      "observations": [
-        "line 602"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::is_initialized",
-      "entityType": "function",
-      "observations": [
-        "line 801"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::generate_response",
-      "entityType": "function",
-      "observations": [
-        "line 125"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::_generate_streaming_response",
-      "entityType": "function",
-      "observations": [
-        "line 281"
-      ]
-    },
-    {
-      "name": "backend/services/gemini_service.py::semantic_search",
-      "entityType": "function",
-      "observations": [
-        "line 651"
-      ]
-    },
-    {
       "name": "backend/services/llm_provider.py",
       "entityType": "file",
       "observations": [
@@ -2994,91 +2889,6 @@
         "frameworks: fastapi, google-generativeai, pydantic, uvicorn, websockets",
         "external_imports: __future__, abc, google.generativeai, google.generativeai.types, litellm, logging, os, typing",
         "decorators: abstractmethod, staticmethod"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::LLMProvider",
-      "entityType": "class",
-      "observations": [
-        "line 40",
-        "extends: ABC"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::LiteLLMProvider",
-      "entityType": "class",
-      "observations": [
-        "line 62"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::GeminiProvider",
-      "entityType": "class",
-      "observations": [
-        "line 146"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::is_initialized",
-      "entityType": "function",
-      "observations": [
-        "line 168"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::__init__",
-      "entityType": "function",
-      "observations": [
-        "line 152"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::_map_kwargs",
-      "entityType": "function",
-      "observations": [
-        "line 95"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::_build_config",
-      "entityType": "function",
-      "observations": [
-        "line 171"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::_build_provider",
-      "entityType": "function",
-      "observations": [
-        "line 202"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::get_provider",
-      "entityType": "function",
-      "observations": [
-        "line 213"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::reset_provider_for_tests",
-      "entityType": "function",
-      "observations": [
-        "line 226"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::generate",
-      "entityType": "function",
-      "observations": [
-        "line 179"
-      ]
-    },
-    {
-      "name": "backend/services/llm_provider.py::generate_streaming",
-      "entityType": "function",
-      "observations": [
-        "line 187"
       ]
     },
     {
@@ -9335,6 +9145,202 @@
         "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
         "external_imports: @vitejs/plugin-react-swc, lovable-tagger, path, vite"
       ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::GeminiService",
+      "entityType": "class",
+      "observations": [
+        "line 30"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::__new__",
+      "entityType": "function",
+      "observations": [
+        "line 49"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::__init__",
+      "entityType": "function",
+      "observations": [
+        "line 63"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_initialize_client",
+      "entityType": "function",
+      "observations": [
+        "line 78"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_initialize_context_manager",
+      "entityType": "function",
+      "observations": [
+        "line 95"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_initialize_conversation_manager",
+      "entityType": "function",
+      "observations": [
+        "line 109"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::generate_response",
+      "entityType": "function",
+      "observations": [
+        "line 126",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_generate_streaming_response",
+      "entityType": "function",
+      "observations": [
+        "line 282",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_load_context",
+      "entityType": "function",
+      "observations": [
+        "line 356"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_build_prompt",
+      "entityType": "function",
+      "observations": [
+        "line 450"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_is_json_data",
+      "entityType": "function",
+      "observations": [
+        "line 551"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::_format_json_as_markdown_table",
+      "entityType": "function",
+      "observations": [
+        "line 570"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::format_response",
+      "entityType": "function",
+      "observations": [
+        "line 623"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::semantic_search",
+      "entityType": "function",
+      "observations": [
+        "line 672",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/gemini_service.py::is_initialized",
+      "entityType": "function",
+      "observations": [
+        "line 822"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::LLMProvider",
+      "entityType": "class",
+      "observations": [
+        "line 42",
+        "extends: ABC"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::LiteLLMProvider",
+      "entityType": "class",
+      "observations": [
+        "line 64"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::GeminiProvider",
+      "entityType": "class",
+      "observations": [
+        "line 148"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::is_initialized",
+      "entityType": "function",
+      "observations": [
+        "line 169"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::__init__",
+      "entityType": "function",
+      "observations": [
+        "line 153"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::_map_kwargs",
+      "entityType": "function",
+      "observations": [
+        "line 95",
+        "decorated @staticmethod"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::_build_config",
+      "entityType": "function",
+      "observations": [
+        "line 172"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::_build_provider",
+      "entityType": "function",
+      "observations": [
+        "line 204"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::get_provider",
+      "entityType": "function",
+      "observations": [
+        "line 220"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::reset_provider_for_tests",
+      "entityType": "function",
+      "observations": [
+        "line 233"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::generate",
+      "entityType": "function",
+      "observations": [
+        "line 180",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/services/llm_provider.py::generate_streaming",
+      "entityType": "function",
+      "observations": [
+        "line 188",
+        "async"
+      ]
     }
   ],
   "relations": [
@@ -11569,289 +11575,9 @@
       "relationType": "imports"
     },
     {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::GeminiService",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::__new__",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::__init__",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_initialize_client",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_initialize_context_manager",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_initialize_conversation_manager",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_load_context",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_build_prompt",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_is_json_data",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_format_json_as_markdown_table",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::format_response",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::is_initialized",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::generate_response",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::_generate_streaming_response",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py",
-      "to": "backend/services/gemini_service.py::semantic_search",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::__new__",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::__init__",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_initialize_client",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_initialize_context_manager",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_initialize_conversation_manager",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::generate_response",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_generate_streaming_response",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_load_context",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_build_prompt",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_is_json_data",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::_format_json_as_markdown_table",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::format_response",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::semantic_search",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/gemini_service.py::GeminiService",
-      "to": "backend/services/gemini_service.py::is_initialized",
-      "relationType": "contains"
-    },
-    {
       "from": "backend/services/llm_provider.py",
       "to": "backend/config.py",
       "relationType": "imports"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::LLMProvider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::LiteLLMProvider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::GeminiProvider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::is_initialized",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::__init__",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::_map_kwargs",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::_build_config",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::_build_provider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::get_provider",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::reset_provider_for_tests",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::generate",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py",
-      "to": "backend/services/llm_provider.py::generate_streaming",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::LLMProvider",
-      "relationType": "extends"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::LLMProvider",
-      "relationType": "extends"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LLMProvider",
-      "to": "backend/services/llm_provider.py::generate",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LLMProvider",
-      "to": "backend/services/llm_provider.py::generate_streaming",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LLMProvider",
-      "to": "backend/services/llm_provider.py::is_initialized",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::__init__",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::is_initialized",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::_map_kwargs",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::generate",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::LiteLLMProvider",
-      "to": "backend/services/llm_provider.py::generate_streaming",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::__init__",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::is_initialized",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::_build_config",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::generate",
-      "relationType": "contains"
-    },
-    {
-      "from": "backend/services/llm_provider.py::GeminiProvider",
-      "to": "backend/services/llm_provider.py::generate_streaming",
-      "relationType": "contains"
     },
     {
       "from": "backend/services/pdf_service.py",
@@ -13087,6 +12813,4261 @@
       "from": "docs/tests/S001-D-001/conftest.py",
       "to": "docs/tests/S001-D-001/conftest.py::_find_repo_root",
       "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-D-001/conftest.py",
+      "to": "docs/tests/S001-D-001/conftest.py::repo_root",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-D-001/conftest.py",
+      "to": "docs/tests/S001-D-001/conftest.py::env_example_path",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-D-001/conftest.py",
+      "to": "docs/tests/S001-D-001/conftest.py::env_example_text",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-01.py",
+      "to": "backend/api/admin.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-01.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-01.py::test_generate_field_internal_backend",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-02.py",
+      "to": "backend/api/admin.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-02.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-02.py::test_generate_field_external_backend",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-03.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-03.py::test_invalid_llm_backend_raises",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-03.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-03.py::LLM_BACKEND",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-04.py",
+      "to": "backend/api/admin.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-04.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-04.py::_ConnectionRefused",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-04.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-04.py::test_internal_backend_network_error_no_gemini_fallback",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "backend/api/chat.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::_FakeStream",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::FakeWebSocket",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::__init__",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::__aiter__",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::_chunk",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::__anext__",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::_fake_acompletion",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::accept",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::send_json",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::receive_text",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::close",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::test_websocket_streams_chat_chunks_under_internal_backend",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py::_FakeStream",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py::_FakeStream",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::__aiter__",
+      "relationType": "contains"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py::_FakeStream",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::__anext__",
+      "relationType": "contains"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py::FakeWebSocket",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py::FakeWebSocket",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::accept",
+      "relationType": "contains"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py::FakeWebSocket",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::send_json",
+      "relationType": "contains"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py::FakeWebSocket",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::receive_text",
+      "relationType": "contains"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py::FakeWebSocket",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-05.py::close",
+      "relationType": "contains"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-06.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-06.py::test_internal_path_does_not_import_google_generativeai",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-06.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-06.py::LLM_BACKEND",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-07.py",
+      "to": "backend/api/admin.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-07.py",
+      "to": "docs/tests/S001-F-001/TC-S001-F-001-07.py::test_external_backend_never_calls_litellm",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/conftest.py",
+      "to": "docs/tests/S001-F-001/conftest.py::pytest_configure",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/conftest.py",
+      "to": "docs/tests/S001-F-001/conftest.py::make_admin_client",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/conftest.py",
+      "to": "docs/tests/S001-F-001/conftest.py::fresh_modules",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/conftest.py",
+      "to": "docs/tests/S001-F-001/conftest.py::_factory",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-001/conftest.py",
+      "to": "docs/tests/S001-F-001/conftest.py::REPO_ROOT",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/TC-S001-F-008-01.py",
+      "to": "docs/tests/S001-F-008/TC-S001-F-008-01.py::test_en_falls_back_to_de_when_key_missing",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/TC-S001-F-008-02.py",
+      "to": "docs/tests/S001-F-008/TC-S001-F-008-02.py::test_returns_key_when_missing_everywhere",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/TC-S001-F-008-03.py",
+      "to": "docs/tests/S001-F-008/TC-S001-F-008-03.py::test_coverage_exits_1_when_de_missing_key",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/TC-S001-F-008-04.py",
+      "to": "docs/tests/S001-F-008/TC-S001-F-008-04.py::test_coverage_warns_but_passes_when_en_missing_key",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/TC-S001-F-008-05.py",
+      "to": "docs/tests/S001-F-008/TC-S001-F-008-05.py::test_config_uses_import_meta_env_dev",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/TC-S001-F-008-05.py",
+      "to": "docs/tests/S001-F-008/TC-S001-F-008-05.py::test_production_bundle_has_no_debug_true",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/TC-S001-F-008-05.py",
+      "to": "docs/tests/S001-F-008/TC-S001-F-008-05.py::CONFIG_FILE",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/TC-S001-F-008-05.py",
+      "to": "docs/tests/S001-F-008/TC-S001-F-008-05.py::DIST_DIR",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::load_json",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::write_json",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::remove_key",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::run_node",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::run_coverage",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::run_i18next",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::PROJECT_ROOT",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::LOCALES_DIR",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::DE_PATH",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::EN_PATH",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::COVERAGE_SCRIPT",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/_helpers.py",
+      "to": "docs/tests/S001-F-008/_helpers.py::I18NEXT_RUNNER",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/conftest.py",
+      "to": "docs/tests/S001-F-008/conftest.py::pytest_collectstart",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-008/conftest.py",
+      "to": "docs/tests/S001-F-008/conftest.py::pytest_configure",
+      "relationType": "defines"
+    },
+    {
+      "from": "ontology_shacl_material/integration_course_ontology.ttl",
+      "to": "ontology_shacl_material/integration_course_ontology.ttl::bamf:IntegrationCourseApplication",
+      "relationType": "defines"
+    },
+    {
+      "from": "ontology_shacl_material/integration_course_ontology.ttl",
+      "to": "ontology_shacl_material/integration_course_ontology.ttl::bamf:Applicant",
+      "relationType": "defines"
+    },
+    {
+      "from": "ontology_shacl_material/integration_course_shacl.ttl",
+      "to": "ontology_shacl_material/integration_course_shacl.ttl::bamf:IntegrationCourseApplicationFormShape",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/App.tsx",
+      "to": "src/components/ui/toaster.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/App.tsx",
+      "to": "src/components/ui/sonner.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/App.tsx",
+      "to": "src/components/ui/tooltip.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/App.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/App.tsx",
+      "to": "src/i18n/config.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/App.tsx",
+      "to": "src/pages/Index.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/App.tsx",
+      "to": "src/pages/Workspace.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/App.tsx",
+      "to": "src/pages/NotFound.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/App.tsx",
+      "to": "src/App.tsx::App",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/NavLink.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/NavLink.tsx",
+      "to": "src/components/NavLink.tsx::NavLinkCompatProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/CodeBlock.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/CodeBlock.tsx",
+      "to": "src/components/ui/badge.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/CodeBlock.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/CodeBlock.tsx",
+      "to": "src/components/ui/CodeBlock.tsx::CodeBlockProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/CodeBlock.tsx",
+      "to": "src/components/ui/CodeBlock.tsx::CodeBlock",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/CodeBlock.tsx",
+      "to": "src/components/ui/CodeBlock.tsx::handleCopy",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/CodeBlock.tsx",
+      "to": "src/components/ui/CodeBlock.tsx::normalizeLanguage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/DeleteConfirmDialog.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/DeleteConfirmDialog.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/DeleteConfirmDialog.tsx",
+      "to": "src/components/ui/DeleteConfirmDialog.tsx::DeleteConfirmDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/DeleteConfirmDialog.tsx",
+      "to": "src/components/ui/DeleteConfirmDialog.tsx::DeleteConfirmDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/DuplicateFileDialog.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/DuplicateFileDialog.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/DuplicateFileDialog.tsx",
+      "to": "src/components/ui/DuplicateFileDialog.tsx::DuplicateFileInfo",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/DuplicateFileDialog.tsx",
+      "to": "src/components/ui/DuplicateFileDialog.tsx::DuplicateFileDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/DuplicateFileDialog.tsx",
+      "to": "src/components/ui/DuplicateFileDialog.tsx::DuplicateFileDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/UploadProgress.tsx",
+      "to": "src/components/ui/progress.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/UploadProgress.tsx",
+      "to": "src/components/ui/card.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/UploadProgress.tsx",
+      "to": "src/lib/fileApi.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/UploadProgress.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/UploadProgress.tsx",
+      "to": "src/components/ui/UploadProgress.tsx::UploadProgressProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/UploadProgress.tsx",
+      "to": "src/components/ui/UploadProgress.tsx::UploadProgress",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/UploadProgress.tsx",
+      "to": "src/components/ui/UploadProgress.tsx::getStatusIcon",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/UploadProgress.tsx",
+      "to": "src/components/ui/UploadProgress.tsx::getStatusColor",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/accordion.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/alert-dialog.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/alert-dialog.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/alert-dialog.tsx",
+      "to": "src/components/ui/alert-dialog.tsx::AlertDialogHeader",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/alert-dialog.tsx",
+      "to": "src/components/ui/alert-dialog.tsx::AlertDialogFooter",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/alert.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/avatar.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/badge.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/badge.tsx",
+      "to": "src/components/ui/badge.tsx::BadgeProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/badge.tsx",
+      "to": "src/components/ui/badge.tsx::Badge",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/breadcrumb.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/breadcrumb.tsx",
+      "to": "src/components/ui/breadcrumb.tsx::BreadcrumbSeparator",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/breadcrumb.tsx",
+      "to": "src/components/ui/breadcrumb.tsx::BreadcrumbEllipsis",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/button.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/button.tsx",
+      "to": "src/components/ui/button.tsx::ButtonProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/calendar.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/calendar.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/calendar.tsx",
+      "to": "src/components/ui/calendar.tsx::CalendarProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/calendar.tsx",
+      "to": "src/components/ui/calendar.tsx::Calendar",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/card.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/carousel.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/carousel.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/carousel.tsx",
+      "to": "src/components/ui/carousel.tsx::CarouselApi",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/carousel.tsx",
+      "to": "src/components/ui/carousel.tsx::UseCarouselParameters",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/carousel.tsx",
+      "to": "src/components/ui/carousel.tsx::CarouselOptions",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/carousel.tsx",
+      "to": "src/components/ui/carousel.tsx::CarouselPlugin",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/carousel.tsx",
+      "to": "src/components/ui/carousel.tsx::CarouselProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/carousel.tsx",
+      "to": "src/components/ui/carousel.tsx::CarouselContextProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/carousel.tsx",
+      "to": "src/components/ui/carousel.tsx::useCarousel",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/chart.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/chart.tsx",
+      "to": "src/components/ui/chart.tsx::ChartConfig",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/chart.tsx",
+      "to": "src/components/ui/chart.tsx::ChartContextProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/chart.tsx",
+      "to": "src/components/ui/chart.tsx::ChartStyle",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/chart.tsx",
+      "to": "src/components/ui/chart.tsx::useChart",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/chart.tsx",
+      "to": "src/components/ui/chart.tsx::getPayloadConfigFromPayload",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/checkbox.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/command.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/command.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/command.tsx",
+      "to": "src/components/ui/command.tsx::CommandDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/command.tsx",
+      "to": "src/components/ui/command.tsx::CommandDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/command.tsx",
+      "to": "src/components/ui/command.tsx::CommandShortcut",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/context-menu.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/context-menu.tsx",
+      "to": "src/components/ui/context-menu.tsx::ContextMenuShortcut",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/dialog.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/dialog.tsx",
+      "to": "src/components/ui/dialog.tsx::DialogHeader",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/dialog.tsx",
+      "to": "src/components/ui/dialog.tsx::DialogFooter",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/drawer.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/drawer.tsx",
+      "to": "src/components/ui/drawer.tsx::Drawer",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/drawer.tsx",
+      "to": "src/components/ui/drawer.tsx::DrawerHeader",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/drawer.tsx",
+      "to": "src/components/ui/drawer.tsx::DrawerFooter",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/dropdown-menu.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/dropdown-menu.tsx",
+      "to": "src/components/ui/dropdown-menu.tsx::DropdownMenuShortcut",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/form.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/form.tsx",
+      "to": "src/components/ui/label.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/form.tsx",
+      "to": "src/components/ui/form.tsx::FormFieldContextValue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/form.tsx",
+      "to": "src/components/ui/form.tsx::FormItemContextValue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/form.tsx",
+      "to": "src/components/ui/form.tsx::useFormField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/hover-card.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/input-otp.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/input.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/label.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/menubar.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/menubar.tsx",
+      "to": "src/components/ui/menubar.tsx::MenubarShortcut",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/navigation-menu.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/pagination.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/pagination.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/pagination.tsx",
+      "to": "src/components/ui/pagination.tsx::PaginationLinkProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/pagination.tsx",
+      "to": "src/components/ui/pagination.tsx::Pagination",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/pagination.tsx",
+      "to": "src/components/ui/pagination.tsx::PaginationLink",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/pagination.tsx",
+      "to": "src/components/ui/pagination.tsx::PaginationPrevious",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/pagination.tsx",
+      "to": "src/components/ui/pagination.tsx::PaginationNext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/pagination.tsx",
+      "to": "src/components/ui/pagination.tsx::PaginationEllipsis",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/popover.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/progress.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/radio-group.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/resizable.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/resizable.tsx",
+      "to": "src/components/ui/resizable.tsx::ResizablePanelGroup",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/resizable.tsx",
+      "to": "src/components/ui/resizable.tsx::ResizableHandle",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/scroll-area.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/select.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/separator.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sheet.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sheet.tsx",
+      "to": "src/components/ui/sheet.tsx::SheetContentProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/sheet.tsx",
+      "to": "src/components/ui/sheet.tsx::SheetHeader",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/sheet.tsx",
+      "to": "src/components/ui/sheet.tsx::SheetFooter",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/hooks/use-mobile.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/input.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/separator.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/sheet.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/skeleton.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/tooltip.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/sidebar.tsx::SidebarContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/sidebar.tsx::useSidebar",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/sidebar.tsx::handleKeyDown",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/sidebar.tsx",
+      "to": "src/components/ui/sidebar.tsx::button",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/skeleton.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/skeleton.tsx",
+      "to": "src/components/ui/skeleton.tsx::Skeleton",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/slider.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/sonner.tsx",
+      "to": "src/components/ui/sonner.tsx::ToasterProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/sonner.tsx",
+      "to": "src/components/ui/sonner.tsx::Toaster",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/switch.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/table.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/tabs.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/textarea.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/textarea.tsx",
+      "to": "src/components/ui/textarea.tsx::TextareaProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/toast.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/toast.tsx",
+      "to": "src/components/ui/toast.tsx::ToastProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/toast.tsx",
+      "to": "src/components/ui/toast.tsx::ToastActionElement",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/toaster.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/toaster.tsx",
+      "to": "src/components/ui/toast.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/toaster.tsx",
+      "to": "src/components/ui/toaster.tsx::Toaster",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/ui/toggle-group.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/toggle-group.tsx",
+      "to": "src/components/ui/toggle.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/toggle.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/tooltip.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/ui/use-toast.ts",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/data/mockData.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/ui/badge.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/lib/messageFormatter.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::AutocompleteSuggestion",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::AIChatInterface",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::getVisibleQuickActions",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::processContextCommand",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::addCommandResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::processSearchCommand",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::confidencePercent",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::handleSubmit",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::insertCommand",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::handleDragOver",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::handleDragLeave",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::handleDrop",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::clearChatHistory",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::formatMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx::getActiveContextSources",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "VITE_API_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/lib/adminApi.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/types/shacl.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/input.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/label.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/switch.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/tabs.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/card.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/select.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/textarea.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/ui/badge.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::LocalizedName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::FolderTemplate",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::DocumentType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::MacroConfig",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::MetadataField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::AdminConfigPanel",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::tc",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::translateFolderName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::translateDocTypeName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::translateMacroName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::translateMetadataFieldName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::translateOption",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::translateAction",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::translateTrigger",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::translateFieldType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::toggleFolderExpand",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::addFolder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::removeFolder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::updateFolder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::updateFolderName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::addDocumentType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::removeDocumentType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::updateDocumentType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::addMacro",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::removeMacro",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::updateMacro",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::addMetadataField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::removeMetadataField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::updateMetadataField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::addFormField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::handleAiPromptChange",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::handleGenerateField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::removeFormField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::handleViewShacl",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx::handleCopyShacl",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AdminConfigPanel.tsx",
+      "to": "VITE_API_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/ui/scroll-area.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/ui/tabs.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/ui/badge.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::Regulation",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::RequiredDocument",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::ValidationRule",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CommonIssue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::Applicant",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::FolderContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::CaseContextDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::tc",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::fetchCaseContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::getSeverityColor",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::getCriticalityBadge",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCaseName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateDescription",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateNationality",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateValidationRule",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateRegulation",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocument",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateFolder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateDocType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCriterion",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateIssue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCheckPoint",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateCategory",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx::translateFrequency",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseContextDialog.tsx",
+      "to": "VITE_API_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/components/ui/input.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/components/ui/badge.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/components/workspace/CaseSearchDialog.tsx::CaseSearchDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/components/workspace/CaseSearchDialog.tsx::CaseSearchDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/components/workspace/CaseSearchDialog.tsx::handleSelectCase",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/components/workspace/CaseSearchDialog.tsx::getStatusColor",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseSearchDialog.tsx",
+      "to": "src/components/workspace/CaseSearchDialog.tsx::getCaseApplicantName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/ui/context-menu.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/lib/documentLoader.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/lib/fileApi.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/types/file.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/ui/UploadProgress.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/ui/DeleteConfirmDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/ui/DuplicateFileDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseContextDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::RenderContainerProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::FolderItemProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::RenderContainer",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::FolderItem",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::CaseTreeExplorer",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::getFileIcon",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::getRenderIcon",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::getRenderDisplayName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDragOver",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDragLeave",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDrop",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadClick",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleFileInputChange",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDeleteRender",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDragOver",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDragLeave",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDrop",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneClick",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneFileChange",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/CaseTreeExplorer.tsx",
+      "to": "VITE_API_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/ui/scroll-area.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/ui/badge.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextNode",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::ContextHierarchyDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::fetchCaseContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::buildContextTree",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::toggleNode",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/ContextHierarchyDialog.tsx",
+      "to": "VITE_API_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/components/workspace/DataTable.tsx",
+      "to": "src/components/ui/table.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DataTable.tsx",
+      "to": "src/components/workspace/DataTable.tsx::DataTableProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DataTable.tsx",
+      "to": "src/components/workspace/DataTable.tsx::ParsedTable",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DataTable.tsx",
+      "to": "src/components/workspace/DataTable.tsx::DataTable",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DataTable.tsx",
+      "to": "src/components/workspace/DataTable.tsx::parseMarkdownTable",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DataTable.tsx",
+      "to": "src/components/workspace/DataTable.tsx::getAlignmentClass",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/ui/input.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/types/websocket.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/HighlightedText.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/PDFViewer.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::DetectionOverlay",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::DocumentTab",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::DocumentViewer",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::updateDimensions",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::fetchDocumentContent",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleAnonymize",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleTranslate",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleDownloadImage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleImageLoad",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::getDetectionOverlays",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleImageError",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleSearchSubmit",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleNextHighlight",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handlePrevHighlight",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::scrollToHighlight",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleHighlightRef",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx::handleKeyDown",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "VITE_API_BASE_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/ui/card.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/ui/separator.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::EmailAttachment",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::EmailData",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::EmailViewerProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::EmailViewer",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::formatSize",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/EmailViewer.tsx",
+      "to": "src/components/workspace/EmailViewer.tsx::isRTLText",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/lib/fileApi.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/types/file.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/components/ui/UploadProgress.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/components/workspace/FileDropZone.tsx::FileDropZoneProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/components/workspace/FileDropZone.tsx::FileDropZone",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/components/workspace/FileDropZone.tsx::handleWindowDragEnter",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/components/workspace/FileDropZone.tsx::handleWindowDragLeave",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/components/workspace/FileDropZone.tsx::handleWindowDrop",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/components/workspace/FileDropZone.tsx::handleWindowDragOver",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FileDropZone.tsx",
+      "to": "src/components/workspace/FileDropZone.tsx::uploadFiles",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/ui/input.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/ui/textarea.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/ui/select.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/ui/badge.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/types/shacl.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::FormViewerProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::SuggestedValueInline",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::FormViewer",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::handleModifyForm",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::handleViewShacl",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::handleCopyShacl",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::validateFieldWithSHACL",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::handleFormSubmit",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::handleConfirmedSubmit",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::renderMetadataView",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "src/components/workspace/FormViewer.tsx::renderFormView",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/HighlightedText.tsx",
+      "to": "src/types/search.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/HighlightedText.tsx",
+      "to": "src/components/workspace/HighlightedText.tsx::HighlightedTextProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/HighlightedText.tsx",
+      "to": "src/components/workspace/HighlightedText.tsx::TextSegment",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/HighlightedText.tsx",
+      "to": "src/components/workspace/HighlightedText.tsx::HighlightedText",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/components/ui/input.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/components/ui/label.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/components/ui/select.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/components/workspace/NewCaseDialog.tsx::NewCaseDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/components/workspace/NewCaseDialog.tsx::NewCaseDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/components/workspace/NewCaseDialog.tsx::handleCreate",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/NewCaseDialog.tsx",
+      "to": "src/components/workspace/NewCaseDialog.tsx::handleTemplateChange",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/types/search.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/components/workspace/PDFViewer.tsx::PDFViewerProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/components/workspace/PDFViewer.tsx::PDFViewer",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/components/workspace/PDFViewer.tsx::onDocumentLoadSuccess",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/components/workspace/PDFViewer.tsx::onDocumentLoadError",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/components/workspace/PDFViewer.tsx::goToPrevPage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/components/workspace/PDFViewer.tsx::goToNextPage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/components/workspace/PDFViewer.tsx::zoomIn",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/PDFViewer.tsx",
+      "to": "src/components/workspace/PDFViewer.tsx::zoomOut",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/ui/dialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::ValidationWarning",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::ValidationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::SubmitCaseDialogProps",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::DialogState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::SubmitCaseDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::getScoreColor",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::getScoreBarColor",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::getScoreLabel",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::toggleSeverity",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::handleRunValidation",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::handleSubmitWithoutCheck",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::handleSubmitAnyway",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::handleClose",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "src/components/workspace/SubmitCaseDialog.tsx::resetDialog",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/SubmitCaseDialog.tsx",
+      "to": "VITE_API_BASE_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/components/workspace/WorkspaceHeader.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/WorkspaceHeader.tsx",
+      "to": "src/lib/utils.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/WorkspaceHeader.tsx",
+      "to": "src/components/ui/dropdown-menu.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/WorkspaceHeader.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/WorkspaceHeader.tsx",
+      "to": "src/components/workspace/CaseSearchDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/WorkspaceHeader.tsx",
+      "to": "src/components/workspace/NewCaseDialog.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/WorkspaceHeader.tsx",
+      "to": "src/components/workspace/WorkspaceHeader.tsx::WorkspaceHeader",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/WorkspaceHeader.tsx",
+      "to": "src/components/workspace/WorkspaceHeader.tsx::handleLogout",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/data/mockData.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/types/websocket.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/types/search.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/lib/localStorage.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/hooks/use-toast.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/i18n/config.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::AppContextType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::AppProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::useApp",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::setUser",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::language",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::setLanguage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::updateFormField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::acceptSuggestion",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::rejectSuggestion",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::switchCase",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::addNewCase",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::searchCases",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::addChatMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::toggleFolder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::selectDocumentWithRender",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::updateSelectedDocumentContent",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::addDocumentToFolder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::removeDocumentFromFolder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::loadDocumentsFromBackend",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::refreshDocuments",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::connectWebSocket",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::docType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::disconnectWebSocket",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::sendChatMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::performSemanticSearch",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/contexts/AppContext.tsx::clearSearch",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "VITE_API_BASE_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/data/__tests__/formSchemas.test.ts",
+      "to": "src/data/mockData.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/data/__tests__/formSchemas.test.ts",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/data/mockData.ts",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/data/mockData.ts",
+      "to": "src/types/shacl.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/data/mockData.ts",
+      "to": "src/data/mockData.ts::getFolderArguments",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/data/mockData.ts",
+      "to": "src/data/mockData.ts::createNewCase",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/data/mockData.ts",
+      "to": "src/data/mockData.ts::getInitialChatMessages",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-mobile.tsx",
+      "to": "src/hooks/use-mobile.tsx::useIsMobile",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-mobile.tsx",
+      "to": "src/hooks/use-mobile.tsx::onChange",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/components/ui/toast.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::State",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::ToasterToast",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::ActionType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::Action",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::Toast",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::genId",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::dispatch",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::Toast",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::useToast",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::addToRemoveQueue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::reducer",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::update",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/hooks/use-toast.ts",
+      "to": "src/hooks/use-toast.ts::dismiss",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/i18n/config.ts",
+      "to": "DEV",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".googleapis",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".com",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".40",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".1000",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".5rem",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".dark",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".pane",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".pane-header",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".tree-item",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".5",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".selected",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".chat-bubble",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".chat-bubble-user",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".chat-bubble-ai",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".slash-command",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".command-button",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".tab-button",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".active",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".metadata-row",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/index.css",
+      "to": ".scrollbar-thin",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/types/shacl.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/lib/adminApi.ts::AdminApiError",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/lib/adminApi.ts::GenerateFieldRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/lib/adminApi.ts::GenerateFieldResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/lib/adminApi.ts::ApiError",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/lib/adminApi.ts::generateField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/lib/adminApi.ts::checkAdminHealth",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/lib/adminApi.ts::validatePrompt",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/lib/adminApi.ts::suggestFieldType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "src/lib/adminApi.ts::data",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/adminApi.ts",
+      "to": "VITE_API_BASE_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/lib/documentLoader.ts",
+      "to": "src/lib/documentLoader.ts::loadDocumentContent",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/documentLoader.ts",
+      "to": "src/lib/documentLoader.ts::createLoadController",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/documentLoader.ts",
+      "to": "src/lib/documentLoader.ts::validateCaseAccess",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/types/file.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::DeleteResult",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::FileExistsResult",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::validateFileSize",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::validateFileExtension",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::uploadFile",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::uploadFileSimple",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::uploadFileWithProgress",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::checkFileServiceHealth",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::formatFileSize",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::getFileExtension",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::deleteFile",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::checkFileExists",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "src/lib/fileApi.ts::fileSizeMB",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/fileApi.ts",
+      "to": "VITE_API_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::StorageQuota",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::SaveResult",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::isLocalStorageAvailable",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::estimateStorageSize",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::checkQuota",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::saveToLocalStorage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::loadFromLocalStorage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::clearLocalStorage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::clearAllBamfStorage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::getBamfStorageInfo",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::exportBamfStorage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::importBamfStorage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/localStorage.ts",
+      "to": "src/lib/localStorage.ts::percentage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/messageFormatter.tsx",
+      "to": "src/components/ui/CodeBlock.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/lib/messageFormatter.tsx",
+      "to": "src/components/workspace/DataTable.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/lib/messageFormatter.tsx",
+      "to": "src/lib/messageFormatter.tsx::sanitizeHTML",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/messageFormatter.tsx",
+      "to": "src/lib/messageFormatter.tsx::renderMarkdown",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/messageFormatter.tsx",
+      "to": "src/lib/messageFormatter.tsx::detectCodeBlocks",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/messageFormatter.tsx",
+      "to": "src/lib/messageFormatter.tsx::detectTableData",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/messageFormatter.tsx",
+      "to": "src/lib/messageFormatter.tsx::preprocessSourceCitations",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/messageFormatter.tsx",
+      "to": "src/lib/messageFormatter.tsx::formatChatMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/lib/utils.ts",
+      "to": "src/lib/utils.ts::cn",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/main.tsx",
+      "to": "src/App.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/main.tsx",
+      "to": "src/index.css",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Index.tsx",
+      "to": "src/pages/Login.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Index.tsx",
+      "to": "src/pages/Index.tsx::Index",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/pages/Login.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Login.tsx",
+      "to": "src/components/ui/button.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Login.tsx",
+      "to": "src/components/ui/input.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Login.tsx",
+      "to": "src/i18n/config.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Login.tsx",
+      "to": "src/pages/Login.tsx::Login",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/pages/Login.tsx",
+      "to": "src/pages/Login.tsx::toggleLanguage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/pages/Login.tsx",
+      "to": "src/pages/Login.tsx::handleSubmit",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/pages/NotFound.tsx",
+      "to": "src/pages/NotFound.tsx::NotFound",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/pages/Workspace.tsx",
+      "to": "src/contexts/AppContext.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Workspace.tsx",
+      "to": "src/components/workspace/WorkspaceHeader.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Workspace.tsx",
+      "to": "src/components/workspace/CaseTreeExplorer.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Workspace.tsx",
+      "to": "src/components/workspace/AIChatInterface.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Workspace.tsx",
+      "to": "src/components/workspace/DocumentViewer.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Workspace.tsx",
+      "to": "src/components/workspace/FormViewer.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Workspace.tsx",
+      "to": "src/components/workspace/AdminConfigPanel.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Workspace.tsx",
+      "to": "src/components/ui/resizable.tsx",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/pages/Workspace.tsx",
+      "to": "src/pages/Workspace.tsx::Workspace",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/shacl.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::DocumentRender",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::Document",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::LocalizedFolderName",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::Folder",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::Case",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::FormField",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::SuggestedValue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::ChatMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::SlashCommand",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::CustomContextRule",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::SlashCommandArgument",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::HierarchicalSlashCommand",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::RenderType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::FormSuggestions",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts",
+      "to": "src/types/case.ts::CustomRuleType",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/case.ts::HierarchicalSlashCommand",
+      "to": "src/types/case.ts::SlashCommand",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/context.ts",
+      "to": "src/types/context.ts::TreeNode",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/context.ts",
+      "to": "src/types/context.ts::DocumentTreeView",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/context.ts",
+      "to": "src/types/context.ts::TreeViewResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/document-registry.ts",
+      "to": "src/types/document-registry.ts::DocumentRender",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/document-registry.ts",
+      "to": "src/types/document-registry.ts::DocumentRegistryEntry",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/document-registry.ts",
+      "to": "src/types/document-registry.ts::DocumentRegistry",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/document-registry.ts",
+      "to": "src/types/document-registry.ts::isTranslatedRender",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/document-registry.ts",
+      "to": "src/types/document-registry.ts::isAnonymizedRender",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/file.ts",
+      "to": "src/types/file.ts::UploadResult",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/file.ts",
+      "to": "src/types/file.ts::UploadProgress",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/file.ts",
+      "to": "src/types/file.ts::FileValidationError",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/file.ts",
+      "to": "src/types/file.ts::UploadConstraints",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/file.ts",
+      "to": "src/types/file.ts::UploadRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/file.ts",
+      "to": "src/types/file.ts::MultiUploadState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/file.ts",
+      "to": "src/types/file.ts::FileValidationErrorCode",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/file.ts",
+      "to": "src/types/file.ts::DEFAULT_UPLOAD_CONSTRAINTS",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/search.ts",
+      "to": "src/types/search.ts::SearchHighlight",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/search.ts",
+      "to": "src/types/search.ts::TextBlock",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/search.ts",
+      "to": "src/types/search.ts::SemanticSearchRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/search.ts",
+      "to": "src/types/search.ts::SemanticSearchResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/search.ts",
+      "to": "src/types/search.ts::SearchState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::ValidationPattern",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::JSONLDContext",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::SHACLList",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::SHACLPropertyShape",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::SHACLNodeShape",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::ValidationResult",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::FormModificationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::createPropertyShape",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::createNodeShape",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::getXsdDatatype",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::isRequired",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::getAllowedValues",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::getValidationPattern",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::getPatternForSchemaOrgProperty",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::validateValue",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::SHACL_CONTEXT",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::XSD_DATATYPE_MAPPING",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::EMAIL_PATTERN",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::PHONE_PATTERN",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::NAME_PATTERN",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::DATE_PATTERN",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::ADDRESS_PATTERN",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/shacl.ts",
+      "to": "src/types/shacl.ts::VALIDATION_PATTERNS",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/case.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatChunkMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::FormUpdateMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::FormSuggestionMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::SystemMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ErrorMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::DetectionInfo",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ConnectionStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatChunkMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::FormUpdateMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::FormSuggestionMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::SystemMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ErrorMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::AnonymizationRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::AnonymizationResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::TranslationRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::TranslationResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "temp/test_case_switching.py",
+      "to": "backend/services/context_manager.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "temp/test_case_switching.py",
+      "to": "temp/test_case_switching.py::print_test",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_case_switching.py",
+      "to": "temp/test_case_switching.py::print_success",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_case_switching.py",
+      "to": "temp/test_case_switching.py::print_error",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_case_switching.py",
+      "to": "temp/test_case_switching.py::test_case_switching",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_case_switching.py",
+      "to": "temp/test_case_switching.py::test_folder_context_per_case",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_case_switching.py",
+      "to": "temp/test_case_switching.py::test_merged_context_switching",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_case_switching.py",
+      "to": "temp/test_case_switching.py::test_case_regulations",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_case_switching.py",
+      "to": "temp/test_case_switching.py::main",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "backend/services/context_manager.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "temp/test_context_manager.py::print_test",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "temp/test_context_manager.py::print_success",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "temp/test_context_manager.py::print_error",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "temp/test_context_manager.py::test_load_case_context",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "temp/test_context_manager.py::test_load_folder_context",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "temp/test_context_manager.py::test_merge_contexts",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "temp/test_context_manager.py::test_case_isolation",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "temp/test_context_manager.py::test_error_handling",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_context_manager.py",
+      "to": "temp/test_context_manager.py::main",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::PerformanceTestResults",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::__init__",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::add_timing",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::add_error",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::calculate_stats",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::print_report",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::test_first_token_simple",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::test_document_summary",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::test_form_autofill",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::test_no_degradation",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py",
+      "to": "temp/test_nfr001_performance.py::run_all_tests",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py::PerformanceTestResults",
+      "to": "temp/test_nfr001_performance.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py::PerformanceTestResults",
+      "to": "temp/test_nfr001_performance.py::add_timing",
+      "relationType": "contains"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py::PerformanceTestResults",
+      "to": "temp/test_nfr001_performance.py::add_error",
+      "relationType": "contains"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py::PerformanceTestResults",
+      "to": "temp/test_nfr001_performance.py::calculate_stats",
+      "relationType": "contains"
+    },
+    {
+      "from": "temp/test_nfr001_performance.py::PerformanceTestResults",
+      "to": "temp/test_nfr001_performance.py::print_report",
+      "relationType": "contains"
+    },
+    {
+      "from": "temp/test_simple_ws.py",
+      "to": "temp/test_simple_ws.py::test_simple_connection",
+      "relationType": "defines"
+    },
+    {
+      "from": "temp/test_single.py",
+      "to": "temp/test_single.py::test_single",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
+      "relationType": "calls_endpoint"
+    },
+    {
+      "from": "src/components/workspace/FormViewer.tsx",
+      "to": "backend/api/admin.py::POST /api/admin/modify-form",
+      "relationType": "calls_endpoint"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::GeminiService",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::__new__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::__init__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_initialize_client",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_initialize_context_manager",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_initialize_conversation_manager",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::generate_response",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_generate_streaming_response",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_load_context",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_build_prompt",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_is_json_data",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::_format_json_as_markdown_table",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::format_response",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::semantic_search",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/services/gemini_service.py::is_initialized",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::__new__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_initialize_client",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_initialize_context_manager",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_initialize_conversation_manager",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::generate_response",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_generate_streaming_response",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_load_context",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_build_prompt",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_is_json_data",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::_format_json_as_markdown_table",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::format_response",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::semantic_search",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/gemini_service.py::GeminiService",
+      "to": "backend/services/gemini_service.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::LLMProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::LiteLLMProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::GeminiProvider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::__init__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::_map_kwargs",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::_build_config",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::_build_provider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::get_provider",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::reset_provider_for_tests",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::LLMProvider",
+      "relationType": "extends"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::LLMProvider",
+      "relationType": "extends"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LLMProvider",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LLMProvider",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LLMProvider",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::_map_kwargs",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::LiteLLMProvider",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::is_initialized",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::_build_config",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::generate",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/llm_provider.py::GeminiProvider",
+      "to": "backend/services/llm_provider.py::generate_streaming",
+      "relationType": "contains"
     }
   ]
 }

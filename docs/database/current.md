@@ -14,7 +14,14 @@ This project uses **no traditional database** (no SQL, no NoSQL, no vector DB, n
 
 The graph confirms: 0 `table` entities, 0 ORM imports (no SQLAlchemy / Django / SQLModel / pymongo / redis / pinecone / opensearchpy / elasticsearch / qdrant / weaviate / chromadb / psycopg). Persistence is implemented by hand in `backend/services/document_registry.py`, `backend/services/context_manager.py`, `backend/api/folders.py`, and `backend/api/custom_context.py`.
 
-> **Note (2026-04-28):** Wave 1 (S001-D-001, S001-F-001, S001-F-008) introduced new env vars (`LLM_BACKEND`, `LITELLM_PROXY_URL`, `LITELLM_TOKEN`, `LITELLM_MODEL`, frontend `DEV`) and an LLM provider abstraction layer (`backend/services/llm_provider.py`). None of these touch persistent state. They are LLM transport and i18n debug toggles. The data-store layer is unchanged.
+> **Wave 1 note (2026-04-27):** S001-D-001, S001-F-001, S001-F-008 introduced new env vars (`LLM_BACKEND`, `LITELLM_PROXY_URL`, `LITELLM_TOKEN`, `LITELLM_MODEL`, frontend `DEV`) and an LLM provider abstraction layer (`backend/services/llm_provider.py`). None of these touch persistent state. They are LLM transport and i18n debug toggles.
+>
+> **Wave 2 note (2026-04-28):**
+>
+> - **S001-F-003** added an optional `extractedText` field to entries inside the `regulations` array of `case.json` (per-case context). This is read by `backend/services/gemini_service.py::_load_context` (line 432) and injected into the LLM prompt. The canonical `Regulation` model in `backend/models/regulation.py` does **not** yet include this field, so the JSON store schema is now ahead of the dataclass. A new i18n key (`context.offlineNotice`) was added to `src/i18n/locales/{de,en}.json` — frontend build-time data, no persistence.
+> - **S001-NFR-001** added `backend/Dockerfile` and `.dockerignore`. No data store schema changes; affects what is COPYed into the image.
+> - **S001-NFR-002** added `frontend/Dockerfile` (two-stage build). No data store schema changes.
+> - **S001-NFR-004** added the `litellm/` subproject (gitignored — entire directory excluded from version control). It introduces three env vars that live exclusively in `litellm/.env`: `LITELLM_MASTER_KEY`, `LITELLM_OLLAMA_HOST`, `LITELLM_OLLAMA_MODEL`. None of these are consumed by the Python codebase directly; they are read by the LiteLLM proxy container. They do not appear in the code-graph because `litellm/` is gitignored.
 
 ---
 
@@ -29,6 +36,7 @@ The graph confirms: 0 `table` entities, 0 ORM imports (no SQLAlchemy / Django / 
 | `/var/app/documents/` (configurable via `DOCUMENTS_PATH`) | _empty volume_ | VOLUME / read-write | Uploaded documents and their renders |
 | `/app/backend/data/document_manifest.json` | _initialized at first run_ | inside the documents/data volume | Document registry (auto-created if missing) |
 | `/app/ontology_shacl_material/` | `ontology_shacl_material/` | COPY (read-only) | SHACL ontology reference (`.ttl`, `.json`, `.md`, `.mmd`) |
+| `/app/root_docs/` | `root_docs/` | COPY (read-only) | Six seed documents used by the S001-F-007 seed-reset flow |
 | `/app/src/i18n/locales/` | `src/i18n/locales/` | bundled into `dist/` at build | i18n strings (frontend) |
 | `/app/src/data/mockData.ts` | `src/data/mockData.ts` | bundled into `dist/` at build | Slash commands and seed data (frontend) |
 | `/app/dist/` | produced by `npm run build` | COPY from build stage | Compiled frontend assets |
@@ -38,13 +46,13 @@ The graph confirms: 0 `table` entities, 0 ORM imports (no SQLAlchemy / Django / 
 From the graph (`env_var` entities) and config:
 
 **Persistence-relevant:**
-- `DOCUMENTS_PATH` — base path for document storage. Default: `public/documents`. **In containers set to `/var/app/documents`** and mount as a volume (per docstring in `backend/config.py::get_documents_path`).
+- `DOCUMENTS_PATH` — base path for document storage. Default: `public/documents`. **In containers set to `/var/app/documents`** and mount as a volume (per docstring in `backend/config.py::get_documents_path`). Set in the backend Dockerfile by `ENV DOCUMENTS_PATH=/var/app/documents`.
 
 **LLM / external services (no on-disk persistence):**
-- `LLM_BACKEND` — selects LLM transport: `internal` (LiteLLM proxy) or `external` (Gemini API). Default: `internal`. Introduced by S001-F-001.
-- `LITELLM_PROXY_URL` — LiteLLM proxy URL when `LLM_BACKEND=internal`. Introduced by S001-F-001.
-- `LITELLM_TOKEN` — auth token for LiteLLM proxy. Sensitive. Introduced by S001-F-001.
-- `LITELLM_MODEL` — model identifier passed to LiteLLM. Default: `gemma3:12b`. Introduced by S001-F-001.
+- `LLM_BACKEND` — selects LLM transport: `internal` (LiteLLM proxy) or `external` (Gemini API). Default: `internal` (cutover by S001-NFR-004; was `external` after Wave 1).
+- `LITELLM_PROXY_URL` — LiteLLM proxy URL when `LLM_BACKEND=internal`. Default: `http://localhost:4000`. Backend fail-fast guard raises `ValueError` if `LLM_BACKEND=internal` and this is empty (added by S001-NFR-004 in `llm_provider.py::_build_provider`).
+- `LITELLM_TOKEN` — auth token for the LiteLLM proxy (must equal `LITELLM_MASTER_KEY` in `litellm/.env`). Sensitive.
+- `LITELLM_MODEL` — model identifier passed to LiteLLM. Default: `gemma3:12b`.
 - `GEMINI_API_KEY` — external (Google Gemini) credential, used when `LLM_BACKEND=external`. Sensitive.
 - `IDIRS_BASE_URL` — external service URL, default `http://localhost:8010`.
 
@@ -53,9 +61,15 @@ From the graph (`env_var` entities) and config:
 - `INIT_TEST_DOCS` — flag for test seeding.
 - `SKIP_INTEGRATION_TESTS` — test skip flag.
 
-**Frontend build-time:**
-- `VITE_API_URL` / `VITE_API_BASE_URL` — frontend build-time, baked into `dist/`.
+**Frontend build-time (consumed by Vite, baked into `dist/`):**
+- `VITE_API_URL` / `VITE_API_BASE_URL` — frontend API target.
+- `VITE_SESSION_IDLE_TIMEOUT_MINUTES` — accepted by `frontend/Dockerfile` as a build ARG (default `10`); will be wired into runtime by S001-F-007 (Wave 6).
 - `DEV` (Vite `import.meta.env.DEV`) — toggles i18next debug logging in dev. Introduced by S001-F-008.
+
+**LiteLLM proxy container (live in `litellm/.env`, gitignored — not in root `.env`):**
+- `LITELLM_MASTER_KEY` — token the proxy enforces on inbound requests; must equal backend `LITELLM_TOKEN`. Sensitive. Default in `.env.example`: `sk-bamf-local-dev-key`.
+- `LITELLM_OLLAMA_HOST` — URL of the Ollama instance the proxy forwards to. Default: `http://host.docker.internal:11434`.
+- `LITELLM_OLLAMA_MODEL` — documents the active model in `litellm/.env.example`. Default: `gemma3:12b`. Note: changing the model also requires editing `litellm/config.yaml` because LiteLLM does not env-substitute the `litellm_params.model` field.
 
 ### Volumes that MUST persist across container restarts
 
@@ -70,8 +84,9 @@ If these are not mounted as volumes, **all user uploads, custom rules, and folde
 1. `backend/data/contexts/templates/` (3 templates: `asylum_application/`, `family_reunification/`, `integration_course/`).
 2. `backend/data/contexts/__init__.py` and `backend/data/__init__.py` (Python package markers).
 3. `ontology_shacl_material/` (SHACL reference, ~5 files).
-4. All Python source under `backend/` (excluding `venv/`, `__pycache__/`).
-5. All compiled frontend output under `dist/` (built from `src/`, `public/` static assets, `index.html`).
+4. `root_docs/` (six seed documents — required by the S001-F-007 reset flow).
+5. All Python source under `backend/` (excluding `venv/`, `__pycache__/`).
+6. All compiled frontend output under `dist/` (built from `src/`, `public/` static assets, `index.html`).
 
 ### Files that MUST NOT be COPYed (sensitive or dev-only)
 
@@ -82,6 +97,8 @@ If these are not mounted as volumes, **all user uploads, custom rules, and folde
 - `backend/data/contexts/cases/ACTE-*` — dev case data (the `cases/` directory should be empty in the image; populate via runtime template copy).
 - `public/documents/ACTE-*` — dev document data.
 - `temp/`, `bamf-dev/` — scratch directories.
+- `litellm/` — entire subproject, gitignored, never enters the image.
+- `docs/code-graph/backups/` — graph backups; `docs/` is excluded entirely by the project root `.dockerignore` (created by S001-NFR-001).
 
 ---
 
@@ -139,20 +156,31 @@ If these are not mounted as volumes, **all user uploads, custom rules, and folde
 **Defined in:** `backend/services/context_manager.py::ContextManager.load_case_context` (line 271)
 **Mode:** Read-write at runtime. Created by `create_case_from_template` when a new case is created.
 
-**Schema** (from docstring, lines 282-290):
+**Top-level schema** (from docstring, lines 282-290):
 
 | Field | Type | Notes |
 |---|---|---|
 | `caseId` | string | e.g. `ACTE-2024-001` (overwritten on template instantiation) |
 | `caseType` | string | e.g. `integration_course`, `asylum_application`, `family_reunification` |
 | `name` | string | Human-readable case name |
-| `regulations` | array | Applicable regulations |
+| `regulations` | array of regulation entries | See sub-schema below |
 | `requiredDocuments` | array | Required document types |
 | `validationRules` | array | Validation rules |
 | `commonIssues` | array | Common issues and suggestions |
 
-**Read by:** `ContextManager.load_case_context`, validation pipeline, AI prompt builder.
-**Written by:** `ContextManager.create_case_from_template` (initial copy from template), admin/edit endpoints.
+**Regulation entry sub-schema** (canonical fields from `backend/models/regulation.py::Regulation`, lines 19-34):
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `id` | string | yes | e.g. `"§43_AufenthG"`, `"IntV_§4"` |
+| `title` | string | yes | Official regulation title (≥5 chars) |
+| `summary` | string | yes | Summary of regulation content (≥20 chars) |
+| `url` | string | yes | Direct URL to official regulation text (must start with `http://` or `https://`) |
+| `relevance` | string | no | Optional explanation of relevance to case type |
+| `extractedText` | string | no | Operator-prepared regulation body text. Read by `backend/services/gemini_service.py::_load_context` (line 432) and appended to the LLM prompt as a `=== REGULATION CONTENT (pre-extracted) ===` section. Introduced by S001-F-003 (Wave 2). **Not part of the canonical `Regulation` dataclass** — `Regulation.from_dict` ignores it. |
+
+**Read by:** `ContextManager.load_case_context`, `gemini_service._load_context` (reads `regulations[].extractedText` since Wave 2), validation pipeline, AI prompt builder.
+**Written by:** `ContextManager.create_case_from_template` (initial copy from template), admin/edit endpoints. The `extractedText` field is currently populated by hand in `case.json` — there is no admin UI for it.
 
 ---
 
@@ -276,7 +304,7 @@ If these are not mounted as volumes, **all user uploads, custom rules, and folde
 
 ### Documents Hierarchy
 
-**Base path (configurable):** `DOCUMENTS_PATH` env var, default `public/documents` (dev) or `/var/app/documents` (recommended for containers).
+**Base path (configurable):** `DOCUMENTS_PATH` env var, default `public/documents` (dev) or `/var/app/documents` (containers — set by `backend/Dockerfile` via `ENV`).
 **Defined in:** `backend/config.py::get_documents_path` (line 98), `backend/api/folders.py::DOCUMENTS_DIR` (line 34).
 
 **Directory layout:**
@@ -327,12 +355,21 @@ If these are not mounted as volumes, **all user uploads, custom rules, and folde
 
 ---
 
+### `root_docs/` — Seed Documents (Wave 6 reset flow)
+
+**Path:** `root_docs/` (project root)
+**Mode:** Read-only at runtime.
+
+Six seed documents that the S001-F-007 seed-reset flow uses to populate fresh demo cases. Per `backend/Dockerfile`, copied into the image at `/app/root_docs/`.
+
+---
+
 ### Frontend i18n & Seed Data (Build-Time)
 
 **Files:**
 
-- `src/i18n/locales/de.json` — German strings (source of truth after S001-F-008).
-- `src/i18n/locales/en.json` — English strings.
+- `src/i18n/locales/de.json` — German strings (source of truth after S001-F-008). Wave 2 added the `context.offlineNotice` key.
+- `src/i18n/locales/en.json` — English strings. Wave 2 added the `context.offlineNotice` key.
 - `src/data/mockData.ts` — slash commands (`slashCommands`, `hierarchicalSlashCommands`), demo case factory (`createNewCase`), seed chat messages.
 
 **Mode:** Read-only. Bundled into `dist/` at build time by Vite. Not read at runtime by the backend.
@@ -357,11 +394,13 @@ If these are not mounted as volumes, **all user uploads, custom rules, and folde
 
 1. `COPY backend/ /app/backend/` (excluding `venv/`, `__pycache__/`).
 2. `COPY ontology_shacl_material/ /app/ontology_shacl_material/`.
-3. `COPY public/favicon.ico public/placeholder.svg public/robots.txt /app/public/`.
-4. Multi-stage frontend build: `npm ci && npm run build` then `COPY --from=build /app/dist /app/dist`.
-5. `ENV DOCUMENTS_PATH=/var/app/documents`.
-6. `VOLUME ["/var/app/documents", "/app/backend/data/contexts/cases", "/app/backend/data"]` (the last covers `document_manifest.json`).
-7. Ensure `backend/data/contexts/cases/` directory exists in the image (empty), so the runtime can create case subdirs.
-8. Ensure `/var/app/documents` directory exists in the image (empty), so the runtime can create case subdirs.
-9. Do **not** bake `backend/data/contexts/cases/ACTE-*` or `public/documents/ACTE-*` into the image.
-10. Pass `LLM_BACKEND`, `LITELLM_PROXY_URL`, `LITELLM_TOKEN`, `LITELLM_MODEL`, `GEMINI_API_KEY`, `IDIRS_BASE_URL`, `LOG_LEVEL` as runtime env vars (never bake into image). LLM env vars do not affect persistence — they configure transport.
+3. `COPY root_docs/ /app/root_docs/` (six seed documents for the S001-F-007 reset flow).
+4. `COPY public/favicon.ico public/placeholder.svg public/robots.txt /app/public/`.
+5. Multi-stage frontend build: `npm ci && npm run build` then `COPY --from=build /app/dist /app/dist`.
+6. `ENV DOCUMENTS_PATH=/var/app/documents`.
+7. `VOLUME ["/var/app/documents", "/app/backend/data/contexts/cases", "/app/backend/data"]` (the last covers `document_manifest.json`).
+8. Ensure `backend/data/contexts/cases/` directory exists in the image (empty), so the runtime can create case subdirs.
+9. Ensure `/var/app/documents` directory exists in the image (empty), so the runtime can create case subdirs.
+10. Do **not** bake `backend/data/contexts/cases/ACTE-*`, `public/documents/ACTE-*`, or `litellm/` into the image (the project root `.dockerignore` from S001-NFR-001 enforces this).
+11. Pass `LLM_BACKEND`, `LITELLM_PROXY_URL`, `LITELLM_TOKEN`, `LITELLM_MODEL`, `GEMINI_API_KEY`, `IDIRS_BASE_URL`, `LOG_LEVEL` as runtime env vars (never bake into image). LLM env vars do not affect persistence — they configure transport.
+12. The LiteLLM proxy is a **separate** container/compose stack at `litellm/docker-compose.yml`; its env vars (`LITELLM_MASTER_KEY`, `LITELLM_OLLAMA_HOST`, `LITELLM_OLLAMA_MODEL`) belong to that stack's `litellm/.env`, not the backend's `.env`.
