@@ -12,16 +12,16 @@ google-generativeai==0.3.1
 litellm==1.83.14
 
 # Environment Configuration
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 
 # Type Checking and Linting (dev dependencies)
-pydantic==2.5.2
+pydantic==2.12.5
 
 # File Upload Support (S4-001)
 python-multipart==0.0.21
 
 # Async HTTP Client
-aiohttp==3.9.1
+aiohttp==3.13.4
 httpx==0.28.1
 
 # Image Processing (for PII masking)

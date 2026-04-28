@@ -1,13 +1,13 @@
 {
   "sprint": "001",
-  "generated_at_unix": 1777314270,
+  "generated_at_unix": 1777379717,
   "ok": true,
   "requirements": [
     {
       "id": "S001-D-001",
       "title": "Centralized .env schema for closed-environment deployment",
       "type": "data",
-      "status": "proposed",
+      "status": "implemented",
       "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-D-001.md",
       "surface": {
         "creates": [
@@ -1328,9 +1328,29 @@
             "type": "file",
             "name": "README.md",
             "is_new": false
+          },
+          {
+            "type": "file",
+            "name": ".env.example",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/services/llm_provider.py",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/llm_provider.py::get_provider",
+            "is_new": false
           }
         ],
         "reads": [
+          {
+            "type": "env_var",
+            "name": "LLM_BACKEND",
+            "is_new": false
+          },
           {
             "type": "env_var",
             "name": "LITELLM_PROXY_URL",
@@ -1384,6 +1404,12 @@
       "reason": "S001-NFR-003 reads file '.env.example' which S001-D-001 creates"
     },
     {
+      "from_id": "S001-D-001",
+      "to_id": "S001-NFR-004",
+      "kind": "structural",
+      "reason": "S001-NFR-004 modifies file '.env.example' which S001-D-001 creates"
+    },
+    {
       "from_id": "S001-F-001",
       "to_id": "S001-F-003",
       "kind": "conflict",
@@ -1423,7 +1449,7 @@
       "from_id": "S001-F-001",
       "to_id": "S001-NFR-004",
       "kind": "structural",
-      "reason": "S001-NFR-004 reads env_var 'litellm_proxy_url' which S001-F-001 creates"
+      "reason": "S001-NFR-004 modifies file 'backend/services/llm_provider.py' which S001-F-001 creates"
     },
     {
       "from_id": "S001-F-003",

@@ -39,6 +39,7 @@ interface ContextNode {
   count?: number;
   isActive?: boolean;
   description?: string;
+  url?: string;
 }
 
 interface ContextHierarchyDialogProps {
@@ -138,6 +139,7 @@ export function ContextHierarchyDialog({ isOpen, onClose }: ContextHierarchyDial
           type: 'item',
           icon: <BookOpen className="w-3.5 h-3.5 text-muted-foreground" />,
           description: reg.title,
+          url: reg.url,
         })),
       });
     }
@@ -372,6 +374,13 @@ export function ContextHierarchyDialog({ isOpen, onClose }: ContextHierarchyDial
             </span>
           )}
         </div>
+
+        {node.url && (
+          <div style={{ marginLeft: (level + 1) * 16 }} className="px-2 pb-1">
+            <span className="font-mono text-xs text-muted-foreground break-all">{node.url}</span>
+            <p className="text-xs text-muted-foreground/70 italic">{t('context.offlineNotice', 'Offline mode: content is simulated')}</p>
+          </div>
+        )}
 
         {hasChildren && isExpanded && (
           <div className="border-l border-border/50 ml-4">

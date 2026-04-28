@@ -85,7 +85,8 @@
       "mcp__knowledge-graph-custom-path__reload_graph",
       "Bash(rm -f /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/code-graph/.preflight.json)",
       "Bash(rm -f /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/code-graph/code-graph.new.json)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(git -C /home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion show HEAD:backend/services/gemini_service.py)"
     ]
   }
 }

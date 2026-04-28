@@ -1,5 +1,6 @@
 #envs
 .env
+litellm/
 # AI & Tool Specific Folders
 .claude/
 .playwright-mcp/

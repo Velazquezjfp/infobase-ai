@@ -421,6 +421,26 @@ class GeminiService:
                 document_content
             )
 
+            # Inject pre-extracted regulation texts (offline content grounding).
+            # When an operator has pre-populated extractedText on a regulation
+            # entry in case.json, include it in the prompt so the LLM can answer
+            # questions about that regulation's substance. The URL is kept only as
+            # a citation marker; no live HTTP fetch is made.
+            if case_ctx and 'regulations' in case_ctx:
+                reg_sections: list[str] = []
+                for reg in case_ctx['regulations']:
+                    text = reg.get('extractedText')
+                    if text:
+                        url_citation = reg.get('url', 'N/A')
+                        reg_id = reg.get('id', 'unknown')
+                        reg_sections.append(
+                            f"  [{reg_id}] (source: {url_citation})\n  {text}"
+                        )
+                if reg_sections:
+                    extra = "\n=== REGULATION CONTENT (pre-extracted) ===\n"
+                    extra += "\n\n".join(reg_sections) + "\n"
+                    merged_context = (merged_context or "") + extra
+
             return merged_context, document_tree
 
         except Exception as e:

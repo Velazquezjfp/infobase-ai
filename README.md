@@ -88,6 +88,41 @@ npm run dev
 ```
 </details>
 
+## Local LiteLLM Proxy
+
+The default LLM backend (`LLM_BACKEND=internal`) routes all AI calls through a local LiteLLM proxy that you run as a Docker container. The proxy files live in a **gitignored `litellm/` subdirectory** — this directory is intentionally not in version control so local secrets and configuration never get committed.
+
+### First-time setup
+
+```bash
+# 1. Create the litellm/.env from the template
+cp litellm/.env.example litellm/.env
+# Edit litellm/.env — set LITELLM_MASTER_KEY to a secret string
+
+# 2. Set the same key in the root .env
+#    LITELLM_TOKEN=<same value as LITELLM_MASTER_KEY>
+#    LLM_BACKEND=internal
+#    LITELLM_PROXY_URL=http://localhost:4000
+
+# 3. Build and start the proxy
+docker compose -f litellm/docker-compose.yml build
+docker compose -f litellm/docker-compose.yml up -d
+```
+
+### Lifecycle
+
+```bash
+docker compose -f litellm/docker-compose.yml up -d    # start
+docker compose -f litellm/docker-compose.yml logs -f  # tail logs
+docker compose -f litellm/docker-compose.yml down      # stop
+```
+
+See [`litellm/README.md`](litellm/README.md) for full documentation including model-swap instructions and the `LITELLM_MASTER_KEY ↔ LITELLM_TOKEN` consistency requirement.
+
+### Regenerating on a fresh machine
+
+The `litellm/` directory is gitignored — on a fresh checkout it will not exist. Recreate it by re-running the requirement implementation (`/implement-requirement S001-NFR-004`) or by manually creating the files from the templates documented in `docs/requirements/sprint-001/S001-NFR-004.md`.
+
 ## Technology Stack
 
 | Layer | Technology |

@@ -204,6 +204,11 @@ _provider_singleton: Optional[LLMProvider] = None
 def _build_provider() -> LLMProvider:
     backend = (LLM_BACKEND or "internal").strip().lower()
     if backend == "internal":
+        if not LITELLM_PROXY_URL or not LITELLM_PROXY_URL.strip():
+            raise ValueError(
+                "LITELLM_PROXY_URL is required when LLM_BACKEND=internal — "
+                "start the LiteLLM container per S001-NFR-004 or set LLM_BACKEND=external"
+            )
         return LiteLLMProvider()
     if backend == "external":
         return GeminiProvider()

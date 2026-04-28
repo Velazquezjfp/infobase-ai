@@ -434,6 +434,9 @@
     "en": "English",
     "switchLanguage": "Switch Language"
   },
+  "context": {
+    "offlineNotice": "Offline mode: content is simulated"
+  },
   "contextHierarchy": {
     "title": "AI Context Hierarchy",
     "description": "This shows how context is injected into the AI agent. The hierarchy flows from Case → Folder → Document.",

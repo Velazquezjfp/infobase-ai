@@ -1,0 +1,15 @@
+.git/
+node_modules/
+dist/
+backend/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+*.env
+info-env
+backend/data/contexts/cases/ACTE-*
+public/documents/ACTE-*
+temp/
+bamf-dev/
+docs/code-graph/backups/
+docs/

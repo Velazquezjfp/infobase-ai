@@ -2,13 +2,13 @@
 
 _Generated from `_dep-graph.json`. Do not edit manually — regenerate with `/sprint-roadmap-update 001` when requirements change._
 
-**Summary:** 14 requirements across 7 waves. 20 file conflicts auto-resolved. 2 requirements already implemented (S001-F-001, S001-F-008).
+**Summary:** 14 requirements across 7 waves. 20 file conflicts auto-resolved. 3 requirements already implemented (S001-D-001, S001-F-001, S001-F-008).
 
 ## Wave 1 — Foundational
 
 _These requirements have no pending dependencies and can execute in parallel sessions._
 
-- **S001-D-001** — Centralized .env schema for closed-environment deployment (data)
+- **S001-D-001** — Centralized .env schema for closed-environment deployment (data, **implemented**)
   - Affected: creates 6, reads 9
   - File: `docs/requirements/sprint-001/S001-D-001.md`
 
@@ -40,8 +40,8 @@ _Runs after Wave 1 completes._
   - File: `docs/requirements/sprint-001/S001-NFR-002.md`
 
 - **S001-NFR-004** — Containerize the LiteLLM proxy as a self-contained litellm/ subproject (gitignored) (non-functional)
-  - Depends on: S001-F-001
-  - Affected: creates 3, modifies 2, reads 3
+  - Depends on: S001-D-001, S001-F-001
+  - Affected: creates 3, modifies 5, reads 4
   - File: `docs/requirements/sprint-001/S001-NFR-004.md`
 
 ## Wave 3 — Feature
@@ -114,6 +114,7 @@ _Runs after Wave 6 completes._
 - **S001-D-001** → **S001-NFR-001** — S001-NFR-001 reads env_var 'docker_registry' which S001-D-001 creates
 - **S001-D-001** → **S001-NFR-002** — S001-NFR-002 reads env_var 'docker_registry' which S001-D-001 creates
 - **S001-D-001** → **S001-NFR-003** — S001-NFR-003 reads file '.env.example' which S001-D-001 creates
+- **S001-D-001** → **S001-NFR-004** — S001-NFR-004 modifies file '.env.example' which S001-D-001 creates
 - **S001-F-001** → **S001-NFR-003** — S001-NFR-003 reads env_var 'llm_backend' which S001-F-001 creates
 - **S001-F-001** → **S001-NFR-004** — S001-NFR-004 reads env_var 'litellm_proxy_url' which S001-F-001 creates
 - **S001-F-004** → **S001-NFR-003** — S001-NFR-003 reads env_var 'enable_anonymization' which S001-F-004 creates

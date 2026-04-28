@@ -19,7 +19,6 @@ import {
   User,
   BookOpen,
   Loader2,
-  ExternalLink,
   Info,
   UserCog,
 } from 'lucide-react';
@@ -441,15 +440,10 @@ export function CaseContextDialog({ isOpen, onClose, caseId }: CaseContextDialog
                         <h4 className="font-medium">{translateRegulation(reg.id, 'title', reg.title)}</h4>
                       </div>
                       {reg.url && (
-                        <a
-                          href={reg.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline flex items-center gap-1 text-xs"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          {t('caseContext.viewLaw', 'View')}
-                        </a>
+                        <div className="flex flex-col items-end text-right max-w-[200px]">
+                          <span className="font-mono text-xs text-muted-foreground break-all">{reg.url}</span>
+                          <span className="text-xs text-muted-foreground/70 italic mt-0.5">{t('context.offlineNotice', 'Offline mode: content is simulated')}</span>
+                        </div>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">{translateRegulation(reg.id, 'summary', reg.summary)}</p>

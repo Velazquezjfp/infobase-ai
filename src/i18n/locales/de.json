@@ -434,6 +434,9 @@
     "en": "Englisch",
     "switchLanguage": "Sprache wechseln"
   },
+  "context": {
+    "offlineNotice": "Offline-Modus: Inhalt wird simuliert"
+  },
   "contextHierarchy": {
     "title": "KI-Kontext-Hierarchie",
     "description": "Zeigt, wie der Kontext in den KI-Agenten injiziert wird. Die Hierarchie fließt von Akte → Ordner → Dokument.",
