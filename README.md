@@ -43,6 +43,33 @@ The repository includes sample documents for demonstration in two locations:
 
 These are essential for demoing the system's document analysis, translation, form fill, and validation capabilities.
 
+## Quickstart
+
+The fastest path to a running stack — two containers, no local Python or Node required.
+
+```bash
+# 1. Configure
+cp .env.example .env
+# Edit .env: set LITELLM_TOKEN (or switch LLM_BACKEND=external and set GEMINI_API_KEY)
+
+# 2. Start
+docker compose up -d
+
+# 3. Open
+# Frontend:       http://localhost:3000
+# Backend/Swagger: http://localhost:8000/docs
+```
+
+> **Resource limits:** `deploy.resources.limits` in `docker-compose.yml` (2 CPU / 2 GB for the backend, 1 CPU / 1 GB for the frontend) are informational when running with `docker compose up`. They are enforced only when deployed to Docker Swarm via `docker stack deploy`.
+
+To enable the optional local Ollama container (requires S001-F-002):
+
+```bash
+docker compose --profile ollama up -d
+```
+
+---
+
 ## Quick Start
 
 ### Prerequisites

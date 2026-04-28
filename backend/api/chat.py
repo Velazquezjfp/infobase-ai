@@ -16,7 +16,16 @@ from fastapi.responses import JSONResponse
 
 from backend.services.gemini_service import GeminiService
 from backend.services.conversation_manager import get_conversation_manager
-from backend.config import ENABLE_CHAT_HISTORY
+from backend.config import ENABLE_CHAT_HISTORY, ENABLE_ANONYMIZATION
+
+# Localized message sent to the client when anonymization is disabled.
+# Mirrors the i18n key anonymization.notImplemented in the frontend locales.
+ANONYMIZATION_DISABLED_MESSAGE_DE = (
+    "Die Anonymisierungsfunktion ist in dieser Demo-Umgebung noch nicht verfügbar."
+)
+ANONYMIZATION_DISABLED_MESSAGE_EN = (
+    "The anonymization feature is not yet available in this demo environment."
+)
 from backend.tools.form_parser import (
     build_extraction_prompt,
     validate_form_schema,
@@ -487,6 +496,22 @@ async def handle_anonymization(
         case_id: The case ID.
         message: The anonymization request message containing filePath.
     """
+    # S001-F-004: Gate on feature flag; short-circuit when disabled
+    if not ENABLE_ANONYMIZATION:
+        language = message.get("language", "de")
+        disabled_msg = (
+            ANONYMIZATION_DISABLED_MESSAGE_DE if language == "de"
+            else ANONYMIZATION_DISABLED_MESSAGE_EN
+        )
+        await websocket.send_json({
+            "type": "anonymization_complete",
+            "success": False,
+            "error": "feature_disabled",
+            "message": disabled_msg,
+            "timestamp": None,
+        })
+        return
+
     file_path = message.get("filePath")
     folder_id = message.get("folderId")
     document_id = message.get("documentId")  # S5-006: Get documentId for render registration
@@ -730,7 +755,8 @@ async def chat_health_check():
         content={
             "service": "chat",
             "status": "ready" if is_ready else "not_ready",
-            "gemini_initialized": is_ready
+            "gemini_initialized": is_ready,
+            "anonymization": "enabled" if ENABLE_ANONYMIZATION else "disabled",
         },
         status_code=200 if is_ready else 503
     )

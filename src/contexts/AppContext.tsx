@@ -723,6 +723,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     description: `Masked ${anonResponse.detectionsCount} PII field${anonResponse.detectionsCount !== 1 ? 's' : ''}. Document added to folder.`,
                   });
                 }
+              } else if (anonResponse.error === 'feature_disabled') {
+                toast({
+                  title: anonResponse.message || i18n.t('anonymization.notImplemented'),
+                });
               } else {
                 toast({
                   title: 'Anonymization Failed',

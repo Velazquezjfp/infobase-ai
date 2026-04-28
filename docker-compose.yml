@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        DOCKER_REGISTRY: "${DOCKER_REGISTRY:-docker.io}"
+        PIP_INDEX_URL: "${PIP_INDEX_URL:-https://pypi.org/simple}"
+    env_file:
+      - ".env"
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - documents-data:/var/app/documents
+      - cases-data:/app/backend/data/contexts/cases
+      - manifest-data:/app/backend/data
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2048M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        DOCKER_REGISTRY: "${DOCKER_REGISTRY:-docker.io}"
+        NPM_REGISTRY: "${NPM_REGISTRY:-https://registry.npmjs.org/}"
+        VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:8000}"
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+    restart: unless-stopped
+
+  ollama:
+    image: "${DOCKER_REGISTRY:-docker.io}/ollama/ollama:latest"
+    profiles:
+      - ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  documents-data:
+  cases-data:
+  manifest-data:
+  ollama-data:

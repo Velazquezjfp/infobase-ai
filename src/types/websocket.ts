@@ -124,6 +124,7 @@ export interface AnonymizationResponse extends BaseMessage {
   detections?: Record<string, DetectionInfo[]>;  // Full detection data with coordinates
   success: boolean;
   error?: string;
+  message?: string;
   timestamp?: string;
   renderMetadata?: any; // S5-006: Render metadata from document registry
   documentId?: string;   // S5-006: Document ID that was anonymized

@@ -434,6 +434,9 @@
     "en": "Englisch",
     "switchLanguage": "Sprache wechseln"
   },
+  "anonymization": {
+    "notImplemented": "Die Anonymisierungsfunktion ist in dieser Demo-Umgebung noch nicht verfügbar."
+  },
   "context": {
     "offlineNotice": "Offline-Modus: Inhalt wird simuliert"
   },

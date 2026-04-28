@@ -307,13 +307,17 @@ class AnonymizationService:
                 error=f"Anonymization failed: {str(e)}"
             )
 
-    async def check_service_health(self) -> bool:
+    async def check_service_health(self):
         """
         Check if the detection service is available.
 
         Returns:
-            bool: True if service is reachable, False otherwise.
+            dict with status "disabled" when ENABLE_ANONYMIZATION is false,
+            otherwise bool True/False indicating reachability.
         """
+        from backend.config import ENABLE_ANONYMIZATION
+        if not ENABLE_ANONYMIZATION:
+            return {"status": "disabled"}
         try:
             timeout = aiohttp.ClientTimeout(total=5)
             async with aiohttp.ClientSession(timeout=timeout) as session:

@@ -160,6 +160,23 @@ GEMINI_API_KEY: str = os.getenv('GEMINI_API_KEY', '')
 
 
 # ============================================================================
+# Feature Flags (S001-F-004 / S001-F-005 / S001-F-006)
+# ============================================================================
+
+# Feature flag: Enable/disable PII anonymization service
+# Default: False (external service unreachable in closed environment)
+ENABLE_ANONYMIZATION: bool = get_bool_env('ENABLE_ANONYMIZATION', False)
+
+# Feature flag: Enable/disable IDIRS document search and RAG
+# Default: False (IDIRS unreachable in closed environment)
+ENABLE_DOCUMENT_SEARCH: bool = get_bool_env('ENABLE_DOCUMENT_SEARCH', False)
+
+# Feature flag: Enable/disable file upload
+# Default: False (upload stubbed out for sprint 1)
+ENABLE_UPLOAD: bool = get_bool_env('ENABLE_UPLOAD', False)
+
+
+# ============================================================================
 # Configuration Summary (for debugging)
 # ============================================================================
 
