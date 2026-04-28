@@ -1,0 +1,1633 @@
+{
+  "sprint": "001",
+  "generated_at_unix": 1777314270,
+  "ok": true,
+  "requirements": [
+    {
+      "id": "S001-D-001",
+      "title": "Centralized .env schema for closed-environment deployment",
+      "type": "data",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-D-001.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "file",
+            "name": ".env.example",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "DOCKER_REGISTRY",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "NPM_REGISTRY",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "PIP_INDEX_URL",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "BACKEND_PORT",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "FRONTEND_PORT",
+            "is_new": true
+          }
+        ],
+        "modifies": [],
+        "reads": [
+          {
+            "type": "file",
+            "name": "backend/config.py",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LOG_LEVEL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "DOCUMENTS_PATH",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "GEMINI_API_KEY",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "IDIRS_BASE_URL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "INIT_TEST_DOCS",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "SKIP_INTEGRATION_TESTS",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "VITE_API_URL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "VITE_API_BASE_URL",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-F-001",
+      "title": "Pluggable LLM backend with LiteLLM proxy and Gemini fallback",
+      "type": "functional",
+      "status": "implemented",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-F-001.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "file",
+            "name": "backend/services/llm_provider.py",
+            "is_new": true
+          },
+          {
+            "type": "class",
+            "name": "backend/services/llm_provider.py::LLMProvider",
+            "is_new": true
+          },
+          {
+            "type": "class",
+            "name": "backend/services/llm_provider.py::LiteLLMProvider",
+            "is_new": true
+          },
+          {
+            "type": "class",
+            "name": "backend/services/llm_provider.py::GeminiProvider",
+            "is_new": true
+          },
+          {
+            "type": "function",
+            "name": "backend/services/llm_provider.py::get_provider",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "LLM_BACKEND",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_PROXY_URL",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_TOKEN",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_MODEL",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "backend/config.py::LLM_BACKEND",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "backend/config.py::LITELLM_PROXY_URL",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "backend/config.py::LITELLM_TOKEN",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "backend/config.py::LITELLM_MODEL",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "file",
+            "name": "backend/services/gemini_service.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/services/validation_service.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/services/shacl_generator.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/config.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/requirements.txt",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/gemini_service.py::generate_response",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/gemini_service.py::_generate_streaming_response",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/gemini_service.py::_initialize_client",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/validation_service.py::_initialize_model",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/validation_service.py::validate_case",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/shacl_generator.py::parse_nl_command",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/shacl_generator.py::apply_modification",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /api/chat/health",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /api/validation/health",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /api/search/health",
+            "is_new": false
+          }
+        ],
+        "reads": [
+          {
+            "type": "env_var",
+            "name": "GEMINI_API_KEY",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "WS /ws/chat/{case_id}",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-F-002",
+      "title": "Optional local Ollama dev container behind a Compose flag",
+      "type": "functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-F-002.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "env_var",
+            "name": "ENABLE_OLLAMA_CONTAINER",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "file",
+            "name": "docker-compose.yml",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "README.md",
+            "is_new": false
+          }
+        ],
+        "reads": [
+          {
+            "type": "env_var",
+            "name": "DOCKER_REGISTRY",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_OLLAMA_MODEL",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": [
+        "S001-NFR-003"
+      ]
+    },
+    {
+      "id": "S001-F-003",
+      "title": "Render dynamic-context URLs as plain text in the closed environment",
+      "type": "functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-F-003.md",
+      "surface": {
+        "creates": [],
+        "modifies": [
+          {
+            "type": "file",
+            "name": "src/components/workspace/ContextHierarchyDialog.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/CaseContextDialog.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/de.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/en.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/services/gemini_service.py",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/gemini_service.py::_load_context",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/gemini_service.py::_build_prompt",
+            "is_new": false
+          }
+        ],
+        "reads": [
+          {
+            "type": "endpoint",
+            "name": "GET /api/context/case/{case_id}",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /api/context/tree/{case_id}",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-F-004",
+      "title": "Disable anonymization service via config flag with user-facing notice",
+      "type": "functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-F-004.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "env_var",
+            "name": "ENABLE_ANONYMIZATION",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "backend/config.py::ENABLE_ANONYMIZATION",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "file",
+            "name": "backend/api/chat.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/config.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/de.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/en.json",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/api/chat.py::handle_anonymization",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/anonymization_service.py::check_service_health",
+            "is_new": false
+          }
+        ],
+        "reads": [
+          {
+            "type": "class",
+            "name": "backend/services/anonymization_service.py::AnonymizationService",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/services/anonymization_service.py::anonymize_image",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/tools/anonymization_tool.py::anonymize_document",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "WS /ws/chat/{case_id}",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-F-005",
+      "title": "Disable IDIRS document-search and RAG via config flag with user-facing notice",
+      "type": "functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-F-005.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "env_var",
+            "name": "ENABLE_DOCUMENT_SEARCH",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "backend/config.py::ENABLE_DOCUMENT_SEARCH",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "file",
+            "name": "backend/api/idirs.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/api/search.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/config.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/AIChatInterface.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/de.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/en.json",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/api/idirs.py::idirs_search",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/api/idirs.py::idirs_rag",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "POST /api/idirs/search",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "POST /api/idirs/rag",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /api/search/health",
+            "is_new": false
+          }
+        ],
+        "reads": [
+          {
+            "type": "env_var",
+            "name": "IDIRS_BASE_URL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "IDIRS_TIMEOUT",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-F-006",
+      "title": "Disable file upload via config flag with user-facing notice",
+      "type": "functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-F-006.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "env_var",
+            "name": "ENABLE_UPLOAD",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "backend/config.py::ENABLE_UPLOAD",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "file",
+            "name": "backend/api/files.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/config.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/lib/fileApi.ts",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/CaseTreeExplorer.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/FileDropZone.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/de.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/en.json",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/api/files.py::upload_file",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/api/files.py::files_health_check",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "src/lib/fileApi.ts::uploadFile",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "src/lib/fileApi.ts::uploadFileSimple",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "src/lib/fileApi.ts::uploadFileWithProgress",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadClick",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "src/components/workspace/FileDropZone.tsx::uploadFiles",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "POST /api/files/upload",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /api/files/health",
+            "is_new": false
+          }
+        ],
+        "reads": [],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-F-007",
+      "title": "Ephemeral one-shot session with root_docs reset on logout, close, or 10-min idle",
+      "type": "functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-F-007.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "file",
+            "name": "backend/api/session.py",
+            "is_new": true
+          },
+          {
+            "type": "file",
+            "name": "backend/services/session_manager.py",
+            "is_new": true
+          },
+          {
+            "type": "file",
+            "name": "src/hooks/useIdleTimeout.ts",
+            "is_new": true
+          },
+          {
+            "type": "function",
+            "name": "backend/api/session.py::reset_session",
+            "is_new": true
+          },
+          {
+            "type": "function",
+            "name": "backend/services/session_manager.py::reset_case_to_seed",
+            "is_new": true
+          },
+          {
+            "type": "function",
+            "name": "src/hooks/useIdleTimeout.ts::useIdleTimeout",
+            "is_new": true
+          },
+          {
+            "type": "endpoint",
+            "name": "POST /api/session/reset",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "SESSION_IDLE_TIMEOUT_MINUTES",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "VITE_SESSION_IDLE_TIMEOUT_MINUTES",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "backend/services/session_manager.py::ROOT_DOCS_MAPPING",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "backend/config.py::SESSION_IDLE_TIMEOUT_MINUTES",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "file",
+            "name": "backend/main.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/config.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/contexts/AppContext.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/de.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/en.json",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "backend/main.py::lifespan",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "src/contexts/AppContext.tsx::setUser",
+            "is_new": false
+          },
+          {
+            "type": "function",
+            "name": "src/contexts/AppContext.tsx::AppProvider",
+            "is_new": false
+          }
+        ],
+        "reads": [
+          {
+            "type": "file",
+            "name": "root_docs/Aufenthalstitel.png",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "root_docs/Geburtsurkunde.jpg",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "root_docs/Personalausweis.png",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "root_docs/Sprachzeugnis-Zertifikat.pdf",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "root_docs/Anmeldeformular.pdf",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "root_docs/Notenspiegel.pdf",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "DOCUMENTS_PATH",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-F-008",
+      "title": "German-first localization with graceful missing-translation fallback",
+      "type": "functional",
+      "status": "implemented",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-F-008.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "file",
+            "name": "scripts/i18n-coverage.js",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "file",
+            "name": "src/i18n/config.ts",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "package.json",
+            "is_new": false
+          }
+        ],
+        "reads": [
+          {
+            "type": "file",
+            "name": "src/i18n/locales/de.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/i18n/locales/en.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/WorkspaceHeader.tsx",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-F-009",
+      "title": "Resolve documented anti-patterns in API and environment surfaces",
+      "type": "functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-F-009.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "file",
+            "name": "src/lib/apiConfig.ts",
+            "is_new": true
+          },
+          {
+            "type": "file",
+            "name": "backend/api/_shared.py",
+            "is_new": true
+          },
+          {
+            "type": "constant",
+            "name": "src/lib/apiConfig.ts::API_BASE_URL",
+            "is_new": true
+          },
+          {
+            "type": "class",
+            "name": "backend/api/_shared.py::ErrorResponse",
+            "is_new": true
+          },
+          {
+            "type": "class",
+            "name": "backend/api/_shared.py::FileErrorResponse",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "env_var",
+            "name": "VITE_API_BASE_URL",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/AdminConfigPanel.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/AIChatInterface.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/CaseContextDialog.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/CaseTreeExplorer.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/ContextHierarchyDialog.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/SubmitCaseDialog.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/DocumentViewer.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/components/workspace/FormViewer.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/lib/adminApi.ts",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/lib/fileApi.ts",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "src/contexts/AppContext.tsx",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/api/admin.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/api/files.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/api/chat.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/api/search.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/api/validation.py",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /api/chat/health",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /api/search/health",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /api/validation/health",
+            "is_new": false
+          }
+        ],
+        "reads": [],
+        "deletes": [
+          {
+            "type": "env_var",
+            "name": "VITE_API_URL",
+            "is_new": false
+          }
+        ]
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-NFR-001",
+      "title": "Containerize the FastAPI backend with Artifactory-friendly Dockerfile",
+      "type": "non-functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-NFR-001.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "file",
+            "name": "backend/Dockerfile",
+            "is_new": true
+          },
+          {
+            "type": "file",
+            "name": ".dockerignore",
+            "is_new": true
+          }
+        ],
+        "modifies": [],
+        "reads": [
+          {
+            "type": "file",
+            "name": "backend/requirements.txt",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/main.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/config.py",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "ontology_shacl_material/integration_course_ontology.ttl",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "ontology_shacl_material/integration_course_shacl.ttl",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/data/contexts/templates/asylum_application",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/data/contexts/templates/family_reunification",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "backend/data/contexts/templates/integration_course",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "BACKEND_PORT",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "DOCKER_REGISTRY",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "PIP_INDEX_URL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "DOCUMENTS_PATH",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LOG_LEVEL",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /health",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-NFR-002",
+      "title": "Containerize the Vite frontend with Artifactory-friendly Dockerfile",
+      "type": "non-functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-NFR-002.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "file",
+            "name": "frontend/Dockerfile",
+            "is_new": true
+          }
+        ],
+        "modifies": [],
+        "reads": [
+          {
+            "type": "file",
+            "name": "package.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "package-lock.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "vite.config.ts",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "tailwind.config.ts",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "tsconfig.json",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "index.html",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "FRONTEND_PORT",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "NPM_REGISTRY",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "DOCKER_REGISTRY",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "VITE_API_BASE_URL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "VITE_SESSION_IDLE_TIMEOUT_MINUTES",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    },
+    {
+      "id": "S001-NFR-003",
+      "title": "Docker Compose orchestration for backend + frontend with persistent volumes",
+      "type": "non-functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-NFR-003.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "file",
+            "name": "docker-compose.yml",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "file",
+            "name": "README.md",
+            "is_new": false
+          }
+        ],
+        "reads": [
+          {
+            "type": "file",
+            "name": "backend/Dockerfile",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "frontend/Dockerfile",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": ".env.example",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "DOCKER_REGISTRY",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "NPM_REGISTRY",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "PIP_INDEX_URL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "BACKEND_PORT",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "FRONTEND_PORT",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "VITE_API_BASE_URL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "GEMINI_API_KEY",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_PROXY_URL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_TOKEN",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_MODEL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LLM_BACKEND",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "ENABLE_ANONYMIZATION",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "ENABLE_DOCUMENT_SEARCH",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "ENABLE_UPLOAD",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "SESSION_IDLE_TIMEOUT_MINUTES",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "DOCUMENTS_PATH",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LOG_LEVEL",
+            "is_new": false
+          },
+          {
+            "type": "endpoint",
+            "name": "GET /health",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": [
+        "S001-NFR-001",
+        "S001-NFR-002"
+      ]
+    },
+    {
+      "id": "S001-NFR-004",
+      "title": "Containerize the LiteLLM proxy as a self-contained litellm/ subproject (gitignored)",
+      "type": "non-functional",
+      "status": "proposed",
+      "path": "/home/javiervel/clients/BAMF/Diga/app/bamf-acte-companion/docs/requirements/sprint-001/S001-NFR-004.md",
+      "surface": {
+        "creates": [
+          {
+            "type": "env_var",
+            "name": "LITELLM_MASTER_KEY",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_OLLAMA_HOST",
+            "is_new": true
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_OLLAMA_MODEL",
+            "is_new": true
+          }
+        ],
+        "modifies": [
+          {
+            "type": "file",
+            "name": ".gitignore",
+            "is_new": false
+          },
+          {
+            "type": "file",
+            "name": "README.md",
+            "is_new": false
+          }
+        ],
+        "reads": [
+          {
+            "type": "env_var",
+            "name": "LITELLM_PROXY_URL",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_TOKEN",
+            "is_new": false
+          },
+          {
+            "type": "env_var",
+            "name": "LITELLM_MODEL",
+            "is_new": false
+          }
+        ],
+        "deletes": []
+      },
+      "semantic_dependencies": []
+    }
+  ],
+  "edges": [
+    {
+      "from_id": "S001-D-001",
+      "to_id": "S001-F-002",
+      "kind": "structural",
+      "reason": "S001-F-002 reads env_var 'docker_registry' which S001-D-001 creates"
+    },
+    {
+      "from_id": "S001-D-001",
+      "to_id": "S001-F-009",
+      "kind": "structural",
+      "reason": "S001-F-009 deletes env_var 'vite_api_url' which S001-D-001 reads \u2014 delete after reads"
+    },
+    {
+      "from_id": "S001-D-001",
+      "to_id": "S001-NFR-001",
+      "kind": "structural",
+      "reason": "S001-NFR-001 reads env_var 'docker_registry' which S001-D-001 creates"
+    },
+    {
+      "from_id": "S001-D-001",
+      "to_id": "S001-NFR-002",
+      "kind": "structural",
+      "reason": "S001-NFR-002 reads env_var 'docker_registry' which S001-D-001 creates"
+    },
+    {
+      "from_id": "S001-D-001",
+      "to_id": "S001-NFR-003",
+      "kind": "structural",
+      "reason": "S001-NFR-003 reads file '.env.example' which S001-D-001 creates"
+    },
+    {
+      "from_id": "S001-F-001",
+      "to_id": "S001-F-003",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/services/gemini_service.py' \u2014 S001-F-003 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-001",
+      "to_id": "S001-F-004",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-004 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-001",
+      "to_id": "S001-F-005",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-005 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-001",
+      "to_id": "S001-F-006",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-006 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-001",
+      "to_id": "S001-F-007",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-007 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-001",
+      "to_id": "S001-NFR-003",
+      "kind": "structural",
+      "reason": "S001-NFR-003 reads env_var 'llm_backend' which S001-F-001 creates"
+    },
+    {
+      "from_id": "S001-F-001",
+      "to_id": "S001-NFR-004",
+      "kind": "structural",
+      "reason": "S001-NFR-004 reads env_var 'litellm_proxy_url' which S001-F-001 creates"
+    },
+    {
+      "from_id": "S001-F-003",
+      "to_id": "S001-F-004",
+      "kind": "conflict",
+      "reason": "both modify file 'src/i18n/locales/de.json' \u2014 S001-F-004 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-003",
+      "to_id": "S001-F-005",
+      "kind": "conflict",
+      "reason": "both modify file 'src/i18n/locales/de.json' \u2014 S001-F-005 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-003",
+      "to_id": "S001-F-006",
+      "kind": "conflict",
+      "reason": "both modify file 'src/i18n/locales/de.json' \u2014 S001-F-006 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-003",
+      "to_id": "S001-F-007",
+      "kind": "conflict",
+      "reason": "both modify file 'src/i18n/locales/de.json' \u2014 S001-F-007 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-003",
+      "to_id": "S001-F-009",
+      "kind": "conflict",
+      "reason": "both modify file 'src/components/workspace/contexthierarchydialog.tsx' \u2014 S001-F-009 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-004",
+      "to_id": "S001-F-005",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-005 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-004",
+      "to_id": "S001-F-006",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-006 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-004",
+      "to_id": "S001-F-007",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-007 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-004",
+      "to_id": "S001-F-009",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/api/chat.py' \u2014 S001-F-009 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-004",
+      "to_id": "S001-NFR-003",
+      "kind": "structural",
+      "reason": "S001-NFR-003 reads env_var 'enable_anonymization' which S001-F-004 creates"
+    },
+    {
+      "from_id": "S001-F-005",
+      "to_id": "S001-F-006",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-006 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-005",
+      "to_id": "S001-F-007",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-007 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-005",
+      "to_id": "S001-F-009",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/api/search.py' \u2014 S001-F-009 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-005",
+      "to_id": "S001-NFR-003",
+      "kind": "structural",
+      "reason": "S001-NFR-003 reads env_var 'enable_document_search' which S001-F-005 creates"
+    },
+    {
+      "from_id": "S001-F-006",
+      "to_id": "S001-F-007",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/config.py' \u2014 S001-F-007 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-006",
+      "to_id": "S001-F-009",
+      "kind": "conflict",
+      "reason": "both modify file 'backend/api/files.py' \u2014 S001-F-009 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-006",
+      "to_id": "S001-NFR-003",
+      "kind": "structural",
+      "reason": "S001-NFR-003 reads env_var 'enable_upload' which S001-F-006 creates"
+    },
+    {
+      "from_id": "S001-F-007",
+      "to_id": "S001-F-009",
+      "kind": "conflict",
+      "reason": "both modify file 'src/contexts/appcontext.tsx' \u2014 S001-F-009 deferred to avoid parallel-edit collision"
+    },
+    {
+      "from_id": "S001-F-007",
+      "to_id": "S001-NFR-002",
+      "kind": "structural",
+      "reason": "S001-NFR-002 reads env_var 'vite_session_idle_timeout_minutes' which S001-F-007 creates"
+    },
+    {
+      "from_id": "S001-F-007",
+      "to_id": "S001-NFR-003",
+      "kind": "structural",
+      "reason": "S001-NFR-003 reads env_var 'session_idle_timeout_minutes' which S001-F-007 creates"
+    },
+    {
+      "from_id": "S001-NFR-001",
+      "to_id": "S001-NFR-003",
+      "kind": "semantic",
+      "reason": "S001-NFR-003 declares a semantic dependency on S001-NFR-001"
+    },
+    {
+      "from_id": "S001-NFR-002",
+      "to_id": "S001-NFR-003",
+      "kind": "semantic",
+      "reason": "S001-NFR-003 declares a semantic dependency on S001-NFR-002"
+    },
+    {
+      "from_id": "S001-NFR-003",
+      "to_id": "S001-F-002",
+      "kind": "semantic",
+      "reason": "S001-F-002 declares a semantic dependency on S001-NFR-003"
+    },
+    {
+      "from_id": "S001-NFR-004",
+      "to_id": "S001-F-002",
+      "kind": "structural",
+      "reason": "S001-F-002 reads env_var 'litellm_ollama_model' which S001-NFR-004 creates"
+    }
+  ],
+  "waves": [
+    {
+      "wave": 1,
+      "phase": "Foundational",
+      "requirements": [
+        "S001-D-001",
+        "S001-F-001",
+        "S001-F-008"
+      ]
+    },
+    {
+      "wave": 2,
+      "phase": "Feature",
+      "requirements": [
+        "S001-F-003",
+        "S001-NFR-001",
+        "S001-NFR-002",
+        "S001-NFR-004"
+      ]
+    },
+    {
+      "wave": 3,
+      "phase": "Feature",
+      "requirements": [
+        "S001-F-004",
+        "S001-NFR-003"
+      ]
+    },
+    {
+      "wave": 4,
+      "phase": "Feature",
+      "requirements": [
+        "S001-F-002",
+        "S001-F-005"
+      ]
+    },
+    {
+      "wave": 5,
+      "phase": "Feature",
+      "requirements": [
+        "S001-F-006"
+      ]
+    },
+    {
+      "wave": 6,
+      "phase": "Feature",
+      "requirements": [
+        "S001-F-007"
+      ]
+    },
+    {
+      "wave": 7,
+      "phase": "Feature",
+      "requirements": [
+        "S001-F-009"
+      ]
+    }
+  ],
+  "cycles": [],
+  "warnings": []
+}

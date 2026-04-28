@@ -1,26 +1,27 @@
 """
 Gemini AI Service for BAMF Case Management System.
 
-This module provides integration with Google's Gemini API for natural language
-processing, document analysis, translation, and form field extraction.
+This module historically wrapped Google's Gemini API directly. As of
+S001-F-001 it delegates every model call to backend.services.llm_provider so
+the same code path serves both the closed-environment LiteLLM backend and the
+opt-in external Gemini backend without changes to its callers. The class name
+GeminiService is preserved to avoid touching dozens of import sites; rename
+is tracked as a follow-up.
 
-The service uses a singleton pattern for connection pooling to minimize latency
-and ensure efficient resource usage.
+The service still uses a singleton pattern for connection pooling to minimize
+latency and ensure efficient resource usage.
 """
 
 import logging
-import os
 import time
 import json
-import re
 from typing import Optional, Dict, Any, AsyncGenerator, Union, Tuple, List
 
-import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
 from markdownify import markdownify
 
 from backend.services.context_manager import ContextManager
 from backend.services.conversation_manager import get_conversation_manager
+from backend.services.llm_provider import LLMProvider, get_provider
 from backend.config import ENABLE_CHAT_HISTORY
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ class GeminiService:
     """
 
     _instance: Optional['GeminiService'] = None
-    _model: Optional[Any] = None
+    _provider: Optional[LLMProvider] = None
     _context_manager: Optional[ContextManager] = None
     _conversation_manager: Optional[Any] = None
 
@@ -61,16 +62,13 @@ class GeminiService:
 
     def __init__(self):
         """
-        Initialize the Gemini service.
+        Initialize the service.
 
-        Configures the Gemini API client using the API key from environment
-        variables and initializes the generative model, context manager,
-        and conversation manager (S5-010).
-
-        Raises:
-            ValueError: If GEMINI_API_KEY is not found in environment.
+        Resolves the active LLM provider via llm_provider.get_provider() and
+        wires up context/conversation managers. Provider selection is driven
+        by LLM_BACKEND.
         """
-        if self._model is None:
+        if self._provider is None:
             self._initialize_client()
         if self._context_manager is None:
             self._initialize_context_manager()
@@ -79,32 +77,19 @@ class GeminiService:
 
     def _initialize_client(self) -> None:
         """
-        Initialize the Gemini API client and model.
+        Resolve the active LLM provider and store it on the instance.
 
-        Loads the API key from environment variables and configures
-        the generative model with appropriate settings.
-
-        Raises:
-            ValueError: If GEMINI_API_KEY is not configured.
+        Raises whatever the provider raises (ValueError on misconfigured
+        LLM_BACKEND, missing GEMINI_API_KEY for the external backend, etc.).
         """
-        api_key = os.getenv("GEMINI_API_KEY")
-
-        if not api_key:
-            logger.error("GEMINI_API_KEY not found in environment variables")
-            raise ValueError("API key not configured")
-
         try:
-            # Configure the Gemini API
-            genai.configure(api_key=api_key)
-
-            # Initialize the generative model
-            # Using gemini-2.5-flash for text generation (fast, cost-effective, latest)
-            self._model = genai.GenerativeModel('gemini-2.5-flash')
-
-            logger.info("Gemini service initialized successfully")
-
+            self._provider = get_provider()
+            logger.info(
+                "GeminiService bound to provider: %s",
+                type(self._provider).__name__,
+            )
         except Exception as e:
-            logger.error(f"Failed to initialize Gemini service: {str(e)}")
+            logger.error(f"Failed to initialize LLM provider: {str(e)}")
             raise
 
     def _initialize_context_manager(self) -> None:
@@ -187,8 +172,8 @@ class GeminiService:
             ... ):
             ...     print(chunk, end='')
         """
-        if self._model is None:
-            raise ValueError("Gemini model not initialized")
+        if self._provider is None:
+            raise ValueError("LLM provider not initialized")
 
         try:
             # Load and merge context based on case_id and folder_id
@@ -229,8 +214,9 @@ class GeminiService:
                 f"stream: {stream}"
             )
 
-            # Configure generation parameters
-            generation_config = GenerationConfig(
+            # Provider-neutral generation parameters; LLMProvider
+            # implementations translate these to backend-specific kwargs.
+            gen_kwargs = dict(
                 temperature=0.7,
                 top_p=0.8,
                 top_k=40,
@@ -246,20 +232,16 @@ class GeminiService:
                 # S5-010: Pass prompt for conversation history saving
                 return self._generate_streaming_response(
                     full_prompt,
-                    generation_config,
+                    gen_kwargs,
                     start_time,
                     case_id,
                     user_prompt=prompt
                 )
             else:
                 # Non-streaming mode - return complete response
-                response = self._model.generate_content(
-                    full_prompt,
-                    generation_config=generation_config
+                response_text = await self._provider.generate(
+                    full_prompt, **gen_kwargs
                 )
-
-                # Extract text from response
-                response_text = response.text
 
                 # S5-009: Format response (HTML to markdown, JSON to tables)
                 formatted_response = self.format_response(response_text)
@@ -300,7 +282,7 @@ class GeminiService:
     async def _generate_streaming_response(
         self,
         full_prompt: str,
-        generation_config: GenerationConfig,
+        gen_kwargs: Dict[str, Any],
         start_time: float,
         case_id: Optional[str],
         user_prompt: Optional[str] = None
@@ -310,7 +292,7 @@ class GeminiService:
 
         Args:
             full_prompt: Complete prompt with context.
-            generation_config: Gemini generation configuration.
+            gen_kwargs: Provider-neutral generation kwargs (temperature etc.).
             start_time: Request start time for metrics.
             case_id: Case identifier for logging.
             user_prompt: Original user prompt (for conversation history, S5-010).
@@ -326,39 +308,36 @@ class GeminiService:
             total_tokens = 0
             full_response = []
 
-            # Generate streaming response
-            response = self._model.generate_content(
-                full_prompt,
-                generation_config=generation_config,
-                stream=True
-            )
+            # Yield chunks as they arrive from the provider
+            async for chunk_text in self._provider.generate_streaming(
+                full_prompt, **gen_kwargs
+            ):
+                if not chunk_text:
+                    continue
+                # Record first token timing
+                if first_token_time is None:
+                    first_token_time = time.perf_counter()
+                    time_to_first_token_ms = (first_token_time - start_time) * 1000
+                    logger.info(
+                        f"First token received - "
+                        f"latency: {time_to_first_token_ms:.2f}ms, "
+                        f"case_id: {case_id or 'none'}"
+                    )
 
-            # Yield chunks as they arrive
-            for chunk in response:
-                if chunk.text:
-                    # Record first token timing
-                    if first_token_time is None:
-                        first_token_time = time.perf_counter()
-                        time_to_first_token_ms = (first_token_time - start_time) * 1000
-                        logger.info(
-                            f"First token received - "
-                            f"latency: {time_to_first_token_ms:.2f}ms, "
-                            f"case_id: {case_id or 'none'}"
-                        )
-
-                    full_response.append(chunk.text)
-                    total_tokens += len(chunk.text.split())
-                    yield chunk.text
+                full_response.append(chunk_text)
+                total_tokens += len(chunk_text.split())
+                yield chunk_text
 
             # Log final metrics
             end_time = time.perf_counter()
             total_latency_ms = (end_time - start_time) * 1000
             response_text = ''.join(full_response)
+            ttft_ms = (first_token_time - start_time) * 1000 if first_token_time else 0.0
 
             logger.info(
                 f"Streaming complete - "
                 f"total_latency: {total_latency_ms:.2f}ms, "
-                f"first_token_latency: {(first_token_time - start_time) * 1000:.2f}ms, "
+                f"first_token_latency: {ttft_ms:.2f}ms, "
                 f"tokens: {total_tokens}, "
                 f"case_id: {case_id or 'none'}, "
                 f"response_length: {len(response_text)}"
@@ -713,8 +692,8 @@ class GeminiService:
             >>> print(highlights[0]['matched_text'])
             Reisepassnummer: 123456789
         """
-        if self._model is None:
-            raise ValueError("Gemini model not initialized")
+        if self._provider is None:
+            raise ValueError("LLM provider not initialized")
 
         try:
             # Build the semantic search prompt
@@ -754,23 +733,16 @@ Return ONLY the JSON array, no additional text."""
                 f"document length: {len(document_text)} chars ({doc_lang})"
             )
 
-            # Use lower temperature for more consistent results
-            generation_config = GenerationConfig(
-                temperature=0.3,  # Lower temperature for deterministic outputs
+            # Lower temperature for deterministic outputs
+            start_time = time.perf_counter()
+            response_text = await self._provider.generate(
+                prompt,
+                temperature=0.3,
                 top_p=0.8,
                 top_k=40,
                 max_output_tokens=2048,
             )
-
-            # Call Gemini API
-            start_time = time.perf_counter()
-            response = self._model.generate_content(
-                prompt,
-                generation_config=generation_config
-            )
-
-            # Extract and parse response
-            response_text = response.text.strip()
+            response_text = (response_text or "").strip()
 
             # Remove markdown code blocks if present
             if response_text.startswith('```'):
@@ -829,9 +801,10 @@ Return ONLY the JSON array, no additional text."""
 
     def is_initialized(self) -> bool:
         """
-        Check if the Gemini service is properly initialized.
+        Check whether the underlying LLM provider has the configuration it
+        needs to serve requests.
 
         Returns:
-            bool: True if the service is ready to use, False otherwise.
+            bool: True if the provider is ready, False otherwise.
         """
-        return self._model is not None
+        return self._provider is not None and self._provider.is_initialized()

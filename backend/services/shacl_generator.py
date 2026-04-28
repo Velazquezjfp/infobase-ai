@@ -16,9 +16,6 @@ import re
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 
-import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
-
 from backend.models.shacl_property_shape import SHACLPropertyShape
 from backend.schemas.schema_org_mappings import (
     get_schema_org_type,
@@ -27,6 +24,7 @@ from backend.schemas.schema_org_mappings import (
     normalize_field_label,
 )
 from backend.schemas.validation_patterns import ValidationPattern
+from backend.services.llm_provider import LLMProvider, get_provider
 
 logger = logging.getLogger(__name__)
 
@@ -61,15 +59,14 @@ class SHACLGeneratorService:
     generates SHACL shapes with schema.org vocabulary for semantic validation.
     """
 
-    def __init__(self, gemini_api_key: str):
+    def __init__(self) -> None:
         """
-        Initialize the SHACL generator service.
+        Initialize the SHACL generator.
 
-        Args:
-            gemini_api_key: Google Gemini API key
+        Resolves the active LLM provider (S001-F-001); no SDK-specific keys
+        are needed at construction time anymore.
         """
-        genai.configure(api_key=gemini_api_key)
-        self.model = genai.GenerativeModel("gemini-2.0-flash-exp")
+        self._provider: LLMProvider = get_provider()
         self._field_id_counter = 0
 
     def _generate_field_id(self, label: str) -> str:
@@ -142,13 +139,10 @@ Respond with ONLY the JSON object, no additional text.
 """
 
         try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=GenerationConfig(temperature=0.1)
+            response_text = await self._provider.generate(
+                prompt, temperature=0.1
             )
-
-            # Extract JSON from response
-            response_text = response.text.strip()
+            response_text = (response_text or "").strip()
 
             # Remove markdown code blocks if present
             if response_text.startswith("```"):
@@ -346,25 +340,14 @@ Respond with ONLY the JSON object, no additional text.
 _shacl_generator_instance: Optional[SHACLGeneratorService] = None
 
 
-def get_shacl_generator(gemini_api_key: Optional[str] = None) -> SHACLGeneratorService:
+def get_shacl_generator() -> SHACLGeneratorService:
     """
     Get or create the singleton SHACL generator service.
 
-    Args:
-        gemini_api_key: Google Gemini API key (required on first call)
-
-    Returns:
-        SHACLGeneratorService instance
+    The constructor resolves the active LLM provider via
+    backend.services.llm_provider.get_provider(); no API keys are read here.
     """
     global _shacl_generator_instance
-
     if _shacl_generator_instance is None:
-        if gemini_api_key is None:
-            import os
-            gemini_api_key = os.getenv("GEMINI_API_KEY")
-            if not gemini_api_key:
-                raise ValueError("GEMINI_API_KEY not found in environment")
-
-        _shacl_generator_instance = SHACLGeneratorService(gemini_api_key)
-
+        _shacl_generator_instance = SHACLGeneratorService()
     return _shacl_generator_instance

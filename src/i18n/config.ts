@@ -22,9 +22,14 @@ i18n
   // Initialize i18next
   .init({
     resources,
-    fallbackLng: 'en',
+    // German is the source of truth; missing en keys fall back to de.
+    fallbackLng: 'de',
     lng: 'de', // Default language
-    debug: false,
+    debug: import.meta.env.DEV,
+    // Never return null for missing keys; render the key string instead so
+    // developers can spot it without crashing the UI.
+    returnNull: false,
+    parseMissingKeyHandler: (key: string) => key,
 
     // Language detector options
     detection: {

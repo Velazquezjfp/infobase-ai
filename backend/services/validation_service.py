@@ -19,11 +19,9 @@ import re
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 
-import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
-
 from backend.services.context_manager import ContextManager, generate_document_tree
 from backend.services.document_registry import get_documents_by_case
+from backend.services.llm_provider import LLMProvider, get_provider
 from backend.api.custom_context import load_custom_rules
 
 logger = logging.getLogger(__name__)
@@ -77,7 +75,7 @@ class CaseValidationService:
     """
 
     _instance: Optional['CaseValidationService'] = None
-    _model: Optional[Any] = None
+    _provider: Optional[LLMProvider] = None
     _context_manager: Optional[ContextManager] = None
 
     def __new__(cls) -> 'CaseValidationService':
@@ -88,7 +86,7 @@ class CaseValidationService:
 
     def __init__(self):
         """Initialize the validation service."""
-        if self._model is None:
+        if self._provider is None:
             self._initialize_model()
         if self._context_manager is None:
             try:
@@ -97,16 +95,16 @@ class CaseValidationService:
                 logger.warning(f"Could not initialize context manager: {e}")
 
     def _initialize_model(self) -> None:
-        """Initialize the Gemini model directly for validation."""
-        import os
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            logger.error("GEMINI_API_KEY not found")
-            raise ValueError("API key not configured")
+        """Resolve the active LLM provider (S001-F-001)."""
+        self._provider = get_provider()
+        logger.info(
+            "Validation service bound to provider: %s",
+            type(self._provider).__name__,
+        )
 
-        genai.configure(api_key=api_key)
-        self._model = genai.GenerativeModel('gemini-2.5-flash')
-        logger.info("Validation service Gemini model initialized")
+    def is_initialized(self) -> bool:
+        """Return True when the provider is configured."""
+        return self._provider is not None and self._provider.is_initialized()
 
     async def validate_case(
         self,
@@ -150,21 +148,17 @@ class CaseValidationService:
 
             logger.info(f"Validation prompt length: {len(prompt)} chars")
 
-            # Call Gemini API directly with focused config for validation
-            generation_config = GenerationConfig(
-                temperature=0.3,  # Lower temperature for consistent JSON
+            # Lower temperature for consistent JSON; route through the
+            # active LLM provider (S001-F-001).
+            response = await self._provider.generate(
+                prompt,
+                temperature=0.3,
                 top_p=0.8,
                 top_k=40,
-                max_output_tokens=4096,  # Plenty of room for response
+                max_output_tokens=4096,
             )
 
-            response_obj = self._model.generate_content(
-                prompt,
-                generation_config=generation_config
-            )
-            response = response_obj.text
-
-            logger.info(f"Gemini response length: {len(response)} chars")
+            logger.info(f"LLM response length: {len(response)} chars")
 
             # Parse the structured response
             result = self._parse_validation_response(response, language)

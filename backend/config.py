@@ -131,6 +131,35 @@ LOG_LEVEL: str = os.getenv('LOG_LEVEL', 'INFO')
 
 
 # ============================================================================
+# LLM Provider Configuration (S001-F-001)
+# ============================================================================
+# LLM_BACKEND selects the provider implementation in
+# backend.services.llm_provider:
+#   - 'internal' (default): route through the LiteLLM proxy (closed-env path)
+#   - 'external': use google.generativeai directly (developer opt-in)
+# Any other value raises ValueError when llm_provider.get_provider() is first
+# called.
+
+LLM_BACKEND: str = os.getenv('LLM_BACKEND', 'internal')
+
+# OpenAI-compatible base URL of the LiteLLM proxy. Required when LLM_BACKEND
+# is 'internal'.
+LITELLM_PROXY_URL: str = os.getenv('LITELLM_PROXY_URL', '')
+
+# Bearer token / master key the proxy expects. Empty string is acceptable
+# when the proxy is unauthenticated; LiteLLM still requires a non-None value.
+LITELLM_TOKEN: str = os.getenv('LITELLM_TOKEN', '')
+
+# Model identifier the proxy should route to (e.g. the host's Ollama model).
+# Default matches the model preinstalled on the closed-environment host.
+LITELLM_MODEL: str = os.getenv('LITELLM_MODEL', 'gemma3:12b')
+
+# API key for the public Gemini API. Only consulted when LLM_BACKEND is
+# 'external'; absence is fine on the 'internal' path.
+GEMINI_API_KEY: str = os.getenv('GEMINI_API_KEY', '')
+
+
+# ============================================================================
 # Configuration Summary (for debugging)
 # ============================================================================
 
@@ -154,5 +183,11 @@ def get_config_summary() -> dict:
         },
         'logging': {
             'level': LOG_LEVEL,
-        }
+        },
+        'llm': {
+            'backend': LLM_BACKEND,
+            'litellm_proxy_url': LITELLM_PROXY_URL or '(unset)',
+            'litellm_model': LITELLM_MODEL,
+            'gemini_api_key_set': bool(GEMINI_API_KEY),
+        },
     }
