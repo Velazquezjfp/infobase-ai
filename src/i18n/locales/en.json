@@ -438,6 +438,9 @@
   "anonymization": {
     "notImplemented": "The anonymization feature is not yet available in this demo environment."
   },
+  "upload": {
+    "notImplemented": "File upload is disabled in this demo environment."
+  },
   "context": {
     "offlineNotice": "Offline mode: content is simulated"
   },

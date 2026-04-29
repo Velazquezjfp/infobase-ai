@@ -7,9 +7,10 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, X, FileText, MousePointerClick } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { uploadFile, validateFileSize, formatFileSize } from '@/lib/fileApi';
+import { uploadFile, validateFileSize, formatFileSize, checkUploadEnabled } from '@/lib/fileApi';
 import type { UploadProgress } from '@/types/file';
 import { UploadProgress as UploadProgressComponent } from '@/components/ui/UploadProgress';
 
@@ -59,9 +60,22 @@ export function FileDropZone({
   const [isDragging, setIsDragging] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [uploadQueue, setUploadQueue] = useState<UploadProgress[]>([]);
+  // S001-F-006: feature flag — fail-permissive while loading; backend enforces.
+  const [uploadEnabled, setUploadEnabled] = useState<boolean>(true);
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    let cancelled = false;
+    checkUploadEnabled().then((enabled) => {
+      if (!cancelled) setUploadEnabled(enabled);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   /**
    * Global drag detection to show drop zone when files are dragged into window.
@@ -158,8 +172,15 @@ export function FileDropZone({
    * Handle click event - open file picker.
    */
   const handleClick = useCallback(() => {
+    // S001-F-006: short-circuit when upload feature is disabled.
+    if (!uploadEnabled) {
+      toast({
+        title: t('upload.notImplemented'),
+      });
+      return;
+    }
     fileInputRef.current?.click();
-  }, []);
+  }, [uploadEnabled, t, toast]);
 
   /**
    * Handle file input change.
@@ -187,6 +208,15 @@ export function FileDropZone({
    * Upload multiple files sequentially.
    */
   const uploadFiles = async (files: File[]) => {
+    // S001-F-006: when the feature flag is off, no files are sent to the
+    // backend — surface the disabled-state notice and return.
+    if (!uploadEnabled) {
+      toast({
+        title: t('upload.notImplemented'),
+      });
+      return;
+    }
+
     let successCount = 0;
     let errorCount = 0;
 
@@ -362,18 +392,21 @@ export function FileDropZone({
           onClick={handleClick}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
+          aria-disabled={!uploadEnabled}
+          disabled={!uploadEnabled}
           className={cn(
             'fixed bottom-6 right-6 z-40 rounded-full shadow-lg transition-all duration-300',
-            'bg-primary hover:bg-primary/90 text-primary-foreground',
-            'p-4 hover:scale-110 active:scale-95',
-            'flex items-center gap-2'
+            'p-4 flex items-center gap-2',
+            uploadEnabled
+              ? 'bg-primary hover:bg-primary/90 text-primary-foreground hover:scale-110 active:scale-95'
+              : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
           )}
-          title="Upload files"
+          title={uploadEnabled ? 'Upload files' : t('upload.notImplemented')}
         >
           <Upload className="h-5 w-5" />
           {isHovering && (
             <span className="text-sm font-medium whitespace-nowrap animate-in slide-in-from-right-2">
-              Upload Files
+              {uploadEnabled ? 'Upload Files' : t('upload.notImplemented')}
             </span>
           )}
         </button>

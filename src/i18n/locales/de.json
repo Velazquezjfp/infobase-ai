@@ -438,6 +438,9 @@
   "anonymization": {
     "notImplemented": "Die Anonymisierungsfunktion ist in dieser Demo-Umgebung noch nicht verfügbar."
   },
+  "upload": {
+    "notImplemented": "Das Hochladen ist in dieser Demo-Umgebung deaktiviert."
+  },
   "context": {
     "offlineNotice": "Offline-Modus: Inhalt wird simuliert"
   },

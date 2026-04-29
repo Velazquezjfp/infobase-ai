@@ -29,6 +29,14 @@ export interface UploadResult {
 
   /** Optional error message if success is false */
   error?: string;
+
+  /**
+   * S001-F-006: True when the backend rejected the upload because the
+   * ENABLE_UPLOAD feature flag is off (HTTP 403, error="feature_disabled").
+   * Callers should treat this as a non-error disabled state and surface a
+   * notice rather than an upload-failed toast.
+   */
+  disabled?: boolean;
 }
 
 /**

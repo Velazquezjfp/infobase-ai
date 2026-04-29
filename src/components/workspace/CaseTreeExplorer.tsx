@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Folder, Document, DocumentRender } from '@/types/case';
 import { ChevronRight, ChevronDown, Folder as FolderIcon, FolderOpen, FileText, FileJson, FileCode, File, Upload, Plus, MoreVertical, Loader2, Trash2, EyeOff, Globe, Edit, Badge, Info } from 'lucide-react';
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/context-menu';
 import { toast } from '@/hooks/use-toast';
 import { loadDocumentContent } from '@/lib/documentLoader';
-import { uploadFile, validateFileSize, formatFileSize, deleteFile, checkFileExists } from '@/lib/fileApi';
+import { uploadFile, validateFileSize, formatFileSize, deleteFile, checkFileExists, checkUploadEnabled } from '@/lib/fileApi';
 import type { UploadProgress } from '@/types/file';
 import { UploadProgress as UploadProgressComponent } from '@/components/ui/UploadProgress';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
@@ -163,9 +163,11 @@ interface FolderItemProps {
   level: number;
   onUploadToFolder: (folderId: string, files: File[]) => void;
   onDeleteDocument: (folderId: string, document: Document) => void;
+  /** S001-F-006: when false, upload click + drop are short-circuited and a notice toast is shown. */
+  uploadEnabled: boolean;
 }
 
-function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: FolderItemProps) {
+function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument, uploadEnabled }: FolderItemProps) {
   const { toggleFolder, selectedDocument, setSelectedDocument, setViewMode, highlightedFolder, currentCase, refreshDocuments } = useApp();
   const { t } = useTranslation();
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
@@ -198,6 +200,14 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
     e.stopPropagation();
     setIsDragOver(false);
 
+    // S001-F-006: ignore drop when upload feature is disabled and surface a notice.
+    if (!uploadEnabled) {
+      toast({
+        title: t('upload.notImplemented'),
+      });
+      return;
+    }
+
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       onUploadToFolder(folder.id, files);
@@ -206,6 +216,13 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
 
   const handleUploadClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // S001-F-006: short-circuit before opening the file picker when feature is off.
+    if (!uploadEnabled) {
+      toast({
+        title: t('upload.notImplemented'),
+      });
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -451,7 +468,7 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument }: Folde
             );
           })}
           {folder.subfolders.map((subfolder) => (
-            <FolderItem key={subfolder.id} folder={subfolder} level={level + 1} onUploadToFolder={onUploadToFolder} onDeleteDocument={onDeleteDocument} />
+            <FolderItem key={subfolder.id} folder={subfolder} level={level + 1} onUploadToFolder={onUploadToFolder} onDeleteDocument={onDeleteDocument} uploadEnabled={uploadEnabled} />
           ))}
         </div>
       )}
@@ -465,6 +482,21 @@ export default function CaseTreeExplorer() {
   const [uploadQueue, setUploadQueue] = useState<UploadProgress[]>([]);
   const [isDraggingOverDropZone, setIsDraggingOverDropZone] = useState(false);
   const dropZoneFileInputRef = useRef<HTMLInputElement>(null);
+
+  // S001-F-006: feature flag — read once from /api/files/health on mount.
+  // Default true so the UI is permissive while the flag is loading; the
+  // backend remains the source of truth and any click that races the load
+  // still resolves cleanly (uploadFile returns disabled:true on 403).
+  const [uploadEnabled, setUploadEnabled] = useState<boolean>(true);
+  useEffect(() => {
+    let cancelled = false;
+    checkUploadEnabled().then((enabled) => {
+      if (!cancelled) setUploadEnabled(enabled);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Delete confirmation dialog state (S4-002)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -772,6 +804,14 @@ export default function CaseTreeExplorer() {
     e.stopPropagation();
     setIsDraggingOverDropZone(false);
 
+    // S001-F-006: ignore drop when feature is disabled.
+    if (!uploadEnabled) {
+      toast({
+        title: t('upload.notImplemented'),
+      });
+      return;
+    }
+
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       // Upload to "uploads" folder by default
@@ -780,6 +820,13 @@ export default function CaseTreeExplorer() {
   };
 
   const handleDropZoneClick = () => {
+    // S001-F-006: short-circuit before opening file picker when feature is off.
+    if (!uploadEnabled) {
+      toast({
+        title: t('upload.notImplemented'),
+      });
+      return;
+    }
     dropZoneFileInputRef.current?.click();
   };
 
@@ -855,7 +902,7 @@ export default function CaseTreeExplorer() {
 
       <div className="flex-1 overflow-y-auto py-1 scrollbar-thin">
         {currentCase.folders.map((folder) => (
-          <FolderItem key={folder.id} folder={folder} level={0} onUploadToFolder={handleUploadToFolder} onDeleteDocument={handleDeleteDocument} />
+          <FolderItem key={folder.id} folder={folder} level={0} onUploadToFolder={handleUploadToFolder} onDeleteDocument={handleDeleteDocument} uploadEnabled={uploadEnabled} />
         ))}
       </div>
 
@@ -876,16 +923,26 @@ export default function CaseTreeExplorer() {
           onDragOver={handleDropZoneDragOver}
           onDragLeave={handleDropZoneDragLeave}
           onDrop={handleDropZoneDrop}
+          aria-disabled={!uploadEnabled}
+          aria-label={t('documents.upload')}
+          title={!uploadEnabled ? t('upload.notImplemented') : undefined}
+          data-disabled={!uploadEnabled || undefined}
           className={cn(
-            'flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer',
-            isDraggingOverDropZone
-              ? 'border-primary bg-primary/10 text-primary scale-105'
-              : 'border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5'
+            'flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg transition-all duration-200',
+            !uploadEnabled
+              ? 'border-border/40 bg-muted/30 text-muted-foreground/60 cursor-not-allowed opacity-60'
+              : isDraggingOverDropZone
+                ? 'border-primary bg-primary/10 text-primary scale-105 cursor-pointer'
+                : 'border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 cursor-pointer'
           )}
         >
-          <Upload className={cn('w-4 h-4', isDraggingOverDropZone && 'animate-bounce')} />
+          <Upload className={cn('w-4 h-4', uploadEnabled && isDraggingOverDropZone && 'animate-bounce')} />
           <span className="text-xs font-medium">
-            {isDraggingOverDropZone ? t('chat.dropToUpload') : t('chat.clickOrDrop')}
+            {!uploadEnabled
+              ? t('upload.notImplemented')
+              : isDraggingOverDropZone
+                ? t('chat.dropToUpload')
+                : t('chat.clickOrDrop')}
           </span>
         </div>
       </div>

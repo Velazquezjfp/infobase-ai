@@ -146,8 +146,24 @@ async function uploadFileSimple(formData: FormData): Promise<UploadResult> {
     const result = await response.json();
 
     if (!response.ok) {
+      // S001-F-006: 403 + error="feature_disabled" is a typed disabled state,
+      // not a thrown error. Callers (CaseTreeExplorer, FileDropZone) inspect
+      // result.disabled and surface upload.notImplemented.
+      const errorCode = result.detail?.error || result.error;
+      if (response.status === 403 && errorCode === 'feature_disabled') {
+        const fileName = (formData.get('file') as File | null)?.name ?? '';
+        return {
+          success: false,
+          disabled: true,
+          file_path: '',
+          file_name: result.detail?.file_name || fileName,
+          size: 0,
+          message: result.detail?.detail,
+        };
+      }
+
       // Server returned an error
-      const errorMessage = result.detail?.error || result.error || 'Upload failed';
+      const errorMessage = errorCode || 'Upload failed';
       const errorDetail = result.detail?.detail || result.detail || '';
 
       throw new Error(errorDetail ? `${errorMessage}: ${errorDetail}` : errorMessage);
@@ -197,7 +213,23 @@ async function uploadFileWithProgress(
       } else {
         try {
           const errorResult = JSON.parse(xhr.responseText);
-          const errorMessage = errorResult.detail?.error || errorResult.error || 'Upload failed';
+          const errorCode = errorResult.detail?.error || errorResult.error;
+          // S001-F-006: 403 + feature_disabled resolves as a typed disabled
+          // result rather than rejecting — same contract as uploadFileSimple.
+          if (xhr.status === 403 && errorCode === 'feature_disabled') {
+            const fileName = (formData.get('file') as File | null)?.name ?? '';
+            resolve({
+              success: false,
+              disabled: true,
+              file_path: '',
+              file_name: errorResult.detail?.file_name || fileName,
+              size: 0,
+              message: errorResult.detail?.detail,
+            });
+            return;
+          }
+
+          const errorMessage = errorCode || 'Upload failed';
           const errorDetail = errorResult.detail?.detail || errorResult.detail || '';
           reject(new Error(errorDetail ? `${errorMessage}: ${errorDetail}` : errorMessage));
         } catch {
@@ -249,6 +281,47 @@ export async function checkFileServiceHealth(): Promise<boolean> {
     console.error('File service health check failed:', error);
     return false;
   }
+}
+
+/**
+ * S001-F-006: Read the upload feature flag from the file-service health
+ * endpoint. Cached at module level after the first successful response so
+ * UI components (CaseTreeExplorer, FileDropZone) can short-circuit handlers
+ * without hitting /health on every interaction.
+ *
+ * Returns `false` if the call fails — fail-closed: prefer to show the
+ * disabled UI than to let a click trigger an upload that will then 403.
+ */
+let cachedUploadEnabled: boolean | null = null;
+
+export async function checkUploadEnabled(): Promise<boolean> {
+  if (cachedUploadEnabled !== null) {
+    return cachedUploadEnabled;
+  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/files/health`, {
+      method: 'GET',
+    });
+    if (!response.ok) {
+      cachedUploadEnabled = false;
+      return false;
+    }
+    const result = await response.json();
+    const enabled = result?.features?.upload === true;
+    cachedUploadEnabled = enabled;
+    return enabled;
+  } catch (error) {
+    console.error('Upload feature-flag check failed:', error);
+    cachedUploadEnabled = false;
+    return false;
+  }
+}
+
+/**
+ * Reset the cached upload-enabled flag. Exposed primarily for tests.
+ */
+export function resetUploadEnabledCache(): void {
+  cachedUploadEnabled = null;
 }
 
 /**

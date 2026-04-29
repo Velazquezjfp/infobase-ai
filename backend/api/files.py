@@ -20,6 +20,8 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from backend import config
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/files")
@@ -70,6 +72,7 @@ class DeleteResponse(BaseModel):
     responses={
         200: {"description": "File uploaded successfully"},
         400: {"model": ErrorResponse, "description": "Invalid request (bad path, invalid file)"},
+        403: {"model": ErrorResponse, "description": "Upload feature disabled (ENABLE_UPLOAD=false) or path-traversal denial"},
         413: {"model": ErrorResponse, "description": "File exceeds 15 MB size limit"},
         500: {"model": ErrorResponse, "description": "Internal server error"},
     },
@@ -116,6 +119,20 @@ async def upload_file(
         HTTPException: If validation fails or upload error occurs
     """
     logger.info(f"Received upload request: {file.filename} for case {case_id}, folder {folder_id}, rename_to={rename_to}")
+
+    # S001-F-006: feature flag — closed-environment demo disables uploads.
+    # Early-return guard keeps the handler body intact so re-enabling is a single
+    # env-var flip.
+    if not config.ENABLE_UPLOAD:
+        logger.info(f"Upload rejected: ENABLE_UPLOAD=false (file={file.filename})")
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "feature_disabled",
+                "detail": "Das Hochladen ist in dieser Demo-Umgebung deaktiviert.",
+                "file_name": file.filename,
+            },
+        )
 
     try:
         # Import file service functions
@@ -586,7 +603,7 @@ async def files_health_check() -> JSONResponse:
             "service": "files",
             "status": "ready" if storage_available else "degraded",
             "features": {
-                "upload": True,
+                "upload": config.ENABLE_UPLOAD,
                 "max_file_size_mb": 15,
                 "storage_path": "public/documents/",
             },
