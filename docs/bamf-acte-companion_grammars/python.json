@@ -3,14 +3,25 @@
   "version": "3.12",
   "project": "bamf-acte-companion",
   "generated_at": "2026-04-27T00:00:00Z",
-  "last_updated": "2026-04-27T00:00:00Z",
+  "last_updated": "2026-04-29T00:00:00Z",
   "generator_version": "2.0",
   "file_extensions": [".py"],
-  "file_count": 352,
+  "file_count": 142,
   "frameworks": [
+    { "name": "aiohttp", "version": "3.13.4", "context7_status": "unavailable" },
+    { "name": "beautifulsoup4", "version": "4.14.3", "context7_status": "unavailable" },
     { "name": "fastapi", "version": "0.104.1", "context7_status": "fetched" },
     { "name": "google-generativeai", "version": "0.3.1", "context7_status": "unavailable" },
-    { "name": "pydantic", "version": "2.5.2", "context7_status": "fetched" },
+    { "name": "html2text", "version": "2024.2.26", "context7_status": "unavailable" },
+    { "name": "httpx", "version": "0.28.1", "context7_status": "unavailable" },
+    { "name": "langdetect", "version": "1.0.9", "context7_status": "unavailable" },
+    { "name": "litellm", "version": "1.83.14", "context7_status": "fetched" },
+    { "name": "markdownify", "version": "1.2.2", "context7_status": "unavailable" },
+    { "name": "pdfplumber", "version": "0.11.0", "context7_status": "unavailable" },
+    { "name": "Pillow", "version": "10.2.0", "context7_status": "unavailable" },
+    { "name": "pydantic", "version": "2.12.5", "context7_status": "fetched" },
+    { "name": "python-dotenv", "version": "1.2.2", "context7_status": "unavailable" },
+    { "name": "python-multipart", "version": "0.0.21", "context7_status": "unavailable" },
     { "name": "uvicorn", "version": "0.24.0", "context7_status": "unavailable" },
     { "name": "websockets", "version": "12.0", "context7_status": "unavailable" }
   ],
@@ -33,6 +44,10 @@
       "^\\s*from\\s+([\\w\\.]+)\\s+import",
       "^\\s*import\\s+([\\w\\.]+)"
     ],
+    "litellm_calls": [
+      "(?:await\\s+)?litellm\\.acompletion\\s*\\(",
+      "(?:await\\s+)?litellm\\.completion\\s*\\("
+    ],
     "pydantic_models": [
       "^\\s*class\\s+(\\w+)\\s*\\(\\s*BaseModel\\s*\\)\\s*:",
       "^\\s*class\\s+(\\w+)\\s*\\(\\s*[\\w\\.]*BaseModel\\s*\\)\\s*:"
@@ -42,5 +57,5 @@
       "^\\s*(\\w+)\\s*=\\s*Annotated\\["
     ]
   },
-  "notes": "Runtime detected from system Python (3.12.3). FastAPI 0.104.1 uses APIRouter with @router.get/post/put/delete/patch/head/options/websocket decorators and app.include_router() registration — no @app.route() (Flask-style). Pydantic v2: BaseModel inheritance unchanged from v1 at class-definition level but internal validation uses model_validator/field_validator (v2 decorators). google-generativeai and websockets not well-indexed in Context7 — patterns use standard Python constructs only. WebSocket endpoint pattern added for chat.py router."
+  "notes": "Runtime detected from .mypy_cache path (3.12). FastAPI 0.104.1 patterns unchanged. Pydantic bumped 2.5.2 → 2.12.5: v2 class-definition API (BaseModel inheritance, field_validator, model_validator, ConfigDict) is stable across all v2.x minor versions — no pattern change required. litellm 1.83.14 added (S001-F-001 LLM proxy): import is lazy (inside function bodies via `import litellm`), so litellm_calls patterns match call-site usage rather than top-level imports. aiohttp, httpx, beautifulsoup4, pdfplumber, Pillow, markdownify, langdetect, html2text, python-dotenv, python-multipart added — all use standard Python import/def/class constructs covered by existing patterns; no new pattern groups needed. file_count corrected to 142 (venv directory now properly excluded from scan)."
 }

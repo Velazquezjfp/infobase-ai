@@ -1017,7 +1017,10 @@
         "external_imports: fastapi, logging, pathlib, pydantic, typing",
         "decorators: router.get, router.post",
         "pydantic_models_count: 6",
-        "router_prefix: /api/search"
+        "router_prefix: /api/search",
+        "S001-F-005: imports ENABLE_DOCUMENT_SEARCH from backend.config",
+        "external_imports updated: fastapi, logging, pathlib, pydantic, typing",
+        "internal_imports: backend.config"
       ]
     },
     {
@@ -1060,7 +1063,8 @@
       "entityType": "function",
       "observations": [
         "line 270",
-        "async"
+        "async",
+        "S001-F-005: response now includes document_search: enabled|disabled"
       ]
     },
     {
@@ -1082,7 +1086,8 @@
         "method: GET",
         "path: /api/search/health",
         "router_prefix: /api/search",
-        "raw_path: /health"
+        "raw_path: /health",
+        "S001-F-005: returns document_search status field reflecting ENABLE_DOCUMENT_SEARCH"
       ]
     },
     {
@@ -5415,7 +5420,9 @@
         "language: typescript",
         "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
         "external_imports: lucide-react, react, react-i18next",
-        "api_call_urls: /api/chat/clear/{}"
+        "api_call_urls: /api/chat/clear/{}",
+        "S001-F-005: processSearchCommand handles error=feature_disabled by rendering t('documentSearch.notImplemented')",
+        "api_call_urls updated: /api/chat/clear/{}, /api/idirs/search, /api/idirs/rag"
       ]
     },
     {
@@ -5458,7 +5465,9 @@
       "name": "src/components/workspace/AIChatInterface.tsx::processSearchCommand",
       "entityType": "function",
       "observations": [
-        "line 495"
+        "line 495",
+        "S001-F-005: branches on errData.error === 'feature_disabled' for both /Dokumentsuche and /Dokumente-abfragen",
+        "calls /api/idirs/search and /api/idirs/rag via fetch"
       ]
     },
     {
@@ -9403,7 +9412,9 @@
         "type: bool",
         "default: False",
         "get_bool_env",
-        "added in S001-F-004"
+        "added in S001-F-004",
+        "S001-F-005: gates both /api/idirs/search and /api/idirs/rag handlers",
+        "S001-F-005: surfaces in /api/search/health response as document_search field"
       ]
     },
     {

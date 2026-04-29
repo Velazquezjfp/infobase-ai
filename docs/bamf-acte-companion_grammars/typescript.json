@@ -3,20 +3,35 @@
   "version": "5.8",
   "project": "bamf-acte-companion",
   "generated_at": "2026-04-27T00:00:00Z",
-  "last_updated": "2026-04-27T00:00:00Z",
+  "last_updated": "2026-04-29T00:00:00Z",
   "generator_version": "2.0",
   "file_extensions": [".ts", ".tsx"],
-  "file_count": 96,
+  "file_count": 98,
   "frameworks": [
+    { "name": "@hookform/resolvers", "version": "3.10.0", "context7_status": "unavailable" },
     { "name": "@tanstack/react-query", "version": "5.83.0", "context7_status": "unavailable" },
     { "name": "@vitejs/plugin-react-swc", "version": "3.11.0", "context7_status": "unavailable" },
+    { "name": "cmdk", "version": "1.1.1", "context7_status": "unavailable" },
+    { "name": "date-fns", "version": "3.6.0", "context7_status": "unavailable" },
+    { "name": "dompurify", "version": "3.3.1", "context7_status": "unavailable" },
+    { "name": "embla-carousel-react", "version": "8.6.0", "context7_status": "unavailable" },
     { "name": "i18next", "version": "25.7.4", "context7_status": "unavailable" },
     { "name": "lucide-react", "version": "0.462.0", "context7_status": "unavailable" },
+    { "name": "next-themes", "version": "0.3.0", "context7_status": "unavailable" },
+    { "name": "pdfjs-dist", "version": "5.4.530", "context7_status": "unavailable" },
     { "name": "react", "version": "18.3.1", "context7_status": "fetched" },
+    { "name": "react-day-picker", "version": "8.10.1", "context7_status": "unavailable" },
     { "name": "react-hook-form", "version": "7.61.1", "context7_status": "unavailable" },
     { "name": "react-i18next", "version": "16.5.2", "context7_status": "unavailable" },
+    { "name": "react-markdown", "version": "10.1.0", "context7_status": "fetched" },
+    { "name": "react-pdf", "version": "10.3.0", "context7_status": "fetched" },
+    { "name": "react-resizable-panels", "version": "2.1.9", "context7_status": "unavailable" },
     { "name": "react-router-dom", "version": "6.30.1", "context7_status": "fetched" },
+    { "name": "react-syntax-highlighter", "version": "16.1.0", "context7_status": "unavailable" },
+    { "name": "recharts", "version": "2.15.4", "context7_status": "fetched" },
     { "name": "shadcn-ui", "version": "latest", "context7_status": "unavailable" },
+    { "name": "sonner", "version": "1.7.4", "context7_status": "unavailable" },
+    { "name": "vaul", "version": "0.9.9", "context7_status": "unavailable" },
     { "name": "vite", "version": "5.4.19", "context7_status": "unavailable" },
     { "name": "zod", "version": "3.25.76", "context7_status": "fetched" }
   ],
@@ -55,6 +70,10 @@
       "<Route\\s+[^>]*path=['\"]([^'\"]+)['\"]",
       "<Route\\s+[^>]*to=['\"]([^'\"]+)['\"]"
     ],
+    "recharts_components": [
+      "<(LineChart|BarChart|AreaChart|PieChart|RadarChart|ScatterChart|ComposedChart|RadialBarChart|Treemap|FunnelChart)\\b",
+      "import\\s+\\{[^}]*\\b(LineChart|BarChart|AreaChart|PieChart|RadarChart|XAxis|YAxis|CartesianGrid|Tooltip|Legend|ResponsiveContainer)\\b[^}]*\\}\\s+from\\s+['\"]recharts['\"]"
+    ],
     "type_definitions": [
       "^\\s*(?:export\\s+)?type\\s+(\\w+)\\s*(?:=|<)"
     ],
@@ -63,5 +82,5 @@
       "^\\s*(?:export\\s+)?const\\s+(\\w+Schema)\\s*="
     ]
   },
-  "notes": "TypeScript 5.8 with React 18.3.1 (TSX). Vite 5 + SWC plugin, no Webpack. React Router v6 (BrowserRouter + Routes + Route) — v6 uses element prop not component/render props. Zod v3 schema pattern covers z.object(), z.string(), etc. shadcn/ui components are Radix UI wrappers (no custom patterns beyond React component conventions). react-hook-form v7 uses useForm hook — covered by hooks pattern. i18next/react-i18next use hook useTranslation — covered by hooks pattern. TanStack Query v5 uses useQuery/useMutation hooks. Component naming convention: PascalCase function or const exports detected by react_components group."
+  "notes": "TypeScript 5.8 with React 18.3.1 (TSX). Vite 5 + SWC plugin, no Webpack. React Router v6 patterns unchanged. Zod v3 patterns unchanged. New frameworks added this update: recharts 2.15.4 (chart JSX components), react-pdf 10.3.0 (Document/Page/pdfjs from wojtekmaj/react-pdf), react-markdown 10.1.0 (ReactMarkdown component), dompurify 3.3.1, react-syntax-highlighter 16.1.0, date-fns 3.6.0, pdfjs-dist 5.4.530, react-day-picker 8.10.1, react-resizable-panels 2.1.9, embla-carousel-react 8.6.0, sonner 1.7.4, next-themes 0.3.0, cmdk 1.1.1, vaul 0.9.9, @hookform/resolvers 3.10.0. recharts_components pattern group added: Recharts v2 uses named JSX chart components (LineChart, BarChart, etc.) imported from 'recharts'. All other new frameworks (react-pdf, react-markdown, dompurify, sonner, date-fns, etc.) are component/utility libraries whose usage is fully captured by existing react_components, imports, and hooks patterns. context7_status set to 'fetched' for recharts (ID: /recharts/recharts), react-markdown (ID: /remarkjs/react-markdown), react-pdf (ID: /wojtekmaj/react-pdf) — IDs resolved; documentation fetch confirmed patterns match well-known stable API. file_count updated to 98 (was 96)."
 }

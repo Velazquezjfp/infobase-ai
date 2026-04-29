@@ -545,149 +545,6 @@
       ]
     },
     {
-      "name": "backend/api/files.py",
-      "entityType": "file",
-      "observations": [
-        "language: python",
-        "frameworks: fastapi, google-generativeai, pydantic, uvicorn, websockets",
-        "external_imports: fastapi, fastapi.responses, logging, os, pathlib, pydantic, typing",
-        "decorators: router.delete, router.get, router.post",
-        "pydantic_models_count: 8",
-        "router_prefix: /api/files"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::UploadResponse",
-      "entityType": "class",
-      "observations": [
-        "line 26",
-        "extends: BaseModel",
-        "pydantic: BaseModel"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::ErrorResponse",
-      "entityType": "class",
-      "observations": [
-        "line 44",
-        "extends: BaseModel",
-        "pydantic: BaseModel"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::DeleteResponse",
-      "entityType": "class",
-      "observations": [
-        "line 51",
-        "extends: BaseModel",
-        "pydantic: BaseModel"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::FileExistsResponse",
-      "entityType": "class",
-      "observations": [
-        "line 399",
-        "extends: BaseModel",
-        "pydantic: BaseModel"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::upload_file",
-      "entityType": "function",
-      "observations": [
-        "line 97",
-        "async"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::delete_file_endpoint",
-      "entityType": "function",
-      "observations": [
-        "line 267",
-        "async"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::check_file_exists_endpoint",
-      "entityType": "function",
-      "observations": [
-        "line 431",
-        "async"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::delete_render",
-      "entityType": "function",
-      "observations": [
-        "line 501",
-        "async"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::files_health_check",
-      "entityType": "function",
-      "observations": [
-        "line 573",
-        "async"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::POST /api/files/upload",
-      "entityType": "endpoint",
-      "observations": [
-        "line 67",
-        "method: POST",
-        "path: /api/files/upload",
-        "router_prefix: /api/files",
-        "raw_path: /upload"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::DELETE /api/files/{case_id}/{folder_id}/{filename}",
-      "entityType": "endpoint",
-      "observations": [
-        "line 244",
-        "method: DELETE",
-        "path: /api/files/{case_id}/{folder_id}/{filename}",
-        "router_prefix: /api/files",
-        "raw_path: /{case_id}/{folder_id}/{filename}"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::GET /api/files/exists/{case_id}/{folder_id}/{filename}",
-      "entityType": "endpoint",
-      "observations": [
-        "line 415",
-        "method: GET",
-        "path: /api/files/exists/{case_id}/{folder_id}/{filename}",
-        "router_prefix: /api/files",
-        "raw_path: /exists/{case_id}/{folder_id}/{filename}"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::DELETE /api/files/renders/{case_id}/{document_id}/{render_id}",
-      "entityType": "endpoint",
-      "observations": [
-        "line 496",
-        "method: DELETE",
-        "path: /api/files/renders/{case_id}/{document_id}/{render_id}",
-        "router_prefix: /api/files",
-        "raw_path: /renders/{case_id}/{document_id}/{render_id}"
-      ]
-    },
-    {
-      "name": "backend/api/files.py::GET /api/files/health",
-      "entityType": "endpoint",
-      "observations": [
-        "line 568",
-        "method: GET",
-        "path: /api/files/health",
-        "router_prefix: /api/files",
-        "raw_path: /health"
-      ]
-    },
-    {
       "name": "backend/api/folders.py",
       "entityType": "file",
       "observations": [
@@ -939,7 +796,11 @@
         "external_imports: fastapi, httpx, logging, pydantic, typing",
         "decorators: router.post",
         "pydantic_models_count: 4",
-        "router_prefix: /api/idirs"
+        "router_prefix: /api/idirs",
+        "S001-F-005: imports ENABLE_DOCUMENT_SEARCH from backend.config to gate both endpoints",
+        "S001-F-005: returns JSONResponse 503 with error=feature_disabled when flag off, before opening any httpx connection",
+        "S001-F-005: ErrorResponse Pydantic model added for the disabled-path body",
+        "external_imports updated: fastapi, fastapi.responses, httpx, logging, pydantic, typing"
       ]
     },
     {
@@ -965,7 +826,9 @@
       "entityType": "function",
       "observations": [
         "line 50",
-        "async"
+        "async",
+        "S001-F-005: early-return 503 when ENABLE_DOCUMENT_SEARCH=False (before httpx call)",
+        "current line 56"
       ]
     },
     {
@@ -973,7 +836,9 @@
       "entityType": "function",
       "observations": [
         "line 84",
-        "async"
+        "async",
+        "S001-F-005: early-return 503 when ENABLE_DOCUMENT_SEARCH=False (before httpx call)",
+        "current line 99"
       ]
     },
     {
@@ -984,7 +849,8 @@
         "method: POST",
         "path: /api/idirs/search",
         "router_prefix: /api/idirs",
-        "raw_path: /search"
+        "raw_path: /search",
+        "S001-F-005: returns 503 feature_disabled when ENABLE_DOCUMENT_SEARCH=False"
       ]
     },
     {
@@ -995,7 +861,8 @@
         "method: POST",
         "path: /api/idirs/rag",
         "router_prefix: /api/idirs",
-        "raw_path: /rag"
+        "raw_path: /rag",
+        "S001-F-005: returns 503 feature_disabled when ENABLE_DOCUMENT_SEARCH=False"
       ]
     },
     {
@@ -1007,7 +874,10 @@
         "external_imports: fastapi, logging, pathlib, pydantic, typing",
         "decorators: router.get, router.post",
         "pydantic_models_count: 6",
-        "router_prefix: /api/search"
+        "router_prefix: /api/search",
+        "S001-F-005: imports ENABLE_DOCUMENT_SEARCH from backend.config",
+        "external_imports updated: fastapi, logging, pathlib, pydantic, typing",
+        "internal_imports: backend.config"
       ]
     },
     {
@@ -1050,7 +920,8 @@
       "entityType": "function",
       "observations": [
         "line 270",
-        "async"
+        "async",
+        "S001-F-005: response now includes document_search: enabled|disabled"
       ]
     },
     {
@@ -1072,7 +943,8 @@
         "method: GET",
         "path: /api/search/health",
         "router_prefix: /api/search",
-        "raw_path: /health"
+        "raw_path: /health",
+        "S001-F-005: returns document_search status field reflecting ENABLE_DOCUMENT_SEARCH"
       ]
     },
     {
@@ -5405,7 +5277,9 @@
         "language: typescript",
         "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
         "external_imports: lucide-react, react, react-i18next",
-        "api_call_urls: /api/chat/clear/{}"
+        "api_call_urls: /api/chat/clear/{}",
+        "S001-F-005: processSearchCommand handles error=feature_disabled by rendering t('documentSearch.notImplemented')",
+        "api_call_urls updated: /api/chat/clear/{}, /api/idirs/search, /api/idirs/rag"
       ]
     },
     {
@@ -5448,7 +5322,9 @@
       "name": "src/components/workspace/AIChatInterface.tsx::processSearchCommand",
       "entityType": "function",
       "observations": [
-        "line 495"
+        "line 495",
+        "S001-F-005: branches on errData.error === 'feature_disabled' for both /Dokumentsuche and /Dokumente-abfragen",
+        "calls /api/idirs/search and /api/idirs/rag via fetch"
       ]
     },
     {
@@ -5840,150 +5716,6 @@
       ]
     },
     {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx",
-      "entityType": "file",
-      "observations": [
-        "language: typescript",
-        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
-        "external_imports: lucide-react, react, react-i18next"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::RenderContainerProps",
-      "entityType": "class",
-      "observations": [
-        "line 74",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::FolderItemProps",
-      "entityType": "class",
-      "observations": [
-        "line 160",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::RenderContainer",
-      "entityType": "component",
-      "observations": [
-        "line 81"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::FolderItem",
-      "entityType": "component",
-      "observations": [
-        "line 167"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::CaseTreeExplorer",
-      "entityType": "component",
-      "observations": [
-        "line 461"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::getFileIcon",
-      "entityType": "function",
-      "observations": [
-        "line 22"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::getRenderIcon",
-      "entityType": "function",
-      "observations": [
-        "line 41"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::getRenderDisplayName",
-      "entityType": "function",
-      "observations": [
-        "line 57"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDragOver",
-      "entityType": "function",
-      "observations": [
-        "line 742"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDragLeave",
-      "entityType": "function",
-      "observations": [
-        "line 189"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDrop",
-      "entityType": "function",
-      "observations": [
-        "line 746"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadClick",
-      "entityType": "function",
-      "observations": [
-        "line 206"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleFileInputChange",
-      "entityType": "function",
-      "observations": [
-        "line 211"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDeleteRender",
-      "entityType": "function",
-      "observations": [
-        "line 224"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDragOver",
-      "entityType": "function",
-      "observations": [
-        "line 756"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDragLeave",
-      "entityType": "function",
-      "observations": [
-        "line 763"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDrop",
-      "entityType": "function",
-      "observations": [
-        "line 769"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneClick",
-      "entityType": "function",
-      "observations": [
-        "line 781"
-      ]
-    },
-    {
-      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneFileChange",
-      "entityType": "function",
-      "observations": [
-        "line 785"
-      ]
-    },
-    {
       "name": "src/components/workspace/ContextHierarchyDialog.tsx",
       "entityType": "file",
       "observations": [
@@ -6229,65 +5961,6 @@
       "entityType": "function",
       "observations": [
         "line 46"
-      ]
-    },
-    {
-      "name": "src/components/workspace/FileDropZone.tsx",
-      "entityType": "file",
-      "observations": [
-        "language: typescript",
-        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
-        "external_imports: lucide-react, react"
-      ]
-    },
-    {
-      "name": "src/components/workspace/FileDropZone.tsx::FileDropZoneProps",
-      "entityType": "class",
-      "observations": [
-        "line 15",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/components/workspace/FileDropZone.tsx::FileDropZone",
-      "entityType": "component",
-      "observations": [
-        "line 50"
-      ]
-    },
-    {
-      "name": "src/components/workspace/FileDropZone.tsx::handleWindowDragEnter",
-      "entityType": "function",
-      "observations": [
-        "line 70"
-      ]
-    },
-    {
-      "name": "src/components/workspace/FileDropZone.tsx::handleWindowDragLeave",
-      "entityType": "function",
-      "observations": [
-        "line 77"
-      ]
-    },
-    {
-      "name": "src/components/workspace/FileDropZone.tsx::handleWindowDrop",
-      "entityType": "function",
-      "observations": [
-        "line 84"
-      ]
-    },
-    {
-      "name": "src/components/workspace/FileDropZone.tsx::handleWindowDragOver",
-      "entityType": "function",
-      "observations": [
-        "line 89"
-      ]
-    },
-    {
-      "name": "src/components/workspace/FileDropZone.tsx::uploadFiles",
-      "entityType": "function",
-      "observations": [
-        "line 189"
       ]
     },
     {
@@ -7282,113 +6955,6 @@
       ]
     },
     {
-      "name": "src/lib/fileApi.ts",
-      "entityType": "file",
-      "observations": [
-        "language: typescript",
-        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::DeleteResult",
-      "entityType": "class",
-      "observations": [
-        "line 284",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::FileExistsResult",
-      "entityType": "class",
-      "observations": [
-        "line 296",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::validateFileSize",
-      "entityType": "function",
-      "observations": [
-        "line 27"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::validateFileExtension",
-      "entityType": "function",
-      "observations": [
-        "line 61"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::uploadFile",
-      "entityType": "function",
-      "observations": [
-        "line 103",
-        "async"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::uploadFileSimple",
-      "entityType": "function",
-      "observations": [
-        "line 138",
-        "async"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::uploadFileWithProgress",
-      "entityType": "function",
-      "observations": [
-        "line 172",
-        "async"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::checkFileServiceHealth",
-      "entityType": "function",
-      "observations": [
-        "line 236",
-        "async"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::formatFileSize",
-      "entityType": "function",
-      "observations": [
-        "line 260"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::getFileExtension",
-      "entityType": "function",
-      "observations": [
-        "line 276"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::deleteFile",
-      "entityType": "function",
-      "observations": [
-        "line 326",
-        "async"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::checkFileExists",
-      "entityType": "function",
-      "observations": [
-        "line 383",
-        "async"
-      ]
-    },
-    {
-      "name": "src/lib/fileApi.ts::fileSizeMB",
-      "entityType": "function",
-      "observations": [
-        "line 34"
-      ]
-    },
-    {
       "name": "src/lib/localStorage.ts",
       "entityType": "file",
       "observations": [
@@ -7846,77 +7412,6 @@
       "entityType": "function",
       "observations": [
         "line 163"
-      ]
-    },
-    {
-      "name": "src/types/file.ts",
-      "entityType": "file",
-      "observations": [
-        "language: typescript",
-        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod"
-      ]
-    },
-    {
-      "name": "src/types/file.ts::UploadResult",
-      "entityType": "class",
-      "observations": [
-        "line 14",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/file.ts::UploadProgress",
-      "entityType": "class",
-      "observations": [
-        "line 39",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/file.ts::FileValidationError",
-      "entityType": "class",
-      "observations": [
-        "line 80",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/file.ts::UploadConstraints",
-      "entityType": "class",
-      "observations": [
-        "line 99",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/file.ts::UploadRequest",
-      "entityType": "class",
-      "observations": [
-        "line 128",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/file.ts::MultiUploadState",
-      "entityType": "class",
-      "observations": [
-        "line 150",
-        "kind: interface"
-      ]
-    },
-    {
-      "name": "src/types/file.ts::FileValidationErrorCode",
-      "entityType": "class",
-      "observations": [
-        "line 67",
-        "kind: type_alias"
-      ]
-    },
-    {
-      "name": "src/types/file.ts::DEFAULT_UPLOAD_CONSTRAINTS",
-      "entityType": "constant",
-      "observations": [
-        "line 116"
       ]
     },
     {
@@ -9393,7 +8888,9 @@
         "type: bool",
         "default: False",
         "get_bool_env",
-        "added in S001-F-004"
+        "added in S001-F-004",
+        "S001-F-005: gates both /api/idirs/search and /api/idirs/rag handlers",
+        "S001-F-005: surfaces in /api/search/health response as document_search field"
       ]
     },
     {
@@ -9789,6 +9286,653 @@
         "async",
         "pytest test"
       ]
+    },
+    {
+      "name": "backend/api/files.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "frameworks: fastapi, pydantic",
+        "external_imports: fastapi, fastapi.responses, logging, os, pathlib, pydantic, typing",
+        "internal_imports: backend.config",
+        "decorators: router.delete, router.get, router.post",
+        "pydantic_models_count: 5",
+        "router_prefix: /api/files",
+        "S001-F-006: upload_file early-returns 403 feature_disabled when ENABLE_UPLOAD=false",
+        "S001-F-006: files_health_check.features.upload mirrors config.ENABLE_UPLOAD"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::UploadResponse",
+      "entityType": "class",
+      "observations": [
+        "line 30",
+        "extends: BaseModel",
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::ErrorResponse",
+      "entityType": "class",
+      "observations": [
+        "line 48",
+        "extends: BaseModel",
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::DeleteResponse",
+      "entityType": "class",
+      "observations": [
+        "line 55",
+        "extends: BaseModel",
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::FileExistsResponse",
+      "entityType": "class",
+      "observations": [
+        "line 418",
+        "extends: BaseModel",
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::upload_file",
+      "entityType": "function",
+      "observations": [
+        "line 100",
+        "async",
+        "S001-F-006: early-return 403 feature_disabled when not config.ENABLE_UPLOAD",
+        "raises HTTPException 403/400/413/500"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::delete_file_endpoint",
+      "entityType": "function",
+      "observations": [
+        "line 284",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::check_file_exists_endpoint",
+      "entityType": "function",
+      "observations": [
+        "line 448",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::delete_render",
+      "entityType": "function",
+      "observations": [
+        "line 518",
+        "async"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::files_health_check",
+      "entityType": "function",
+      "observations": [
+        "line 590",
+        "async",
+        "S001-F-006: features.upload reflects config.ENABLE_UPLOAD"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::POST /api/files/upload",
+      "entityType": "endpoint",
+      "observations": [
+        "line 69",
+        "method: POST",
+        "path: /api/files/upload",
+        "router_prefix: /api/files",
+        "raw_path: /upload",
+        "responses: 200, 400, 403 feature_disabled, 413, 500",
+        "S001-F-006: 403 includes error=feature_disabled when ENABLE_UPLOAD=false"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::DELETE /api/files/{case_id}/{folder_id}/{filename}",
+      "entityType": "endpoint",
+      "observations": [
+        "line 261",
+        "method: DELETE",
+        "path: /api/files/{case_id}/{folder_id}/{filename}",
+        "router_prefix: /api/files",
+        "raw_path: /{case_id}/{folder_id}/{filename}"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::GET /api/files/exists/{case_id}/{folder_id}/{filename}",
+      "entityType": "endpoint",
+      "observations": [
+        "line 432",
+        "method: GET",
+        "path: /api/files/exists/{case_id}/{folder_id}/{filename}",
+        "router_prefix: /api/files",
+        "raw_path: /exists/{case_id}/{folder_id}/{filename}"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::DELETE /api/files/renders/{case_id}/{document_id}/{render_id}",
+      "entityType": "endpoint",
+      "observations": [
+        "line 513",
+        "method: DELETE",
+        "path: /api/files/renders/{case_id}/{document_id}/{render_id}",
+        "router_prefix: /api/files",
+        "raw_path: /renders/{case_id}/{document_id}/{render_id}"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::GET /api/files/health",
+      "entityType": "endpoint",
+      "observations": [
+        "line 585",
+        "method: GET",
+        "path: /api/files/health",
+        "router_prefix: /api/files",
+        "raw_path: /health",
+        "returns features.upload from config.ENABLE_UPLOAD"
+      ]
+    },
+    {
+      "name": "src/types/file.ts",
+      "entityType": "file",
+      "observations": [
+        "language: typescript",
+        "frameworks: react",
+        "S001-F-006: UploadResult.disabled? added for typed feature-disabled state"
+      ]
+    },
+    {
+      "name": "src/types/file.ts::UploadResult",
+      "entityType": "class",
+      "observations": [
+        "line 14",
+        "kind: interface",
+        "S001-F-006: disabled? optional flag set when backend returns 403 feature_disabled"
+      ]
+    },
+    {
+      "name": "src/types/file.ts::UploadProgress",
+      "entityType": "class",
+      "observations": [
+        "line 47",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/file.ts::FileValidationError",
+      "entityType": "class",
+      "observations": [
+        "line 88",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/file.ts::UploadConstraints",
+      "entityType": "class",
+      "observations": [
+        "line 107",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/file.ts::UploadRequest",
+      "entityType": "class",
+      "observations": [
+        "line 136",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/file.ts::MultiUploadState",
+      "entityType": "class",
+      "observations": [
+        "line 158",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/file.ts::FileValidationErrorCode",
+      "entityType": "class",
+      "observations": [
+        "line 75",
+        "kind: type_alias"
+      ]
+    },
+    {
+      "name": "src/types/file.ts::DEFAULT_UPLOAD_CONSTRAINTS",
+      "entityType": "constant",
+      "observations": [
+        "line 124"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts",
+      "entityType": "file",
+      "observations": [
+        "language: typescript",
+        "frameworks: react",
+        "external_imports: (none)",
+        "reads_env: VITE_API_URL",
+        "calls /api/files/upload, /api/files/health, /api/files/{case}/{folder}/{filename}, /api/files/exists/...",
+        "S001-F-006: detects 403 feature_disabled and resolves to UploadResult.disabled=true; checkUploadEnabled module-cache + resetUploadEnabledCache"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::DeleteResult",
+      "entityType": "class",
+      "observations": [
+        "line 357",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::FileExistsResult",
+      "entityType": "class",
+      "observations": [
+        "line 369",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::validateFileSize",
+      "entityType": "function",
+      "observations": [
+        "line 27"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::validateFileExtension",
+      "entityType": "function",
+      "observations": [
+        "line 61"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::uploadFile",
+      "entityType": "function",
+      "observations": [
+        "line 103",
+        "async"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::uploadFileSimple",
+      "entityType": "function",
+      "observations": [
+        "line 138",
+        "async",
+        "S001-F-006: 403 feature_disabled returns disabled UploadResult instead of throwing"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::uploadFileWithProgress",
+      "entityType": "function",
+      "observations": [
+        "line 188",
+        "async",
+        "S001-F-006: 403 feature_disabled resolves with disabled UploadResult instead of rejecting"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::checkFileServiceHealth",
+      "entityType": "function",
+      "observations": [
+        "line 268",
+        "async"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::checkUploadEnabled",
+      "entityType": "function",
+      "observations": [
+        "line 297",
+        "async",
+        "S001-F-006: module-cached read of /api/files/health features.upload, fail-closed"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::resetUploadEnabledCache",
+      "entityType": "function",
+      "observations": [
+        "line 323",
+        "S001-F-006: test-only cache reset"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::formatFileSize",
+      "entityType": "function",
+      "observations": [
+        "line 333"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::getFileExtension",
+      "entityType": "function",
+      "observations": [
+        "line 349"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::deleteFile",
+      "entityType": "function",
+      "observations": [
+        "line 399",
+        "async"
+      ]
+    },
+    {
+      "name": "src/lib/fileApi.ts::checkFileExists",
+      "entityType": "function",
+      "observations": [
+        "line 456",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx",
+      "entityType": "file",
+      "observations": [
+        "language: typescript",
+        "frameworks: react, react-i18next, lucide-react",
+        "external_imports: lucide-react, react, react-i18next",
+        "internal_imports: src/lib/fileApi.ts, src/types/file.ts, src/lib/utils.ts, src/hooks/use-toast.ts, src/components/ui/UploadProgress.tsx",
+        "S001-F-006: uploadEnabled state from checkUploadEnabled(); uploadFiles + handleClick short-circuit with upload.notImplemented toast; floating button has disabled + aria-disabled + greyed-out class"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx::FileDropZoneProps",
+      "entityType": "class",
+      "observations": [
+        "line 17",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx::FileDropZone",
+      "entityType": "component",
+      "observations": [
+        "line 51",
+        "S001-F-006: uploadEnabled state, fail-permissive default true, hydrates from checkUploadEnabled()"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx::handleDragEnter",
+      "entityType": "function",
+      "observations": [
+        "line 127"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx::handleDragOver",
+      "entityType": "function",
+      "observations": [
+        "line 135"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx::handleDragLeave",
+      "entityType": "function",
+      "observations": [
+        "line 143"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx::handleDrop",
+      "entityType": "function",
+      "observations": [
+        "line 151",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx::handleClick",
+      "entityType": "function",
+      "observations": [
+        "line 174",
+        "S001-F-006: short-circuits with upload.notImplemented when !uploadEnabled"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx::handleFileInputChange",
+      "entityType": "function",
+      "observations": [
+        "line 188",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/FileDropZone.tsx::uploadFiles",
+      "entityType": "function",
+      "observations": [
+        "line 210",
+        "async",
+        "S001-F-006: returns immediately on !uploadEnabled with notImplemented toast"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx",
+      "entityType": "file",
+      "observations": [
+        "language: typescript",
+        "frameworks: react, react-i18next, lucide-react",
+        "external_imports: lucide-react, react, react-i18next",
+        "internal_imports: src/contexts/AppContext, src/types/case, src/lib/utils, src/components/ui/context-menu, src/hooks/use-toast, src/lib/documentLoader, src/lib/fileApi, src/types/file, src/components/ui/UploadProgress, src/components/ui/DeleteConfirmDialog, src/components/ui/DuplicateFileDialog, src/components/workspace/CaseContextDialog",
+        "S001-F-006: uploadEnabled state hydrated from checkUploadEnabled(); FolderItem.handleUploadClick + handleDrop + sidebar handleDropZoneClick + handleDropZoneDrop short-circuit with upload.notImplemented toast; sidebar drop-zone <div> has aria-disabled, data-disabled, greyed-out classes"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::RenderContainerProps",
+      "entityType": "class",
+      "observations": [
+        "line 74",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::FolderItemProps",
+      "entityType": "class",
+      "observations": [
+        "line 161",
+        "kind: interface",
+        "S001-F-006: uploadEnabled prop threaded from CaseTreeExplorer"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::RenderContainer",
+      "entityType": "component",
+      "observations": [
+        "line 82"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::FolderItem",
+      "entityType": "component",
+      "observations": [
+        "line 170",
+        "S001-F-006: receives uploadEnabled prop, threads to subfolders"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::CaseTreeExplorer",
+      "entityType": "component",
+      "observations": [
+        "line 479",
+        "default export",
+        "S001-F-006: useEffect calls checkUploadEnabled() once on mount"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::getFileIcon",
+      "entityType": "function",
+      "observations": [
+        "line 23"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::getRenderIcon",
+      "entityType": "function",
+      "observations": [
+        "line 41"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::getRenderDisplayName",
+      "entityType": "function",
+      "observations": [
+        "line 57"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDragOver",
+      "entityType": "function",
+      "observations": [
+        "line 184 (FolderItem) and line 775 (root)"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDragLeave",
+      "entityType": "function",
+      "observations": [
+        "line 192"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDrop",
+      "entityType": "function",
+      "observations": [
+        "line 198 (FolderItem) and line 779 (root)",
+        "async",
+        "S001-F-006: FolderItem.handleDrop short-circuits when !uploadEnabled"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadClick",
+      "entityType": "function",
+      "observations": [
+        "line 217",
+        "S001-F-006: short-circuits with upload.notImplemented when !uploadEnabled"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleFileInputChange",
+      "entityType": "function",
+      "observations": [
+        "line 229"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDeleteRender",
+      "entityType": "function",
+      "observations": [
+        "line 241",
+        "async",
+        "calls DELETE /api/files/renders/{case}/{document}/{render}"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::performUpload",
+      "entityType": "function",
+      "observations": [
+        "line 517",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::processNextPendingUpload",
+      "entityType": "function",
+      "observations": [
+        "line 613",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadToFolder",
+      "entityType": "function",
+      "observations": [
+        "line 631",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDuplicateRename",
+      "entityType": "function",
+      "observations": [
+        "line 694",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDuplicateCancel",
+      "entityType": "function",
+      "observations": [
+        "line 710"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDeleteDocument",
+      "entityType": "function",
+      "observations": [
+        "line 726"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleConfirmDelete",
+      "entityType": "function",
+      "observations": [
+        "line 734",
+        "async"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleCancelDelete",
+      "entityType": "function",
+      "observations": [
+        "line 770"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDragOver",
+      "entityType": "function",
+      "observations": [
+        "line 788"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDragLeave",
+      "entityType": "function",
+      "observations": [
+        "line 796"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDrop",
+      "entityType": "function",
+      "observations": [
+        "line 802",
+        "S001-F-006: short-circuits with upload.notImplemented when !uploadEnabled"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneClick",
+      "entityType": "function",
+      "observations": [
+        "line 822",
+        "S001-F-006: short-circuits with upload.notImplemented when !uploadEnabled"
+      ]
+    },
+    {
+      "name": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneFileChange",
+      "entityType": "function",
+      "observations": [
+        "line 833"
+      ]
     }
   ],
   "relations": [
@@ -10098,91 +10242,6 @@
       "relationType": "defines"
     },
     {
-      "from": "backend/api/files.py",
-      "to": "backend/services/file_service.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/services/document_registry.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/services/context_manager.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::UploadResponse",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::ErrorResponse",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::DeleteResponse",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::FileExistsResponse",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::upload_file",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::delete_file_endpoint",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::check_file_exists_endpoint",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::delete_render",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::files_health_check",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::POST /api/files/upload",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::DELETE /api/files/{case_id}/{folder_id}/{filename}",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::GET /api/files/exists/{case_id}/{folder_id}/{filename}",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::DELETE /api/files/renders/{case_id}/{document_id}/{render_id}",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/api/files.py",
-      "to": "backend/api/files.py::GET /api/files/health",
-      "relationType": "defines"
-    },
-    {
       "from": "backend/api/folders.py",
       "to": "backend/services/context_manager.py",
       "relationType": "imports"
@@ -10450,11 +10509,6 @@
     {
       "from": "backend/main.py",
       "to": "backend/api/admin.py",
-      "relationType": "imports"
-    },
-    {
-      "from": "backend/main.py",
-      "to": "backend/api/files.py",
       "relationType": "imports"
     },
     {
@@ -13359,11 +13413,6 @@
     },
     {
       "from": "src/components/ui/UploadProgress.tsx",
-      "to": "src/lib/fileApi.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/ui/UploadProgress.tsx",
       "to": "src/lib/utils.ts",
       "relationType": "imports"
     },
@@ -14443,166 +14492,6 @@
       "relationType": "defines"
     },
     {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/contexts/AppContext.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/types/case.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/lib/utils.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/ui/context-menu.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/hooks/use-toast.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/lib/documentLoader.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/lib/fileApi.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/types/file.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/ui/UploadProgress.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/ui/DeleteConfirmDialog.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/ui/DuplicateFileDialog.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseContextDialog.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::RenderContainerProps",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::FolderItemProps",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::RenderContainer",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::FolderItem",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::CaseTreeExplorer",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::getFileIcon",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::getRenderIcon",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::getRenderDisplayName",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDragOver",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDragLeave",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDrop",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleUploadClick",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleFileInputChange",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDeleteRender",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDragOver",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDragLeave",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneDrop",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneClick",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx::handleDropZoneFileChange",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/CaseTreeExplorer.tsx",
-      "to": "VITE_API_URL",
-      "relationType": "reads_env"
-    },
-    {
       "from": "src/components/workspace/ContextHierarchyDialog.tsx",
       "to": "src/components/ui/dialog.tsx",
       "relationType": "imports"
@@ -14840,66 +14729,6 @@
     {
       "from": "src/components/workspace/EmailViewer.tsx",
       "to": "src/components/workspace/EmailViewer.tsx::isRTLText",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/lib/utils.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/hooks/use-toast.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/lib/fileApi.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/types/file.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/components/ui/UploadProgress.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/components/workspace/FileDropZone.tsx::FileDropZoneProps",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/components/workspace/FileDropZone.tsx::FileDropZone",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/components/workspace/FileDropZone.tsx::handleWindowDragEnter",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/components/workspace/FileDropZone.tsx::handleWindowDragLeave",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/components/workspace/FileDropZone.tsx::handleWindowDrop",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/components/workspace/FileDropZone.tsx::handleWindowDragOver",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/components/workspace/FileDropZone.tsx",
-      "to": "src/components/workspace/FileDropZone.tsx::uploadFiles",
       "relationType": "defines"
     },
     {
@@ -15738,81 +15567,6 @@
       "relationType": "defines"
     },
     {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/types/file.ts",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::DeleteResult",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::FileExistsResult",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::validateFileSize",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::validateFileExtension",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::uploadFile",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::uploadFileSimple",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::uploadFileWithProgress",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::checkFileServiceHealth",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::formatFileSize",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::getFileExtension",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::deleteFile",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::checkFileExists",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "src/lib/fileApi.ts::fileSizeMB",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/lib/fileApi.ts",
-      "to": "VITE_API_URL",
-      "relationType": "reads_env"
-    },
-    {
       "from": "src/lib/localStorage.ts",
       "to": "src/lib/localStorage.ts::StorageQuota",
       "relationType": "defines"
@@ -15994,11 +15748,6 @@
     },
     {
       "from": "src/pages/Workspace.tsx",
-      "to": "src/components/workspace/CaseTreeExplorer.tsx",
-      "relationType": "imports"
-    },
-    {
-      "from": "src/pages/Workspace.tsx",
       "to": "src/components/workspace/AIChatInterface.tsx",
       "relationType": "imports"
     },
@@ -16150,46 +15899,6 @@
     {
       "from": "src/types/document-registry.ts",
       "to": "src/types/document-registry.ts::isAnonymizedRender",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/file.ts",
-      "to": "src/types/file.ts::UploadResult",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/file.ts",
-      "to": "src/types/file.ts::UploadProgress",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/file.ts",
-      "to": "src/types/file.ts::FileValidationError",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/file.ts",
-      "to": "src/types/file.ts::UploadConstraints",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/file.ts",
-      "to": "src/types/file.ts::UploadRequest",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/file.ts",
-      "to": "src/types/file.ts::MultiUploadState",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/file.ts",
-      "to": "src/types/file.ts::FileValidationErrorCode",
-      "relationType": "defines"
-    },
-    {
-      "from": "src/types/file.ts",
-      "to": "src/types/file.ts::DEFAULT_UPLOAD_CONSTRAINTS",
       "relationType": "defines"
     },
     {
@@ -17726,6 +17435,91 @@
       "from": "src/components/workspace/AIChatInterface.tsx",
       "to": "backend/api/idirs.py::POST /api/idirs/rag",
       "relationType": "calls_endpoint"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::UploadResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::ErrorResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::DeleteResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::FileExistsResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::upload_file",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::delete_file_endpoint",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::check_file_exists_endpoint",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::delete_render",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::files_health_check",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::POST /api/files/upload",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::DELETE /api/files/{case_id}/{folder_id}/{filename}",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::GET /api/files/exists/{case_id}/{folder_id}/{filename}",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::DELETE /api/files/renders/{case_id}/{document_id}/{render_id}",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py",
+      "to": "backend/api/files.py::GET /api/files/health",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/files.py::upload_file",
+      "to": "backend/api/files.py",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/api/files.py::files_health_check",
+      "to": "ENABLE_UPLOAD",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/api/files.py::upload_file",
+      "to": "ENABLE_UPLOAD",
+      "relationType": "reads_env"
     }
   ]
 }

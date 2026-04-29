@@ -1,0 +1,1146 @@
+{
+  "entities": [
+    {
+      "name": "backend/api/__init__.py",
+      "entityType": "file",
+      "observations": [
+        "language: python"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: fastapi, logging, pydantic, typing",
+        "decorators: router.get, router.post"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py::GenerateFieldRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py::SHACLMetadataResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py::Config",
+      "entityType": "class",
+      "observations": []
+    },
+    {
+      "name": "backend/api/admin.py::GeneratedFieldResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py::GenerateFieldResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py::ErrorResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py::FormModificationRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py::FormModificationResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/admin.py::generate_field",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/admin.py::modify_form",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/admin.py::admin_health_check",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/admin.py::POST /generate-field",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/admin.py::POST /modify-form",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/admin.py::GET /health",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: fastapi, json, logging, pathlib, typing",
+        "decorators: router.get, router.post, router.websocket"
+      ]
+    },
+    {
+      "name": "backend/api/chat.py::ConnectionManager",
+      "entityType": "class",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::__init__",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::connect",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::disconnect",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::send_message",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::websocket_chat_endpoint",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::handle_chat_message",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::handle_form_extraction",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::handle_anonymization",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::handle_translation",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::chat_health_check",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::clear_conversation_history",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::GET /api/chat/health",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::WS /ws/chat/{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::ANONYMIZATION_DISABLED_MESSAGE_DE",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/api/chat.py::ANONYMIZATION_DISABLED_MESSAGE_EN",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/api/context.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: fastapi, json, logging, pathlib, pydantic, typing",
+        "decorators: router.get"
+      ]
+    },
+    {
+      "name": "backend/api/context.py::TreeViewResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/context.py::get_tree_view",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/context.py::get_case_context",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/context.py::GET /tree/{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/context.py::GET /case/{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: datetime, fastapi, json, logging, os, pathlib, pydantic, typing, uuid",
+        "decorators: router.delete, router.get, router.post"
+      ]
+    },
+    {
+      "name": "backend/api/custom_context.py::ValidationRuleRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/custom_context.py::RequiredDocumentRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/custom_context.py::CustomContextRule",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/custom_context.py::CustomContextResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/custom_context.py::get_custom_rules_path",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::load_custom_rules",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::save_custom_rules",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::get_custom_rules",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::add_validation_rule",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::add_required_document",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::remove_custom_rule",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::GET /{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::POST /{case_id}/rule",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::POST /{case_id}/document",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::DELETE /{case_id}/{rule_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/custom_context.py::CUSTOM_CONTEXT_PATH",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: fastapi, logging, pathlib, pydantic, typing",
+        "decorators: router.get, router.post"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::DocumentResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::LocalizedName",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::FolderResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::DocumentTreeResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::PDFTextExtractionRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::PDFTextExtractionResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::EmailParseRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::EmailParseResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/documents.py::get_document_tree",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::get_all_documents",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::documents_health_check",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::_transform_document",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::extract_pdf_text",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::parse_email",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::GET /tree/{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::GET /all",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::GET /health",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::POST /extract-pdf-text",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/documents.py::POST /parse-email",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: fastapi, logging, os, pathlib, pydantic, typing",
+        "decorators: router.delete, router.get, router.post"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::UploadResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::ErrorResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::DeleteResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::FileExistsResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/files.py::upload_file",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py::delete_file_endpoint",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py::check_file_exists_endpoint",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py::delete_render",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py::files_health_check",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py::POST /upload",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py::DELETE /{case_id}/{folder_id}/{filename}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py::GET /exists/{case_id}/{folder_id}/{filename}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py::DELETE /renders/{case_id}/{document_id}/{render_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/files.py::GET /health",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: datetime, fastapi, json, logging, os, pathlib, pydantic, shutil, typing",
+        "decorators: router.delete, router.get, router.post, router.put"
+      ]
+    },
+    {
+      "name": "backend/api/folders.py::FolderName",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/folders.py::FolderConfig",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/folders.py::FolderConfigResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/folders.py::CreateFolderRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/folders.py::UpdateFolderRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/folders.py::BulkUpdateFoldersRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/folders.py::get_folder_config_path",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::get_documents_path",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::load_folder_config",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::save_folder_config",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::ensure_folder_directory",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::is_folder_empty",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::get_folders",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::create_folder",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::update_folder",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::delete_folder",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::bulk_update_folders",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::reorder_folders",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::GET /{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::POST /{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::PUT /{case_id}/{folder_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::DELETE /{case_id}/{folder_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::PUT /{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::POST /{case_id}/reorder",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::BASE_DIR",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::CONTEXTS_DIR",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/api/folders.py::DOCUMENTS_DIR",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/api/idirs.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: fastapi, httpx, logging, pydantic, typing",
+        "decorators: router.post"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::ErrorResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::SearchRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::RagRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::idirs_search",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/idirs.py::idirs_rag",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/idirs.py::POST /search",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/idirs.py::POST /rag",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/search.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: fastapi, logging, pathlib, pydantic, typing",
+        "decorators: router.get, router.post"
+      ]
+    },
+    {
+      "name": "backend/api/search.py::SemanticSearchRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/search.py::SearchHighlight",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/search.py::SemanticSearchResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/search.py::semantic_search",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/search.py::search_health",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/search.py::POST /semantic",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/search.py::GET /health",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/validation.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: fastapi, logging, pydantic, typing",
+        "decorators: router.get, router.post"
+      ]
+    },
+    {
+      "name": "backend/api/validation.py::ValidationRequest",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/validation.py::ValidationWarningResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/validation.py::ValidationResponse",
+      "entityType": "class",
+      "observations": [
+        "pydantic: BaseModel"
+      ]
+    },
+    {
+      "name": "backend/api/validation.py::validate_case",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/validation.py::validation_health",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/api/validation.py::POST /case/{case_id}",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/api/validation.py::GET /health",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: os, typing"
+      ]
+    },
+    {
+      "name": "GEMINI_API_KEY",
+      "entityType": "env_var",
+      "observations": []
+    },
+    {
+      "name": "DOCUMENTS_PATH",
+      "entityType": "env_var",
+      "observations": []
+    },
+    {
+      "name": "IDIRS_BASE_URL",
+      "entityType": "env_var",
+      "observations": []
+    },
+    {
+      "name": "LITELLM_PROXY_URL",
+      "entityType": "env_var",
+      "observations": []
+    },
+    {
+      "name": "LITELLM_TOKEN",
+      "entityType": "env_var",
+      "observations": []
+    },
+    {
+      "name": "LLM_BACKEND",
+      "entityType": "env_var",
+      "observations": []
+    },
+    {
+      "name": "LITELLM_MODEL",
+      "entityType": "env_var",
+      "observations": []
+    },
+    {
+      "name": "LOG_LEVEL",
+      "entityType": "env_var",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::get_bool_env",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::get_int_env",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::get_float_env",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::get_documents_path",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::get_config_summary",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::ENABLE_CHAT_HISTORY",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::MAX_CONVERSATION_HISTORY",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::MAX_TOKENS_PER_REQUEST",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::TOKEN_ESTIMATE_PER_CHAR",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::RESERVE_TOKENS",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::DOCUMENTS_BASE_PATH",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::IDIRS_BASE_URL",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::IDIRS_TIMEOUT",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::RAG_CONFIDENCE_THRESHOLD",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::LOG_LEVEL",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::LLM_BACKEND",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::LITELLM_PROXY_URL",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::LITELLM_TOKEN",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::LITELLM_MODEL",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::GEMINI_API_KEY",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::ENABLE_ANONYMIZATION",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::ENABLE_DOCUMENT_SEARCH",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/config.py::ENABLE_UPLOAD",
+      "entityType": "constant",
+      "observations": []
+    },
+    {
+      "name": "backend/data/__init__.py",
+      "entityType": "file",
+      "observations": [
+        "language: python"
+      ]
+    },
+    {
+      "name": "backend/data/contexts/__init__.py",
+      "entityType": "file",
+      "observations": [
+        "language: python"
+      ]
+    },
+    {
+      "name": "backend/main.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: contextlib, dotenv, fastapi, logging, os, pathlib, typing, uvicorn",
+        "decorators: app.get, asynccontextmanager"
+      ]
+    },
+    {
+      "name": "INIT_TEST_DOCS",
+      "entityType": "env_var",
+      "observations": []
+    },
+    {
+      "name": "backend/main.py::lifespan",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/main.py::health_check",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/main.py::root",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/main.py::GET /health",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/main.py::GET /",
+      "entityType": "endpoint",
+      "observations": []
+    },
+    {
+      "name": "backend/models/__init__.py",
+      "entityType": "file",
+      "observations": [
+        "language: python"
+      ]
+    },
+    {
+      "name": "backend/models/regulation.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: dataclasses, logging, typing",
+        "decorators: classmethod, dataclass"
+      ]
+    },
+    {
+      "name": "backend/models/regulation.py::Regulation",
+      "entityType": "class",
+      "observations": []
+    },
+    {
+      "name": "backend/models/regulation.py::from_dict",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/models/regulation.py::validate",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/models/regulation.py::to_dict",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/models/regulation.py::get_regulation_details",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/models/regulation.py::validate_regulations_list",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/models/shacl_property_shape.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "imports: dataclasses, re, typing",
+        "decorators: classmethod, dataclass"
+      ]
+    },
+    {
+      "name": "backend/models/shacl_property_shape.py::SHACLPropertyShape",
+      "entityType": "class",
+      "observations": []
+    },
+    {
+      "name": "backend/models/shacl_property_shape.py::create_for_field_type",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/models/shacl_property_shape.py::to_jsonld",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/models/shacl_property_shape.py::from_jsonld",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/models/shacl_property_shape.py::validate_value",
+      "entityType": "function",
+      "observations": []
+    },
+    {
+      "name": "backend/models/shacl_property_shape.py::is_required",
+      "entityType": "function",
+      "observations": []
+    }
+  ],
+  "relations": []
+}

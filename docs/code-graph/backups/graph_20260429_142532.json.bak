@@ -1,0 +1,12 @@
+{
+  "entities": [
+    {
+      "name": "_preflight_",
+      "entityType": "file",
+      "observations": [
+        "preflight"
+      ]
+    }
+  ],
+  "relations": []
+}
