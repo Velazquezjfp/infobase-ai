@@ -1086,8 +1086,7 @@
         "method: GET",
         "path: /api/search/health",
         "router_prefix: /api/search",
-        "raw_path: /health",
-        "S001-F-005: returns document_search status field reflecting ENABLE_DOCUMENT_SEARCH"
+        "raw_path: /health"
       ]
     },
     {
@@ -5420,9 +5419,7 @@
         "language: typescript",
         "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
         "external_imports: lucide-react, react, react-i18next",
-        "api_call_urls: /api/chat/clear/{}",
-        "S001-F-005: processSearchCommand handles error=feature_disabled by rendering t('documentSearch.notImplemented')",
-        "api_call_urls updated: /api/chat/clear/{}, /api/idirs/search, /api/idirs/rag"
+        "api_call_urls: /api/chat/clear/{}"
       ]
     },
     {
@@ -5465,9 +5462,7 @@
       "name": "src/components/workspace/AIChatInterface.tsx::processSearchCommand",
       "entityType": "function",
       "observations": [
-        "line 495",
-        "S001-F-005: branches on errData.error === 'feature_disabled' for both /Dokumentsuche and /Dokumente-abfragen",
-        "calls /api/idirs/search and /api/idirs/rag via fetch"
+        "line 495"
       ]
     },
     {
@@ -9412,9 +9407,7 @@
         "type: bool",
         "default: False",
         "get_bool_env",
-        "added in S001-F-004",
-        "S001-F-005: gates both /api/idirs/search and /api/idirs/rag handlers",
-        "S001-F-005: surfaces in /api/search/health response as document_search field"
+        "added in S001-F-004"
       ]
     },
     {

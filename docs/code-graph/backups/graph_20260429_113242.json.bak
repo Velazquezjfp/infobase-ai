@@ -939,7 +939,11 @@
         "external_imports: fastapi, httpx, logging, pydantic, typing",
         "decorators: router.post",
         "pydantic_models_count: 4",
-        "router_prefix: /api/idirs"
+        "router_prefix: /api/idirs",
+        "S001-F-005: imports ENABLE_DOCUMENT_SEARCH from backend.config to gate both endpoints",
+        "S001-F-005: returns JSONResponse 503 with error=feature_disabled when flag off, before opening any httpx connection",
+        "S001-F-005: ErrorResponse Pydantic model added for the disabled-path body",
+        "external_imports updated: fastapi, fastapi.responses, httpx, logging, pydantic, typing"
       ]
     },
     {
@@ -965,7 +969,9 @@
       "entityType": "function",
       "observations": [
         "line 50",
-        "async"
+        "async",
+        "S001-F-005: early-return 503 when ENABLE_DOCUMENT_SEARCH=False (before httpx call)",
+        "current line 56"
       ]
     },
     {
@@ -973,7 +979,9 @@
       "entityType": "function",
       "observations": [
         "line 84",
-        "async"
+        "async",
+        "S001-F-005: early-return 503 when ENABLE_DOCUMENT_SEARCH=False (before httpx call)",
+        "current line 99"
       ]
     },
     {
@@ -9371,6 +9379,424 @@
         "line 187",
         "kind: interface"
       ]
+    },
+    {
+      "name": "ENABLE_ANONYMIZATION",
+      "entityType": "env_var",
+      "observations": [
+        "referenced in backend/config.py",
+        "feature_flag",
+        "type: bool",
+        "default: False",
+        "get_bool_env",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "ENABLE_DOCUMENT_SEARCH",
+      "entityType": "env_var",
+      "observations": [
+        "referenced in backend/config.py",
+        "feature_flag",
+        "type: bool",
+        "default: False",
+        "get_bool_env",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "ENABLE_UPLOAD",
+      "entityType": "env_var",
+      "observations": [
+        "referenced in backend/config.py",
+        "feature_flag",
+        "type: bool",
+        "default: False",
+        "get_bool_env",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/conftest.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "test_fixtures",
+        "S001-F-002 ollama profile tests",
+        "external_imports: pathlib, pytest, shutil, subprocess",
+        "DOCKER_AVAILABLE module-level check"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-01.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-01 profile gating",
+        "external_imports: pathlib, pytest, subprocess"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-02.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-02 profile config inclusion",
+        "external_imports: pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-03.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-03 ollama entrypoint pulls model",
+        "external_imports: pathlib, pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-04.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-04 ollama-data volume mount",
+        "external_imports: pathlib, pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-05 no host port binding + README",
+        "external_imports: pathlib, pytest, re"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "test_fixtures",
+        "S001-F-005 IDIRS feature flag tests",
+        "external_imports: __future__, httpx, importlib, pathlib, pytest, sys, unittest.mock",
+        "fresh_idirs_modules fixture reloads backend.config and backend.api.idirs/search per test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-01.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-01 search disabled returns 503",
+        "external_imports: __future__, fastapi, httpx, pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-02.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-02 rag disabled returns 503",
+        "external_imports: __future__, fastapi, httpx, pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-03.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-03 no outbound TCP when disabled",
+        "external_imports: __future__, fastapi, httpx, pytest, unittest.mock"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-04.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-005 TC-04 i18n key in de.json/en.json",
+        "external_imports: __future__, json, pathlib"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-05.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-05 enabled passthrough",
+        "external_imports: __future__, fastapi, httpx, pytest, unittest.mock"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-06.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-06 health endpoint document_search status",
+        "external_imports: __future__, fastapi, httpx, pytest"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::ErrorResponse",
+      "entityType": "class",
+      "observations": [
+        "line 32",
+        "extends: BaseModel",
+        "pydantic: BaseModel",
+        "added in S001-F-005",
+        "fields: error, detail"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/conftest.py::_compose",
+      "entityType": "function",
+      "observations": [
+        "line 22",
+        "subprocess wrapper for docker compose"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/conftest.py::compose_config",
+      "entityType": "function",
+      "observations": [
+        "line 33",
+        "pytest fixture session-scoped",
+        "runs docker compose --profile ollama config"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/conftest.py::compose_config_no_profile",
+      "entityType": "function",
+      "observations": [
+        "line 45",
+        "pytest fixture session-scoped",
+        "runs docker compose config without profile"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-01.py::test_ollama_service_has_ollama_profile",
+      "entityType": "function",
+      "observations": [
+        "line 11",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-01.py::test_default_config_excludes_ollama",
+      "entityType": "function",
+      "observations": [
+        "line 26",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-02.py::test_profile_config_includes_ollama",
+      "entityType": "function",
+      "observations": [
+        "line 6",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-02.py::test_profile_config_includes_backend_and_frontend",
+      "entityType": "function",
+      "observations": [
+        "line 17",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_pulls_model",
+      "entityType": "function",
+      "observations": [
+        "line 10",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_uses_model_env_var_with_default",
+      "entityType": "function",
+      "observations": [
+        "line 19",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_starts_server",
+      "entityType": "function",
+      "observations": [
+        "line 30",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-04.py::test_ollama_data_volume_declared_at_top_level",
+      "entityType": "function",
+      "observations": [
+        "line 10",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-04.py::test_ollama_data_volume_mounted_in_container",
+      "entityType": "function",
+      "observations": [
+        "line 19",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_ollama_service_has_no_host_port_binding",
+      "entityType": "function",
+      "observations": [
+        "line 11",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_env_example_documents_enable_ollama_container",
+      "entityType": "function",
+      "observations": [
+        "line 33",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_readme_has_local_llm_development_section",
+      "entityType": "function",
+      "observations": [
+        "line 46",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_readme_explains_both_paths",
+      "entityType": "function",
+      "observations": [
+        "line 56",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py::pytest_configure",
+      "entityType": "function",
+      "observations": [
+        "line 17",
+        "pytest hook adds TC-*.py to python_files"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py::fresh_idirs_modules",
+      "entityType": "function",
+      "observations": [
+        "line 31",
+        "pytest fixture",
+        "drops cached backend modules and resets singletons for env-driven tests"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py::_factory",
+      "entityType": "function",
+      "observations": [
+        "line 34",
+        "inner factory of fresh_idirs_modules"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py::make_http_client",
+      "entityType": "function",
+      "observations": [
+        "line 71",
+        "ASGI httpx test client helper"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-01.py::test_search_disabled_returns_503",
+      "entityType": "function",
+      "observations": [
+        "line 13",
+        "async",
+        "pytest test",
+        "asserts 503 + feature_disabled body for search"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-02.py::test_rag_disabled_returns_503",
+      "entityType": "function",
+      "observations": [
+        "line 13",
+        "async",
+        "pytest test",
+        "asserts 503 + feature_disabled body for rag"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-03.py::test_search_disabled_no_outbound_connection",
+      "entityType": "function",
+      "observations": [
+        "line 15",
+        "async",
+        "pytest test",
+        "patches httpx in idirs module to assert no outbound call"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-04.py::test_de_locale_has_not_implemented_key",
+      "entityType": "function",
+      "observations": [
+        "line 18",
+        "pytest test",
+        "asserts documentSearch.notImplemented in de.json"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-04.py::test_en_locale_has_not_implemented_key",
+      "entityType": "function",
+      "observations": [
+        "line 24",
+        "pytest test",
+        "asserts documentSearch.notImplemented in en.json"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-05.py::test_search_enabled_passthrough",
+      "entityType": "function",
+      "observations": [
+        "line 16",
+        "async",
+        "pytest test",
+        "mocks httpx.AsyncClient and asserts upstream payload returned verbatim"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-06.py::test_health_reports_document_search_disabled",
+      "entityType": "function",
+      "observations": [
+        "line 13",
+        "async",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-06.py::test_health_reports_document_search_enabled",
+      "entityType": "function",
+      "observations": [
+        "line 35",
+        "async",
+        "pytest test"
+      ]
     }
   ],
   "relations": [
@@ -17108,6 +17534,206 @@
       "from": "src/contexts/AppContext.tsx",
       "to": "src/types/websocket.ts",
       "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-002/conftest.py",
+      "to": "docs/tests/S001-F-002/conftest.py::_compose",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/conftest.py",
+      "to": "docs/tests/S001-F-002/conftest.py::compose_config",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/conftest.py",
+      "to": "docs/tests/S001-F-002/conftest.py::compose_config_no_profile",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-01.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-01.py::test_ollama_service_has_ollama_profile",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-01.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-01.py::test_default_config_excludes_ollama",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-02.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-02.py::test_profile_config_includes_ollama",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-02.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-02.py::test_profile_config_includes_backend_and_frontend",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-03.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_pulls_model",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-03.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_uses_model_env_var_with_default",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-03.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_starts_server",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-04.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-04.py::test_ollama_data_volume_declared_at_top_level",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-04.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-04.py::test_ollama_data_volume_mounted_in_container",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_ollama_service_has_no_host_port_binding",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_env_example_documents_enable_ollama_container",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_readme_has_local_llm_development_section",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_readme_explains_both_paths",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "docs/tests/S001-F-005/conftest.py::pytest_configure",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "docs/tests/S001-F-005/conftest.py::fresh_idirs_modules",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "docs/tests/S001-F-005/conftest.py::_factory",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "docs/tests/S001-F-005/conftest.py::make_http_client",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-01.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-01.py::test_search_disabled_returns_503",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-02.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-02.py::test_rag_disabled_returns_503",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-03.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-03.py::test_search_disabled_no_outbound_connection",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-04.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-04.py::test_de_locale_has_not_implemented_key",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-04.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-04.py::test_en_locale_has_not_implemented_key",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-05.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-05.py::test_search_enabled_passthrough",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-06.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-06.py::test_health_reports_document_search_disabled",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-06.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-06.py::test_health_reports_document_search_enabled",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/idirs.py",
+      "to": "backend/api/idirs.py::ErrorResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-01.py",
+      "to": "docs/tests/S001-F-002/conftest.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-02.py",
+      "to": "docs/tests/S001-F-002/conftest.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-01.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-02.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-03.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-05.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-06.py",
+      "to": "backend/api/search.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/search.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/idirs.py::POST /api/idirs/search",
+      "relationType": "calls_endpoint"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/idirs.py::POST /api/idirs/rag",
+      "relationType": "calls_endpoint"
     }
   ]
 }

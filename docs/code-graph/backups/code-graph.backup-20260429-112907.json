@@ -6652,7 +6652,8 @@
       "entityType": "file",
       "observations": [
         "language: typescript",
-        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod"
+        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
+        "S001-F-004: anonymization_complete handler now branches on error===feature_disabled to show neutral info toast with backend message or i18n.t(anonymization.notImplemented)"
       ]
     },
     {
@@ -9036,36 +9037,6 @@
       ]
     },
     {
-      "name": "backend/config.py::ENABLE_ANONYMIZATION",
-      "entityType": "constant",
-      "observations": [
-        "line 168",
-        "feature_flag",
-        "default: False",
-        "added in S001-F-004"
-      ]
-    },
-    {
-      "name": "backend/config.py::ENABLE_DOCUMENT_SEARCH",
-      "entityType": "constant",
-      "observations": [
-        "line 172",
-        "feature_flag",
-        "default: False",
-        "added in S001-F-004"
-      ]
-    },
-    {
-      "name": "backend/config.py::ENABLE_UPLOAD",
-      "entityType": "constant",
-      "observations": [
-        "line 176",
-        "feature_flag",
-        "default: False",
-        "added in S001-F-004"
-      ]
-    },
-    {
       "name": "backend/api/chat.py",
       "entityType": "file",
       "observations": [
@@ -9399,6 +9370,42 @@
       "observations": [
         "line 187",
         "kind: interface"
+      ]
+    },
+    {
+      "name": "ENABLE_ANONYMIZATION",
+      "entityType": "env_var",
+      "observations": [
+        "referenced in backend/config.py",
+        "feature_flag",
+        "type: bool",
+        "default: False",
+        "get_bool_env",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "ENABLE_DOCUMENT_SEARCH",
+      "entityType": "env_var",
+      "observations": [
+        "referenced in backend/config.py",
+        "feature_flag",
+        "type: bool",
+        "default: False",
+        "get_bool_env",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "ENABLE_UPLOAD",
+      "entityType": "env_var",
+      "observations": [
+        "referenced in backend/config.py",
+        "feature_flag",
+        "type: bool",
+        "default: False",
+        "get_bool_env",
+        "added in S001-F-004"
       ]
     }
   ],
@@ -16690,21 +16697,6 @@
     },
     {
       "from": "backend/config.py",
-      "to": "backend/config.py::ENABLE_ANONYMIZATION",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::ENABLE_DOCUMENT_SEARCH",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
-      "to": "backend/config.py::ENABLE_UPLOAD",
-      "relationType": "defines"
-    },
-    {
-      "from": "backend/config.py",
       "to": "DOCUMENTS_PATH",
       "relationType": "reads_env"
     },
@@ -16861,6 +16853,296 @@
     {
       "from": "backend/api/chat.py",
       "to": "backend/tools/anonymization_tool.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::AnonymizationResult",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::AnonymizationService",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::__new__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::_extract_base64_data",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::_apply_black_boxes",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::anonymize_image",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::check_service_health",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::__new__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::_extract_base64_data",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::_apply_black_boxes",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::anonymize_image",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::check_service_health",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatChunkMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::FormUpdateMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::FormSuggestionMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::SystemMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ErrorMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::DetectionInfo",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ConnectionStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatChunkMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::FormUpdateMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::FormSuggestionMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::SystemMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ErrorMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::AnonymizationRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::AnonymizationResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::TranslationRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::TranslationResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ConnectionStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
+      "relationType": "calls_endpoint"
+    },
+    {
+      "from": "backend/api/documents.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/idirs.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/main.py",
+      "to": "backend/api/chat.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/main.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/services/conversation_manager.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/tests/test_anonymization.py",
+      "to": "backend/services/anonymization_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/tests/test_conversation_manager.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/tools/anonymization_tool.py",
+      "to": "backend/services/anonymization_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "backend/api/chat.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/types/websocket.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/types/websocket.ts",
       "relationType": "imports"
     }
   ]

@@ -939,7 +939,11 @@
         "external_imports: fastapi, httpx, logging, pydantic, typing",
         "decorators: router.post",
         "pydantic_models_count: 4",
-        "router_prefix: /api/idirs"
+        "router_prefix: /api/idirs",
+        "S001-F-005: imports ENABLE_DOCUMENT_SEARCH from backend.config to gate both endpoints",
+        "S001-F-005: returns JSONResponse 503 with error=feature_disabled when flag off, before opening any httpx connection",
+        "S001-F-005: ErrorResponse Pydantic model added for the disabled-path body",
+        "external_imports updated: fastapi, fastapi.responses, httpx, logging, pydantic, typing"
       ]
     },
     {
@@ -965,7 +969,9 @@
       "entityType": "function",
       "observations": [
         "line 50",
-        "async"
+        "async",
+        "S001-F-005: early-return 503 when ENABLE_DOCUMENT_SEARCH=False (before httpx call)",
+        "current line 56"
       ]
     },
     {
@@ -973,7 +979,9 @@
       "entityType": "function",
       "observations": [
         "line 84",
-        "async"
+        "async",
+        "S001-F-005: early-return 503 when ENABLE_DOCUMENT_SEARCH=False (before httpx call)",
+        "current line 99"
       ]
     },
     {
@@ -984,7 +992,8 @@
         "method: POST",
         "path: /api/idirs/search",
         "router_prefix: /api/idirs",
-        "raw_path: /search"
+        "raw_path: /search",
+        "S001-F-005: returns 503 feature_disabled when ENABLE_DOCUMENT_SEARCH=False"
       ]
     },
     {
@@ -995,7 +1004,8 @@
         "method: POST",
         "path: /api/idirs/rag",
         "router_prefix: /api/idirs",
-        "raw_path: /rag"
+        "raw_path: /rag",
+        "S001-F-005: returns 503 feature_disabled when ENABLE_DOCUMENT_SEARCH=False"
       ]
     },
     {
@@ -1007,7 +1017,10 @@
         "external_imports: fastapi, logging, pathlib, pydantic, typing",
         "decorators: router.get, router.post",
         "pydantic_models_count: 6",
-        "router_prefix: /api/search"
+        "router_prefix: /api/search",
+        "S001-F-005: imports ENABLE_DOCUMENT_SEARCH from backend.config",
+        "external_imports updated: fastapi, logging, pathlib, pydantic, typing",
+        "internal_imports: backend.config"
       ]
     },
     {
@@ -6652,7 +6665,8 @@
       "entityType": "file",
       "observations": [
         "language: typescript",
-        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod"
+        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod",
+        "S001-F-004: anonymization_complete handler now branches on error===feature_disabled to show neutral info toast with backend message or i18n.t(anonymization.notImplemented)"
       ]
     },
     {
@@ -9036,36 +9050,6 @@
       ]
     },
     {
-      "name": "backend/config.py::ENABLE_ANONYMIZATION",
-      "entityType": "constant",
-      "observations": [
-        "line 168",
-        "feature_flag",
-        "default: False",
-        "added in S001-F-004"
-      ]
-    },
-    {
-      "name": "backend/config.py::ENABLE_DOCUMENT_SEARCH",
-      "entityType": "constant",
-      "observations": [
-        "line 172",
-        "feature_flag",
-        "default: False",
-        "added in S001-F-004"
-      ]
-    },
-    {
-      "name": "backend/config.py::ENABLE_UPLOAD",
-      "entityType": "constant",
-      "observations": [
-        "line 176",
-        "feature_flag",
-        "default: False",
-        "added in S001-F-004"
-      ]
-    },
-    {
       "name": "backend/api/chat.py",
       "entityType": "file",
       "observations": [
@@ -9262,6 +9246,561 @@
         "line 310",
         "async",
         "S001-F-004: returns {status: disabled} when feature flag off"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts",
+      "entityType": "file",
+      "observations": [
+        "language: typescript",
+        "frameworks: @tanstack/react-query, @vitejs/plugin-react-swc, i18next, lucide-react, react, react-hook-form, react-i18next, react-router-dom, shadcn-ui, vite, zod"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::BaseMessage",
+      "entityType": "class",
+      "observations": [
+        "line 13",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ChatRequest",
+      "entityType": "class",
+      "observations": [
+        "line 21",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ChatResponse",
+      "entityType": "class",
+      "observations": [
+        "line 34",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ChatChunkMessage",
+      "entityType": "class",
+      "observations": [
+        "line 43",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::FormUpdateMessage",
+      "entityType": "class",
+      "observations": [
+        "line 53",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::FormSuggestionMessage",
+      "entityType": "class",
+      "observations": [
+        "line 64",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::SystemMessage",
+      "entityType": "class",
+      "observations": [
+        "line 77",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ErrorMessage",
+      "entityType": "class",
+      "observations": [
+        "line 86",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::AnonymizationRequest",
+      "entityType": "class",
+      "observations": [
+        "line 95",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::DetectionInfo",
+      "entityType": "class",
+      "observations": [
+        "line 107",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::AnonymizationResponse",
+      "entityType": "class",
+      "observations": [
+        "line 118",
+        "kind: interface",
+        "S001-F-004: added optional message field for localized backend strings"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::TranslationRequest",
+      "entityType": "class",
+      "observations": [
+        "line 136",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::TranslationResponse",
+      "entityType": "class",
+      "observations": [
+        "line 149",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::WebSocketMessage",
+      "entityType": "class",
+      "observations": [
+        "line 165",
+        "kind: type_alias"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::ConnectionStatus",
+      "entityType": "class",
+      "observations": [
+        "line 178",
+        "kind: type_alias"
+      ]
+    },
+    {
+      "name": "src/types/websocket.ts::WebSocketState",
+      "entityType": "class",
+      "observations": [
+        "line 187",
+        "kind: interface"
+      ]
+    },
+    {
+      "name": "ENABLE_ANONYMIZATION",
+      "entityType": "env_var",
+      "observations": [
+        "referenced in backend/config.py",
+        "feature_flag",
+        "type: bool",
+        "default: False",
+        "get_bool_env",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "ENABLE_DOCUMENT_SEARCH",
+      "entityType": "env_var",
+      "observations": [
+        "referenced in backend/config.py",
+        "feature_flag",
+        "type: bool",
+        "default: False",
+        "get_bool_env",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "ENABLE_UPLOAD",
+      "entityType": "env_var",
+      "observations": [
+        "referenced in backend/config.py",
+        "feature_flag",
+        "type: bool",
+        "default: False",
+        "get_bool_env",
+        "added in S001-F-004"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/conftest.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "test_fixtures",
+        "S001-F-002 ollama profile tests",
+        "external_imports: pathlib, pytest, shutil, subprocess",
+        "DOCKER_AVAILABLE module-level check"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-01.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-01 profile gating",
+        "external_imports: pathlib, pytest, subprocess"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-02.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-02 profile config inclusion",
+        "external_imports: pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-03.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-03 ollama entrypoint pulls model",
+        "external_imports: pathlib, pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-04.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-04 ollama-data volume mount",
+        "external_imports: pathlib, pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-002 TC-05 no host port binding + README",
+        "external_imports: pathlib, pytest, re"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "test_fixtures",
+        "S001-F-005 IDIRS feature flag tests",
+        "external_imports: __future__, httpx, importlib, pathlib, pytest, sys, unittest.mock",
+        "fresh_idirs_modules fixture reloads backend.config and backend.api.idirs/search per test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-01.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-01 search disabled returns 503",
+        "external_imports: __future__, fastapi, httpx, pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-02.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-02 rag disabled returns 503",
+        "external_imports: __future__, fastapi, httpx, pytest"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-03.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-03 no outbound TCP when disabled",
+        "external_imports: __future__, fastapi, httpx, pytest, unittest.mock"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-04.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest test",
+        "S001-F-005 TC-04 i18n key in de.json/en.json",
+        "external_imports: __future__, json, pathlib"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-05.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-05 enabled passthrough",
+        "external_imports: __future__, fastapi, httpx, pytest, unittest.mock"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-06.py",
+      "entityType": "file",
+      "observations": [
+        "language: python",
+        "pytest async test",
+        "S001-F-005 TC-06 health endpoint document_search status",
+        "external_imports: __future__, fastapi, httpx, pytest"
+      ]
+    },
+    {
+      "name": "backend/api/idirs.py::ErrorResponse",
+      "entityType": "class",
+      "observations": [
+        "line 32",
+        "extends: BaseModel",
+        "pydantic: BaseModel",
+        "added in S001-F-005",
+        "fields: error, detail"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/conftest.py::_compose",
+      "entityType": "function",
+      "observations": [
+        "line 22",
+        "subprocess wrapper for docker compose"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/conftest.py::compose_config",
+      "entityType": "function",
+      "observations": [
+        "line 33",
+        "pytest fixture session-scoped",
+        "runs docker compose --profile ollama config"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/conftest.py::compose_config_no_profile",
+      "entityType": "function",
+      "observations": [
+        "line 45",
+        "pytest fixture session-scoped",
+        "runs docker compose config without profile"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-01.py::test_ollama_service_has_ollama_profile",
+      "entityType": "function",
+      "observations": [
+        "line 11",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-01.py::test_default_config_excludes_ollama",
+      "entityType": "function",
+      "observations": [
+        "line 26",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-02.py::test_profile_config_includes_ollama",
+      "entityType": "function",
+      "observations": [
+        "line 6",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-02.py::test_profile_config_includes_backend_and_frontend",
+      "entityType": "function",
+      "observations": [
+        "line 17",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_pulls_model",
+      "entityType": "function",
+      "observations": [
+        "line 10",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_uses_model_env_var_with_default",
+      "entityType": "function",
+      "observations": [
+        "line 19",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_starts_server",
+      "entityType": "function",
+      "observations": [
+        "line 30",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-04.py::test_ollama_data_volume_declared_at_top_level",
+      "entityType": "function",
+      "observations": [
+        "line 10",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-04.py::test_ollama_data_volume_mounted_in_container",
+      "entityType": "function",
+      "observations": [
+        "line 19",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_ollama_service_has_no_host_port_binding",
+      "entityType": "function",
+      "observations": [
+        "line 11",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_env_example_documents_enable_ollama_container",
+      "entityType": "function",
+      "observations": [
+        "line 33",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_readme_has_local_llm_development_section",
+      "entityType": "function",
+      "observations": [
+        "line 46",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_readme_explains_both_paths",
+      "entityType": "function",
+      "observations": [
+        "line 56",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py::pytest_configure",
+      "entityType": "function",
+      "observations": [
+        "line 17",
+        "pytest hook adds TC-*.py to python_files"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py::fresh_idirs_modules",
+      "entityType": "function",
+      "observations": [
+        "line 31",
+        "pytest fixture",
+        "drops cached backend modules and resets singletons for env-driven tests"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py::_factory",
+      "entityType": "function",
+      "observations": [
+        "line 34",
+        "inner factory of fresh_idirs_modules"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/conftest.py::make_http_client",
+      "entityType": "function",
+      "observations": [
+        "line 71",
+        "ASGI httpx test client helper"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-01.py::test_search_disabled_returns_503",
+      "entityType": "function",
+      "observations": [
+        "line 13",
+        "async",
+        "pytest test",
+        "asserts 503 + feature_disabled body for search"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-02.py::test_rag_disabled_returns_503",
+      "entityType": "function",
+      "observations": [
+        "line 13",
+        "async",
+        "pytest test",
+        "asserts 503 + feature_disabled body for rag"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-03.py::test_search_disabled_no_outbound_connection",
+      "entityType": "function",
+      "observations": [
+        "line 15",
+        "async",
+        "pytest test",
+        "patches httpx in idirs module to assert no outbound call"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-04.py::test_de_locale_has_not_implemented_key",
+      "entityType": "function",
+      "observations": [
+        "line 18",
+        "pytest test",
+        "asserts documentSearch.notImplemented in de.json"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-04.py::test_en_locale_has_not_implemented_key",
+      "entityType": "function",
+      "observations": [
+        "line 24",
+        "pytest test",
+        "asserts documentSearch.notImplemented in en.json"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-05.py::test_search_enabled_passthrough",
+      "entityType": "function",
+      "observations": [
+        "line 16",
+        "async",
+        "pytest test",
+        "mocks httpx.AsyncClient and asserts upstream payload returned verbatim"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-06.py::test_health_reports_document_search_disabled",
+      "entityType": "function",
+      "observations": [
+        "line 13",
+        "async",
+        "pytest test"
+      ]
+    },
+    {
+      "name": "docs/tests/S001-F-005/TC-S001-F-005-06.py::test_health_reports_document_search_enabled",
+      "entityType": "function",
+      "observations": [
+        "line 35",
+        "async",
+        "pytest test"
       ]
     }
   ],
@@ -16450,6 +16989,756 @@
       "from": "src/components/workspace/ContextHierarchyDialog.tsx",
       "to": "src/components/workspace/ContextHierarchyDialog.tsx::renderNode",
       "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_bool_env",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_int_env",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_float_env",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_documents_path",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::get_config_summary",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::ENABLE_CHAT_HISTORY",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::MAX_CONVERSATION_HISTORY",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::MAX_TOKENS_PER_REQUEST",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::TOKEN_ESTIMATE_PER_CHAR",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::RESERVE_TOKENS",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::DOCUMENTS_BASE_PATH",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::IDIRS_BASE_URL",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::IDIRS_TIMEOUT",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::RAG_CONFIDENCE_THRESHOLD",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LOG_LEVEL",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LLM_BACKEND",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LITELLM_PROXY_URL",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LITELLM_TOKEN",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::LITELLM_MODEL",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "backend/config.py::GEMINI_API_KEY",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "DOCUMENTS_PATH",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "GEMINI_API_KEY",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "IDIRS_BASE_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LITELLM_MODEL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LITELLM_PROXY_URL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LITELLM_TOKEN",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LLM_BACKEND",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/config.py",
+      "to": "LOG_LEVEL",
+      "relationType": "reads_env"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::ConnectionManager",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::__init__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::connect",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::disconnect",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::send_message",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::websocket_chat_endpoint",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_chat_message",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_form_extraction",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_anonymization",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::handle_translation",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::chat_health_check",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::clear_conversation_history",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::GET /api/chat/health",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/api/chat.py::WS /ws/chat/{case_id}",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/chat.py::ConnectionManager",
+      "to": "backend/api/chat.py::__init__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/api/chat.py::ConnectionManager",
+      "to": "backend/api/chat.py::connect",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/api/chat.py::ConnectionManager",
+      "to": "backend/api/chat.py::disconnect",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/api/chat.py::ConnectionManager",
+      "to": "backend/api/chat.py::send_message",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/services/conversation_manager.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/tools/form_parser.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/chat.py",
+      "to": "backend/tools/anonymization_tool.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::AnonymizationResult",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::AnonymizationService",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::__new__",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::_extract_base64_data",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::_apply_black_boxes",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::anonymize_image",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/services/anonymization_service.py::check_service_health",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::__new__",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::_extract_base64_data",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::_apply_black_boxes",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::anonymize_image",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py::AnonymizationService",
+      "to": "backend/services/anonymization_service.py::check_service_health",
+      "relationType": "contains"
+    },
+    {
+      "from": "backend/services/anonymization_service.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ChatChunkMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::FormUpdateMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::FormSuggestionMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::SystemMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ErrorMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::DetectionInfo",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationRequest",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::TranslationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ConnectionStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ChatChunkMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::FormUpdateMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::FormSuggestionMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::SystemMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::ErrorMessage",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::AnonymizationRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::AnonymizationResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::TranslationRequest",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts::TranslationResponse",
+      "to": "src/types/websocket.ts::BaseMessage",
+      "relationType": "extends"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketState",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::WebSocketMessage",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::ConnectionStatus",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/types/websocket.ts",
+      "to": "src/types/websocket.ts::AnonymizationResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/chat.py::POST /api/chat/clear/{case_id}",
+      "relationType": "calls_endpoint"
+    },
+    {
+      "from": "backend/api/documents.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/idirs.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/main.py",
+      "to": "backend/api/chat.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/main.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/services/conversation_manager.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/services/gemini_service.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/services/llm_provider.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/tests/test_anonymization.py",
+      "to": "backend/services/anonymization_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/tests/test_conversation_manager.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/tools/anonymization_tool.py",
+      "to": "backend/services/anonymization_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-001/TC-S001-F-001-05.py",
+      "to": "backend/api/chat.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/DocumentViewer.tsx",
+      "to": "src/types/websocket.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/contexts/AppContext.tsx",
+      "to": "src/types/websocket.ts",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-002/conftest.py",
+      "to": "docs/tests/S001-F-002/conftest.py::_compose",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/conftest.py",
+      "to": "docs/tests/S001-F-002/conftest.py::compose_config",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/conftest.py",
+      "to": "docs/tests/S001-F-002/conftest.py::compose_config_no_profile",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-01.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-01.py::test_ollama_service_has_ollama_profile",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-01.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-01.py::test_default_config_excludes_ollama",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-02.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-02.py::test_profile_config_includes_ollama",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-02.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-02.py::test_profile_config_includes_backend_and_frontend",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-03.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_pulls_model",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-03.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_uses_model_env_var_with_default",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-03.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-03.py::test_ollama_entrypoint_starts_server",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-04.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-04.py::test_ollama_data_volume_declared_at_top_level",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-04.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-04.py::test_ollama_data_volume_mounted_in_container",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_ollama_service_has_no_host_port_binding",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_env_example_documents_enable_ollama_container",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_readme_has_local_llm_development_section",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-05.py",
+      "to": "docs/tests/S001-F-002/TC-S001-F-002-05.py::test_readme_explains_both_paths",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "docs/tests/S001-F-005/conftest.py::pytest_configure",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "docs/tests/S001-F-005/conftest.py::fresh_idirs_modules",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "docs/tests/S001-F-005/conftest.py::_factory",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "docs/tests/S001-F-005/conftest.py::make_http_client",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-01.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-01.py::test_search_disabled_returns_503",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-02.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-02.py::test_rag_disabled_returns_503",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-03.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-03.py::test_search_disabled_no_outbound_connection",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-04.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-04.py::test_de_locale_has_not_implemented_key",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-04.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-04.py::test_en_locale_has_not_implemented_key",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-05.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-05.py::test_search_enabled_passthrough",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-06.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-06.py::test_health_reports_document_search_disabled",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-06.py",
+      "to": "docs/tests/S001-F-005/TC-S001-F-005-06.py::test_health_reports_document_search_enabled",
+      "relationType": "defines"
+    },
+    {
+      "from": "backend/api/idirs.py",
+      "to": "backend/api/idirs.py::ErrorResponse",
+      "relationType": "defines"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-01.py",
+      "to": "docs/tests/S001-F-002/conftest.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-002/TC-S001-F-002-02.py",
+      "to": "docs/tests/S001-F-002/conftest.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-01.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-02.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-03.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-05.py",
+      "to": "backend/api/idirs.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/TC-S001-F-005-06.py",
+      "to": "backend/api/search.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "docs/tests/S001-F-005/conftest.py",
+      "to": "backend/services/gemini_service.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "backend/api/search.py",
+      "to": "backend/config.py",
+      "relationType": "imports"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/idirs.py::POST /api/idirs/search",
+      "relationType": "calls_endpoint"
+    },
+    {
+      "from": "src/components/workspace/AIChatInterface.tsx",
+      "to": "backend/api/idirs.py::POST /api/idirs/rag",
+      "relationType": "calls_endpoint"
     }
   ]
 }
