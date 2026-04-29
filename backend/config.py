@@ -177,6 +177,18 @@ ENABLE_UPLOAD: bool = get_bool_env('ENABLE_UPLOAD', False)
 
 
 # ============================================================================
+# Session Lifecycle Configuration (S001-F-007)
+# ============================================================================
+
+# Idle threshold (in minutes) after which a sprint-1 demo session is reset
+# back to its seed state. The frontend useIdleTimeout hook reads its
+# Vite-prefixed counterpart (VITE_SESSION_IDLE_TIMEOUT_MINUTES); this value
+# is the backend-side reference for any server-driven watchdog logic and is
+# also exposed as part of the configuration summary.
+SESSION_IDLE_TIMEOUT_MINUTES: int = get_int_env('SESSION_IDLE_TIMEOUT_MINUTES', 10)
+
+
+# ============================================================================
 # Configuration Summary (for debugging)
 # ============================================================================
 

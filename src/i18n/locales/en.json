@@ -878,11 +878,16 @@
         "properly_translated": "Afghan documents require certified translation"
       },
       "categories": {
-        "document": "Document",
-        "form": "Form",
+        "documentation": "Documentation",
+        "language_requirements": "Language Requirements",
+        "previous_applications": "Previous Applications",
+        "procedural": "Procedural",
+        "fees": "Fees",
         "eligibility": "Eligibility",
-        "process": "Process",
-        "communication": "Communication"
+        "deadlines": "Deadlines",
+        "family_related": "Family Related",
+        "health_related": "Health Related",
+        "technical_issues": "Technical Issues"
       },
       "frequencies": {
         "very_common": "Very Common",
@@ -988,24 +993,6 @@
           "suggestion": "High demand may result in waiting lists. Apply as early as possible. If obligated per §44 AufenthG, obligation is fulfilled by timely application. While waiting, consider voluntary German courses at Volkshochschule (VHS) or community organizations."
         }
       },
-      "categories": {
-        "documentation": "Documentation",
-        "language_requirements": "Language Requirements",
-        "previous_applications": "Previous Applications",
-        "procedural": "Procedural",
-        "fees": "Fees",
-        "eligibility": "Eligibility",
-        "deadlines": "Deadlines",
-        "family_related": "Family Related",
-        "health_related": "Health Related",
-        "technical_issues": "Technical Issues"
-      },
-      "frequencies": {
-        "very_common": "Very Common",
-        "common": "Common",
-        "occasional": "Occasional",
-        "rare": "Rare"
-      },
       "checkPoints": {
         "First_name_spelling_Ahmad": "First name spelling (Ahmad)",
         "Last_name_spelling_Ali": "Last name spelling (Ali)",
@@ -1059,5 +1046,8 @@
         "Translator_credentials_present": "Translator credentials present"
       }
     }
+  },
+  "session": {
+    "idleTimeout": "Logged out due to inactivity"
   }
 }

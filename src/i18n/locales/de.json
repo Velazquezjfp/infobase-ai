@@ -878,11 +878,16 @@
         "properly_translated": "Afghanische Dokumente erfordern beglaubigte Übersetzung"
       },
       "categories": {
-        "document": "Dokument",
-        "form": "Formular",
+        "documentation": "Dokumentation",
+        "language_requirements": "Sprachanforderungen",
+        "previous_applications": "Frühere Anträge",
+        "procedural": "Verfahrenstechnisch",
+        "fees": "Gebühren",
         "eligibility": "Berechtigung",
-        "process": "Verfahren",
-        "communication": "Kommunikation"
+        "deadlines": "Fristen",
+        "family_related": "Familienbezogen",
+        "health_related": "Gesundheitsbezogen",
+        "technical_issues": "Technische Probleme"
       },
       "frequencies": {
         "very_common": "Sehr häufig",
@@ -988,24 +993,6 @@
           "suggestion": "Hohe Nachfrage kann zu Wartelisten führen. So früh wie möglich bewerben. Bei Verpflichtung nach §44 AufenthG ist die Verpflichtung durch rechtzeitige Bewerbung erfüllt. Während der Wartezeit freiwillige Deutschkurse bei VHS oder Gemeindeorganisationen erwägen."
         }
       },
-      "categories": {
-        "documentation": "Dokumentation",
-        "language_requirements": "Sprachanforderungen",
-        "previous_applications": "Frühere Anträge",
-        "procedural": "Verfahrenstechnisch",
-        "fees": "Gebühren",
-        "eligibility": "Berechtigung",
-        "deadlines": "Fristen",
-        "family_related": "Familienbezogen",
-        "health_related": "Gesundheitsbezogen",
-        "technical_issues": "Technische Probleme"
-      },
-      "frequencies": {
-        "very_common": "Sehr häufig",
-        "common": "Häufig",
-        "occasional": "Gelegentlich",
-        "rare": "Selten"
-      },
       "checkPoints": {
         "First_name_spelling_Ahmad": "Vorname Schreibweise (Ahmad)",
         "Last_name_spelling_Ali": "Nachname Schreibweise (Ali)",
@@ -1059,5 +1046,8 @@
         "Translator_credentials_present": "Übersetzer-Qualifikationen vorhanden"
       }
     }
+  },
+  "session": {
+    "idleTimeout": "Sitzung wegen Inaktivität abgemeldet"
   }
 }

@@ -5,6 +5,7 @@ import { WebSocketState, ConnectionStatus, WebSocketMessage, AnonymizationRespon
 import { SearchHighlight, SemanticSearchRequest, SemanticSearchResponse } from '@/types/search';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/localStorage';
 import { useToast } from '@/hooks/use-toast';
+import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import i18n from '@/i18n/config';
 
 interface AppContextType {
@@ -98,9 +99,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
-  // Wrapper to persist user to localStorage
+  // S001-F-007: Track active case id in a ref so beforeunload + idle handlers
+  // can read the latest value without re-binding listeners on every change.
+  const currentCaseIdRef = useRef<string>('ACTE-2024-001');
+
+  // Wrapper to persist user to localStorage. S001-F-007: when transitioning
+  // from a logged-in user to null (logout), tell the backend to reset the case
+  // back to its seed state so the next session starts clean.
   const setUser = (newUser: string | null) => {
-    setUserState(newUser);
+    setUserState(prev => {
+      if (prev && !newUser) {
+        try {
+          const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+          fetch(`${apiBase}/api/session/reset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ case_id: currentCaseIdRef.current }),
+            keepalive: true,
+          }).catch(err => console.warn('Session reset failed on logout:', err));
+        } catch (err) {
+          console.warn('Session reset call threw on logout:', err);
+        }
+      }
+      return newUser;
+    });
     if (newUser) {
       saveToLocalStorage('bamf_user', newUser);
     } else {
@@ -1063,6 +1085,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     };
   }, []);
+
+  // S001-F-007: keep currentCaseIdRef in sync so the beforeunload sendBeacon
+  // and the logout fetch carry the right case id even after switchCase().
+  useEffect(() => {
+    currentCaseIdRef.current = currentCase.id;
+  }, [currentCase.id]);
+
+  // S001-F-007: Reset the case back to seed state when the tab/window closes.
+  // navigator.sendBeacon is the only browser API that reliably ships a request
+  // during unload — it's fire-and-forget and accepts a Blob body.
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      try {
+        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        const payload = new Blob(
+          [JSON.stringify({ case_id: currentCaseIdRef.current })],
+          { type: 'application/json' },
+        );
+        navigator.sendBeacon(`${apiBase}/api/session/reset`, payload);
+      } catch (err) {
+        console.warn('beforeunload session reset failed:', err);
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
+  // S001-F-007: After SESSION_IDLE_TIMEOUT_MINUTES of no activity, log the
+  // user out. setUser(null) triggers the existing route guard in Workspace
+  // that navigates back to the login page.
+  useIdleTimeout(() => {
+    if (user) {
+      console.info('Session idle timeout reached — logging out.');
+      setUser(null);
+    }
+  });
 
   // Persist form fields to localStorage whenever they change
   useEffect(() => {

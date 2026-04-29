@@ -33,6 +33,7 @@ from backend.api.validation import router as validation_router  # Case validatio
 from backend.api.custom_context import router as custom_context_router  # S5-017
 from backend.api.folders import router as folders_router  # Folder management
 from backend.api.idirs import router as idirs_router  # IDIRS hybrid search & RAG
+from backend.api.session import router as session_router  # S001-F-007
 
 # Configure logging
 logging.basicConfig(
@@ -60,9 +61,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     logger.info("Starting BAMF AI Case Management Backend...")
 
-    # S5-015: Initialize test documents for ACTE-2024-001
-    # DISABLED: Auto-initialization is disabled to allow starting with empty folders
-    # Set INIT_TEST_DOCS=true to re-enable auto-initialization of test documents
+    # S001-F-007: Reset the default sprint-1 case to its seed state on startup.
+    # Replaces the legacy INIT_TEST_DOCS path; that flag is preserved below for
+    # back-compat but is treated as a no-op while the seed-reset flow runs.
+    try:
+        from backend.services.session_manager import reset_case_to_seed
+        reset_case_to_seed("ACTE-2024-001")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Startup seed reset failed for ACTE-2024-001: %s; continuing.",
+            exc, exc_info=True,
+        )
+
+    # S5-015: Initialize test documents for ACTE-2024-001 (legacy path).
+    # No-op when the seed-reset flow above has already run; kept for back-compat
+    # with existing local setups that still set INIT_TEST_DOCS=true.
     import os
     if os.getenv("INIT_TEST_DOCS", "false").lower() == "true":
         try:
@@ -190,6 +203,7 @@ app.include_router(validation_router, prefix="/api/validation", tags=["validatio
 app.include_router(custom_context_router, tags=["custom-context"])  # S5-017
 app.include_router(folders_router, tags=["folders"])  # Folder management
 app.include_router(idirs_router, tags=["idirs"])  # IDIRS hybrid search & RAG
+app.include_router(session_router, tags=["session"])  # S001-F-007
 
 
 @app.get("/health")
