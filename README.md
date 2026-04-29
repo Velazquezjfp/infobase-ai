@@ -150,6 +150,36 @@ See [`litellm/README.md`](litellm/README.md) for full documentation including mo
 
 The `litellm/` directory is gitignored — on a fresh checkout it will not exist. Recreate it by re-running the requirement implementation (`/implement-requirement S001-NFR-004`) or by manually creating the files from the templates documented in `docs/requirements/sprint-001/S001-NFR-004.md`.
 
+## Local LLM development
+
+There are two paths for running the LLM stack locally:
+
+### Path A — Host-installed Ollama (default)
+
+Use this when you already have Ollama running on the host machine (e.g. `gemma3:12b` pre-installed). No extra containers needed; LiteLLM routes requests to `http://host-gateway:11434` (or whatever `LITELLM_PROXY_URL` is configured to).
+
+```bash
+# Ensure Ollama is running on the host
+ollama list   # should show gemma3:12b
+
+# Start only the app containers (no Ollama container)
+docker compose up -d
+```
+
+### Path B — Compose-managed Ollama container
+
+Use this on machines without a host-installed Ollama (e.g. CI, fresh developer laptops). The `ollama` service is gated behind the `ollama` Compose profile and the `ENABLE_OLLAMA_CONTAINER` env var is the operator-facing switch.
+
+```bash
+# In .env: ENABLE_OLLAMA_CONTAINER=true (documents intent; the actual gate is the profile flag)
+# Start the full stack including the Ollama container
+docker compose --profile ollama up -d
+```
+
+On first start the `ollama` container pulls `${LITELLM_OLLAMA_MODEL:-gemma3:12b}` from the registry into the `ollama-data` named volume. Subsequent starts skip the pull (model already in volume). To switch models set `LITELLM_OLLAMA_MODEL=<tag>` in `.env` and restart.
+
+> **No host port conflict:** the `ollama` service exposes port `11434` only on the internal Compose network (`http://ollama:11434`). No binding to `0.0.0.0:11434` on the host, so a host-installed Ollama can run side by side.
+
 ## Technology Stack
 
 | Layer | Technology |

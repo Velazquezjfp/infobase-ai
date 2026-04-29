@@ -54,10 +54,12 @@ services:
     image: "${DOCKER_REGISTRY:-docker.io}/ollama/ollama:latest"
     profiles:
       - ollama
-    ports:
-      - "11434:11434"
     volumes:
       - ollama-data:/root/.ollama
+    entrypoint:
+      - /bin/sh
+      - -c
+      - "ollama serve & OLLAMA_PID=$!; until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull ${LITELLM_OLLAMA_MODEL:-gemma3:12b}; wait $OLLAMA_PID"
     restart: unless-stopped
 
 volumes:

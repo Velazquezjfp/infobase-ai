@@ -392,6 +392,7 @@
     "dokumenteAbfragen": "Query documents with RAG"
   },
   "documentSearch": {
+    "notImplemented": "The document search feature is not yet available in this demo environment.",
     "noResults": "No results found",
     "resultsFound": "{{count}} result(s) found",
     "docName": "Document Name",

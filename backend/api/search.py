@@ -23,6 +23,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
+from backend.config import ENABLE_DOCUMENT_SEARCH
 from backend.services.gemini_service import GeminiService
 from backend.services.pdf_service import get_pdf_service
 from backend.tools.language_detector import (
@@ -282,5 +283,6 @@ async def search_health():
         "service": "semantic_search",
         "gemini_initialized": gemini_service.is_initialized(),
         "pdf_support": True,
-        "cross_language_support": True
+        "cross_language_support": True,
+        "document_search": "enabled" if ENABLE_DOCUMENT_SEARCH else "disabled",
     }

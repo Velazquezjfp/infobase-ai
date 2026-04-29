@@ -537,7 +537,10 @@ export default function AIChatInterface() {
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
-          addChatMessage({ role: 'assistant', content: `${t('documentSearch.searchError')}: ${errData.detail || response.statusText}` });
+          const msg = errData.error === 'feature_disabled'
+            ? t('documentSearch.notImplemented')
+            : `${t('documentSearch.searchError')}: ${errData.detail || response.statusText}`;
+          addChatMessage({ role: 'assistant', content: msg });
           return true;
         }
 
@@ -607,7 +610,10 @@ export default function AIChatInterface() {
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
-          addChatMessage({ role: 'assistant', content: `${t('documentSearch.ragError')}: ${errData.detail || response.statusText}` });
+          const msg = errData.error === 'feature_disabled'
+            ? t('documentSearch.notImplemented')
+            : `${t('documentSearch.ragError')}: ${errData.detail || response.statusText}`;
+          addChatMessage({ role: 'assistant', content: msg });
           return true;
         }
 

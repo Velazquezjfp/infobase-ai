@@ -14,9 +14,10 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from backend.config import IDIRS_BASE_URL, IDIRS_TIMEOUT, RAG_CONFIDENCE_THRESHOLD
+from backend.config import ENABLE_DOCUMENT_SEARCH, IDIRS_BASE_URL, IDIRS_TIMEOUT, RAG_CONFIDENCE_THRESHOLD
 from backend.services.gemini_service import GeminiService
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,11 @@ router = APIRouter(prefix="/api/idirs")
 # ============================================================================
 # Request / Response models
 # ============================================================================
+
+class ErrorResponse(BaseModel):
+    error: str
+    detail: str
+
 
 class SearchRequest(BaseModel):
     query: str = Field(..., description="Semantic search query")
@@ -54,6 +60,15 @@ async def idirs_search(req: SearchRequest) -> Dict[str, Any]:
     Sends the query and optional filters to IDIRS /search endpoint,
     returns formatted results with scores.
     """
+    if not ENABLE_DOCUMENT_SEARCH:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "feature_disabled",
+                "detail": "Die Dokumentsuche ist in dieser Demo-Umgebung noch nicht verfügbar.",
+            },
+        )
+
     payload: Dict[str, Any] = {
         "query": req.query,
         "top_k": req.top_k,
@@ -89,6 +104,15 @@ async def idirs_rag(req: RagRequest) -> Dict[str, Any]:
     then uses GeminiService to analyze the combined results and
     produce a confidence-rated answer.
     """
+    if not ENABLE_DOCUMENT_SEARCH:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "feature_disabled",
+                "detail": "Die Dokumentsuche ist in dieser Demo-Umgebung noch nicht verfügbar.",
+            },
+        )
+
     all_chunks: List[Dict[str, Any]] = []
     all_answers: List[str] = []
 
