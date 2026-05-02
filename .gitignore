@@ -14,4 +14,4 @@ backend/venv/
 *.pyc
 *.so
 temp/
-dist/
+dist/.env.bak.20260502-101323
