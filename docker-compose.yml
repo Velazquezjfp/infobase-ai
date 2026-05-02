@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
 
   backend:
@@ -11,6 +9,21 @@ services:
         PIP_INDEX_URL: "${PIP_INDEX_URL:-https://pypi.org/simple}"
     env_file:
       - ".env"
+    # S001-NFR-005 Phase 3: container-run overrides for two .env values that
+    # only make sense for the host-run case. These take precedence over the
+    # values pulled from env_file:
+    #   - LITELLM_PROXY_URL: localhost:4000 → host.docker.internal:4000 so the
+    #     containerised backend can reach the LiteLLM proxy that itself runs
+    #     in a separate compose project. Resolves via extra_hosts → host-gateway
+    #     on Linux/WSL2 (no-op on macOS/Windows where Docker Desktop maps it).
+    #   - DOCUMENTS_PATH: public/documents → /var/app/documents so uploaded files
+    #     land in the documents-data volume mount, not in /app/public/documents
+    #     (which is outside any volume and would be lost on container recreate).
+    environment:
+      LITELLM_PROXY_URL: "http://host.docker.internal:4000"
+      DOCUMENTS_PATH: "/var/app/documents"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
@@ -37,7 +50,15 @@ services:
       args:
         DOCKER_REGISTRY: "${DOCKER_REGISTRY:-docker.io}"
         NPM_REGISTRY: "${NPM_REGISTRY:-https://registry.npmjs.org/}"
-        VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:8000}"
+        # S001-NFR-005 Phase 1.5: empty default → SPA emits relative URLs
+        # which the nginx reverse proxy forwards to ${BACKEND_HOST}:${BACKEND_PORT}.
+        VITE_API_BASE_URL: "${VITE_API_BASE_URL:-}"
+    environment:
+      # S001-NFR-005 Phase 1.5: nginx upstream is templated at container start
+      # via envsubst on /etc/nginx/templates/default.conf.template. Override
+      # these in k8s Deployment env to repoint at backend.<ns>.svc.cluster.local.
+      BACKEND_HOST: "backend"
+      BACKEND_PORT: "8000"
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
@@ -59,7 +80,7 @@ services:
     entrypoint:
       - /bin/sh
       - -c
-      - "ollama serve & OLLAMA_PID=$!; until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull ${LITELLM_OLLAMA_MODEL:-gemma3:12b}; wait $OLLAMA_PID"
+      - "ollama serve & OLLAMA_PID=$$!; until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull ${LITELLM_OLLAMA_MODEL:-gemma3:12b}; wait $$OLLAMA_PID"
     restart: unless-stopped
 
 volumes:

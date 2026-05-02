@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/lib/apiConfig';
 import {
   Loader2,
   CheckCircle2,
@@ -157,7 +158,6 @@ export default function SubmitCaseDialog({
         });
       }
 
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
       const response = await fetch(`${API_BASE_URL}/api/validation/case/${currentCase.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

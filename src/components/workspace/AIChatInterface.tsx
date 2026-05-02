@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatChatMessage } from '@/lib/messageFormatter';
 import { useTranslation } from 'react-i18next';
 import { ContextHierarchyDialog } from './ContextHierarchyDialog';
+import { API_BASE_URL } from '@/lib/apiConfig';
 import type { SlashCommandArgument, CustomContextRule } from '@/types/case';
 
 const quickActionIcons: Record<string, React.ReactNode> = {
@@ -109,7 +110,6 @@ export default function AIChatInterface() {
 
     setIsLoadingRules(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const response = await fetch(`${API_BASE_URL}/api/custom-context/${currentCase.id}`);
       if (response.ok) {
         const data = await response.json();
@@ -377,8 +377,6 @@ export default function AIChatInterface() {
 
   // S5-017: Process context modification commands
   const processContextCommand = async (command: string): Promise<boolean> => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
     // Helper to add user and AI messages
     const addCommandResponse = (userCmd: string, aiResponse: string) => {
       addChatMessage({ role: 'user', content: userCmd });
@@ -494,8 +492,6 @@ export default function AIChatInterface() {
   const [isSearching, setIsSearching] = useState(false);
 
   const processSearchCommand = async (command: string): Promise<boolean> => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
     // Parse /Dokumentsuche [key=value ...] "query"
     const searchMatch = command.match(/^\/Dokumentsuche\s+(.*)/);
     if (searchMatch) {

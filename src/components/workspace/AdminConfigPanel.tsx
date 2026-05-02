@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/lib/apiConfig';
 
 interface LocalizedName {
   de: string;
@@ -58,8 +59,6 @@ interface MetadataField {
   required: boolean;
   options?: string[];
 }
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function AdminConfigPanel() {
   const { setIsAdminMode, formFields, setFormFields, currentCase, refreshDocuments } = useApp();

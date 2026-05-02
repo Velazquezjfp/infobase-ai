@@ -28,6 +28,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/lib/apiConfig';
 import type { CustomContextRule } from '@/types/case';
 
 interface ContextNode {
@@ -61,7 +62,6 @@ export function ContextHierarchyDialog({ isOpen, onClose }: ContextHierarchyDial
     if (!currentCase) return [];
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const response = await fetch(`${API_BASE_URL}/api/custom-context/${currentCase.id}`);
       if (response.ok) {
         const data = await response.json();
@@ -83,8 +83,6 @@ export function ContextHierarchyDialog({ isOpen, onClose }: ContextHierarchyDial
   const fetchCaseContext = async () => {
     setLoading(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
       // Fetch both case context and custom rules in parallel
       const [contextResponse, rules] = await Promise.all([
         fetch(`${API_BASE_URL}/api/context/case/${currentCase.id}`),

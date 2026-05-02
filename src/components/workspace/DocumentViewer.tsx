@@ -11,6 +11,7 @@ import HighlightedText from '@/components/workspace/HighlightedText';
 import PDFViewer from '@/components/workspace/PDFViewer';
 import EmailViewer from '@/components/workspace/EmailViewer';
 import { useTranslation } from 'react-i18next';
+import { API_BASE_URL } from '@/lib/apiConfig';
 
 // Interface for detection overlay data
 interface DetectionOverlay {
@@ -143,11 +144,14 @@ export default function DocumentViewer() {
     ? `/documents/${currentCase.id}/${selectedDocument.folderId}/${documentFileName}`
     : '';
 
-  // Construct PDF path - handles both root_docs and case folders
+  // Construct PDF path - handles both root_docs and case folders.
+  // Relative URLs go through the frontend container's nginx reverse proxy
+  // (S001-NFR-005 Phase 1.5) which forwards /root_docs/* and /documents/*
+  // to the backend StaticFiles mounts.
   const pdfPath = selectedDocument
     ? selectedDocument.metadata?.filePath?.includes('root_docs')
-      ? `http://localhost:8000/root_docs/${documentFileName}`
-      : `http://localhost:8000/documents/${currentCase.id}/${selectedDocument.folderId}/${documentFileName}`
+      ? `${API_BASE_URL}/root_docs/${documentFileName}`
+      : `${API_BASE_URL}/documents/${currentCase.id}/${selectedDocument.folderId}/${documentFileName}`
     : '';
 
   // Reset image state when document changes or render selection changes
@@ -200,8 +204,6 @@ export default function DocumentViewer() {
         setContentError(null);
 
         try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
           if (docType === 'pdf') {
             // S5-006: Construct the correct document path using selected render if available
             // S5-003: Ensure path includes 'public/' prefix for backend filesystem access

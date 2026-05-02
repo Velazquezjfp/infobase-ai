@@ -17,6 +17,8 @@ import re
 from pathlib import Path
 from typing import Union
 
+from backend.config import resolve_document_path  # S001-NFR-006
+
 logger = logging.getLogger(__name__)
 
 # Constants
@@ -239,7 +241,7 @@ def save_uploaded_file(file_path: Union[Path, str], file_contents: bytes) -> Non
         ...     b"PDF content here..."
         ... )
     """
-    file_path = Path(file_path)
+    file_path = resolve_document_path(str(file_path))  # S001-NFR-006: legacy → DOCUMENTS_BASE_PATH
 
     # Ensure parent directory exists
     create_folder_if_needed(file_path.parent)

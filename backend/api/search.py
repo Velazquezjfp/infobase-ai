@@ -25,7 +25,16 @@ from pydantic import BaseModel, Field
 
 from backend.config import ENABLE_DOCUMENT_SEARCH
 from backend.services.gemini_service import GeminiService
+from backend.services.llm_provider import get_provider
 from backend.services.pdf_service import get_pdf_service
+
+
+def _llm_backend_label() -> str:
+    """Return the active LLM provider class name, or "unconfigured" on error."""
+    try:
+        return get_provider().__class__.__name__
+    except Exception:
+        return "unconfigured"
 from backend.tools.language_detector import (
     detect_language,
     detect_query_and_document_languages,
@@ -282,6 +291,7 @@ async def search_health():
         "status": "healthy",
         "service": "semantic_search",
         "gemini_initialized": gemini_service.is_initialized(),
+        "llm_backend": _llm_backend_label(),
         "pdf_support": True,
         "cross_language_support": True,
         "document_search": "enabled" if ENABLE_DOCUMENT_SEARCH else "disabled",

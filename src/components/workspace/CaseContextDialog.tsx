@@ -23,6 +23,7 @@ import {
   UserCog,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/lib/apiConfig';
 import type { CustomContextRule } from '@/types/case';
 
 interface Regulation {
@@ -114,7 +115,6 @@ export function CaseContextDialog({ isOpen, onClose, caseId }: CaseContextDialog
   // S5-017: Fetch custom rules for the case
   const fetchCustomRules = useCallback(async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const response = await fetch(`${API_BASE_URL}/api/custom-context/${caseId}`);
       if (response.ok) {
         const data = await response.json();
@@ -135,8 +135,6 @@ export function CaseContextDialog({ isOpen, onClose, caseId }: CaseContextDialog
     setLoading(true);
     setError(null);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
       // S5-017: Fetch both case context and custom rules in parallel
       const [contextResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/api/context/case/${caseId}`),

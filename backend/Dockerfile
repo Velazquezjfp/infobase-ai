@@ -21,6 +21,14 @@ COPY --chown=app:app backend/ backend/
 COPY --chown=app:app ontology_shacl_material/ ontology_shacl_material/
 COPY --chown=app:app root_docs/ root_docs/
 
+# S001-NFR-005: pre-create the volume mount points with `app:app` ownership.
+# Named volumes copy their seed contents from the image's path on first init,
+# inheriting the directory's owner/perms. Without this step, named volumes
+# default to root:root and the non-root `app` user gets PermissionError on mkdir.
+RUN mkdir -p /var/app/documents \
+             /app/backend/data/contexts/cases \
+    && chown -R app:app /var/app /app/backend/data
+
 ENV DOCUMENTS_PATH=/var/app/documents \
     PYTHONUNBUFFERED=1 \
     LOG_LEVEL=INFO

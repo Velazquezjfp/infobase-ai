@@ -7,6 +7,7 @@ import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/localStorage';
 import { useToast } from '@/hooks/use-toast';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import i18n from '@/i18n/config';
+import { API_BASE_URL, WS_BASE_URL } from '@/lib/apiConfig';
 
 interface AppContextType {
   user: string | null;
@@ -110,8 +111,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUserState(prev => {
       if (prev && !newUser) {
         try {
-          const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-          fetch(`${apiBase}/api/session/reset`, {
+          fetch(`${API_BASE_URL}/api/session/reset`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ case_id: currentCaseIdRef.current }),
@@ -482,9 +482,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       console.log(`Loading documents from backend for case: ${caseId}`);
 
-      // Pass current language for localized folder names
+      // Pass current language for localized folder names.
+      // S001-NFR-005: relative URL → through nginx → backend.
       const language = i18n.language || 'de';
-      const response = await fetch(`http://localhost:8000/api/documents/tree/${caseId}?language=${language}`);
+      const response = await fetch(`${API_BASE_URL}/api/documents/tree/${caseId}?language=${language}`);
 
       if (!response.ok) {
         console.error(`Failed to load documents: ${response.status} ${response.statusText}`);
@@ -547,8 +548,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setWsStatus('connecting');
 
     try {
-      // S5-014: Include language parameter in WebSocket URL
-      const wsUrl = `ws://localhost:8000/ws/chat/${currentCase.id}?language=${currentLanguage}`;
+      // S5-014 + S001-NFR-005: WS URL derived at runtime from window.location
+      // (relative-origin pattern; same host/port as the page itself).
+      const wsUrl = `${WS_BASE_URL}/ws/chat/${currentCase.id}?language=${currentLanguage}`;
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
@@ -963,8 +965,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSearchQuery(query);
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
       // Build request based on document type
       const request: SemanticSearchRequest = {
         query: query.trim(),
@@ -1098,12 +1098,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleBeforeUnload = () => {
       try {
-        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
         const payload = new Blob(
           [JSON.stringify({ case_id: currentCaseIdRef.current })],
           { type: 'application/json' },
         );
-        navigator.sendBeacon(`${apiBase}/api/session/reset`, payload);
+        navigator.sendBeacon(`${API_BASE_URL}/api/session/reset`, payload);
       } catch (err) {
         console.warn('beforeunload session reset failed:', err);
       }

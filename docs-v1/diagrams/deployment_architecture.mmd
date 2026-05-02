@@ -1,0 +1,117 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#1976d2','lineColor':'#424242','secondaryColor':'#f3e5f5','tertiaryColor':'#fff3e0','fontSize':'13px'}}}%%
+
+flowchart TB
+    %% ===========================================================
+    %% Operator-facing surface — only ONE host port is exposed
+    %% ===========================================================
+    operator["Operator browser<br/>(only entry point)<br/>http://localhost:3000"]:::operator
+
+    %% ===========================================================
+    %% Host machine
+    %% ===========================================================
+    subgraph host["Linux/WSL2 Host"]
+        direction TB
+
+        %% --- Host services (no Docker) ---
+        subgraph host_native["Host-native services"]
+            direction LR
+            ollama["ollama.service (systemd)<br/>bound to 127.0.0.1:11434<br/>model: gemma3:12b (8.1 GB)<br/>(in BDOP/k8s: replaced by external<br/>LiteLLM proxy URL)"]:::external
+        end
+
+        %% --- LiteLLM container (host network mode) ---
+        subgraph litellm_box["litellm/docker-compose.yml<br/>network_mode: host"]
+            direction TB
+            litellm["litellm-litellm-1<br/><br/>Image: litellm-litellm:latest<br/>Base:  ghcr.io/berriai/litellm:v1.81.9-stable<br/>Size:  1.87 GB<br/>Listens: 0.0.0.0:4000 (host network)<br/>Auth: Bearer LITELLM_MASTER_KEY<br/>Config: /app/config.yaml<br/>Routes: gemma3:12b → ollama_chat/<br/>           api_base = http://localhost:11434<br/><br/>Endpoints:<br/>  GET  /health/liveliness → 'I am alive!'<br/>  GET  /v1/models<br/>  POST /v1/chat/completions"]:::litellm
+        end
+
+        %% --- Compose bridge network (umbrella) ---
+        subgraph bridge_net["docker-compose.yml<br/>network: bamf-acte-companion_default (bridge)"]
+            direction TB
+
+            subgraph frontend_box["frontend service"]
+                frontend["bamf-acte-companion-frontend-1<br/><br/>Image: bamf-acte-companion-frontend:latest<br/>Base:  nginxinc/nginx-unprivileged:1.27-alpine<br/>Size:  50.4 MB (nginx + dist/)<br/>User:  nginx (uid 101)<br/>Listens: 0.0.0.0:3000 (mapped to host:3000)<br/>Bridge IP: 172.22.0.3<br/><br/>Templated config:<br/>  /etc/nginx/templates/default.conf.template<br/>     ↓ envsubst at start<br/>  /etc/nginx/conf.d/default.conf<br/>     uses ${BACKEND_HOST}=backend<br/>          ${BACKEND_PORT}=8000<br/><br/>Static: /usr/share/nginx/html (Vite dist/)<br/>Healthcheck: wget --spider http://127.0.0.1:3000/<br/>gzip on (text/css/js/json)"]:::frontend
+            end
+
+            subgraph backend_box["backend service<br/>(replicas: 1 — in-memory ConnectionManager)"]
+                backend["bamf-acte-companion-backend-1<br/><br/>Image: bamf-acte-companion-backend:latest<br/>Base:  python:3.12-slim<br/>Size:  400 MB<br/>User:  app (uid 10001)<br/>Listens: 0.0.0.0:8000 (mapped to host:8000)<br/>Bridge IP: 172.22.0.2<br/>extra_hosts: host.docker.internal=host-gateway<br/><br/>Healthcheck: curl http://localhost:8000/health<br/>Resource: 2 CPU / 2 GB"]:::backend
+
+                subgraph routers["FastAPI routers (uvicorn)"]
+                    direction LR
+                    r_api["HTTP /api/<br/>admin, files, documents,<br/>search, validation, context,<br/>custom-context, folders,<br/>idirs, session"]
+                    r_ws["WebSocket<br/>/ws/chat/{case_id}<br/>?language=de|en"]
+                    r_static["StaticFiles<br/>/root_docs/*<br/>/documents/*"]
+                    r_health["GET /health<br/>GET /"]
+                end
+            end
+
+            subgraph ollama_box["ollama service (profile: ollama)<br/>OPTIONAL — only with --profile ollama"]
+                ollama_c["bamf-acte-companion-ollama-1<br/>Image: ollama/ollama:latest<br/>Volume: ollama-data<br/>Pulls LITELLM_OLLAMA_MODEL on start"]:::optional
+            end
+
+            %% --- Persistent volumes ---
+            subgraph volumes["Named volumes (PVCs in k8s)"]
+                direction LR
+                v_docs["documents-data<br/>→ /var/app/documents<br/>(uploaded files; ENABLE_UPLOAD)"]:::volume
+                v_cases["cases-data<br/>→ /app/backend/data/contexts/cases<br/>(per-case state)"]:::volume
+                v_manifest["manifest-data<br/>→ /app/backend/data<br/>(document_manifest.json)"]:::volume
+                v_ollama["ollama-data<br/>→ /root/.ollama<br/>(model weights, optional)"]:::volume
+            end
+        end
+    end
+
+    %% ===========================================================
+    %% External services (out-of-scope in sprint 1; replaced in BDOP)
+    %% ===========================================================
+    subgraph external["External (in BDOP/k8s only)"]
+        bdop_litellm["BDOP-managed LiteLLM proxy<br/>(replaces local litellm/ subproject)<br/>Outbound HTTPS only"]:::external
+    end
+
+    %% ===========================================================
+    %% Routing arrows — FROM browser
+    %% ===========================================================
+    operator -- "GET / (SPA assets)<br/>HTTP 1.1 + gzip" --> frontend
+    operator -- "GET /api/* (REST)" --> frontend
+    operator -- "WS /ws/chat/* (Upgrade)" --> frontend
+    operator -- "GET /root_docs/*<br/>GET /documents/* (PDFs)" --> frontend
+
+    %% ===========================================================
+    %% Routing arrows — frontend → backend (via Docker DNS)
+    %% ===========================================================
+    frontend -- "/ (try_files → index.html)<br/>(SPA fallback — no proxy)" -.-> frontend
+    frontend == "proxy_pass http://backend:8000<br/>(Docker service-name DNS<br/>on bamf-acte-companion_default)<br/>HTTP, headers preserved" ==> backend
+    frontend == "WS upgrade to backend:8000<br/>proxy_http_version 1.1<br/>Upgrade/Connection headers<br/>proxy_read_timeout 3600s" ==> backend
+
+    %% ===========================================================
+    %% backend → routers (in-process)
+    %% ===========================================================
+    backend --> routers
+
+    %% ===========================================================
+    %% backend → LiteLLM (cross-network, via host-gateway)
+    %% ===========================================================
+    backend == "HTTP POST /v1/chat/completions<br/>Authorization: Bearer LITELLM_TOKEN<br/>via http://host.docker.internal:4000<br/>(extra_hosts → bridge gateway 172.22.0.1<br/>→ host's 0.0.0.0:4000)" ==> litellm
+
+    %% ===========================================================
+    %% LiteLLM → host Ollama (host network mode)
+    %% ===========================================================
+    litellm == "POST /api/generate<br/>(Ollama protocol)<br/>via localhost:11434<br/>(host network namespace<br/>→ direct loopback)" ==> ollama
+
+    %% --- Volume mounts ---
+    backend -.- v_docs
+    backend -.- v_cases
+    backend -.- v_manifest
+    ollama_c -.- v_ollama
+
+    %% --- BDOP swap ---
+    backend -. "in BDOP/k8s:<br/>swap to ext URL via env" .-> bdop_litellm
+
+    %% ===========================================================
+    %% Styling
+    %% ===========================================================
+    classDef operator   fill:#fff3e0,stroke:#f57c00,stroke-width:3px,color:#000
+    classDef frontend   fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef backend    fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef litellm    fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef external   fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000,stroke-dasharray:5 5
+    classDef optional   fill:#fafafa,stroke:#9e9e9e,stroke-width:1px,color:#000,stroke-dasharray:3 3
+    classDef volume     fill:#fff9c4,stroke:#f9a825,stroke-width:1px,color:#000

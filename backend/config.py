@@ -6,6 +6,7 @@ Settings can be overridden via environment variables.
 """
 
 import os
+from pathlib import Path
 from typing import Optional
 
 
@@ -112,6 +113,52 @@ def get_documents_path() -> str:
 # Base path for document storage
 # In containers, this should be set to '/var/app/documents' and mounted as a volume
 DOCUMENTS_BASE_PATH: str = get_documents_path()
+
+
+# ----------------------------------------------------------------------------
+# S001-NFR-006: legacy `public/documents/` path translation
+# ----------------------------------------------------------------------------
+# `document_manifest.json` and the SPA's DocumentViewer encode document paths
+# with the project-root-relative prefix `public/documents/<rest>` (frozen from
+# the host-dev era). Inside the container, cwd is `/app` and that prefix does
+# not resolve — files actually live under DOCUMENTS_BASE_PATH (`/var/app/documents`
+# in the containerised deployment, `public/documents` in host-dev — same string,
+# no-op).
+#
+# This helper translates legacy paths transparently and passes everything else
+# through. Used at the three service-layer entry points where Python opens
+# the file (pdf_service / email_service). NEVER touched by the API layer or
+# the prompt-building / chat path.
+
+LEGACY_DOCUMENTS_PREFIX = "public/documents/"
+
+
+def resolve_document_path(path: str) -> Path:
+    """
+    Resolve a document path to its on-disk location, translating the legacy
+    project-root-relative prefix when needed.
+
+    Translation rule:
+      - If `path` starts with `public/documents/`, replace that prefix with
+        `${DOCUMENTS_BASE_PATH}/`. In host-dev (DOCUMENTS_BASE_PATH ==
+        'public/documents') this is a no-op; in container-run
+        (DOCUMENTS_BASE_PATH == '/var/app/documents') it relocates the path
+        under the volume mount.
+      - Otherwise (absolute paths, other relative paths), return Path(path)
+        unchanged.
+
+    See `docs/requirements/sprint-001/S001-NFR-006.md` for full rationale.
+
+    Args:
+        path: Legacy or already-resolved path, as a string.
+
+    Returns:
+        A `pathlib.Path` pointing at the on-disk file.
+    """
+    if path.startswith(LEGACY_DOCUMENTS_PREFIX):
+        relative = path[len(LEGACY_DOCUMENTS_PREFIX):]
+        return Path(DOCUMENTS_BASE_PATH) / relative
+    return Path(path)
 
 
 # ============================================================================

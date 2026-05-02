@@ -33,6 +33,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, NamedTuple
 
+from backend.config import resolve_document_path  # S001-NFR-006
+
 logger = logging.getLogger(__name__)
 
 # Path to the document manifest file
@@ -816,10 +818,13 @@ def verify_file_integrity(document_entry: Dict) -> bool:
         if not file_path or not stored_hash:
             return True  # No hash to verify
 
-        if not Path(file_path).exists():
+        # S001-NFR-006: translate legacy `public/documents/<rest>` paths to
+        # the container-correct DOCUMENTS_BASE_PATH location.
+        resolved = resolve_document_path(file_path)
+        if not resolved.exists():
             return True  # File doesn't exist, can't verify
 
-        actual_hash = calculate_file_hash(file_path)
+        actual_hash = calculate_file_hash(str(resolved))
         return actual_hash == stored_hash
 
     except Exception as e:

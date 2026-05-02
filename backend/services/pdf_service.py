@@ -21,6 +21,8 @@ from dataclasses import dataclass
 
 import pdfplumber
 
+from backend.config import resolve_document_path  # S001-NFR-006
+
 logger = logging.getLogger(__name__)
 
 
@@ -82,7 +84,7 @@ class PDFService:
             >>> text = service.extract_text("/path/to/document.pdf")
             >>> print(text[:100])
         """
-        path = Path(pdf_path)
+        path = resolve_document_path(pdf_path)  # S001-NFR-006: legacy → DOCUMENTS_BASE_PATH
 
         if not path.exists():
             logger.error(f"PDF file not found: {pdf_path}")
@@ -146,7 +148,7 @@ class PDFService:
             >>> for block in blocks[:3]:
             ...     print(f"Page {block.page}: {block.text[:50]}")
         """
-        path = Path(pdf_path)
+        path = resolve_document_path(pdf_path)  # S001-NFR-006: legacy → DOCUMENTS_BASE_PATH
 
         if not path.exists():
             logger.error(f"PDF file not found: {pdf_path}")
@@ -233,7 +235,7 @@ class PDFService:
             FileNotFoundError: If the PDF file doesn't exist
             ValueError: If the file is not a valid PDF
         """
-        path = Path(pdf_path)
+        path = resolve_document_path(pdf_path)  # S001-NFR-006: legacy → DOCUMENTS_BASE_PATH
 
         if not path.exists():
             raise FileNotFoundError(f"PDF file not found: {pdf_path}")
@@ -266,7 +268,7 @@ class PDFService:
             FileNotFoundError: If the PDF file doesn't exist
             ValueError: If page number is invalid
         """
-        path = Path(pdf_path)
+        path = resolve_document_path(pdf_path)  # S001-NFR-006: legacy → DOCUMENTS_BASE_PATH
 
         if not path.exists():
             raise FileNotFoundError(f"PDF file not found: {pdf_path}")

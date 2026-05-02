@@ -24,6 +24,8 @@ from email.parser import BytesParser
 from email.message import EmailMessage
 from dataclasses import dataclass
 
+from backend.config import resolve_document_path  # S001-NFR-006
+
 logger = logging.getLogger(__name__)
 
 
@@ -151,7 +153,7 @@ Provide ONLY the translated text, no explanations."""
             ... )
             >>> print(result.translated_path)
         """
-        path = Path(email_path)
+        path = resolve_document_path(email_path)  # S001-NFR-006: legacy → DOCUMENTS_BASE_PATH
 
         if not path.exists():
             logger.error(f"Email file not found: {email_path}")

@@ -1,0 +1,14 @@
+"""Shared fixtures for S001-F-010 tests."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+
+def pytest_configure(config):
+    config.addinivalue_line("python_files", "TC-*.py")

@@ -16,7 +16,16 @@ from fastapi.responses import JSONResponse
 
 from backend.services.gemini_service import GeminiService
 from backend.services.conversation_manager import get_conversation_manager
+from backend.services.llm_provider import get_provider
 from backend.config import ENABLE_CHAT_HISTORY, ENABLE_ANONYMIZATION
+
+
+def _llm_backend_label() -> str:
+    """Return the active LLM provider class name, or "unconfigured" on error."""
+    try:
+        return get_provider().__class__.__name__
+    except Exception:
+        return "unconfigured"
 
 # Localized message sent to the client when anonymization is disabled.
 # Mirrors the i18n key anonymization.notImplemented in the frontend locales.
@@ -756,6 +765,7 @@ async def chat_health_check():
             "service": "chat",
             "status": "ready" if is_ready else "not_ready",
             "gemini_initialized": is_ready,
+            "llm_backend": _llm_backend_label(),
             "anonymization": "enabled" if ENABLE_ANONYMIZATION else "disabled",
         },
         status_code=200 if is_ready else 503

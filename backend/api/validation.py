@@ -21,8 +21,17 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from backend.services.validation_service import get_validation_service
+from backend.services.llm_provider import get_provider
 
 logger = logging.getLogger(__name__)
+
+
+def _llm_backend_label() -> str:
+    """Return the active LLM provider class name, or "unconfigured" on error."""
+    try:
+        return get_provider().__class__.__name__
+    except Exception:
+        return "unconfigured"
 
 # Create router
 router = APIRouter()
@@ -171,12 +180,17 @@ async def validation_health():
     """
     try:
         service = get_validation_service()
-        gemini_initialized = service._gemini_service is not None and service._gemini_service.is_initialized()
+        # After S001-F-001 the validation service holds an LLM provider
+        # (LiteLLM or Gemini) rather than a GeminiService instance. Keep the
+        # legacy field name `gemini_initialized` for frontend back-compat
+        # while sourcing the value from the provider.
+        gemini_initialized = service._provider is not None and service._provider.is_initialized()
 
         return {
             "status": "healthy" if gemini_initialized else "degraded",
             "service": "case_validation",
             "gemini_initialized": gemini_initialized,
+            "llm_backend": _llm_backend_label(),
             "ai_powered": True
         }
     except Exception as e:
@@ -184,5 +198,6 @@ async def validation_health():
         return {
             "status": "unhealthy",
             "service": "case_validation",
+            "llm_backend": _llm_backend_label(),
             "error": str(e)
         }

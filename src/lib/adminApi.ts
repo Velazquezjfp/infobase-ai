@@ -7,11 +7,7 @@
 
 import type { FormField } from '../types/case';
 import type { SHACLPropertyShape } from '../types/shacl';
-
-/**
- * API configuration
- */
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+import { API_BASE_URL } from './apiConfig';
 
 /**
  * Request payload for generating a form field

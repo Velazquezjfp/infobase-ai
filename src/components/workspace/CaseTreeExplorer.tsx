@@ -14,6 +14,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { loadDocumentContent } from '@/lib/documentLoader';
 import { uploadFile, validateFileSize, formatFileSize, deleteFile, checkFileExists, checkUploadEnabled } from '@/lib/fileApi';
+import { API_BASE_URL } from '@/lib/apiConfig';
 import type { UploadProgress } from '@/types/file';
 import { UploadProgress as UploadProgressComponent } from '@/components/ui/UploadProgress';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
@@ -255,7 +256,6 @@ function FolderItem({ folder, level, onUploadToFolder, onDeleteDocument, uploadE
       console.log(`Deleting render ${renderId} from document ${documentId} in case ${currentCase.id}`);
 
       // Call backend API to delete render (S5-006)
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const response = await fetch(`${API_BASE_URL}/api/files/renders/${currentCase.id}/${documentId}/${renderId}`, {
         method: 'DELETE',
         headers: {

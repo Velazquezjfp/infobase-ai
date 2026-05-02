@@ -26,10 +26,15 @@ i18n
     fallbackLng: 'de',
     lng: 'de', // Default language
     debug: import.meta.env.DEV,
-    // Never return null for missing keys; render the key string instead so
-    // developers can spot it without crashing the UI.
+    // Never return null for missing keys.
+    // S001-F-010: respect the call site's defaultValue. When `t('ns.key', 'Friendly Label')`
+    // hits a missing key, return 'Friendly Label' so the UI shows graceful fallbacks
+    // instead of leaking the raw `ns.key` string (the leak symptoms reported by the
+    // operator: `formFields.Passnummer`, `documents.renders.translated`, etc.).
+    // When `t('ns.key')` is called with NO defaultValue, fall through to the raw key
+    // — preserves the dev-debug signal for unguarded t() calls.
     returnNull: false,
-    parseMissingKeyHandler: (key: string) => key,
+    parseMissingKeyHandler: (key: string, defaultValue?: string) => defaultValue ?? key,
 
     // Language detector options
     detection: {

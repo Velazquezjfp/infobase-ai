@@ -30,6 +30,10 @@ logger = logging.getLogger(__name__)
 
 
 # Sprint-1 seed mapping: source filename in root_docs/ -> target case folder.
+# S001-NFR-006 polish: added Email.eml → emails so translation/parse-email demos
+# have a real file to act on. The emails folder is already declared in the case
+# template (folders/emails.json) and referenced in document_manifest.json — this
+# entry was the only missing piece.
 ROOT_DOCS_MAPPING: Dict[str, str] = {
     "Aufenthalstitel.png": "personal-data",
     "Geburtsurkunde.jpg": "personal-data",
@@ -37,6 +41,7 @@ ROOT_DOCS_MAPPING: Dict[str, str] = {
     "Sprachzeugnis-Zertifikat.pdf": "certificates",
     "Anmeldeformular.pdf": "applications",
     "Notenspiegel.pdf": "evidence",
+    "Email.eml": "emails",
 }
 
 ROOT_DOCS_DIR = Path("root_docs")
@@ -144,7 +149,7 @@ def reset_case_to_seed(case_id: str) -> Dict[str, int]:
         1. Wipe ${DOCUMENTS_PATH}/{case_id}/ entirely.
         2. Restore backend/data/contexts/cases/{case_id}/ from the matching
            template under backend/data/contexts/templates/{caseType}/.
-        3. Copy the six ROOT_DOCS_MAPPING files into the case folder structure.
+        3. Copy the seven ROOT_DOCS_MAPPING files into the case folder structure.
         4. Drop manifest entries for {case_id} and call ``reconcile()`` so the
            manifest is rebuilt with fresh documentId / fileHash values.
 

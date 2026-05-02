@@ -43,41 +43,59 @@ The repository includes sample documents for demonstration in two locations:
 
 These are essential for demoing the system's document analysis, translation, form fill, and validation capabilities.
 
-## Quickstart
+## Quickstart (Docker — recommended)
 
-The fastest path to a running stack — two containers, no local Python or Node required.
+> The demo runs **single-origin**: one host port (`:3000`) serves the SPA and proxies the API + WebSocket to the backend. Same image set is k8s-ready (BDOP); only the LiteLLM proxy is provided externally there. See [`docs/requirements/sprint-001/S001-NFR-005.md`](docs/requirements/sprint-001/S001-NFR-005.md) for the full architecture rationale.
+
+**Prereqs:** Docker engine ≥ 24, host Ollama running (`ollama serve`) with `ollama pull gemma3:12b`.
 
 ```bash
-# 1. Configure
-cp .env.example .env
-# Edit .env: set LITELLM_TOKEN (or switch LLM_BACKEND=external and set GEMINI_API_KEY)
+# 1. Generate .env and litellm/.env from the templates
+#    (idempotent — re-runs are no-ops once both files exist)
+bash temp/setup-env.sh
 
-# 2. Start
-docker compose up -d
+# 2. Bring up the LiteLLM proxy on :4000
+#    (gitignored litellm/ subproject; routes to host's Ollama)
+bash temp/up-proxy.sh
 
-# 3. Open
-# Frontend:       http://localhost:3000
-# Backend/Swagger: http://localhost:8000/docs
+# 3. Bring up the app stack
+#    backend on :8000 (cluster-internal in k8s; exposed locally for dev)
+#    frontend nginx reverse-proxy on :3000 (the only port the user touches)
+bash temp/up.sh
+
+# 4. Open in browser
+open http://localhost:3000
 ```
 
-> **Resource limits:** `deploy.resources.limits` in `docker-compose.yml` (2 CPU / 2 GB for the backend, 1 CPU / 1 GB for the frontend) are informational when running with `docker compose up`. They are enforced only when deployed to Docker Swarm via `docker stack deploy`.
+**Tear down:** `bash temp/down.sh` (app stack), `bash temp/down-proxy.sh` (proxy), or `bash temp/down.sh --volumes` for a full reset including persistent volumes.
 
-To enable the optional local Ollama container (requires S001-F-002):
+**End-to-end smoke test (real chat round-trip via WebSocket):**
+```bash
+backend/venv/bin/python3 temp/verify-e2e.py
+# Expected: "OK: e2e chat path traversed (proxied + direct)"
+```
+
+> **Resource limits:** `deploy.resources.limits` in `docker-compose.yml` (2 CPU / 2 GB for the backend, 1 CPU / 1 GB for the frontend) are informational when running with `docker compose up`. They are enforced only under Swarm or in k8s `resources.{requests,limits}`.
+
+To also start the optional **in-compose Ollama container** (instead of using the host's Ollama):
 
 ```bash
+# Set ENABLE_OLLAMA_CONTAINER=true in .env, OR pass the flag manually:
 docker compose --profile ollama up -d
 ```
 
 ---
 
-## Quick Start
+## Local development (source-based)
+
+> For the *demo* path, see `## Quickstart` above. This section is for **actively editing the source code** without rebuilding container images each iteration.
 
 ### Prerequisites
 
 - **Node.js 16+** and npm
 - **Python 3.8+**
-- **Google Gemini API key** ([get one here](https://aistudio.google.com/app/apikey))
-- *(Optional)* Docker -- for Anonymization and IDIRS services
+- **Google Gemini API key** ([get one here](https://aistudio.google.com/app/apikey)) — only if you want to bypass LiteLLM with `LLM_BACKEND=external`
+- *(Optional)* Docker — for Anonymization and IDIRS services
 
 ### Start the App
 

@@ -301,6 +301,7 @@ def _transform_document(registry_doc: Dict) -> DocumentResponse:
         DocumentResponse: Transformed document for frontend.
     """
     from pathlib import Path
+    from backend.config import resolve_document_path  # S001-NFR-006
 
     file_name = registry_doc.get('fileName', 'unknown')
     file_path = registry_doc.get('filePath', '')
@@ -312,7 +313,7 @@ def _transform_document(registry_doc: Dict) -> DocumentResponse:
     file_size = "0 KB"
     if file_path:
         try:
-            path = Path(file_path)
+            path = resolve_document_path(file_path)  # S001-NFR-006: legacy → DOCUMENTS_BASE_PATH
             if path.exists():
                 size_bytes = path.stat().st_size
                 if size_bytes < 1024:

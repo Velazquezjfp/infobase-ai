@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from backend.services.field_generator import get_field_generator
 from backend.services.shacl_generator import get_shacl_generator
+from backend.api._shared import ErrorResponse
 
 logger = logging.getLogger(__name__)
 
@@ -91,12 +92,6 @@ class GenerateFieldResponse(BaseModel):
     """Wrapper response for field generation endpoint."""
     field: GeneratedFieldResponse
     message: str = "Field generated successfully"
-
-
-class ErrorResponse(BaseModel):
-    """Error response model."""
-    error: str
-    detail: Optional[str] = None
 
 
 # S5-001: Form Modification Models

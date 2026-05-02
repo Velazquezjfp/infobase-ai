@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from backend import config
+from backend.api._shared import ErrorResponse, FileErrorResponse
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +46,6 @@ class UploadResponse(BaseModel):
     message: str = "File uploaded successfully"
 
 
-class ErrorResponse(BaseModel):
-    """Error response model."""
-    error: str
-    detail: Optional[str] = None
-    file_name: Optional[str] = None
-
-
 class DeleteResponse(BaseModel):
     """
     Response model for file deletion endpoint.
@@ -71,10 +65,10 @@ class DeleteResponse(BaseModel):
     response_model=UploadResponse,
     responses={
         200: {"description": "File uploaded successfully"},
-        400: {"model": ErrorResponse, "description": "Invalid request (bad path, invalid file)"},
-        403: {"model": ErrorResponse, "description": "Upload feature disabled (ENABLE_UPLOAD=false) or path-traversal denial"},
-        413: {"model": ErrorResponse, "description": "File exceeds 15 MB size limit"},
-        500: {"model": ErrorResponse, "description": "Internal server error"},
+        400: {"model": FileErrorResponse, "description": "Invalid request (bad path, invalid file)"},
+        403: {"model": FileErrorResponse, "description": "Upload feature disabled (ENABLE_UPLOAD=false) or path-traversal denial"},
+        413: {"model": FileErrorResponse, "description": "File exceeds 15 MB size limit"},
+        500: {"model": FileErrorResponse, "description": "Internal server error"},
     },
     summary="Upload a file to a case folder",
     description="""
@@ -263,10 +257,10 @@ async def upload_file(
     response_model=DeleteResponse,
     responses={
         200: {"description": "File deleted successfully"},
-        400: {"model": ErrorResponse, "description": "Invalid request (bad path)"},
-        403: {"model": ErrorResponse, "description": "Access denied (path traversal attempt)"},
-        404: {"model": ErrorResponse, "description": "File not found"},
-        500: {"model": ErrorResponse, "description": "Internal server error"},
+        400: {"model": FileErrorResponse, "description": "Invalid request (bad path)"},
+        403: {"model": FileErrorResponse, "description": "Access denied (path traversal attempt)"},
+        404: {"model": FileErrorResponse, "description": "File not found"},
+        500: {"model": FileErrorResponse, "description": "Internal server error"},
     },
     summary="Delete a file from a case folder",
     description="""
@@ -434,7 +428,7 @@ class FileExistsResponse(BaseModel):
     response_model=FileExistsResponse,
     responses={
         200: {"description": "File existence check completed"},
-        400: {"model": ErrorResponse, "description": "Invalid request (bad path)"},
+        400: {"model": FileErrorResponse, "description": "Invalid request (bad path)"},
     },
     summary="Check if a file exists in a case folder",
     description="""

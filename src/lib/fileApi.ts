@@ -11,9 +11,7 @@ import type {
   FileValidationError,
   DEFAULT_UPLOAD_CONSTRAINTS,
 } from '@/types/file';
-
-// Backend API base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '@/lib/apiConfig';
 
 /**
  * Validate file size before upload.

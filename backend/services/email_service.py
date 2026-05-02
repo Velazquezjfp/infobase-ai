@@ -26,6 +26,8 @@ from email.message import Message
 from dataclasses import dataclass
 import html2text
 
+from backend.config import resolve_document_path  # S001-NFR-006
+
 logger = logging.getLogger(__name__)
 
 
@@ -118,7 +120,7 @@ class EmailService:
             >>> email_data = service.parse_eml_file("Email.eml")
             >>> print(email_data.subject)
         """
-        path = Path(file_path)
+        path = resolve_document_path(file_path)  # S001-NFR-006: legacy → DOCUMENTS_BASE_PATH
 
         if not path.exists():
             logger.error(f"Email file not found: {file_path}")
