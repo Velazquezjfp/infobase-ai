@@ -24,6 +24,8 @@ from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from backend import config  # S001-NFR-006: DOCUMENTS_BASE_PATH
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/folders", tags=["folders"])
@@ -31,7 +33,13 @@ router = APIRouter(prefix="/api/folders", tags=["folders"])
 # Base paths
 BASE_DIR = Path(__file__).parent.parent
 CONTEXTS_DIR = BASE_DIR / "data" / "contexts" / "cases"
-DOCUMENTS_DIR = Path(__file__).parent.parent.parent / "public" / "documents"
+# S001-NFR-006: was `Path(__file__).parent.parent.parent / "public" / "documents"`
+# which inside the container resolves to /app/public/documents (cwd-relative,
+# doesn't exist; mkdir(parents=True) walks up to /app/public which is root-owned
+# → PermissionError on every GET /api/folders/<case_id> call). Anchor on
+# DOCUMENTS_BASE_PATH so it resolves to /var/app/documents in the container
+# (the volume mount, app:app-owned) and `public/documents` in host-dev.
+DOCUMENTS_DIR = Path(config.DOCUMENTS_BASE_PATH)
 
 
 # Pydantic models

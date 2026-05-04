@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 from typing import Union
 
-from backend.config import resolve_document_path  # S001-NFR-006
+from backend.config import resolve_document_path, DOCUMENTS_BASE_PATH  # S001-NFR-006
 
 logger = logging.getLogger(__name__)
 
@@ -297,8 +297,10 @@ def delete_file(case_id: str, folder_id: str, filename: str) -> bool:
     # Sanitize filename
     safe_filename = sanitize_filename(filename)
 
-    # Construct paths
-    base_dir = Path("public") / "documents"
+    # Construct paths.
+    # S001-NFR-006: use DOCUMENTS_BASE_PATH (container: /var/app/documents,
+    # host-dev: public/documents) so paths resolve correctly in both modes.
+    base_dir = Path(DOCUMENTS_BASE_PATH)
     expected_case_dir = base_dir / case_id
     file_path = base_dir / case_id / folder_id / safe_filename
 
@@ -413,8 +415,9 @@ def check_file_exists(case_id: str, folder_id: str, filename: str) -> bool:
     # Sanitize filename
     safe_filename = sanitize_filename(filename)
 
-    # Construct path
-    file_path = Path("public") / "documents" / case_id / folder_id / safe_filename
+    # Construct path.
+    # S001-NFR-006: anchored on DOCUMENTS_BASE_PATH for container/host-dev parity.
+    file_path = Path(DOCUMENTS_BASE_PATH) / case_id / folder_id / safe_filename
 
     exists = file_path.exists() and file_path.is_file()
     logger.debug(f"File exists check: {file_path} -> {exists}")

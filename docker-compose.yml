@@ -36,7 +36,12 @@ services:
           cpus: "2.0"
           memory: 2048M
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      # S001-NFR-005 closed-environment workaround: replaces `curl -f http://...`.
+      # The image no longer ships curl (the apt step that installed it is removed
+      # because deb.debian.org is unreachable in closed networks). Python is
+      # already in the image, so urllib does the same job:
+      # `urllib.request.urlopen(...)` raises on any non-2xx → exit non-zero (unhealthy).
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
       interval: 30s
       timeout: 5s
       retries: 3

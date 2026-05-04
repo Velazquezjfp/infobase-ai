@@ -5,15 +5,55 @@
 ARG DOCKER_REGISTRY=docker.io
 
 # ---- Stage 1: builder ----
-FROM ${DOCKER_REGISTRY}/node:18-alpine AS builder
+FROM ${DOCKER_REGISTRY}/node:20-alpine AS builder
 
 WORKDIR /app
 
 ARG NPM_REGISTRY=https://registry.npmjs.org
-RUN npm config set registry "${NPM_REGISTRY}"
+RUN npm config set registry "${NPM_REGISTRY}" && \
+    npm config set strict-ssl false
 
 COPY package.json package-lock.json ./
-RUN npm ci
+
+# S001-NFR-005 diagnostic mode (closed-environment Artifactory).
+# Replaced strict `npm ci` with `npm install --verbose` to:
+#   1) bypass `npm ci`'s lockfile strictness, which combined with mirror
+#      quirks reproducibly triggers npm 10.x's "Exit handler never called!"
+#      bug (https://github.com/npm/cli/issues/7657 and similar);
+#   2) skip the audit + funding endpoints that some Artifactory virtual
+#      repos don't proxy correctly (404 → trips the same exit-handler bug);
+#   3) prefer-offline so cached metadata is reused when available;
+#   4) legacy-peer-deps to allow lockfile↔mirror version drift to resolve;
+#   5) maximum verbose output so any future failure surfaces the actual
+#      cause (specific package, HTTP status, tarball integrity, etc.)
+#      instead of vanishing into npm's broken error reporter.
+# On failure, dump npm's own debug log file (the one referenced in the
+# error message) so the build output contains all available diagnostics,
+# AND propagate exit 1 so buildah stops the build instead of silently
+# continuing past the failure.
+RUN npm install \
+        --verbose \
+        --no-audit \
+        --no-fund \
+        --prefer-offline \
+        --legacy-peer-deps \
+    || { \
+        echo "==================================================="; \
+        echo "  npm install FAILED — dumping all available logs"; \
+        echo "==================================================="; \
+        echo "--- /root/.npm/_logs/ contents ---"; \
+        ls -la /root/.npm/_logs/ 2>/dev/null || echo "(directory missing)"; \
+        echo "--- last 500 lines of every debug log ---"; \
+        for f in /root/.npm/_logs/*-debug-0.log; do \
+            [ -f "$f" ] || continue; \
+            echo "--- $f ---"; \
+            tail -500 "$f"; \
+        done; \
+        echo "--- npm config ---"; \
+        npm config list -l 2>/dev/null || true; \
+        echo "==================================================="; \
+        exit 1; \
+    }
 
 # Copy source files; public/documents/ is intentionally excluded (large demo PDFs).
 COPY src/ ./src/

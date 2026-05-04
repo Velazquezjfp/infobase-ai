@@ -155,8 +155,11 @@ async def upload_file(
         # Validate case path to prevent path traversal
         validate_case_path(case_id, folder_id)
 
-        # Construct target path
-        target_dir = Path("public") / "documents" / case_id / folder_id
+        # Construct target path.
+        # S001-NFR-006: use DOCUMENTS_BASE_PATH so uploads land in the volume
+        # mount (/var/app/documents in container, public/documents in host-dev),
+        # not in cwd-relative public/documents which doesn't exist in the container.
+        target_dir = Path(config.DOCUMENTS_BASE_PATH) / case_id / folder_id
         target_path = target_dir / safe_filename
 
         # Create folder if it doesn't exist
@@ -588,8 +591,9 @@ async def files_health_check() -> JSONResponse:
     Returns:
         JSONResponse: Service health status and configuration.
     """
-    # Check if public/documents directory exists
-    docs_dir = Path("public") / "documents"
+    # Check if the documents storage directory exists.
+    # S001-NFR-006: anchored on DOCUMENTS_BASE_PATH for container/host-dev parity.
+    docs_dir = Path(config.DOCUMENTS_BASE_PATH)
     storage_available = docs_dir.exists() and docs_dir.is_dir()
 
     return JSONResponse(
