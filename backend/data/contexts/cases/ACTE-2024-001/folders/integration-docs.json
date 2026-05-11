@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "folderId": "integration-docs",
   "folderName": "Integration Course Documents",
-  "purpose": "Documents related to Ahmad Ali's integration course participation, attendance, and progress.",
+  "purpose": "Documents related to integration course participation and progress.",
   "expectedDocuments": [
     "course_confirmation",
     "attendance_records",
@@ -13,35 +13,29 @@
   "validationCriteria": [
     {
       "criterionId": "accredited_provider",
-      "description": "Course documents must be from BAMF-accredited providers",
-      "checkPoints": ["Provider name and accreditation number", "BAMF certification reference"],
-      "requirements": "Only BAMF-certified providers qualify"
+      "description": "Course documents must be from BAMF-accredited providers"
     },
     {
       "criterionId": "minimum_hours",
-      "description": "Attendance records must show sufficient course hours",
-      "checkPoints": ["Total hours attended", "Minimum 50% attendance required"],
-      "targetHours": "700 hours for general integration course"
+      "description": "Attendance must meet minimum 50% requirement",
+      "targetHours": "700 hours for general course"
     },
     {
       "criterionId": "completion_status",
-      "description": "Track course progress toward completion",
-      "checkPoints": ["Module completion", "DTZ test preparation", "LiD test preparation"],
-      "successCriteria": "DTZ B1 level and LiD test passed for full completion"
+      "description": "Track DTZ and LiD test completion",
+      "successCriteria": "DTZ B1 level and LiD test passed"
     }
   ],
   "processingGuidelines": [
-    "This is a new application - no existing course documents expected yet",
-    "Once enrolled, track course provider confirmation",
-    "Monitor attendance records as course progresses",
-    "Verify test results upon course completion"
+    "Verify course provider accreditation",
+    "Track attendance records",
+    "Monitor test results",
+    "Document any course discontinuation reasons"
   ],
   "commonMistakes": [
     {
-      "mistake": "Course from non-accredited provider",
-      "frequency": "occasional",
-      "resolution": "Ensure enrollment only with BAMF-accredited providers"
+      "mistake": "Non-accredited provider",
+      "resolution": "Enroll only with BAMF-accredited providers"
     }
-  ],
-  "currentStatus": "Pending - awaiting course enrollment"
+  ]
 }

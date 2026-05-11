@@ -22,9 +22,45 @@ from markdownify import markdownify
 from backend.services.context_manager import ContextManager
 from backend.services.conversation_manager import get_conversation_manager
 from backend.services.llm_provider import LLMProvider, get_provider
+from backend.utils.llm_output import (
+    JSON_ONLY_HEADER,
+    extract_json_from_llm_response,
+)
 from backend.config import ENABLE_CHAT_HISTORY
 
 logger = logging.getLogger(__name__)
+
+
+# S001-NFR-008 quick win #5: keywords that indicate the user is asking about
+# case content (validation, document analysis, extraction). When NONE are
+# present in a short message, treat it as small-talk and skip context.
+_TASK_KEYWORDS = {
+    # English
+    "validate", "check", "verify", "extract", "fill", "form",
+    "case", "akte", "document", "doc", "folder", "rule", "regulation",
+    "translate", "search", "find", "anonymize", "summary", "summarize",
+    "passport", "certificate", "email",
+    # German
+    "validier", "prüf", "fülle", "formular", "fall", "dokument",
+    "ordner", "regel", "vorschrift", "übersetz", "such", "finden",
+    "anonymisier", "zusammenfass", "pass", "zertifikat",
+}
+
+
+def _is_chitchat(prompt: str) -> bool:
+    """
+    Heuristic: short message with no task keywords and no question mark.
+
+    True → likely greeting / small-talk → skip heavy context injection.
+    False → likely a real task → load full context.
+    """
+    if not prompt:
+        return False
+    prompt = prompt.strip()
+    if len(prompt) >= 30 or "?" in prompt:
+        return False
+    lower = prompt.lower()
+    return not any(kw in lower for kw in _TASK_KEYWORDS)
 
 
 class GeminiService:
@@ -180,11 +216,15 @@ class GeminiService:
             # S5-011: Now returns both merged_context and document_tree
             merged_context = None
             document_tree = None
-            if case_id:
+            # S001-NFR-008 quick win #5: skip context injection for short
+            # greetings / small-talk. Saves attention budget on small models
+            # like llama3.2:1b. Conversation history still flows.
+            if case_id and not _is_chitchat(prompt):
                 merged_context, document_tree = self._load_context(
                     case_id,
                     folder_id,
-                    document_content
+                    document_content,
+                    language=language,
                 )
 
             # S5-010: Get conversation history if enabled
@@ -197,30 +237,37 @@ class GeminiService:
                         f"for case {case_id}"
                     )
 
-            # S5-011: Build the complete prompt with context, document content, conversation history, language, and tree view
-            full_prompt = self._build_prompt(
+            # S001-NFR-008: build proper OpenAI-style messages list.
+            # Replaces the previous single-string prompt — providers' chat
+            # templates (Llama, Gemini, OpenAI) all require role-tagged turns.
+            messages = self._build_messages(
                 prompt,
                 document_content,
                 merged_context,
                 conversation_history=conversation_history,
                 language=language,
-                document_tree=document_tree
+                document_tree=document_tree,
             )
 
             logger.info(
                 f"Generating response - "
                 f"prompt_length: {len(prompt)}, "
+                f"messages: {len(messages)}, "
                 f"case_id: {case_id or 'none'}, "
                 f"stream: {stream}"
             )
 
             # Provider-neutral generation parameters; LLMProvider
             # implementations translate these to backend-specific kwargs.
+            # S001-NFR-008: lowered temperature 0.7→0.4 and max_output_tokens
+            # 2048→512 for chat. 1B models with high temp/length produce
+            # verbose meta-narration ("I will now answer...") instead of
+            # direct replies. Form extraction stays at the original limits.
             gen_kwargs = dict(
-                temperature=0.7,
+                temperature=0.4,
                 top_p=0.8,
                 top_k=40,
-                max_output_tokens=2048,
+                max_output_tokens=512,
             )
 
             # Start timing for performance metrics
@@ -228,19 +275,17 @@ class GeminiService:
             first_token_time = None
 
             if stream:
-                # Return async generator for streaming mode
-                # S5-010: Pass prompt for conversation history saving
                 return self._generate_streaming_response(
-                    full_prompt,
+                    messages,
                     gen_kwargs,
                     start_time,
                     case_id,
                     user_prompt=prompt
                 )
             else:
-                # Non-streaming mode - return complete response
-                response_text = await self._provider.generate(
-                    full_prompt, **gen_kwargs
+                # Non-streaming chat mode
+                response_text = await self._provider.generate_chat(
+                    messages, **gen_kwargs
                 )
 
                 # S5-009: Format response (HTML to markdown, JSON to tables)
@@ -281,7 +326,7 @@ class GeminiService:
 
     async def _generate_streaming_response(
         self,
-        full_prompt: str,
+        messages: List[Dict[str, str]],
         gen_kwargs: Dict[str, Any],
         start_time: float,
         case_id: Optional[str],
@@ -290,18 +335,8 @@ class GeminiService:
         """
         Generate streaming response with performance metrics.
 
-        Args:
-            full_prompt: Complete prompt with context.
-            gen_kwargs: Provider-neutral generation kwargs (temperature etc.).
-            start_time: Request start time for metrics.
-            case_id: Case identifier for logging.
-            user_prompt: Original user prompt (for conversation history, S5-010).
-
-        Yields:
-            str: Response text chunks as they arrive.
-
-        Raises:
-            Exception: If streaming fails.
+        S001-NFR-008: now accepts OpenAI-format messages list and routes via
+        generate_chat_streaming so provider chat templates apply correctly.
         """
         try:
             first_token_time = None
@@ -309,8 +344,8 @@ class GeminiService:
             full_response = []
 
             # Yield chunks as they arrive from the provider
-            async for chunk_text in self._provider.generate_streaming(
-                full_prompt, **gen_kwargs
+            async for chunk_text in self._provider.generate_chat_streaming(
+                messages, **gen_kwargs
             ):
                 if not chunk_text:
                     continue
@@ -357,7 +392,8 @@ class GeminiService:
         self,
         case_id: str,
         folder_id: Optional[str] = None,
-        document_content: Optional[str] = None
+        document_content: Optional[str] = None,
+        language: str = 'de',
     ) -> Tuple[Optional[str], Optional[str]]:
         """
         Load and merge case-instance context.
@@ -414,11 +450,14 @@ class GeminiService:
                 except Exception as e:
                     logger.error(f"Error loading folder context: {str(e)}")
 
-            # Merge contexts
+            # S001-NFR-008 win B: pass None for doc_ctx — document content
+            # now lives in the current user message (built in _build_messages),
+            # not duplicated inside the merged system context.
             merged_context = self._context_manager.merge_contexts(
                 case_ctx,
                 folder_ctx,
-                document_content
+                None,
+                language=language,
             )
 
             # Inject pre-extracted regulation texts (offline content grounding).
@@ -447,106 +486,106 @@ class GeminiService:
             logger.error(f"Failed to load context: {str(e)}")
             return None, None
 
-    def _build_prompt(
+    def _build_messages(
         self,
         prompt: str,
         document_content: Optional[str] = None,
         context: Optional[str] = None,
-        context_sources: Optional[list] = None,
         conversation_history: Optional[list] = None,
         language: str = 'de',
         document_tree: Optional[str] = None
-    ) -> str:
+    ) -> List[Dict[str, str]]:
         """
-        S2-004: Build a complete prompt with context, document content, and source labels.
-        S5-010: Enhanced with conversation history support.
-        S5-011: Enhanced with document tree view for global document awareness.
-        S5-014: Enhanced with language parameter for AI response language.
-
-        Combines user prompt, case context, document content, conversation
-        history, and document tree view into a well-structured prompt for the AI model.
-        Enhanced with source tracking for AI transparency and language-specific responses.
-
-        Args:
-            prompt: The user's question or instruction.
-            document_content: Optional document text to include.
-            context: Optional case/folder context information.
-            context_sources: Optional list of context sources for transparency.
-            conversation_history: Optional list of previous conversation turns (S5-010).
-            language: Language code ('de' or 'en') for AI response language (S5-014).
-            document_tree: Optional document tree view for document awareness (S5-011).
+        S001-NFR-008: Build an OpenAI-style messages list for chat completion.
 
         Returns:
-            str: The complete formatted prompt with source labels and history.
+            [
+                {"role": "system",    "content": <short style + persistent context>},
+                {"role": "user",      "content": <prior turn 1>},
+                {"role": "assistant", "content": <prior turn 2>},
+                ...
+                {"role": "user",      "content": <document context + current question>},
+            ]
+
+        Why messages (not a single jammed string):
+          - Providers' chat templates (Llama, OpenAI, Gemini) require role tags
+            to know where each turn begins/ends. Without them, small models
+            treat the whole thing as one user turn and emit transcript-style
+            continuations (greetings, echoes, meta-narration).
+          - This format is the universal LLM-agnostic standard.
+
+        System prompt is deliberately short — extensive instructions trigger
+        small models (llama3.2:1b) to vocalize compliance rather than execute.
         """
-        parts = []
+        is_de = (language == 'de')
 
-        # S2-004: Add system instructions for source citation
-        # S5-014: Add language instruction based on parameter
-        language_name = 'German' if language == 'de' else 'English'
-        parts.append("# System Instructions")
-        parts.append("You are an AI assistant helping with case management.")
-        parts.append(f"IMPORTANT: Respond in {language_name} language.")
-        parts.append("When answering questions, cite your sources when the information")
-        parts.append("comes from the provided context (case, folder, or document).")
-        parts.append("Use format: [Source: <source_name>] when citing specific information.")
-        parts.append("")
+        # --- System prompt: short, direct style guidance ---
+        if is_de:
+            system_lines = [
+                "Du bist ein KI-Assistent für die BAMF-Fallverwaltung (Akten).",
+                "Antworte dem Nutzer direkt und kurz auf Deutsch.",
+                "Erkläre deine Argumentation nicht.",
+                "Stil: Freundlich und prägnant.",
+            ]
+        else:
+            system_lines = [
+                "You are an AI assistant for BAMF case management.",
+                "Answer the user directly and concisely in English.",
+                "Do not explain your reasoning.",
+                "Style: Friendly and brief.",
+            ]
 
-        # S2-004: Add context sources summary if provided
-        if context_sources:
-            parts.append("# Available Context Sources")
-            for source in context_sources:
-                parts.append(f"  - {source}")
-            parts.append("")
-
-        # Add context if provided
-        if context:
-            parts.append("# Case Context")
-            parts.append("(Information from case configuration and folder settings)")
-            parts.append(context)
-            parts.append("")
-
-        # S5-011: Add document tree view if provided
+        # --- Document tree FIRST (S001-NFR-008 win A) ---
+        # Small models (llama3.2:1b) read the start of the system message
+        # most attentively. Putting the tree before the regulations dump
+        # means "which docs exist?" type questions are answered reliably.
         if document_tree:
-            parts.append("# Available Documents (Tree View)")
-            parts.append("(Complete overview of all documents in this case)")
-            parts.append(document_tree)
-            parts.append("")
-            parts.append("IMPORTANT: Use this tree view to:")
-            parts.append("- Answer questions about what documents are available")
-            parts.append("- Locate specific documents by name or type")
-            parts.append("- Correct user misconceptions (e.g., if user says 'I don't have X' but X exists in tree)")
-            parts.append("- Understand document organization in folders")
-            parts.append("")
+            system_lines.append("")
+            if is_de:
+                system_lines.append("--- Verfügbare Dokumente in dieser Akte ---")
+            else:
+                system_lines.append("--- Available Documents in this Case ---")
+            system_lines.append(document_tree)
 
-        # Add document content if provided (highest priority source)
-        if document_content:
-            parts.append("# Document Content")
-            parts.append("(Primary source - extracted from uploaded document)")
-            parts.append(document_content)
-            parts.append("")
+        # --- Persistent case + folder context ---
+        if context:
+            system_lines.append("")
+            if is_de:
+                system_lines.append("--- Akten-Kontext ---")
+            else:
+                system_lines.append("--- Case Context ---")
+            system_lines.append(context)
 
-        # S5-010: Add conversation history if provided
+        messages: List[Dict[str, str]] = [
+            {"role": "system", "content": "\n".join(system_lines)}
+        ]
+
+        # --- Past turns as proper role-tagged messages ---
         if conversation_history:
-            parts.append("# Conversation History")
-            parts.append("(Previous messages in this conversation)")
             for msg in conversation_history:
-                role_label = "User" if msg["role"] == "user" else "Assistant"
-                parts.append(f"{role_label}: {msg['content']}")
-                parts.append("")
+                role = msg.get("role")
+                if role in ("user", "assistant"):
+                    messages.append({"role": role, "content": msg["content"]})
 
-        # Add user prompt
-        parts.append("# User Request")
-        parts.append(prompt)
+        # --- Current user turn: document content (if any) + question ---
+        # Document content is request-specific so it goes in the user turn,
+        # not the persistent system prompt.
+        if document_content:
+            if is_de:
+                user_content = (
+                    f"--- Dokumentinhalt ---\n{document_content}\n\n"
+                    f"Frage: {prompt}"
+                )
+            else:
+                user_content = (
+                    f"--- Document Content ---\n{document_content}\n\n"
+                    f"Question: {prompt}"
+                )
+        else:
+            user_content = prompt
 
-        # S2-004: Append source citation reminder
-        parts.append("")
-        parts.append("# Response Guidelines")
-        parts.append("- Answer the user's request based on the provided context")
-        parts.append("- When information comes from a specific source, cite it")
-        parts.append("- If information is not found in the context, say so clearly")
-
-        return "\n".join(parts)
+        messages.append({"role": "user", "content": user_content})
+        return messages
 
     def _is_json_data(self, text: str) -> bool:
         """
@@ -716,8 +755,10 @@ class GeminiService:
             raise ValueError("LLM provider not initialized")
 
         try:
-            # Build the semantic search prompt
-            prompt = f"""Analyze the following document and find all passages relevant to the user's query.
+            # Build the semantic search prompt (S001-NFR-007: standardized JSON header at top)
+            prompt = f"""{JSON_ONLY_HEADER}
+
+Analyze the following document and find all passages relevant to the user's query.
 
 Query (in {query_lang}): {query}
 
@@ -743,9 +784,7 @@ Format:
     "relevance_score": 0.95,
     "context": "brief explanation of why this matches"
   }}
-]
-
-Return ONLY the JSON array, no additional text."""
+]"""
 
             logger.info(
                 f"Performing semantic search - "
@@ -762,19 +801,12 @@ Return ONLY the JSON array, no additional text."""
                 top_k=40,
                 max_output_tokens=2048,
             )
-            response_text = (response_text or "").strip()
 
-            # Remove markdown code blocks if present
-            if response_text.startswith('```'):
-                # Remove ```json and ``` markers
-                response_text = response_text.replace('```json', '').replace('```', '').strip()
-
-            # Parse JSON response
-            highlights = json.loads(response_text)
-
-            # Validate response is an array
-            if not isinstance(highlights, list):
-                logger.warning(f"Gemini returned non-array response: {type(highlights)}")
+            # S001-NFR-007: shared utility handles fences and preamble recovery
+            highlights = extract_json_from_llm_response(response_text, expect="array")
+            if highlights is None or not isinstance(highlights, list):
+                if highlights is not None:
+                    logger.warning(f"Semantic search returned non-array: {type(highlights)}")
                 highlights = []
 
             # Validate and clean highlight objects
@@ -809,15 +841,27 @@ Return ONLY the JSON array, no additional text."""
 
             return cleaned_highlights
 
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse Gemini JSON response: {str(e)}")
-            logger.error(f"Raw response: {response_text[:500]}")
-            # Return empty results on parse error
-            return []
-
         except Exception as e:
             logger.error(f"Error in semantic search: {str(e)}")
             raise
+
+    async def generate_raw(self, prompt: str, **kwargs) -> str:
+        """
+        S001-NFR-007: Generate a completion without post-processing.
+
+        Unlike generate_response(), this bypasses format_response() so the
+        caller receives the model's raw text. Use this for structured outputs
+        (JSON extraction, semantic search) where format_response() would
+        convert a valid JSON object into a markdown table and break parsing.
+
+        Provider-neutral kwargs (temperature, top_p, max_output_tokens) are
+        translated by each provider's _map_kwargs(); top_k is dropped silently
+        for OpenAI-compatible backends that don't support it.
+        """
+        if self._provider is None:
+            raise ValueError("LLM provider not initialized")
+        response = await self._provider.generate(prompt, **kwargs)
+        return (response or "").strip()
 
     def is_initialized(self) -> bool:
         """

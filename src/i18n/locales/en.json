@@ -341,10 +341,11 @@
       "shaclDialogTitle": "SHACL Shape - Form Configuration",
       "shaclDialogDescription": "JSON-LD representation of the form's SHACL shape with semantic validation",
       "optionsPlaceholder": "Option 1, Option 2, Option 3",
-      "examplePrompt1": "\"Add a required text field for passport number\"",
-      "examplePrompt2": "\"Create a date field for visa expiry date\"",
+      "aiPromptPlaceholder": "e.g. \"Add a text field for passport number, the passport number is an ID with only digits, usually 5–10 characters long\" — the explanation after the comma becomes the semantic description.",
+      "examplePrompt1": "\"Add a required text field for passport number, an identifier with only digits, usually 5–10 characters long\"",
+      "examplePrompt2": "\"Create a date field for visa expiry date, the date the residence permit ceases to be valid\"",
       "examplePrompt3": "\"Add dropdown for education level with options high school, bachelor, master, phd\"",
-      "examplePrompt4": "\"I need a textarea for additional notes\"",
+      "examplePrompt4": "\"I need a textarea for additional notes, free-form comments about the applicant\"",
       "copiedToClipboard": "Copied to clipboard",
       "shaclCopiedSuccess": "SHACL shape copied successfully"
     }

@@ -9,6 +9,11 @@ populate form fields based on document content.
 import logging
 from typing import Dict, List, Any, Optional
 
+from backend.utils.llm_output import (
+    JSON_ONLY_HEADER,
+    extract_json_from_llm_response,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -81,14 +86,31 @@ def build_extraction_prompt(
     prompt_parts = [
         "# Task: Extract Form Field Values",
         "",
+        JSON_ONLY_HEADER,
+        # S001-NFR-008: example output uses ABSTRACT placeholders, never
+        # concrete names/dates. Small models (llama3.2:1b) will otherwise
+        # copy "Ahmad Ali" / "1990-05-15" verbatim into the output when the
+        # source document doesn't contain the fields — turning extraction
+        # into plagiarism of the prompt.
+        "Example output schema: {\"<field_id>\": \"<extracted_value>\", ...}",
+        "",
+        "CRITICAL: Extract ONLY values that are LITERALLY present in the document",
+        "text below. Do NOT invent, guess, or copy values from this prompt's",
+        "examples. If a field is not in the document, OMIT it from the JSON.",
+        "If NO fields are found, return exactly: {}",
+        "",
         "Extract the following form field values from the provided document text.",
-        "Return the results in JSON format with field IDs as keys.",
         "",
         "## Form Fields to Extract:",
         ""
     ]
 
-    # Add field definitions with semantic paths for better AI matching
+    # S001-NFR-008: enrich each field with SHACL metadata that's already
+    # present in the form schema but was previously dropped. The `sh:description`
+    # in particular is the richest semantic signal — explains the *intent* of
+    # the field so the model can semantically match (e.g. map email content
+    # to `reasonForApplication`). Aligned with the blueprint in
+    # `ontology_shacl_material/prompt_example.md`.
     for field in form_schema:
         field_id = field.get("id", "")
         field_label = field.get("label", "")
@@ -96,24 +118,44 @@ def build_extraction_prompt(
         field_required = field.get("required", False)
         field_options = field.get("options", [])
 
-        # Extract semantic path from SHACL metadata if available
         shacl_metadata = field.get("shaclMetadata", {})
-        semantic_path = shacl_metadata.get("sh:path", "")
-        # Extract property name from path (e.g., "schema:passportNumber" -> "passportNumber")
-        semantic_property = semantic_path.split(":")[-1] if semantic_path else ""
+        sh_path = shacl_metadata.get("sh:path", "")
+        sh_description = shacl_metadata.get("sh:description", "")
+        sh_datatype = shacl_metadata.get("sh:datatype", "")
+        sh_min_count = shacl_metadata.get("sh:minCount")
+        sh_max_count = shacl_metadata.get("sh:maxCount")
 
-        # Debug logging to trace SHACL metadata
-        logger.debug(f"Field {field_id}: shaclMetadata={shacl_metadata}, semantic_path={semantic_path}")
+        logger.debug(
+            f"Field {field_id}: path={sh_path}, datatype={sh_datatype}, "
+            f"has_description={bool(sh_description)}"
+        )
 
-        prompt_parts.append(f"- {field_id} ({field_label})")
-        prompt_parts.append(f"  Type: {field_type}")
+        prompt_parts.append(f"- {field_id}")
+        prompt_parts.append(f"  Label: {field_label}")
+
+        # The SEMANTIC INTENT of the field. Most useful signal for the LLM.
+        if sh_description:
+            prompt_parts.append(f"  Definition: {sh_description}")
+
+        # Type with optional XSD specifier (helps the LLM with formats).
+        if sh_datatype:
+            prompt_parts.append(f"  Type: {field_type} ({sh_datatype})")
+        else:
+            prompt_parts.append(f"  Type: {field_type}")
+
         prompt_parts.append(f"  Required: {'Yes' if field_required else 'No'}")
 
-        # Include semantic property for AI matching (crucial for NLP-generated fields)
-        if semantic_property:
-            prompt_parts.append(f"  Semantic: {semantic_property}")
+        # Cardinality (rarely useful for extraction but cheap to include).
+        if sh_min_count is not None or sh_max_count is not None:
+            mn = sh_min_count if sh_min_count is not None else 0
+            mx = sh_max_count if sh_max_count is not None else "∞"
+            prompt_parts.append(f"  Cardinality: {mn}..{mx}")
 
-        # Include options for select fields
+        # Ontology link (full path, not the truncated tail).
+        if sh_path:
+            prompt_parts.append(f"  Ontology: {sh_path}")
+
+        # Options for select fields.
         if field_type == "select" and field_options:
             options_str = ", ".join([f'"{opt}"' for opt in field_options])
             prompt_parts.append(f"  Options: [{options_str}]")
@@ -149,14 +191,13 @@ def build_extraction_prompt(
         "- Extract the actual data value, not the label",
         "",
         "### 3. Date Format Conversion:",
-        "- Input dates may be in German format: DD.MM.YYYY (e.g., 15.05.1990)",
-        "- Input dates may also be: DD/MM/YYYY, DD-MM-YYYY, or other variants",
-        "- ALWAYS convert to ISO format: YYYY-MM-DD (e.g., 1990-05-15)",
-        "- Validate dates are realistic (year between 1900-2030 for birthdates)",
-        "- Examples:",
-        "  * '15.05.1990' → '1990-05-15'",
-        "  * '01/12/1985' → '1985-12-01'",
-        "  * 'Born: 20.03.2000' → '2000-03-20'",
+        "- Input dates may be in formats: DD.MM.YYYY / DD/MM/YYYY / DD-MM-YYYY",
+        "- ALWAYS convert to ISO format YYYY-MM-DD",
+        "- Validate dates are realistic (year 1900-2030 for birthdates)",
+        "- Conversion pattern: DD.MM.YYYY → YYYY-MM-DD (rearrange components)",
+        # S001-NFR-008: removed concrete date examples ('15.05.1990' → '1990-05-15')
+        # because 1B models copied them verbatim into the response when source
+        # documents had no birthDate field.
         "",
         "### 4. Select Field Matching:",
         "- For fields with predefined options, match document text to the closest option",
@@ -173,14 +214,16 @@ def build_extraction_prompt(
         "",
         "### 6. Output Format:",
         "- Return ONLY a valid JSON object",
-        "- Format: {\"field_id\": \"extracted_value\", \"another_field_id\": \"another_value\"}",
+        "- Format: {\"<field_id>\": \"<extracted_value>\", ...}",
         "- Use field IDs as keys (not labels)",
         "- All values must be strings",
         "- Do not include explanations, confidence scores, or additional text",
-        "- Example: {\"fullName\": \"Ahmad Ali\", \"birthDate\": \"1990-05-15\", \"countryOfOrigin\": \"Afghanistan\"}",
+        "- If no fields are found in the document, return exactly: {}",
         "",
         "## Important:",
-        "Return ONLY the JSON object with extracted values. No markdown, no code blocks, no additional text."
+        "Return ONLY the JSON object with extracted values. No markdown, no code blocks, no additional text.",
+        "Use ONLY values from the document text above — never copy names, dates,",
+        "or country names from this prompt's instructions/examples."
     ])
 
     return "\n".join(prompt_parts)
@@ -284,10 +327,67 @@ def compare_values(
     }
 
 
+def _value_grounded_in_document(value: str, document_text: str, field_type: str) -> bool:
+    """
+    S001-NFR-008: post-extraction grounding check.
+
+    Returns True only if the extracted value can plausibly be located in the
+    source document. This is the structural guardrail against model
+    hallucination — no matter what the prompt says or what priors the model
+    has (e.g. defaulting birthDate to "1990-01-01"), if the value isn't in
+    the document we drop the field.
+
+    Lenient by design: dates are normalized across common formats; multi-word
+    text matches if a majority of words appear; case-insensitive throughout.
+    """
+    if not value or not document_text:
+        return False
+
+    value_lower = value.strip().lower()
+    doc_lower = document_text.lower()
+
+    # Select values are validated against the field's options, not the doc.
+    if field_type == "select":
+        return True
+
+    # Date: try several representations the source document might use.
+    if field_type == "date":
+        import re
+        m = re.match(r'(\d{4})-(\d{2})-(\d{2})', value_lower)
+        if m:
+            year, month, day = m.groups()
+            day_stripped = day.lstrip('0') or '0'
+            month_stripped = month.lstrip('0') or '0'
+            candidates = [
+                f"{day}.{month}.{year}",
+                f"{day}/{month}/{year}",
+                f"{day}-{month}-{year}",
+                f"{day_stripped}.{month_stripped}.{year}",
+                f"{day_stripped}/{month_stripped}/{year}",
+                f"{year}-{month}-{day}",
+                f"{year}/{month}/{day}",
+                f"{day} {month} {year}",
+            ]
+            return any(c in doc_lower for c in candidates)
+        # Date value isn't ISO — fall back to substring
+        return value_lower in doc_lower
+
+    # Text / textarea: substring or word-majority match.
+    if value_lower in doc_lower:
+        return True
+    words = [w for w in value_lower.split() if len(w) >= 2]
+    if not words:
+        return value_lower in doc_lower
+    present = sum(1 for w in words if w in doc_lower)
+    # Allow if at least 60% of meaningful words show up in the document
+    return present / len(words) >= 0.6
+
+
 def parse_extraction_result(
     ai_response: str,
     form_schema: List[Dict[str, Any]],
-    current_values: Optional[Dict[str, str]] = None
+    current_values: Optional[Dict[str, str]] = None,
+    document_text: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Parse the AI's extraction result and format it for frontend consumption.
@@ -323,21 +423,18 @@ def parse_extraction_result(
                 "ignored": ["field_id1", "field_id2"]
             }
     """
-    import json
-    import re
     from datetime import datetime
 
     try:
-        # Clean response - remove markdown code blocks if present
-        cleaned_response = ai_response.strip()
-        if cleaned_response.startswith("```"):
-            # Extract JSON from code block
-            lines = cleaned_response.split("\n")
-            cleaned_response = "\n".join(lines[1:-1]) if len(lines) > 2 else cleaned_response
-            cleaned_response = cleaned_response.replace("```json", "").replace("```", "").strip()
-
-        # Parse AI response as JSON
-        extracted_data = json.loads(cleaned_response)
+        # S001-NFR-007 + S001-NFR-008: shared utility handles code-fence
+        # stripping, preamble recovery, and truncation repair (small models
+        # generate verbose output that overflows max_output_tokens — repair
+        # balances braces/quotes so partial responses still parse).
+        extracted_data = extract_json_from_llm_response(
+            ai_response, expect="object", repair_truncation=True
+        )
+        if extracted_data is None:
+            return {"updates": {}, "confidence": {}}
 
         # Build field schema lookup
         field_schema_map = {field["id"]: field for field in form_schema}
@@ -405,11 +502,23 @@ def parse_extraction_result(
                 # Textarea can be longer
                 field_confidence = 0.85
 
+            # S001-NFR-008: post-extraction grounding. Drop any field whose
+            # value cannot be located in the source document — kills
+            # hallucinations like the model defaulting birthDate to
+            # "1990-01-01" on documents that contain no date at all.
+            if document_text is not None:
+                if not _value_grounded_in_document(value_str, document_text, field_type):
+                    logger.info(
+                        f"Dropping field '{field_id}': value {value_str!r} "
+                        f"not grounded in document text"
+                    )
+                    continue
+
             # Store validated value and confidence
             updates[field_id] = value_str
             confidence[field_id] = field_confidence
 
-        logger.info(f"Successfully parsed {len(updates)} field values")
+        logger.info(f"Successfully parsed {len(updates)} field values (grounded)")
 
         # S5-002: If current_values provided, categorize into direct updates vs suggestions
         if current_values is not None:
@@ -424,13 +533,6 @@ def parse_extraction_result(
                 "confidence": confidence
             }
 
-    except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse AI response as JSON: {str(e)}")
-        logger.error(f"Response content: {ai_response[:200]}...")
-        return {
-            "updates": {},
-            "confidence": {}
-        }
     except Exception as e:
         logger.error(f"Error parsing extraction result: {str(e)}")
         return {

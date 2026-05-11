@@ -15,13 +15,16 @@ Features:
 
 import json
 import logging
-import re
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 
 from backend.services.context_manager import ContextManager, generate_document_tree
 from backend.services.document_registry import get_documents_by_case
 from backend.services.llm_provider import LLMProvider, get_provider
+from backend.utils.llm_output import (
+    JSON_ONLY_HEADER,
+    extract_json_from_llm_response,
+)
 from backend.api.custom_context import load_custom_rules
 
 logger = logging.getLogger(__name__)
@@ -323,69 +326,19 @@ Return ONLY valid JSON, no markdown, no extra text.""")
         msgs = fallback_messages.get(language, fallback_messages['de'])
 
         try:
-            # Clean up the response - remove markdown code blocks if present
-            cleaned_response = response.strip()
+            logger.info(f"Raw validation response length: {len(response or '')}")
+            logger.info(f"Raw validation response (first 500): {repr((response or '')[:500])}")
 
-            # Log raw response for debugging
-            logger.info(f"Raw validation response length: {len(cleaned_response)}")
-            logger.info(f"Raw validation response (first 500): {repr(cleaned_response[:500])}")
-
-            # Remove markdown code block wrappers (```json ... ``` or ``` ... ```)
-            if '```' in cleaned_response:
-                # Try to extract content between code blocks
-                code_block_match = re.search(r'```(?:json)?\s*([\s\S]+?)\s*```', cleaned_response)
-                if code_block_match:
-                    cleaned_response = code_block_match.group(1).strip()
-                    logger.info(f"Extracted from code block, length: {len(cleaned_response)}")
-                else:
-                    # Fallback: just remove the ``` markers
-                    cleaned_response = cleaned_response.replace('```json', '').replace('```', '').strip()
-                    logger.info(f"Removed code markers, length: {len(cleaned_response)}")
-                    logger.info(f"After code marker removal (first 300): {repr(cleaned_response[:300])}")
-
-            # Try to extract JSON object from the response
-            # First try to find complete JSON (with closing brace)
-            json_match = re.search(r'\{[\s\S]*\}', cleaned_response)
-            if json_match:
-                cleaned_response = json_match.group(0)
-                logger.info(f"Extracted complete JSON object, length: {len(cleaned_response)}")
-            else:
-                # Response might be truncated - try to find partial JSON starting with {
-                json_start = re.search(r'\{[\s\S]*', cleaned_response)
-                if json_start:
-                    cleaned_response = json_start.group(0)
-                    logger.warning(f"Found truncated JSON (no closing brace), length: {len(cleaned_response)}")
-                else:
-                    logger.warning("No JSON object found in response")
-                    raise json.JSONDecodeError("No JSON object found", cleaned_response, 0)
-
-            # Try to fix truncated JSON before parsing
-            if cleaned_response:
-                # Check if string is unterminated (odd number of quotes excluding escaped ones)
-                # Count unescaped quotes
-                unescaped_quotes = len(re.findall(r'(?<!\\)"', cleaned_response))
-                if unescaped_quotes % 2 == 1:
-                    # Odd number of quotes - need to close the string
-                    cleaned_response += '"'
-                    logger.info("Added closing quote for truncated string")
-
-                open_braces = cleaned_response.count('{')
-                close_braces = cleaned_response.count('}')
-                open_brackets = cleaned_response.count('[')
-                close_brackets = cleaned_response.count(']')
-
-                # Fix missing closing brackets/braces
-                if open_brackets > close_brackets:
-                    cleaned_response += ']' * (open_brackets - close_brackets)
-                    logger.info(f"Added {open_brackets - close_brackets} closing brackets")
-                if open_braces > close_braces:
-                    cleaned_response += '}' * (open_braces - close_braces)
-                    logger.info(f"Added {open_braces - close_braces} closing braces")
-
-                logger.debug(f"Fixed JSON (last 100 chars): {cleaned_response[-100:]}")
-
-            # Parse JSON
-            data = json.loads(cleaned_response)
+            # S001-NFR-007: shared utility handles fences, preamble recovery,
+            # and truncation repair (validation responses are long and can
+            # hit max_tokens mid-output).
+            data = extract_json_from_llm_response(
+                response,
+                expect="object",
+                repair_truncation=True,
+            )
+            if data is None:
+                raise json.JSONDecodeError("No JSON object found", response or "", 0)
 
             # Extract warnings
             warnings = []

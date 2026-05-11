@@ -1,5 +1,7 @@
 #envs
 .env
+.env.bamf
+backend/.env
 litellm/
 # AI & Tool Specific Folders
 .claude/
@@ -13,5 +15,5 @@ backend/venv/
 **/__pycache__/
 *.pyc
 *.so
-temp/
 dist/.env.bak.20260502-101323
+waves/

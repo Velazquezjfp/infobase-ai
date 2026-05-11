@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "folderId": "personal-data",
   "folderName": "Personal Data",
-  "purpose": "Identity verification and personal information documents for Ahmad Ali's integration course application.",
+  "purpose": "Identity verification and personal information documents.",
   "expectedDocuments": [
     "birth_certificate",
     "passport",
@@ -15,44 +15,33 @@
     {
       "criterionId": "name_consistency",
       "description": "Full name must be consistent across all identity documents",
-      "checkPoints": ["First name spelling (Ahmad)", "Last name spelling (Ali)", "Name order consistency"],
-      "applicantReference": "Expected name: Ahmad Ali"
+      "checkPoints": ["First name spelling", "Last name spelling", "Name order"]
     },
     {
       "criterionId": "valid_dates",
-      "description": "All date fields must be valid and logically consistent",
-      "checkPoints": ["Birth date: 15.05.1990", "Document issue dates", "Document expiry dates"],
-      "applicantReference": "Expected DOB: 15.05.1990"
+      "description": "All date fields must be valid and consistent",
+      "checkPoints": ["Birth date format", "Document issue dates", "Document expiry dates"]
     },
     {
       "criterionId": "certified_translations",
-      "description": "Afghan documents require certified German translations",
-      "checkPoints": ["Translator certification present", "Translation completeness", "Dari/Pashto documents translated"],
-      "requirements": "Translation must be by a sworn translator (beeidigter Übersetzer)"
-    },
-    {
-      "criterionId": "nationality_verification",
-      "description": "Verify Afghan nationality and refugee status documentation",
-      "checkPoints": ["Nationality stated as Afghanistan", "Refugee status confirmed", "Residence permit type appropriate"],
-      "applicantReference": "Expected nationality: Afghanistan"
+      "description": "Foreign language documents require certified German translations",
+      "checkPoints": ["Translator certification", "Translation completeness"]
     }
   ],
   "processingGuidelines": [
-    "Verify Ahmad Ali's name consistency across all documents",
-    "Check birth date matches 15.05.1990 on all documents",
-    "Ensure Afghan documents have certified German translations",
-    "Verify residence permit is valid for integration course eligibility"
+    "Verify name consistency across all documents",
+    "Check document expiry dates",
+    "Ensure foreign documents have certified translations",
+    "Verify residence permit eligibility for integration course"
   ],
   "commonMistakes": [
     {
-      "mistake": "Missing certified translation for Afghan birth certificate",
-      "frequency": "very_common",
-      "resolution": "Request certified German translation from sworn translator"
+      "mistake": "Missing certified translation",
+      "resolution": "Request certified German translation"
     },
     {
-      "mistake": "Name transliteration differences (Ahmad/Ahmed)",
-      "frequency": "common",
-      "resolution": "Document variations, use residence permit spelling as primary"
+      "mistake": "Name spelling differences",
+      "resolution": "Document variations, use residence permit as primary"
     }
   ]
 }

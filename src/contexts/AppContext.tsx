@@ -930,7 +930,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       type: 'chat',
       content,
       caseId: currentCase.id,
-      folderId: selectedDocument?.id || null,
+      // S001-NFR-008: was `selectedDocument?.id` — the document ID, not folder ID.
+      // Backend treats this as a folder identifier and looks up
+      // `cases/{caseId}/folders/{folderId}.json`, so the doc ID never matched
+      // any folder context file → folder rules silently dropped from prompt.
+      folderId: selectedDocument?.folderId || null,
       documentContent,
       formSchema: formFields,
       currentFormValues,  // S5-002: For comparison with extracted values

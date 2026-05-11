@@ -11,8 +11,6 @@ Requirement: S5-001 - Natural Language Form Field Modification with SHACL Valida
 """
 
 import logging
-import json
-import re
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 
@@ -25,6 +23,10 @@ from backend.schemas.schema_org_mappings import (
 )
 from backend.schemas.validation_patterns import ValidationPattern
 from backend.services.llm_provider import LLMProvider, get_provider
+from backend.utils.llm_output import (
+    JSON_ONLY_HEADER,
+    extract_json_from_llm_response,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +43,10 @@ class FormField:
     validationPattern: Optional[str] = None
     semanticType: Optional[str] = None
     shaclMetadata: Optional[Dict[str, Any]] = None
+    # S001-NFR-008: semantic description from the user's NL command; flows
+    # into the generated PropertyShape as sh:description so /fillForm has
+    # field-intent context when extracting from documents.
+    description: Optional[str] = None
 
 
 @dataclass
@@ -97,6 +103,8 @@ class SHACLGeneratorService:
         current_field_list = "\n".join([f"- {f.label} ({f.type})" for f in current_fields])
 
         prompt = f"""
+{JSON_ONLY_HEADER}
+
 You are a form modification assistant. Parse the following natural language command and extract the modification intent.
 
 Current form fields:
@@ -110,6 +118,7 @@ Analyze the command and respond with a JSON object containing:
 - "field_type": one of ["text", "date", "select", "textarea"] (for add action)
 - "required": boolean (for add action, default false)
 - "options": list of strings (for add action with select type, optional)
+- "description": semantic explanation of what data this field captures (for add action, optional)
 - "clarification": string (only if action is "clarify" - ask for more details)
 
 Rules:
@@ -118,6 +127,9 @@ Rules:
    - Extract field label from command
    - Detect if field is required from words like "required", "mandatory", "must"
    - For select fields, extract options if mentioned
+   - If the user explains what data the field captures (often after a comma or
+     as a second sentence), extract that as the "description". This is the
+     field's semantic intent. If the user gives no explanation, OMIT the key.
 
 2. For "remove" commands:
    - Match field label to existing fields (fuzzy match)
@@ -142,24 +154,18 @@ Respond with ONLY the JSON object, no additional text.
             response_text = await self._provider.generate(
                 prompt, temperature=0.1
             )
-            response_text = (response_text or "").strip()
 
-            # Remove markdown code blocks if present
-            if response_text.startswith("```"):
-                response_text = re.sub(r'^```(?:json)?\s*', '', response_text)
-                response_text = re.sub(r'\s*```$', '', response_text)
-
-            parsed = json.loads(response_text)
+            # S001-NFR-007: shared utility handles fences and preamble recovery
+            parsed = extract_json_from_llm_response(response_text, expect="object")
+            if parsed is None:
+                logger.error(f"Failed to parse NL command response: {response_text[:200] if response_text else '(empty)'}")
+                return {
+                    "action": "clarify",
+                    "clarification": "I couldn't understand that command. Please try rephrasing."
+                }
 
             logger.info(f"Parsed NL command: {command} → {parsed}")
             return parsed
-
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse Gemini response as JSON: {e}")
-            return {
-                "action": "clarify",
-                "clarification": "I couldn't understand that command. Please try rephrasing."
-            }
         except Exception as e:
             logger.error(f"Error parsing NL command: {e}")
             return {
@@ -187,14 +193,16 @@ Respond with ONLY the JSON object, no additional text.
         )
         message = validation_pattern["message"] if validation_pattern else f"{field.label} is invalid"
 
-        # Create SHACL PropertyShape
+        # Create SHACL PropertyShape (S001-NFR-008: forward description so
+        # sh:description ends up in the generated SHACL JSON-LD)
         shape = SHACLPropertyShape.create_for_field_type(
             field_name=field.label,
             field_type=field.type,
             schema_org_property=schema_type,
             required=field.required,
             allowed_values=field.options,
-            custom_pattern=ValidationPattern(pattern=pattern, message=message) if pattern else None
+            custom_pattern=ValidationPattern(pattern=pattern, message=message) if pattern else None,
+            description=field.description,
         )
 
         return shape
@@ -269,6 +277,7 @@ Respond with ONLY the JSON object, no additional text.
             field_type = parsed.get("field_type", "text")
             required = parsed.get("required", False)
             options = parsed.get("options")
+            description = parsed.get("description")  # S001-NFR-008
 
             # If field type not provided, infer from label
             if not field_type or field_type == "text":
@@ -288,7 +297,8 @@ Respond with ONLY the JSON object, no additional text.
                 required=required,
                 options=options,
                 validationPattern=validation_pattern["pattern"] if validation_pattern else None,
-                semanticType=schema_type
+                semanticType=schema_type,
+                description=description,  # S001-NFR-008
             )
 
             # Generate SHACL metadata

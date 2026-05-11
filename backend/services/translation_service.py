@@ -104,14 +104,15 @@ Text to translate:
 
 Provide ONLY the translated text, no explanations."""
 
-            # Call Gemini for translation
-            translated = await gemini.generate_response(
-                prompt=prompt,
-                case_id=None,  # No case context needed for translation
-                folder_id=None,
-                document_content=None,
-                stream=False,
-                language='en'  # Respond in English for consistency
+            # S001-NFR-008: use generate_raw() — translation is a single-turn
+            # task, not chat. generate_response() would wrap the prompt in the
+            # chat system message and conversation history, which (a) wastes
+            # tokens, (b) makes small models add chat-style preamble to the
+            # translated output. Lower temperature for faithful translation.
+            translated = await gemini.generate_raw(
+                prompt,
+                temperature=0.2,
+                max_output_tokens=2048,
             )
 
             logger.info(f"Translated {len(text)} chars to {target_lang}")

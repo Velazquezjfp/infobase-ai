@@ -25,8 +25,51 @@ from backend.schemas import (
     get_xsd_datatype,
 )
 from backend.services.gemini_service import GeminiService
+from backend.utils.llm_output import (
+    JSON_ONLY_HEADER,
+    extract_json_from_llm_response,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def _extract_description_segment(prompt: str) -> Optional[str]:
+    """
+    S001-NFR-008: salvage a semantic-description segment from a user prompt
+    that contains both a field instruction and an explanation.
+
+    Heuristic: if the user wrote a multi-clause prompt (comma- or
+    period-separated), the trailing clause is usually the description.
+    Example: "Add a text field for passport number, an ID with digits only"
+    → "an ID with digits only"
+
+    Skips prompts where commas are separating option items
+    ("with options X, Y, Z" / "mit Optionen X, Y, Z") since those commas
+    are list separators, not clause separators.
+
+    Returns None if no plausible description segment is found.
+    """
+    if not prompt:
+        return None
+    # When the prompt is declaring options, the commas separate items, not
+    # clauses — a description would not be parsed correctly. Skip entirely.
+    if re.search(
+        r"\b(with options|mit optionen|with choices|options:|optionen:|choices:|auswahl(?:möglichkeiten)?:)\b",
+        prompt,
+        re.IGNORECASE,
+    ):
+        return None
+    if "," not in prompt and ". " not in prompt:
+        return None
+    # Split on first comma or first sentence boundary, take the remainder
+    for sep in [",", ". "]:
+        if sep in prompt:
+            _head, _, tail = prompt.partition(sep)
+            tail = tail.strip()
+            # Avoid trivial tails (single word fragments)
+            if len(tail) >= 15:
+                return tail
+    return None
 
 
 @dataclass
@@ -50,6 +93,10 @@ class FormFieldSpec:
     options: Optional[List[str]] = None
     required: bool = False
     shacl_metadata: Optional[Dict[str, Any]] = None
+    # S001-NFR-008: human-readable semantic description of what the field
+    # captures. Flows into shaclMetadata as `sh:description` and into the
+    # `/fillForm` extraction prompt as the field's Definition line.
+    description: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -68,7 +115,11 @@ class FormFieldSpec:
 
 
 # Prompt template for field generation
-FIELD_GENERATION_PROMPT = """You are an expert form field generator for a case management system.
+FIELD_GENERATION_PROMPT = (
+    JSON_ONLY_HEADER
+    + """
+
+You are an expert form field generator for a case management system.
 Analyze the user's natural language request and generate a form field specification.
 
 User Request: {prompt}
@@ -78,7 +129,8 @@ Generate a JSON response with the following structure:
     "label": "Human-readable field label",
     "type": "text|date|select|textarea",
     "required": true|false,
-    "options": ["option1", "option2"] // Only for select type
+    "options": ["option1", "option2"], // Only for select type, otherwise omit
+    "description": "Semantic explanation of what data this field captures"
 }}
 
 Rules:
@@ -90,9 +142,21 @@ Rules:
 6. Extract options from phrases like "with options X, Y, Z" or "choices: A, B, C"
 7. Generate a clear, professional label from the request
 8. Support both English and German prompts
+9. If the user explains what data the field captures (often after a comma, or as
+   a second sentence), extract that as the description. The description is the
+   field's *semantic intent* — it explains what the field MEANS, not just its
+   label. If the user provides no description, OMIT the description key.
 
-Return ONLY the JSON object, no explanations.
+Examples:
+- "Add a text field for passport number, the passport number is an ID with
+   only numbers accepted, usually 5-10 digits long"
+  → {{"label": "Passport Number", "type": "text", "required": false,
+       "description": "An identifier consisting of digits, usually 5-10 characters long."}}
+- "Add a required date field for visa expiry"
+  → {{"label": "Visa Expiry", "type": "date", "required": true}}
+  (no description provided by user → omit the key)
 """
+)
 
 
 class FieldGeneratorService:
@@ -136,16 +200,25 @@ class FieldGeneratorService:
             if field_spec is None:
                 # Fall back to AI-based generation
                 field_spec = await self._generate_with_ai(prompt)
+            elif field_spec.description is None:
+                # S001-NFR-008: rule-based path doesn't extract semantic
+                # descriptions reliably. If the user wrote a richer prompt
+                # (comma or sentence after the basic instruction), salvage
+                # the trailing segment as the description.
+                field_spec.description = _extract_description_segment(prompt)
 
             # Generate unique ID
             field_spec.id = self._generate_field_id(field_spec.label)
 
-            # Add SHACL metadata
+            # S001-NFR-008: forward description to SHACL metadata so the
+            # field's semantic intent is carried with the form and reaches
+            # /fillForm via sh:description in build_extraction_prompt.
             field_spec.shacl_metadata = build_field_context(
                 field_type=field_spec.type,
                 field_label=field_spec.label,
                 required=field_spec.required,
                 options=field_spec.options,
+                description=field_spec.description,
             )
 
             logger.info(
@@ -186,13 +259,22 @@ class FieldGeneratorService:
         # Detect required
         required = any(word in prompt_lower for word in ["required", "mandatory", "pflicht", "muss", "erforderlich"])
 
-        # Extract label - look for "for X" or "für X" patterns
+        # Extract label - look for "for X" or "für X" patterns.
+        # S001-NFR-008: character class excludes comma so descriptions after
+        # a comma do NOT get absorbed into the label. The trailing terminator
+        # group now also accepts comma to bound the match explicitly. The
+        # tail after the comma is recovered as `description` by the caller
+        # via _extract_description_segment.
+        # S001-NFR-008: terminator group includes the German separable-verb
+        # particle "hinzu" ("Füge X hinzu" = "Add X") — without it, the regex
+        # captures the particle as part of the label ("Die Passnummer Hinzu").
         label = None
+        TERMINATORS = r"(?:\s+with|\s+mit|\s+hinzu|,|$)"
         label_patterns = [
-            r"(?:field|feld)\s+(?:for|für)\s+['\"]?([^'\"]+?)['\"]?(?:\s+with|\s+mit|$)",
-            r"(?:add|hinzufügen|erstellen?)\s+(?:a\s+)?(?:\w+\s+)?(?:field|feld)?\s*(?:for|für)\s+['\"]?([^'\"]+?)['\"]?(?:\s+with|\s+mit|$)",
-            r"(?:dropdown|select|choice|auswahl)\s+(?:for|für)\s+['\"]?([^'\"]+?)['\"]?(?:\s+with|\s+mit|$)",
-            r"(?:date|datum)\s+(?:field|feld)?\s*(?:for|für)\s+['\"]?([^'\"]+?)['\"]?(?:\s+with|\s+mit|$)",
+            r"(?:field|feld)\s+(?:for|für)\s+['\"]?([^'\",]+?)['\"]?" + TERMINATORS,
+            r"(?:add|hinzufügen|erstellen?)\s+(?:a\s+)?(?:\w+\s+)?(?:field|feld)?\s*(?:for|für)\s+['\"]?([^'\",]+?)['\"]?" + TERMINATORS,
+            r"(?:dropdown|select|choice|auswahl)\s+(?:for|für)\s+['\"]?([^'\",]+?)['\"]?" + TERMINATORS,
+            r"(?:date|datum)\s+(?:field|feld)?\s*(?:for|für)\s+['\"]?([^'\",]+?)['\"]?" + TERMINATORS,
         ]
 
         for pattern in label_patterns:
@@ -205,9 +287,10 @@ class FieldGeneratorService:
 
         # If no label found with patterns, try to extract key noun phrase
         if not label:
-            # Simple extraction: take the main subject after "add" or similar
+            # Simple extraction: take the main subject after "add" or similar.
+            # Capture group also excludes commas so descriptions are not absorbed.
             simple_match = re.search(
-                r"(?:add|create|need|want|hinzufügen|erstellen|brauche)\s+(?:a\s+)?(?:required\s+)?(?:\w+\s+)?(?:field\s+)?(?:for\s+)?(.+?)(?:\s+with\s+options|\s+mit\s+optionen|$)",
+                r"(?:add|create|need|want|hinzufügen|erstellen|brauche)\s+(?:a\s+)?(?:required\s+)?(?:\w+\s+)?(?:field\s+)?(?:for\s+)?([^,]+?)(?:\s+with\s+options|\s+mit\s+optionen|,|$)",
                 prompt_lower
             )
             if simple_match:
@@ -267,20 +350,19 @@ class FieldGeneratorService:
         """
         full_prompt = FIELD_GENERATION_PROMPT.format(prompt=prompt)
 
-        response = await self._gemini_service.generate_response(
-            prompt=full_prompt,
-            stream=False
+        # S001-NFR-007: use generate_raw() to bypass format_response() which
+        # would convert valid JSON into a markdown table and break parsing.
+        response = await self._gemini_service.generate_raw(
+            full_prompt,
+            temperature=0.3,
+            max_output_tokens=1024,
         )
 
-        # Parse the JSON response
+        # Parse the JSON response via shared utility
         try:
-            # Clean up the response (remove markdown code blocks if present)
-            response_text = response.strip()
-            if response_text.startswith("```"):
-                response_text = re.sub(r'^```\w*\n?', '', response_text)
-                response_text = re.sub(r'\n?```$', '', response_text)
-
-            field_data = json.loads(response_text)
+            field_data = extract_json_from_llm_response(response, expect="object")
+            if field_data is None:
+                raise ValueError("AI response did not contain a JSON object")
 
             return FormFieldSpec(
                 id="",  # Will be generated
@@ -288,9 +370,10 @@ class FieldGeneratorService:
                 type=field_data.get("type", "text"),
                 required=field_data.get("required", False),
                 options=field_data.get("options"),
+                description=field_data.get("description"),
             )
 
-        except json.JSONDecodeError as e:
+        except (ValueError, json.JSONDecodeError) as e:
             logger.error(f"Failed to parse AI response: {response}")
             raise ValueError(f"Failed to parse AI response: {str(e)}")
 

@@ -60,6 +60,34 @@ interface MetadataField {
   options?: string[];
 }
 
+/**
+ * S001-NFR-008: keep the SHACL metadata in sync when a user renames a field,
+ * changes its type, or toggles required. Previously the inline edit handlers
+ * mutated only the top-level `label` / `type` / `required` and left
+ * `shaclMetadata.sh:name` / `sh:datatype` / `sh:minCount` stale — so the
+ * SHACL shape diverged from the visible form. We sync the obvious mirrors
+ * here; sh:path stays stable (it's the semantic anchor, mutating it would
+ * silently break extraction).
+ */
+function syncShaclMetadata<T extends { label: string; type: string; required: boolean; shaclMetadata?: Record<string, any> }>(field: T): T {
+  if (!field.shaclMetadata) return field;
+  const meta: Record<string, any> = { ...field.shaclMetadata };
+  meta['sh:name'] = field.label;
+  const xsdType: Record<string, string> = {
+    text: 'xsd:string',
+    textarea: 'xsd:string',
+    select: 'xsd:string',
+    date: 'xsd:date',
+  };
+  meta['sh:datatype'] = xsdType[field.type] || 'xsd:string';
+  if (field.required) {
+    meta['sh:minCount'] = 1;
+  } else {
+    delete meta['sh:minCount'];
+  }
+  return { ...field, shaclMetadata: meta };
+}
+
 export default function AdminConfigPanel() {
   const { setIsAdminMode, formFields, setFormFields, currentCase, refreshDocuments } = useApp();
   const { t, i18n } = useTranslation();
@@ -722,7 +750,7 @@ ${folderTemplates.map(f => `  - id: "${f.id}"
                   <div className="flex gap-2">
                     <div className="flex-1 space-y-1">
                       <Textarea
-                        placeholder='e.g., "Add a dropdown for marital status with options single, married, divorced"'
+                        placeholder={tc('aiPromptPlaceholder', 'e.g., "Add a text field for passport number, an ID with only digits, usually 5-10 characters long" — the part after the comma becomes the semantic description.')}
                         value={aiPrompt}
                         onChange={(e) => handleAiPromptChange(e.target.value)}
                         className="min-h-[60px] resize-none"
@@ -774,10 +802,10 @@ ${folderTemplates.map(f => `  - id: "${f.id}"
                   <div className="text-xs text-muted-foreground space-y-1">
                     <p className="font-medium">{t('admin.examplePrompts')}</p>
                     <ul className="list-disc list-inside space-y-0.5 pl-1">
-                      <li>{tc('examplePrompt1', '"Add a required text field for passport number"')}</li>
-                      <li>{tc('examplePrompt2', '"Create a date field for visa expiry date"')}</li>
+                      <li>{tc('examplePrompt1', '"Add a required text field for passport number, an identifier with only digits, usually 5-10 characters long"')}</li>
+                      <li>{tc('examplePrompt2', '"Create a date field for visa expiry date, the date the residence permit ceases to be valid"')}</li>
                       <li>{tc('examplePrompt3', '"Add dropdown for education level with options high school, bachelor, master, phd"')}</li>
-                      <li>{tc('examplePrompt4', '"I need a textarea for additional notes"')}</li>
+                      <li>{tc('examplePrompt4', '"I need a textarea for additional notes, free-form comments about the applicant"')}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -806,7 +834,7 @@ ${folderTemplates.map(f => `  - id: "${f.id}"
                         value={field.label}
                         onChange={(e) => {
                           setFormFields(formFields.map(f =>
-                            f.id === field.id ? { ...f, label: e.target.value } : f
+                            f.id === field.id ? syncShaclMetadata({ ...f, label: e.target.value }) : f
                           ));
                         }}
                         className="flex-1 h-8"
@@ -815,7 +843,7 @@ ${folderTemplates.map(f => `  - id: "${f.id}"
                         value={field.type}
                         onValueChange={(value: 'text' | 'textarea' | 'select' | 'date') => {
                           setFormFields(formFields.map(f =>
-                            f.id === field.id ? { ...f, type: value } : f
+                            f.id === field.id ? syncShaclMetadata({ ...f, type: value }) : f
                           ));
                         }}
                       >
@@ -835,7 +863,7 @@ ${folderTemplates.map(f => `  - id: "${f.id}"
                           checked={field.required}
                           onCheckedChange={(checked) => {
                             setFormFields(formFields.map(f =>
-                              f.id === field.id ? { ...f, required: checked } : f
+                              f.id === field.id ? syncShaclMetadata({ ...f, required: checked }) : f
                             ));
                           }}
                         />

@@ -399,17 +399,21 @@ async def handle_form_extraction(
         # Build extraction prompt
         extraction_prompt = build_extraction_prompt(document_text, form_schema)
 
-        # Get AI response with extracted data
-        # Pass case_id to load case-specific context for validation rules
-        ai_response = await gemini_service.generate_response(
-            prompt=extraction_prompt,
-            case_id=case_id,
-            document_content=None,  # Already included in prompt
-            stream=False  # Form extraction should not stream
+        # S001-NFR-007/008: generate_raw() bypasses format_response() (which
+        # would table-ify the JSON). temperature=0.1 keeps the model close to
+        # the document — higher temps let the model "creatively" fill fields
+        # with priors like "1990-01-01" when the document has no date.
+        ai_response = await gemini_service.generate_raw(
+            extraction_prompt,
+            temperature=0.1,
+            max_output_tokens=2048,
         )
 
-        # Parse the extraction result (S5-002: with current_values for comparison)
-        result = parse_extraction_result(ai_response, form_schema, current_values)
+        # S001-NFR-008: pass document_text through so parse_extraction_result
+        # can drop hallucinated fields (any value not grounded in the source).
+        result = parse_extraction_result(
+            ai_response, form_schema, current_values, document_text=document_text
+        )
 
         # S5-002: Check if we have categorized results (suggestions mode)
         if "suggestions" in result:

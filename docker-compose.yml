@@ -22,6 +22,10 @@ services:
     environment:
       LITELLM_PROXY_URL: "http://host.docker.internal:4000"
       DOCUMENTS_PATH: "/var/app/documents"
+      # S001-NFR-008: enable per-case conversation history so chat feels
+      # continuous (was off by default in config.py). Override to "false"
+      # in your local env if you want to A/B test without history.
+      ENABLE_CHAT_HISTORY: "true"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

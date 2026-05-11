@@ -3,12 +3,12 @@
   "caseId": "ACTE-2024-001",
   "caseType": "integration_course",
   "name": "German Integration Course Application",
-  "description": "Integration course application for Ahmad Ali. Process includes eligibility verification, document collection, course assignment, and completion tracking per BAMF requirements.",
+  "description": "Integration course application process per BAMF requirements. Includes eligibility verification, document collection, course assignment, and completion tracking.",
   "applicant": {
-    "name": "Ahmad Ali",
-    "dateOfBirth": "1990-05-15",
-    "nationality": "Afghanistan",
-    "currentStatus": "Refugee with residence permit"
+    "name": "{{APPLICANT_NAME}}",
+    "dateOfBirth": "{{DATE_OF_BIRTH}}",
+    "nationality": "{{NATIONALITY}}",
+    "currentStatus": "{{STATUS}}"
   },
   "regulations": [
     {
@@ -84,8 +84,17 @@
       "documentType": "birth_certificate",
       "description": "Official birth certificate from country of origin showing full name, date and place of birth, and parents' names",
       "criticality": "critical",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["must_be_certified", "certified_translation_if_foreign", "max_age_6_months_for_copy"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "must_be_certified",
+        "certified_translation_if_foreign",
+        "max_age_6_months_for_copy"
+      ],
       "notes": "Must be an official certified copy. If in foreign language, certified German translation by sworn translator (beeidigter Übersetzer) required. Copy should be issued within last 6 months."
     },
     {
@@ -93,8 +102,17 @@
       "documentType": "passport",
       "description": "Valid national passport showing photo, personal data, and validity dates",
       "criticality": "critical",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["valid_not_expired", "all_pages_legible", "photo_page_required"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "valid_not_expired",
+        "all_pages_legible",
+        "photo_page_required"
+      ],
       "notes": "Must be valid for at least 6 months beyond course start date. All pages must be legible. Photo page must be clearly visible."
     },
     {
@@ -102,8 +120,17 @@
       "documentType": "residence_permit",
       "description": "Current valid German residence permit showing permit type, validity period, and permitted activities",
       "criticality": "critical",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["current_valid_permit", "permit_type_eligible_for_integration", "address_matches_registration"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "current_valid_permit",
+        "permit_type_eligible_for_integration",
+        "address_matches_registration"
+      ],
       "notes": "Must be valid for duration of integration course. Eligible permit types include: recognized refugee status, humanitarian protection, family reunification, permanent residence. Address must match registration certificate."
     },
     {
@@ -111,8 +138,17 @@
       "documentType": "registration_certificate",
       "description": "Official registration certificate (Meldebescheinigung) from local registration office showing current address",
       "criticality": "critical",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["current_address", "issued_within_3_months", "official_stamp_required"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "current_address",
+        "issued_within_3_months",
+        "official_stamp_required"
+      ],
       "notes": "Must be issued within last 3 months. Must bear official stamp (Dienstsiegel) of registration office (Bürgeramt/Einwohnermeldeamt). Address must match residence permit."
     },
     {
@@ -120,8 +156,17 @@
       "documentType": "language_certificate",
       "description": "Language certificate from recognized institution showing current German proficiency level (CEFR)",
       "criticality": "optional",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["recognized_institution", "cefr_level_specified", "within_validity_period"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "recognized_institution",
+        "cefr_level_specified",
+        "within_validity_period"
+      ],
       "notes": "Accepted institutions: Goethe-Institut, telc, TestDaF, ÖSD. Certificate should specify CEFR level (A1-C2). Used for course placement. Optional but helps determine appropriate course level."
     },
     {
@@ -129,8 +174,16 @@
       "documentType": "employment_certificate",
       "description": "Employment certificate from current employer showing employment status, working hours, and position",
       "criticality": "optional",
-      "acceptedFormats": ["pdf", "doc", "docx"],
-      "validationRules": ["current_employer", "job_type_specified", "working_hours_stated"],
+      "acceptedFormats": [
+        "pdf",
+        "doc",
+        "docx"
+      ],
+      "validationRules": [
+        "current_employer",
+        "job_type_specified",
+        "working_hours_stated"
+      ],
       "notes": "Required if employed and seeking part-time or evening course. Must show working hours to determine suitable course schedule."
     },
     {
@@ -138,8 +191,17 @@
       "documentType": "social_benefits_notice",
       "description": "Current benefits notice from Jobcenter or Social Services showing benefit type and amount",
       "criticality": "optional",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["current_benefit_status", "benefit_type_identified", "issuing_authority_verified"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "current_benefit_status",
+        "benefit_type_identified",
+        "issuing_authority_verified"
+      ],
       "notes": "Required for cost exemption (Kostenbeitragsbefreiung). Accepted benefits: ALG II (Arbeitslosengeld II), Sozialhilfe, Leistungen nach AsylbLG. Must be current (dated within last 3 months)."
     },
     {
@@ -147,8 +209,15 @@
       "documentType": "health_insurance_card",
       "description": "Valid German health insurance card (gesetzlich or privat)",
       "criticality": "critical",
-      "acceptedFormats": ["jpg", "jpeg", "png"],
-      "validationRules": ["valid_insurance", "coverage_period_current"],
+      "acceptedFormats": [
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "valid_insurance",
+        "coverage_period_current"
+      ],
       "notes": "Both statutory (gesetzlich) and private (privat) health insurance accepted. Card must show current validity. Required to enroll in course."
     },
     {
@@ -156,8 +225,16 @@
       "documentType": "passport_photo",
       "description": "Recent biometric passport photo meeting official standards",
       "criticality": "critical",
-      "acceptedFormats": ["jpg", "jpeg", "png"],
-      "validationRules": ["biometric_standards", "recent_within_6_months", "white_background"],
+      "acceptedFormats": [
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "biometric_standards",
+        "recent_within_6_months",
+        "white_background"
+      ],
       "notes": "Must be taken within last 6 months. Specifications: 35x45mm, neutral facial expression, white/light gray background, no head covering (religious exceptions allowed), front-facing view."
     },
     {
@@ -165,8 +242,15 @@
       "documentType": "integration_course_application_form",
       "description": "Completed BAMF application form for integration course admission (Form 630.007w)",
       "criticality": "critical",
-      "acceptedFormats": ["pdf"],
-      "validationRules": ["all_fields_completed", "signature_present", "date_current", "course_preference_indicated"],
+      "acceptedFormats": [
+        "pdf"
+      ],
+      "validationRules": [
+        "all_fields_completed",
+        "signature_present",
+        "date_current",
+        "course_preference_indicated"
+      ],
       "notes": "Official BAMF form 630.007w must be used. All sections must be completed legibly. Must include applicant signature and current date. Course preferences (location, time, type) should be indicated."
     },
     {
@@ -174,8 +258,17 @@
       "documentType": "previous_course_certificates",
       "description": "Certificates from any previously attended German language or integration courses",
       "criticality": "optional",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["accredited_provider", "completion_status_clear", "hours_documented"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "accredited_provider",
+        "completion_status_clear",
+        "hours_documented"
+      ],
       "notes": "Include if applicant previously attended integration courses, German language courses, or orientation courses. Must show: course provider, course type, hours attended, completion status or reason for discontinuation."
     },
     {
@@ -183,8 +276,14 @@
       "documentType": "referral_letter",
       "description": "Official referral or obligation letter from immigration office (Ausländerbehörde) or Jobcenter",
       "criticality": "optional",
-      "acceptedFormats": ["pdf"],
-      "validationRules": ["official_authority", "reason_specified", "valid_date"],
+      "acceptedFormats": [
+        "pdf"
+      ],
+      "validationRules": [
+        "official_authority",
+        "reason_specified",
+        "valid_date"
+      ],
       "notes": "Required only if obligated to attend per §44 AufenthG. Must be issued by competent authority (Ausländerbehörde, Jobcenter, or BAMF). Must specify reason for obligation and deadline for enrollment."
     },
     {
@@ -192,8 +291,16 @@
       "documentType": "marriage_certificate",
       "description": "Official marriage certificate if applicant is married",
       "criticality": "optional",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["must_be_certified", "certified_translation_if_foreign"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "must_be_certified",
+        "certified_translation_if_foreign"
+      ],
       "notes": "Required if marital status relevant for case (e.g., family reunification context, spouse also attending). Must be certified copy with German translation if in foreign language."
     },
     {
@@ -201,8 +308,16 @@
       "documentType": "children_birth_certificates",
       "description": "Birth certificates of dependent children if relevant for childcare considerations",
       "criticality": "optional",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["must_be_certified", "certified_translation_if_foreign"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "must_be_certified",
+        "certified_translation_if_foreign"
+      ],
       "notes": "Required for parent/women courses with childcare component. Helps determine need for courses with childcare provision or flexible scheduling."
     },
     {
@@ -210,8 +325,16 @@
       "documentType": "education_certificates",
       "description": "Educational certificates showing completed education levels (school, vocational, university)",
       "criticality": "optional",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["certified_copy", "certified_translation_if_foreign"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "certified_copy",
+        "certified_translation_if_foreign"
+      ],
       "notes": "Helps determine appropriate course level. Particularly important for literacy course assessment. Shows whether applicant literate in native language. German translation required for foreign certificates."
     },
     {
@@ -219,8 +342,14 @@
       "documentType": "medical_certificate",
       "description": "Medical certificate documenting health conditions, disabilities, or need for accommodations",
       "criticality": "optional",
-      "acceptedFormats": ["pdf"],
-      "validationRules": ["issued_by_licensed_doctor", "current_within_3_months", "specific_limitations_noted"],
+      "acceptedFormats": [
+        "pdf"
+      ],
+      "validationRules": [
+        "issued_by_licensed_doctor",
+        "current_within_3_months",
+        "specific_limitations_noted"
+      ],
       "notes": "Required if applicant needs special accommodations (wheelchair access, hearing assistance, visual aids) or has medical reasons for course modifications. Must be from licensed German doctor, dated within 3 months."
     },
     {
@@ -228,8 +357,16 @@
       "documentType": "childcare_proof",
       "description": "Proof of childcare arrangements during course hours (Kita-Platz, Tagesmutter)",
       "criticality": "optional",
-      "acceptedFormats": ["pdf", "jpg", "jpeg", "png"],
-      "validationRules": ["facility_contact_info", "care_hours_specified"],
+      "acceptedFormats": [
+        "pdf",
+        "jpg",
+        "jpeg",
+        "png"
+      ],
+      "validationRules": [
+        "facility_contact_info",
+        "care_hours_specified"
+      ],
       "notes": "Important for scheduling. Shows feasibility of course attendance. Alternatively, inquire about courses with integrated childcare (Frauenkurse/Elternkurse mit Kinderbetreuung)."
     }
   ],
@@ -482,7 +619,15 @@
   ],
   "processingGuidelines": {
     "standardProcessingTime": "4 weeks from complete application",
-    "priorityCategories": ["obligation_referral", "employment_start", "family_reunification"],
-    "escalationTriggers": ["missing_documents_after_reminder", "eligibility_unclear", "previous_course_issues"]
+    "priorityCategories": [
+      "obligation_referral",
+      "employment_start",
+      "family_reunification"
+    ],
+    "escalationTriggers": [
+      "missing_documents_after_reminder",
+      "eligibility_unclear",
+      "previous_course_issues"
+    ]
   }
 }

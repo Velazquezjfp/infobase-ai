@@ -479,75 +479,110 @@ class ContextManager:
         self,
         case_ctx: Optional[Dict[str, Any]],
         folder_ctx: Optional[Dict[str, Any]],
-        doc_ctx: Optional[str]
+        doc_ctx: Optional[str],
+        language: str = 'de',
     ) -> str:
         """
         Merge case, folder, and document contexts into AI prompt string.
 
-        Combines three levels of context hierarchy for AI agent:
-        1. Case-level: Regulations, required documents, validation rules
-        2. Folder-level: Expected documents, validation criteria
-        3. Document-level: Actual document content
-
-        Precedence: Document > Folder > Case
+        S001-NFR-008 changes:
+          - Localized section headers and labels (was English-only, now de/en).
+          - Added applicant block (was silently dropped from case.json).
+          - doc_ctx may be None — chat flow handles document content in the
+            current user turn now, not in the merged system context.
 
         Args:
-            case_ctx (Optional[Dict[str, Any]]): Case context dictionary
-            folder_ctx (Optional[Dict[str, Any]]): Folder context dictionary
-            doc_ctx (Optional[str]): Document content string
+            case_ctx: Case context dictionary (may include `applicant` block).
+            folder_ctx: Folder context dictionary.
+            doc_ctx: Document content string. Pass None in chat flows where
+                document content goes in the user message instead.
+            language: 'de' or 'en' — controls structural labels (the case data
+                content itself stays in whatever language it was stored in).
 
         Returns:
-            str: Formatted context string for AI prompt with clear sections
-                for case information, folder validation, and document content
-
-        Example:
-            >>> merged = context_manager.merge_contexts(
-            ...     case_ctx={"caseType": "integration_course", ...},
-            ...     folder_ctx={"folderId": "personal-data", ...},
-            ...     doc_ctx="Birth Certificate: Ahmad Ali..."
-            ... )
-            >>> print(merged)
-            # Returns formatted multi-line context string
+            str: Formatted context string.
         """
+        is_de = (language == 'de')
+
+        # Localized labels
+        LBL = {
+            'case_header':    "=== AKTEN-KONTEXT ===" if is_de else "=== CASE CONTEXT ===",
+            'case_id':        "Akten-ID"           if is_de else "Case ID",
+            'case_type':      "Akten-Typ"          if is_de else "Case Type",
+            'case_name':      "Akten-Name"         if is_de else "Case Name",
+            'applicant':      "Antragsteller"      if is_de else "Applicant",
+            'name':           "Name"               if is_de else "Name",
+            'dob':            "Geburtsdatum"       if is_de else "Date of Birth",
+            'nationality':    "Nationalität"       if is_de else "Nationality",
+            'status':         "Aktueller Status"   if is_de else "Current Status",
+            'regulations':    "Anwendbare Vorschriften:" if is_de else "Applicable Regulations:",
+            'required_docs':  "Erforderliche Dokumente"  if is_de else "Required Documents",
+            'mandatory_types':"verpflichtende Arten"     if is_de else "mandatory types",
+            'val_rules':      "Wichtige Prüfregeln:"     if is_de else "Key Validation Rules:",
+            'folder_header':  "=== ORDNER-KONTEXT ===" if is_de else "=== FOLDER CONTEXT ===",
+            'folder':         "Ordner"             if is_de else "Folder",
+            'purpose':        "Zweck"              if is_de else "Purpose",
+            'expected_docs':  "Erwartete Dokumente:" if is_de else "Expected Documents:",
+            'val_criteria':   "Prüfkriterien:"     if is_de else "Validation Criteria:",
+            'doc_header':     "=== DOKUMENTINHALT ===" if is_de else "=== DOCUMENT CONTENT ===",
+        }
+
         context_parts = []
 
-        # Case-level context
+        # ---------- Case-level ----------
         if case_ctx:
             case_section = [
-                "=== CASE CONTEXT ===",
-                f"Case ID: {case_ctx.get('caseId', 'Unknown')}",
-                f"Case Type: {case_ctx.get('caseType', 'Unknown')}",
-                f"Case Name: {case_ctx.get('name', 'Unknown')}",
-                ""
+                LBL['case_header'],
+                f"{LBL['case_id']}: {case_ctx.get('caseId', 'Unknown')}",
+                f"{LBL['case_type']}: {case_ctx.get('caseType', 'Unknown')}",
+                f"{LBL['case_name']}: {case_ctx.get('name', 'Unknown')}",
+                "",
             ]
 
-            # Add regulations summary
-            if 'regulations' in case_ctx and case_ctx['regulations']:
-                case_section.append("Applicable Regulations:")
-                for reg in case_ctx['regulations'][:5]:  # Top 5 regulations
+            # S001-NFR-008 win D: applicant block (was missing)
+            applicant = case_ctx.get('applicant') or {}
+            applicant_lines = []
+            for key, lbl in (
+                ('name', LBL['name']),
+                ('dateOfBirth', LBL['dob']),
+                ('nationality', LBL['nationality']),
+                ('currentStatus', LBL['status']),
+            ):
+                value = applicant.get(key)
+                # Skip unresolved {{TEMPLATE}} placeholders and empty values
+                if value and not (isinstance(value, str) and value.startswith('{{')):
+                    applicant_lines.append(f"  - {lbl}: {value}")
+            if applicant_lines:
+                case_section.append(f"{LBL['applicant']}:")
+                case_section.extend(applicant_lines)
+                case_section.append("")
+
+            # Regulations (top 5)
+            if case_ctx.get('regulations'):
+                case_section.append(LBL['regulations'])
+                for reg in case_ctx['regulations'][:5]:
                     case_section.append(
-                        f"  - {reg.get('id', 'N/A')}: "
-                        f"{reg.get('title', 'N/A')}"
+                        f"  - {reg.get('id', 'N/A')}: {reg.get('title', 'N/A')}"
                     )
                 case_section.append("")
 
-            # Add required documents summary
+            # Required documents count
             if 'requiredDocuments' in case_ctx:
                 mandatory_docs = [
-                    doc for doc in case_ctx['requiredDocuments']
-                    if doc.get('mandatory', False)
+                    d for d in case_ctx['requiredDocuments']
+                    if d.get('mandatory', False)
                 ]
                 if mandatory_docs:
                     case_section.append(
-                        f"Required Documents: "
-                        f"{len(mandatory_docs)} mandatory types"
+                        f"{LBL['required_docs']}: "
+                        f"{len(mandatory_docs)} {LBL['mandatory_types']}"
                     )
                     case_section.append("")
 
-            # Add validation rules summary
-            if 'validationRules' in case_ctx and case_ctx['validationRules']:
-                case_section.append("Key Validation Rules:")
-                for rule in case_ctx['validationRules'][:3]:  # Top 3 rules
+            # Validation rules (top 3)
+            if case_ctx.get('validationRules'):
+                case_section.append(LBL['val_rules'])
+                for rule in case_ctx['validationRules'][:3]:
                     case_section.append(
                         f"  - {rule.get('rule_id', 'N/A')}: "
                         f"{rule.get('condition', 'N/A')}"
@@ -556,25 +591,27 @@ class ContextManager:
 
             context_parts.append("\n".join(case_section))
 
-        # Folder-level context
+        # ---------- Folder-level ----------
         if folder_ctx:
             folder_section = [
-                "=== FOLDER CONTEXT ===",
-                f"Folder: {folder_ctx.get('folderName', 'Unknown')}",
-                f"Purpose: {folder_ctx.get('purpose', 'N/A')}",
-                ""
+                LBL['folder_header'],
+                f"{LBL['folder']}: {folder_ctx.get('folderName', 'Unknown')}",
+                f"{LBL['purpose']}: {folder_ctx.get('purpose', 'N/A')}",
+                "",
             ]
 
-            # Add expected documents
-            if 'expectedDocuments' in folder_ctx:
-                folder_section.append("Expected Documents:")
-                for doc_type in folder_ctx['expectedDocuments']:
-                    folder_section.append(f"  - {doc_type}")
+            # S001-NFR-008: render expected_docs as a single inline sentence
+            # (not a bullet list) so it doesn't visually parallel the actual
+            # document list above — otherwise small models enumerate both.
+            if folder_ctx.get('expectedDocuments'):
+                folder_section.append(
+                    f"{LBL['expected_docs']} "
+                    f"{', '.join(folder_ctx['expectedDocuments'])}."
+                )
                 folder_section.append("")
 
-            # Add validation criteria
-            if 'validationCriteria' in folder_ctx:
-                folder_section.append("Validation Criteria:")
+            if folder_ctx.get('validationCriteria'):
+                folder_section.append(LBL['val_criteria'])
                 for criterion in folder_ctx['validationCriteria']:
                     folder_section.append(
                         f"  - {criterion.get('criterionId', 'N/A')}: "
@@ -584,20 +621,17 @@ class ContextManager:
 
             context_parts.append("\n".join(folder_section))
 
-        # Document-level context
+        # ---------- Document content ----------
+        # NOTE: chat flow passes doc_ctx=None and includes document content in
+        # the current user turn instead — only legacy/validation callers still
+        # use this path. (S001-NFR-008 win B)
         if doc_ctx:
-            doc_section = [
-                "=== DOCUMENT CONTENT ===",
-                doc_ctx,
-                ""
-            ]
-            context_parts.append("\n".join(doc_section))
+            context_parts.append("\n".join([LBL['doc_header'], doc_ctx, ""]))
 
-        # Combine all context parts
         merged_context = "\n".join(context_parts)
 
         logger.info(
-            f"Merged context: "
+            f"Merged context (lang={language}): "
             f"case={'present' if case_ctx else 'absent'}, "
             f"folder={'present' if folder_ctx else 'absent'}, "
             f"document={'present' if doc_ctx else 'absent'}"
@@ -1054,79 +1088,40 @@ def generate_document_tree(case_id: str) -> str:
                 except Exception as e:
                     logger.warning(f"Could not load folder name from {folder_file}: {e}")
 
-        # Build tree text representation
-        tree_lines = [f"Case: {case_id}"]
-
+        # S001-NFR-008: flat list, NOT a nested ASCII tree.
+        # Reason: nested trees with `├── Personal Data/` lines made small models
+        # treat folder names as documents in their own right. The output then
+        # duplicated items ("Emails" as folder, "Email" as file → listed both).
+        # A flat one-doc-per-line list with the folder in brackets makes the
+        # distinction unambiguous: documents are documents, folders are labels.
         folders = tree_data.get('folders', [])
         root_documents = tree_data.get('rootDocuments', [])
 
-        # Count total items (folders + root documents)
-        total_items = len(folders) + len(root_documents)
-        current_item = 0
-
-        # Add folders with their documents
+        list_lines = []
         for folder in folders:
-            current_item += 1
-            is_last_item = (current_item == total_items)
-
             folder_id = folder.get('id')
             folder_display_name = folder_names.get(folder_id, folder_id)
             folder_docs = folder.get('documents', [])
+            for doc in folder_docs:
+                doc_name = doc.get('fileName', 'Unknown')
+                renders = doc.get('renders', [])
+                additional_renders = [r for r in renders if r.get('type') != 'original']
+                render_note = (
+                    f" (+{len(additional_renders)} weitere Versionen)"
+                    if additional_renders else ""
+                )
+                list_lines.append(
+                    f"  - {doc_name}{render_note}  [Ordner: {folder_display_name}]"
+                )
 
-            # Folder line
-            prefix = "└──" if is_last_item else "├──"
-            if len(folder_docs) == 0:
-                tree_lines.append(f"{prefix} {folder_display_name}/ (empty)")
-            else:
-                tree_lines.append(f"{prefix} {folder_display_name}/")
-
-                # Add documents in folder
-                for doc_idx, doc in enumerate(folder_docs):
-                    is_last_doc = (doc_idx == len(folder_docs) - 1)
-                    doc_name = doc.get('fileName', 'Unknown')
-                    renders = doc.get('renders', [])
-
-                    # Filter renders to only show non-original (anonymized, translated, etc.)
-                    additional_renders = [r for r in renders if r.get('type') != 'original']
-                    has_additional_renders = len(additional_renders) > 0
-
-                    # Determine the prefix for the document
-                    if is_last_item:
-                        # Last folder, use spaces
-                        doc_prefix = "    └──" if is_last_doc else "    ├──"
-                        render_continuation = "    " if is_last_doc else "    │"
-                    else:
-                        # Not last folder, use vertical bar continuation
-                        doc_prefix = "│   └──" if is_last_doc else "│   ├──"
-                        render_continuation = "│   " if is_last_doc else "│   │"
-
-                    # Show document with render count if has additional renders
-                    if has_additional_renders:
-                        tree_lines.append(f"{doc_prefix} {doc_name} [+{len(additional_renders)} render(s)]")
-                        # Add each render under the document
-                        for render_idx, render in enumerate(additional_renders):
-                            is_last_render = (render_idx == len(additional_renders) - 1)
-                            render_type = render.get('type', 'unknown')
-                            render_name = render.get('name', 'Unknown')
-                            render_prefix = f"{render_continuation}   └──" if is_last_render else f"{render_continuation}   ├──"
-                            tree_lines.append(f"{render_prefix} [{render_type}] {render_name}")
-                    else:
-                        tree_lines.append(f"{doc_prefix} {doc_name}")
-
-        # Add root documents (documents not in any folder)
         for root_doc in root_documents:
-            current_item += 1
-            is_last_item = (current_item == total_items)
-
             doc_name = root_doc.get('fileName', 'Unknown')
-            prefix = "└──" if is_last_item else "├──"
-            tree_lines.append(f"{prefix} {doc_name}")
+            list_lines.append(f"  - {doc_name}  [Ordner: —]")
 
-        # If no folders and no documents
-        if total_items == 0:
-            tree_lines.append("└── (empty)")
-
-        tree_text = "\n".join(tree_lines)
+        if not list_lines:
+            tree_text = f"(Akte {case_id}: keine Dokumente vorhanden)"
+        else:
+            tree_text = "\n".join(list_lines)
 
         # Cache the result
         _tree_view_cache[case_id] = (tree_text, datetime.now(timezone.utc))

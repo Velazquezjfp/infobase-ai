@@ -341,10 +341,11 @@
       "shaclDialogTitle": "SHACL-Form - Formularkonfiguration",
       "shaclDialogDescription": "JSON-LD-Darstellung der SHACL-Form mit semantischer Validierung",
       "optionsPlaceholder": "Option 1, Option 2, Option 3",
-      "examplePrompt1": "\"Füge ein erforderliches Textfeld für die Passnummer hinzu\"",
-      "examplePrompt2": "\"Erstelle ein Datumsfeld für das Visum-Ablaufdatum\"",
+      "aiPromptPlaceholder": "z.B. \"Füge ein Textfeld für die Passnummer hinzu, die Passnummer ist eine Kennung mit nur Ziffern, üblicherweise 5–10 Zeichen lang\" — die Erklärung nach dem Komma wird zur semantischen Beschreibung.",
+      "examplePrompt1": "\"Füge ein erforderliches Textfeld für die Passnummer hinzu, eine Kennung mit nur Ziffern, üblicherweise 5–10 Zeichen lang\"",
+      "examplePrompt2": "\"Erstelle ein Datumsfeld für das Visum-Ablaufdatum, das Datum, an dem der Aufenthaltstitel seine Gültigkeit verliert\"",
       "examplePrompt3": "\"Füge ein Dropdown für Bildungsniveau mit Optionen Abitur, Bachelor, Master, Promotion hinzu\"",
-      "examplePrompt4": "\"Ich brauche ein Textbereich für zusätzliche Notizen\"",
+      "examplePrompt4": "\"Ich brauche ein Textbereich für zusätzliche Notizen, freie Anmerkungen zum Antragsteller\"",
       "copiedToClipboard": "In Zwischenablage kopiert",
       "shaclCopiedSuccess": "SHACL-Form erfolgreich kopiert"
     }

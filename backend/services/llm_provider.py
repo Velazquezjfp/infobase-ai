@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 from backend.config import (
     GEMINI_API_KEY,
@@ -55,6 +55,25 @@ class LLMProvider(ABC):
         self, prompt: str, **kwargs: Any
     ) -> AsyncIterator[str]:
         """Yield text chunks as they arrive from the model."""
+
+    @abstractmethod
+    async def generate_chat(
+        self, messages: List[Dict[str, str]], **kwargs: Any
+    ) -> str:
+        """Return the full completion for a multi-turn chat request.
+
+        S001-NFR-008: Accepts the OpenAI-style messages list:
+            [{"role": "system"|"user"|"assistant", "content": "..."}, ...]
+        Each provider translates to its own backend format (OpenAI passthrough
+        for LiteLLM; user/model role mapping for Gemini). This is the proper
+        format for chat — providers' underlying chat templates depend on it.
+        """
+
+    @abstractmethod
+    async def generate_chat_streaming(
+        self, messages: List[Dict[str, str]], **kwargs: Any
+    ) -> AsyncIterator[str]:
+        """Streaming variant of generate_chat."""
 
     @abstractmethod
     def is_initialized(self) -> bool:
@@ -144,6 +163,45 @@ class LiteLLMProvider(LLMProvider):
             if content:
                 yield content
 
+    async def generate_chat(
+        self, messages: List[Dict[str, str]], **kwargs: Any
+    ) -> str:
+        """OpenAI-format messages pass straight through to LiteLLM."""
+        import litellm
+
+        params = self._map_kwargs(kwargs)
+        response = await litellm.acompletion(
+            model=self._litellm_model,
+            api_base=self._proxy_url,
+            api_key=self._token or "sk-no-key",
+            messages=messages,
+            **params,
+        )
+        return response["choices"][0]["message"]["content"] or ""
+
+    async def generate_chat_streaming(
+        self, messages: List[Dict[str, str]], **kwargs: Any
+    ) -> AsyncIterator[str]:
+        import litellm
+
+        params = self._map_kwargs(kwargs)
+        stream = await litellm.acompletion(
+            model=self._litellm_model,
+            api_base=self._proxy_url,
+            api_key=self._token or "sk-no-key",
+            messages=messages,
+            stream=True,
+            **params,
+        )
+        async for chunk in stream:
+            try:
+                delta = chunk["choices"][0]["delta"]
+            except (KeyError, IndexError, TypeError):
+                continue
+            content = delta.get("content") if isinstance(delta, dict) else getattr(delta, "content", None)
+            if content:
+                yield content
+
 
 class GeminiProvider(LLMProvider):
     """Wraps google.generativeai. Imported lazily so the internal path stays
@@ -191,6 +249,65 @@ class GeminiProvider(LLMProvider):
         config = self._build_config(kwargs)
         stream = self._model.generate_content(
             prompt, generation_config=config, stream=True
+        )
+        for chunk in stream:
+            text = getattr(chunk, "text", None)
+            if text:
+                yield text
+
+    @staticmethod
+    def _to_gemini_messages(messages: List[Dict[str, str]]) -> tuple:
+        """Translate OpenAI-format messages to Gemini's (system_instruction, contents).
+
+        - `system` messages → concatenated into a single system_instruction
+        - `user` / `assistant` messages → contents list with role mapped:
+          "assistant" → "model" (Gemini's naming convention)
+        """
+        system_parts = []
+        contents = []
+        for msg in messages:
+            role = msg.get("role")
+            content = msg.get("content", "")
+            if role == "system":
+                system_parts.append(content)
+            elif role == "user":
+                contents.append({"role": "user", "parts": [content]})
+            elif role == "assistant":
+                contents.append({"role": "model", "parts": [content]})
+        system_instruction = "\n".join(system_parts) if system_parts else None
+        return system_instruction, contents
+
+    async def generate_chat(
+        self, messages: List[Dict[str, str]], **kwargs: Any
+    ) -> str:
+        config = self._build_config(kwargs)
+        system_instruction, contents = self._to_gemini_messages(messages)
+        # Recreate model with system_instruction if present (Gemini binds
+        # system at model construction; this is the documented pattern).
+        model = (
+            self._genai.GenerativeModel(
+                "gemini-2.5-flash", system_instruction=system_instruction
+            )
+            if system_instruction
+            else self._model
+        )
+        response = model.generate_content(contents, generation_config=config)
+        return response.text or ""
+
+    async def generate_chat_streaming(
+        self, messages: List[Dict[str, str]], **kwargs: Any
+    ) -> AsyncIterator[str]:
+        config = self._build_config(kwargs)
+        system_instruction, contents = self._to_gemini_messages(messages)
+        model = (
+            self._genai.GenerativeModel(
+                "gemini-2.5-flash", system_instruction=system_instruction
+            )
+            if system_instruction
+            else self._model
+        )
+        stream = model.generate_content(
+            contents, generation_config=config, stream=True
         )
         for chunk in stream:
             text = getattr(chunk, "text", None)
